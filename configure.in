@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([qico], [0.50si-cvs], [sisoft@bk.ru])
-AM_INIT_AUTOMAKE([qico],[0.50si-cvs])
-AC_REVISION([$Id: configure.in,v 1.7 2003/10/06 13:37:26 sisoft Exp $])
+AC_INIT([qico], [0.51si-cvs], [sisoft@bk.ru])
+AM_INIT_AUTOMAKE([qico],[0.51si-cvs])
+AC_REVISION([$Id: configure.in,v 1.8 2004/01/15 23:39:40 sisoft Exp $])
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
@@ -102,8 +102,8 @@ AC_CHECK_FUNCS([gethostbyname],,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNCS([getservbyname],,[AC_CHECK_LIB(socket,getservbyname)])
 AC_CHECK_FUNCS([inet_addr],,[AC_CHECK_LIB(nsl,inet_addr)])
 AC_CHECK_FUNCS([inet_ntoa],,[AC_CHECK_LIB(nsl,inet_ntoa)])
-AC_CHECK_FUNCS([shutdown])
 AC_CHECK_FUNCS([connect],,[AC_CHECK_LIB(nsl,connect)])
+AC_CHECK_FUNCS([bind listen accept shutdown recv send])
 
 dnl Checking for config path
 AC_MSG_CHECKING([for config path])

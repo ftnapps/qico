@@ -1,8 +1,6 @@
 /**********************************************************
- * File: headers.h
- * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.12 2001/05/29 19:13:33 lev Exp $
+ * $Id: headers.h,v 1.3 2004/01/15 23:39:41 sisoft Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -59,3 +57,4 @@
 #include "mailer.h"
 #include "globals.h"
 #include "ver.h"
+#include "qipc.h"

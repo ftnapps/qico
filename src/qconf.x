@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.11 2004/01/10 09:24:40 sisoft Exp $
+#* $Id: qconf.x,v 1.12 2004/01/15 23:39:41 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -51,7 +51,6 @@ htxwin,C_INT,int,0,"0"
 ignorenrq,C_YESNO,int,0,"no"
 immonflavors,C_STR,char *,0,"CI"
 inbound,C_PATH,char *,1,NULL
-ipcperm,C_OCT,int,0,"666"
 jrxwin,C_INT,int,0,"0"
 jtxwin,C_INT,int,0,"0"
 killbadpkt,C_YESNO,int,0,"no"
@@ -107,6 +106,7 @@ rootdir,C_PATH,char *,0,NULL
 runonchat,C_STR,char *,0,NULL
 runonemsi,C_STR,char *,0,NULL
 sendonly,C_YESNO,int,0,"no"
+server,C_STR,char *,0,NULL
 showintro,C_YESNO,int,0,"yes"
 showpkt,C_YESNO,int,0,"no"
 speed,C_INT,int,0,"300"

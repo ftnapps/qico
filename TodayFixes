@@ -1,9 +1,16 @@
-/* $Id: TodayFixes,v 1.12 2004/01/13 09:42:59 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.13 2004/01/15 23:39:40 sisoft Exp $ */
+---
+rewrite ipc code to (tcp+udp)/ip.
+remove 'ipcperm' keyword.
+added 'server' keyword: server port.
+added -P <port> options to qcc and qctl.
+some code cleanup... may be.
+many bugs added too. ;)
+.
+previous:
 ---
 none..
 previous:
----
-change IPC to IP in progress..
 .
 
 ps: в связи с временным отсутствием фидошки,

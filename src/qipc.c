@@ -1,40 +1,19 @@
 /**********************************************************
- * SysV ipc transfer for work qcc
- * $Id: qipc.c,v 1.5 2004/01/12 21:41:56 sisoft Exp $
+ * helper stuff for client/server iface.
+ * $Id: qipc.c,v 1.6 2004/01/15 23:39:41 sisoft Exp $
  **********************************************************/
-
-/*must be removed*/
-
 #include "headers.h"
-#include <sys/ipc.h>
-#include <sys/msg.h>
 #include <stdarg.h>
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif
 #include "byteop.h"
-
-int qipc_msg=-1;
-key_t qipc_key=0;
-
-int qipc_init()
-{
-  	log_callback=vlogs;
-	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0)return 0;
-	return 1;
-}
-
-void qipc_done()
-{
-	log_callback=NULL;
-/* 	msgctl(qipc_msg,IPC_RMID,0); */
-}
+#include "clserv.h"
 
 void qsendpkt(char what,char *line,char *buff,int len)
 {
-	int rc;
 	char buf[MSG_BUFFER];
-	if(!qipc_key)qipc_init();
+/*	if(!qipc_key)qipc_init();
 	if(qipc_msg<0) {
 		qipc_msg=msgget(qipc_key,0666);
 		if(qipc_msg<0)return;
@@ -46,39 +25,23 @@ void qsendpkt(char what,char *line,char *buff,int len)
 				if(chattimer>0)qchat("");
 			}
 		}
-	}
+	}*/
 	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
-	STORE32(buf,1);
-	STORE32(buf+4,len);
-	STORE32(buf+8,getpid());
-	buf[12]=what;
-	if(buf[12]==QC_CERASE)buf[12]=QC_ERASE;
-	xstrcpy(buf+13,line,8);
-	if(what==QC_CHAT||what==QC_CERASE){buf[13]='C';buf[14]='H';buf[15]='T';}
-	memcpy(buf+13+strlen(line)+1,buff,len);
 /*	write_log("sendpkt %s %d", line, len); */
-	rc=msgsnd(qipc_msg,buf,13+strlen(line)+1+len,IPC_NOWAIT);
-	if(rc<0&&(errno==EIDRM||errno==EINVAL))qipc_msg=-1;
+	*(short*)buf=2;
+	buf[2]=what;
+	if(buf[2]==QC_CERASE)buf[2]=QC_ERASE;
+	xstrcpy(buf+3,line,8);
+	if(what==QC_CHAT||what==QC_CERASE){buf[3]='C';buf[4]='H';buf[5]='T';}
+	memcpy(buf+3+strlen(line)+1,buff,len);
+	xsend_cb(ssock,buf,3+strlen(line)+1+len);
 }	
 
 int qrecvpkt(char *str)
 {
 	int rc;
-	if(!qipc_key)qipc_init();
-	if(qipc_msg<0) {
-		qipc_msg=msgget(qipc_key,0666);
-		if(qipc_msg<0)return 0;
-		    else {
-			qpmydata();
-			qsendqueue();
-			if(rnode&&rnode->starttime) {
-				qemsisend(rnode);
-				if(chattimer>0)qchat("");
-			}
-		}
-	}
-	rc=msgrcv(qipc_msg,str,MSG_BUFFER-1,getpid(),IPC_NOWAIT);
-	if(rc<5||!str[8])return 0;
+	rc=xrecv(ssock,str,MSG_BUFFER-1,0);
+	if(rc<3||!str[2])return 0;
 /*	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]); */
 	return 1;
 }
@@ -97,7 +60,6 @@ void vlog(char *str,...)
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(lin,str,args);
 #endif
 	va_end(args);
@@ -113,7 +75,6 @@ void sline(char *str,...)
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(lin,str,args);
 #endif
 	va_end(args);
@@ -197,7 +158,6 @@ void title(char *str,...)
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(lin,str,args);
 #endif
 	va_end(args);

@@ -1,30 +1,30 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.2 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: daemon.c,v 1.3 2004/01/15 23:39:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
+#include <sys/socket.h>
 #include "byteop.h"
 #include "tty.h"
 #include "clserv.h"
 
-#include <sys/ipc.h>
-#include <sys/msg.h>
+static short tosend=0;
+static cls_cl_t *cl=NULL;
+static int t_dial=0,c_delay,rnum;
 
-/**/int qipcr_msg,force=IPC_EXCL;
-
-void sigchild(int sig)
+static void sigchild(int sig)
 {
 	int rc,wr;
-	signal(SIGCHLD,sigchild);
+	signal(sig,sigchild);
 	if((wr=wait(&rc))<0)write_log("wait() returned %d (%d)",wr,rc);
 	rc=WEXITSTATUS(rc)&S_MASK;
 	if(rc==S_OK||rc==S_REDIAL)do_rescan=1;
 }
 
-void sighup(int sig)
+static void sighup(int sig)
 {
-	signal(SIGHUP,sighup);
+	signal(sig,sighup);
 	write_log("got SIGHUP, trying to reread configs...");
 	killsubsts(&psubsts);
 	killconfig();
@@ -39,7 +39,7 @@ void sighup(int sig)
 	do_rescan=1;
 }
 
-char *sts_str(int flags)
+static char *sts_str(int flags)
 {
 	static char s[Q_MAXBIT+1];
 	char qchars[]=Q_CHARS;int i;
@@ -68,60 +68,378 @@ int randper(int base,int diff)
 	return base-diff+(int)(diff*2.0*rand()/(RAND_MAX+1.0));
 }
 
-void sendxpkt(int wait,char what,pid_t pid,char *fmt,va_list args)
+static void sendrpkt(char what,int sock,char *fmt,...)
 {
 	char buf[MSG_BUFFER];
 	int rc;
-	STORE32(buf,pid);
-	buf[4]=what;
+	va_list args;
+	STORE16(buf,0);
+	buf[2]=what;
+	va_start(args,fmt);
 #ifdef HAVE_VSNPRINTF
-	rc=vsnprintf(buf+5,MSG_BUFFER-1,fmt,args);
+	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
-	rc=vsprintf(buf+5,fmt,args);
+	rc=vsprintf(buf+3,fmt,args);
 #endif	
-/**/	msgsnd(qipcr_msg,buf,rc+6,wait?0:IPC_NOWAIT);
+	va_end(args);
+	xsend(sock,buf,rc+3);
 }
 
-void sendrpkt(char what,pid_t pid,char *fmt,...)
+int daemon_xsend(int sock,char *buf,int len)
 {
-	va_list args;
-	va_start(args,fmt);
-	sendxpkt(0,what,pid,fmt,args);
-	va_end(args);
+	cls_cl_t *uis=cl;
+	if(!uis)return len;
+	while(uis) {
+		if(uis->type=='e'&&(!tosend||tosend==uis->sock))
+		    xsend(uis->sock,buf,len);
+		uis=uis->next;
+	}
+	return len;
 }
 
-void sendrpktwait(char what,pid_t pid,char *fmt,...)
+static void daemon_evt(int chld,char *buf,int rc,int mode)
 {
-	va_list args;
-	va_start(args,fmt);
-	sendxpkt(1,what,pid,fmt,args);
-	va_end(args);
+	int res,set;
+	char *p;
+	sts_t sts;
+	qitem_t *sinfo;
+	ftnaddr_t fa;
+	slist_t *sl;
+	cls_cl_t *uis;
+	if(!mode) {
+		if(*(short*)buf==2)daemon_xsend(chld,buf,rc);
+		return;
+	}
+	for(uis=cl;uis&&uis->sock!=chld;uis=uis->next);
+	if(!uis) {
+		DEBUG(('I',1,"got message from unknown client (fd=%d), skipped",chld));
+		return;
+	}
+	if(buf[2]==QR_POLL||buf[2]==QR_REQ||buf[2]==QR_INFO||
+	    buf[2]==QR_SEND||buf[2]==QR_STS||buf[2]==QR_KILL) {
+		if(!parseftnaddr(buf+3, &fa, &DEFADDR, 0)) {
+			write_log("can't parse address '%s'!", buf+3);
+			sendrpkt(1,chld,"can't parse address '%s'!", buf+3);
+			return;
+		}
+	}
+	switch(buf[2]) {
+	    case QR_STYPE:
+		uis->type=buf[3];
+		DEBUG(('I',2,"client %d: set type '%c'",uis->id,uis->type));
+		tosend=chld;
+		qpmydata();
+		qsendqueue();
+		tosend=0;
+		break;
+	    case QR_QUIT:
+		DEBUG(('I',2,"client %d: request quit (type='%c')",uis->id,uis->type));
+		if(uis->type!='c')break;
+		if(is_bso()==1)bso_done();
+		if(is_aso()==1)aso_done();
+		write_log("exiting by request");
+		if(cfgs(CFG_PIDFILE))
+		    if(getpid()==islocked(ccs))lunlink(ccs);
+		log_done();
+		qqreset();sline("");title("");
+		qsendpkt(QC_QUIT,"master","",1);
+		cls_shutd(lins_sock);
+		cls_shutd(uis_sock);
+		exit(0);
+	    case QR_CONF:
+		DEBUG(('I',2,"client %d: request reread config",uis->id));
+		write_log("trying to reread configs by request...");
+		killsubsts(&psubsts);
+		killconfig();
+		if(!readconfig(configname)) {
+			write_log("there was some errors parsing config, exiting");
+			sendrpkt(1,chld,"bad config, terminated");
+			stopit(0);
+		}
+		psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+#ifdef NEED_DEBUG
+		parse_log_levels();
+#endif
+		do_rescan=1;					
+		sendrpkt(0,chld,"");
+		break;
+	    case QR_SCAN:
+		DEBUG(('I',2,"client %d: request rescan",uis->id));
+		do_rescan=1;rnum=0;
+		sendrpkt(0,chld,"");
+		break;
+	    case QR_RESTMR:
+		c_delay=1;
+		t_dial=0;
+		sendrpkt(0,chld,"");
+		break;
+	    case QR_HANGUP: {
+		char ccmd[MAX_STRING];
+		DEBUG(('I',2,"client %d: request hangup line '%s'",uis->id,buf+3));
+		sprintf(ccmd,"/bin/kill -HUP `cat '%s/LCK..%s'`",cfgs(CFG_LOCKDIR),buf+3);
+		execnowait("/bin/sh","-c",ccmd,NULL);
+		sendrpkt(0,chld,"");
+		} break;
+	    case QR_POLL: {
+		int locked=0;
+		DEBUG(('I',2,"client %d: request poll addr %s",uis->id,buf+3));
+		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
+		if(locked) {
+			p=buf+3+strlen(buf+3)+1;
+			if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
+			rc=bso_flavor(*p);
+			if(rc==F_ERR) {
+				write_log("unknown flavour - '%c'",C0(*p));
+				sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+				break;
+			}
+			write_log("poll for %s, flavor %c", ftnaddrtoa(&fa),*p);
+			sendrpkt(0,chld,"");
+			if(is_bso()==1) {
+				rc=bso_poll(&fa,rc);
+				bso_unlocknode(&fa,LCK_t);
+				bso_getstatus(&fa,&sts);
+				if(sts.flags&Q_IMM) {
+					sts.flags&=~Q_IMM;
+					write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+					bso_setstatus(&fa,&sts);
+				}
+			}
+			if(is_aso()==1) {
+				if(is_bso()!=1)rc=aso_poll(&fa,rc);
+				aso_unlocknode(&fa,LCK_t);
+				aso_getstatus(&fa,&sts);
+				if(sts.flags&Q_IMM) {
+					sts.flags&=~Q_IMM;
+					if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+					aso_setstatus(&fa,&sts);
+				}
+			}
+			do_rescan=1;
+		    } else {
+			write_log("can't create poll for %s!",ftnaddrtoa(&fa));
+			sendrpkt(1,chld,"can't create poll for %s",ftnaddrtoa(&fa));
+		}
+		} break;
+	    case QR_KILL: {
+		int locked=0;
+		DEBUG(('I',2,"client %d: request kill addr %s",uis->id,buf+3));
+		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
+		if(locked) {
+			write_log("kill %s",ftnaddrtoa(&fa));
+			sendrpkt(0,chld,"");
+			simulate_send(&fa);
+			if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
+			if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
+			do_rescan=1;
+		    } else {
+			write_log("can't kill %s!",ftnaddrtoa(&fa));
+			sendrpkt(1,chld,"can't kill %s",ftnaddrtoa(&fa));
+			}
+		} break;
+	    case QR_STS:
+		DEBUG(('I',2,"client %d: request flags change addr %s",uis->id,buf+3));
+		p=buf+4+strlen(buf+3);
+		rc=1;res=0;set=0;
+		while(*p&&rc) {
+			switch(*p) {
+			case 'W': set|=Q_WAITA;break;
+			case 'I': set|=Q_IMM;break;
+			case 'U': set|=Q_UNDIAL;break;
+			case 'w': res|=Q_ANYWAIT;break;
+			case 'i': res|=Q_IMM;break;
+			case 'u': res|=Q_UNDIAL;break;
+			case 'h': set|=Q_WAITA;rc=2;break;
+			default:
+				write_log("unknown status action: %c",*p);
+				sendrpkt(1,chld,"unknown status action: %c",*p);
+				rc=0;
+			}
+			p++;
+		}
+		if(rc) {
+			if(is_bso()==1) {
+				bso_getstatus(&fa,&sts);
+				sts.flags|=set;sts.flags&=~res;p++;
+				if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));
+				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
+				if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
+				if(res&Q_UNDIAL) sts.try=0;
+				bso_setstatus(&fa,&sts);
+			}
+			if(is_aso()==1) {
+				aso_getstatus(&fa,&sts);
+				sts.flags|=set;sts.flags&=~res;p++;
+				if(is_bso()!=1){if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));}
+				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
+				if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
+				if(res&Q_UNDIAL) sts.try=0;
+				aso_setstatus(&fa,&sts);
+			}
+			sendrpkt(0,chld,"");
+			do_rescan=1;
+		}
+		break;
+	    case QR_REQ: {
+		int locked=0;
+		DEBUG(('I',2,"client %d: request filereq addr %s",uis->id,buf+3));
+		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
+		if(locked) {
+			sl=NULL;p=buf+3+strlen(buf+3)+1;
+			while(strlen(p)){
+				write_log("requested '%s' from %s",p,ftnaddrtoa(&fa));
+				stodos((unsigned char*)p);
+				slist_add(&sl,p);
+				p+=strlen(p)+1;
+			}
+			sendrpkt(0,chld,"");
+			if(is_bso()==1)rc=bso_request(&fa,sl);
+			else if(is_aso()==1)rc=aso_request(&fa,sl);
+			slist_kill(&sl);
+			if(is_bso()==1) {
+				bso_unlocknode(&fa,LCK_t);
+				bso_getstatus(&fa,&sts);
+				if(sts.flags&Q_IMM) {
+					sts.flags&=~Q_IMM;
+					write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+					bso_setstatus(&fa,&sts);
+				}
+			}
+			if(is_aso()==1) {
+				aso_unlocknode(&fa,LCK_t);
+				aso_getstatus(&fa,&sts);
+				if(sts.flags&Q_IMM) {
+					sts.flags&=~Q_IMM;
+					if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
+					aso_setstatus(&fa,&sts);
+				}
+			}
+			do_rescan=1;
+		    } else {
+			write_log("can't lock node %s!",ftnaddrtoa(&fa));
+			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
+		}
+		} break;
+	    case QR_SEND: {
+		int locked=0;
+		DEBUG(('I',2,"client %d: request send addr %s",uis->id,buf+3));
+		p=buf+3+strlen(buf+3)+1;
+		if('?'==*p)*p=*cfgs(CFG_POLLFLAVOR);
+		rc=bso_flavor(*p);
+		if(rc==F_ERR) {
+			write_log("unknown flavour - '%c'",C0(*p));
+			sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+			break;
+		}
+		p+=strlen(p)+1;
+		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
+		if(locked) {
+			sl=NULL;
+			while(strlen(p)){
+				write_log("attaching '%s' to %s%s",
+					(p[0]=='^')?p+1:p,ftnaddrtoa(&fa),
+					(p[0]=='^')?" (k/s)":"");
+				slist_add(&sl,p);
+				p+=strlen(p)+1;
+			}
+			if(is_bso()==1)rc=bso_attach(&fa,rc,sl);
+			    else if(is_aso()==1)rc=aso_attach(&fa,rc,sl);
+			slist_kill(&sl);
+			if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
+			if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
+			sendrpkt(0,chld,"");
+			do_rescan=1;
+		    } else {
+			write_log("can't lock node %s!",ftnaddrtoa(&fa));
+			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
+		}
+		} break;
+	    case QR_INFO:
+		DEBUG(('I',2,"client %d: request nlinfo addr %s",uis->id,buf+3));
+		rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
+		switch(rc) {
+		    case 0:
+			if(rnode) {
+				write_log("returned info about %s (%s)",rnode->name,ftnaddrtoa(&fa));
+				sendrpkt(0,chld,"%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
+						 ftnaddrtoa(&fa),0,
+						 rnode->name,0,rnode->place,0,
+						 rnode->sysop,0,rnode->phone,0,
+						 rnode->flags,0,rnode->speed,0
+					);
+				nlkill(&rnode);
+			} else {
+				write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
+				sendrpkt(1,chld,"%s not found in nodelist!",ftnaddrtoa(&fa));
+			}
+			break;
+		    case 1:
+			write_log("can't query nodelist, index error");
+			sendrpkt(1,chld,"can't query nodelist, index error");
+			break;
+		    case 2:
+			write_log("can't query nodelist, nodelist error");
+			sendrpkt(1,chld,"can't query nodelist, nodelist error");
+			break;
+		    case 3:
+			write_log("index is older than the list, need recompile");
+			sendrpkt(1,chld,"index is older than the list, need recompile");
+			break;
+		    default:
+			write_log("nodelist query error!");
+			sendrpkt(1,chld,"nodelist query error!");
+			break;
+		}
+		break;
+	    case QR_QUEUE:
+		DEBUG(('I',2,"client %d: request queue",uis->id));
+		sinfo=q_queue;
+		if(sinfo) do {
+			sendrpkt(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu",
+				(char)1,
+				ftnaddrtoa(&sinfo->addr),(char)0,
+				(unsigned long)sinfo->pkts,(char)0,
+				(unsigned long)(q_sum(sinfo)+sinfo->reqs),(char)0,
+				(unsigned long)sinfo->try,(char)0,
+				(unsigned long)sinfo->flv);
+		} while ((sinfo=sinfo->next));
+			sendrpkt(0,chld,"%c",0);
+			break;
+	    default:
+		DEBUG(('I',2,"client %d: bad request",uis->id));
+		write_log("got unsupported packet type: %c",C0(buf[2]));
+	}
 }
 
 void daemon_mode()
 {
-	int t_dial=0,c_delay,t_rescan=0,rc=1,dable;
-	int f,w,res,set,hld,mailonly,rescanperiod,rnum;
-	char *port=NULL,buf[MSG_BUFFER],*p,ccmd[99]={0};
+	int t_rescan=0,rc=1,dable;
+	int f,w,hld,mailonly,rescanperiod;
+	char *port=NULL,buf[MSG_BUFFER];
+	static short curr_id=3;
 	sts_t sts;
 	pid_t chld;
 	qitem_t *current=q_queue,*i;
-	qitem_t *uncurr=q_queue,*sinfo;
+	qitem_t *uncurr=q_queue;
 	time_t t;
-	ftnaddr_t fa;
-	slist_t *sl;
-/**/	key_t qipcr_key;
+	fd_set rfds;
+	cls_cl_t *uis=NULL,*uit;
+	struct timeval tv;
 	if(cfgs(CFG_ROOTDIR)&&*ccs)chdir(ccs);
 	if(getppid()!=1) {
 		signal(SIGTTOU,SIG_IGN);
 		signal(SIGTTIN,SIG_IGN);
 		signal(SIGTSTP,SIG_IGN);
-		if((rc=fork())>0) {
-			exit(0);
-		}
+		if((rc=fork())>0)exit(0);
 		if(rc<0) {
 			write_log("can't spawn daemon!");
+			fprintf(stderr,"can't spawn daemon!\n");
 			exit(1);
 		}
 	}
@@ -130,61 +448,41 @@ void daemon_mode()
 	signal(SIGFPE,sigerr);
 	signal(SIGCHLD,sigchild);
 	signal(SIGHUP,sighup);
-	if(cfgs(CFG_PIDFILE)) {
-		if(!lockpid(ccs)) {
-			write_log("another daemon exists or can't create pid file!");
-			exit(1);
-		}
+	signal(SIGPIPE,SIG_IGN);
+	if(cfgs(CFG_PIDFILE))if(!lockpid(ccs)) {
+		write_log("another daemon exists or can't create pid file!");
+		fprintf(stderr,"another daemon exists or can't create pid file!\n");
+		exit(1);
 	}
-
-//	lins_sock=cls_conn(CLS_SERV_L);
-//	if(lins_sock<0) {
-//		write_log("can't create server_udp: %s",str_error(errno));
-//		exit(1);
-//	}
-//	uis_sock=cls_conn(CLS_SERV_U);
-//	if(uis_sock<0) {
-//		write_log("can't create server_tcp: %s",str_error(errno));
-//		shutd(lins_sock);
-//		exit(1);
-//	}
-
-//	log_callback=vlogs_s;
-
-/**/	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
-/**/		write_log("can't get key");
-/**/		exit(1);
-/**/	}
-/**/	if((qipcr_msg=msgget(qipcr_key,cfgi(CFG_IPCPERM)|IPC_CREAT|force))<0) {
-/**/		write_log("can't create message queue (may be another daemon is running?)");
-/**/		exit(1);
-/**/	}
-
-	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)
-		write_log("can't init BSO");
-	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)
-		write_log("can't init ASO");
+	lins_sock=cls_conn(CLS_SERV_L,cfgs(CFG_SERVER));
+	if(lins_sock<0) {
+		write_log("can't create server_udp: %s",strerror(errno));
+		exit(1);
+	}
+	uis_sock=cls_conn(CLS_SERV_U,cfgs(CFG_SERVER));
+	if(uis_sock<0) {
+		write_log("can't create server_tcp: %s",strerror(errno));
+		cls_shutd(lins_sock);
+		exit(1);
+	}
+	log_callback=vlogs;xsend_cb=daemon_xsend;tosend=0;
+	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
+	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
 	if(is_bso()!=1&&is_aso()!=1) {
 		write_log("No outbound defined");
-//		cls_shutd(lins_sock);cls_shutd(uis_sock);
+		cls_shutd(lins_sock);cls_shutd(uis_sock);
 		exit(1);
 	} 
-	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		write_log("can't open master log %s!",ccs);
-//		cls_shutd(lins_sock);cls_shutd(uis_sock);
-		exit(1);
-	}
-	to_dev_null();
-	setsid();
+	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	srand(time(NULL));rnum=-1;
 	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 	while(1) {
 		rescanperiod=cfgi(CFG_RESCANPERIOD);
-		title("Queue manager [%d]",rescanperiod-t_rescan);
+		if(!((rescanperiod-t_rescan)%2))title("Queue manager [%d]",rescanperiod-t_rescan);
 		if(t_rescan>=rescanperiod||do_rescan) {
-			sline("Rescanning outbound...");
+			/*sline("Rescanning outbound...");*/
 			if(rnum<0)rnum=cfgi(CFG_LONGRESCAN)-1;
 			do_rescan=0;
 			if(!q_rescan(&current,!rnum--))write_log("can't rescan outbound!");
@@ -256,7 +554,6 @@ void daemon_mode()
 				if(!(rnode->opt&(MO_BINKP|MO_IFC)))xfree(rnode->host);
 				DEBUG(('Q',1,"ndl: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				if(checktimegaps(cfgs(CFG_CANCALL))&&find_dialable_subst(rnode,havestatus(f,CFG_IMMONFLAVORS),psubsts)) {
-					DEBUG(('Q',1,"sbs: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 					if(rnode->host) {
 						static struct stat s;
 						static char lckname[MAX_PATH];
@@ -268,14 +565,14 @@ void daemon_mode()
 						rnode->tty=xstrdup(bink?"binkp":"tcpip");
 					} else {
 						port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
-						if(!port)goto nlkil;
+						if(!port){DEBUG(('Q',3,"nottyport"));goto nlkil;}
 						rnode->tty=xstrdup(baseport(port));
 						if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 					}
 					dable=1;current->flv|=Q_DIAL;
 					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
 					chld=fork();
-					if(chld==0) {
+					if(!chld) {
 						setsid();
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
@@ -285,11 +582,10 @@ void daemon_mode()
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
 						}
-
-//						ssock=cls_conn(CLS_LINE);
-//						if(ssock<0)write_log("can't connect to server: %s",str_error(errno));
-//						    else log_callback=vlogs;
-
+						signal(SIGPIPE,SIG_IGN);
+						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
+						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
+						    else log_callback=vlogs;
 						if(is_ip)rc=tcp_call(rnode->host,&current->addr);
 						    else {
 							if(rnode->hidnum) {
@@ -426,7 +722,7 @@ void daemon_mode()
 						if(is_bso()==1)bso_unlocknode(&current->addr,LCK_x);
 						if(is_aso()==1)aso_unlocknode(&current->addr,LCK_x);
 						vidle();log_done();
-//						cls_close(ssock);
+						cls_close(ssock);
 						exit(rc);
 					}
 					if(chld<0) write_log("can't fork() caller!");
@@ -443,345 +739,68 @@ nlkil:				is_ip=0;bink=0;
 		t=time(NULL);
 		while((time(NULL)-t)<1) {
 			if((time(NULL)-t)<0)t=time(NULL);
-
-/*			rc=cls_recv(buf,MSG_BUFFER-1,CLS_U,CLS_NOWAIT);
-			FD_ZERO(&rfds);FD_ZERO(&efds);
+			FD_ZERO(&rfds);
 			FD_SET(lins_sock,&rfds);
-			FD_SET(lins_sock,&efds);
 			FD_SET(uis_sock,&rfds);
-			FD_SET(uis_sock,&efds);
-			uis=ui_clients;
 			rc=MAX(lins_sock,uis_sock);
-			while(uis) {
+			for(uis=cl;uis;uis=uis->next) {
 				rc=MAX(rc,uis->sock);
 				FD_SET(uis->sock,&rfds);
-				FD_SET(uis->sock,&efds);
-				uis=uis->next;
 			}
-			tv.tv_sec=0;
-			tv.tv_usec=200;
-			rc=select(rc+1,&rfds,NULL,&efds,&tv);
+			tv.tv_sec=0;tv.tv_usec=5000;
+			rc=select(rc+1,&rfds,NULL,NULL,&tv);
+			if(rc<0)write_log("select: error: %s",strerror(errno));
 			if(rc>0) {
-				if(FD_ISSET(rfds,lins_sock)) {
-					rc=recv(lins_sock,buf,MSG_BUFFER-1,0);
-				}*/
-
-/**/			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
-/**/			if(rc<=0) {
-/**/				struct timeval tv = {0,200};
-/**/				select(0,NULL,NULL,NULL,&tv);
-/**/			} else
-
-			if(rc>=5) {
-				chld=*((int *)buf+1);
-				rc=1;
-				if(buf[8]==QR_POLL || buf[8]==QR_REQ ||
-				   buf[8]==QR_INFO || buf[8]==QR_SEND ||
-				   buf[8]==QR_STS || buf[8]==QR_KILL) {
-					if(!parseftnaddr(buf+9, &fa, &DEFADDR, 0)) {
-						write_log("can't parse address '%s'!", buf+9);
-						sendrpkt(1,chld,"can't parse address '%s'!", buf+9);
-						rc=0;
-					}
+				if(FD_ISSET(lins_sock,&rfds)) {
+					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);
+					if(rc<0)write_log("xrecv_l: %s",strerror(errno));
+					if(rc>0)DEBUG(('I',5,"lines_cl: recv %d bytes",rc));
+					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
 				}
-				if(rc) switch(buf[8]) {
-				case QR_QUIT:
-					sendrpkt(0,chld,"");
-
-/**/					msgctl(qipcr_msg,IPC_RMID,0);
-
-					if(is_bso()==1)bso_done();
-					if(is_aso()==1)aso_done();
-					write_log("exiting by request");
-					if(cfgs(CFG_PIDFILE))
-					    if(getpid()==islocked(ccs))lunlink(ccs);
-					log_done();
-					qqreset();sline("");title("");
-					qsendpkt(QC_QUIT,QLNAME,"",1);
-/**/					qipc_done();
-//					cls_shutd(lins_sock);
-//					cls_shutd(uis_sock);
-					exit(0);
-				case QR_CONF:
-					write_log("trying to reread configs by request...");
-					killsubsts(&psubsts);
-					killconfig();
-					if(!readconfig(configname)) {
-						write_log("there was some errors parsing config, exiting");
-						sendrpkt(1,chld,"bad config, terminated");
-						stopit(0);
+				uis=cl;uit=NULL;
+				while(uis) {
+					if(FD_ISSET(uis->sock,&rfds)) {
+						rc=xrecv(uis->sock,buf,MSG_BUFFER-1,1);
+						if(!rc) {
+							cls_cl_t *uitt=uis;
+							DEBUG(('I',2,"client %d: removed",uis->id));
+							cls_close(uis->sock);
+							if(uis->id+1==curr_id)curr_id--;
+							uis=uis->next;
+							if(uit)uit->next=uis;
+							if(uitt==cl)cl=uis;
+							if(!cl)curr_id=3;
+							xfree(uitt);
+							continue;
+						}
+						if(rc<0&&errno!=EAGAIN)write_log("xrecv_u %d: %s",uis->id,strerror(errno));
+						if(rc>0)DEBUG(('I',5,"client %d: recv %d bytes",uis->id,rc));
+						if(rc>1)daemon_evt(uis->sock,buf,rc,1);
 					}
-					psubsts=parsesubsts(cfgfasl(CFG_SUBST));
-#ifdef NEED_DEBUG
-					parse_log_levels();
-#endif
-					do_rescan=1;					
-					sendrpkt(0,chld,"");
-					break;
-				case QR_SCAN:
-					do_rescan=1;rnum=0;
-					sendrpkt(0,chld,"");
-					break;
-				case QR_RESTMR:
-					c_delay=1;
-					t_dial=0;
-					sendrpkt(0,chld,"");
-					break;
-				case QR_HANGUP:
-					sprintf(ccmd,"/bin/kill -HUP `cat '%s/LCK..%s'`",cfgs(CFG_LOCKDIR),buf+9);
-					execnowait("/bin/sh","-c",ccmd,NULL);
-					sendrpkt(0,chld,"");
-					break;
-        			case QR_POLL: {
-					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
-					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
-					if(locked) {
-						p=buf+9+strlen(buf+9)+1;
-						if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
-						rc=bso_flavor(*p);
-						if(rc==F_ERR) {
-							write_log("unknown flavour - '%c'",C0(*p));
-							sendrpkt(1,chld,"unknown flavour %c",C0(*p));
-							break;
-						}
-
-						write_log("poll for %s, flavor %c", ftnaddrtoa(&fa),*p);
-						sendrpkt(0,chld,"");
-						if(is_bso()==1) {
-							rc=bso_poll(&fa,rc);
-							bso_unlocknode(&fa,LCK_t);
-							bso_getstatus(&fa,&sts);
-							if(sts.flags&Q_IMM) {
-								sts.flags&=~Q_IMM;
-								write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-								bso_setstatus(&fa,&sts);
-							}
-						}
-						if(is_aso()==1) {
-							if(is_bso()!=1)rc=aso_poll(&fa,rc);
-							aso_unlocknode(&fa,LCK_t);
-							aso_getstatus(&fa,&sts);
-							if(sts.flags&Q_IMM) {
-								sts.flags&=~Q_IMM;
-								if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-								aso_setstatus(&fa,&sts);
-							}
-						}
-						do_rescan=1;
+					uit=uis;
+					uis=uis->next;
+				}
+				if(FD_ISSET(uis_sock,&rfds)) {
+					for(uis=cl;uis&&uis->next;uis=uis->next);
+					uit=xmalloc(sizeof(cls_cl_t));
+					uit->sock=accept(uis_sock,NULL,NULL);
+					if(uit->sock<0) {
+						write_log("client %d: accept err: %s",uit->id,strerror(errno));
+						xfree(uit);
 					} else {
-						write_log("can't create poll for %s!",ftnaddrtoa(&fa));
-						sendrpkt(1,chld,"can't create poll for %s",ftnaddrtoa(&fa));
+						if(curr_id<3)curr_id=33;
+						uit->next=NULL;
+						uit->id=curr_id++;
+						uit->type='u';
+						if(cl)uis->next=uit;
+						    else cl=uit;
+						DEBUG(('I',1,"new client %d: accepted (fd=%d)",uit->id,uit->sock));
+						qpmydata();
 					}
-				    } break;
-				case QR_KILL: {
-					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
-					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
-					if(locked) {
-						write_log("kill %s",ftnaddrtoa(&fa));
-						sendrpkt(0,chld,"");
-						simulate_send(&fa);
-						if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
-						if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
-						do_rescan=1;
-					} else {
-						write_log("can't kill %s!",ftnaddrtoa(&fa));
-						sendrpkt(1,chld,"can't kill %s",ftnaddrtoa(&fa));
-					}
-				    } break;
-				case QR_STS:
-					p=buf+10+strlen(buf+9);
-					rc=1;res=0;set=0;
-					while(*p&&rc) {
-						switch(*p) {
-						case 'W': set|=Q_WAITA;break;
-						case 'I': set|=Q_IMM;break;
-						case 'U': set|=Q_UNDIAL;break;
-						case 'w': res|=Q_ANYWAIT;break;
-						case 'i': res|=Q_IMM;break;
-						case 'u': res|=Q_UNDIAL;break;
-						case 'h': set|=Q_WAITA;rc=2;break;
-						default:
-							write_log("unknown status action: %c",*p);
-							sendrpkt(1,chld,"unknown status action: %c",*p);
-							rc=0;
-						}
-						p++;
-					}
-					if(rc) {
-						if(is_bso()==1) {
-							bso_getstatus(&fa,&sts);
-							sts.flags|=set;sts.flags&=~res;p++;
-							if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-							    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));
-							if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
-							if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
-							if(res&Q_UNDIAL) sts.try=0;
-							bso_setstatus(&fa,&sts);
-						}
-						if(is_aso()==1) {
-							aso_getstatus(&fa,&sts);
-							sts.flags|=set;sts.flags&=~res;p++;
-							if(is_bso()!=1){if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-								else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));}
-							if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
-							if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
-							if(res&Q_UNDIAL) sts.try=0;
-							aso_setstatus(&fa,&sts);
-						}
-						sendrpkt(0,chld,"");
-						do_rescan=1;
-					}
-					break;
-				case QR_REQ: {
-					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
-					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
-					if(locked) {
-						sl=NULL;p=buf+9+strlen(buf+9)+1;
-						while(strlen(p)){
-							write_log("requested '%s' from %s",p,
-								ftnaddrtoa(&fa));
-							stodos((unsigned char*)p);
-							slist_add(&sl,p);
-							p+=strlen(p)+1;
-						}
-						sendrpkt(0,chld,"");
-						if(is_bso()==1)rc=bso_request(&fa,sl);
-						else if(is_aso()==1)rc=aso_request(&fa,sl);
-						slist_kill(&sl);
-						if(is_bso()==1) {
-							bso_unlocknode(&fa,LCK_t);
-							bso_getstatus(&fa,&sts);
-							if(sts.flags&Q_IMM) {
-								sts.flags&=~Q_IMM;
-								write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-								bso_setstatus(&fa,&sts);
-							}
-						}
-						if(is_aso()==1) {
-							aso_unlocknode(&fa,LCK_t);
-							aso_getstatus(&fa,&sts);
-							if(sts.flags&Q_IMM) {
-								sts.flags&=~Q_IMM;
-								if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-								aso_setstatus(&fa,&sts);
-							}
-						}
-						do_rescan=1;
-					} else {
-						write_log("can't lock node %s!",ftnaddrtoa(&fa));
-						sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
-					}
-				    } break;
-				case QR_SEND: {
-					int locked=0;
-					p=buf+9+strlen(buf+9)+1;
-					if('?'==*p) *p=*cfgs(CFG_POLLFLAVOR);
-					rc=bso_flavor(*p);
-					if(rc==F_ERR) {
-						write_log("unknown flavour - '%c'",C0(*p));
-						sendrpkt(1,chld,"unknown flavour %c",C0(*p));
-						break;
-					}
-					p+=strlen(p)+1;
-					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
-					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
-					if(locked) {
-						sl=NULL;
-						while(strlen(p)){
-							write_log("attaching '%s' to %s%s",
-								(p[0]=='^')?p+1:p,ftnaddrtoa(&fa),
-								(p[0]=='^')?" (k/s)":"");
-							slist_add(&sl,p);
-							p+=strlen(p)+1;
-						}
-						if(is_bso()==1)rc=bso_attach(&fa,rc,sl);
-						    else if(is_aso()==1)rc=aso_attach(&fa,rc,sl);
-						slist_kill(&sl);
-						if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
-						if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
-						sendrpkt(0,chld,"");
-						do_rescan=1;
-					} else {
-						write_log("can't lock node %s!",ftnaddrtoa(&fa));
-						sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
-					}
-				    } break;
-				case QR_INFO:
-					rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
-					switch(rc) {
-					    case 0:
-						if(rnode) {
-							write_log("returned info about %s (%s)",rnode->name,ftnaddrtoa(&fa));
-							sendrpkt(0,chld,"%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
-									 ftnaddrtoa(&fa),0,
-									 rnode->name,0,rnode->place,0,
-									 rnode->sysop,0,rnode->phone,0,
-									 rnode->flags,0,rnode->speed,0
-								);
-							nlkill(&rnode);
-						} else {
-							write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
-							sendrpkt(1,chld,"%s not found in nodelist!",ftnaddrtoa(&fa));
-						}
-						break;
-					    case 1:
-						write_log("can't query nodelist, index error");
-						sendrpkt(1,chld,"can't query nodelist, index error");
-						break;
-					    case 2:
-						write_log("can't query nodelist, nodelist error");
-						sendrpkt(1,chld,"can't query nodelist, nodelist error");
-						break;
-					    case 3:
-						write_log("index is older than the list, need recompile");
-						sendrpkt(1,chld,"index is older than the list, need recompile");
-						break;
-					    default:
-						write_log("nodelist query error!");
-						sendrpkt(1,chld,"nodelist query error!");
-						break;
-					}
-					break;
-				case QR_QUEUE:
-					sinfo=q_queue;
-					if(sinfo) do {
-						sendrpktwait(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu",
-							(char)1,
-							ftnaddrtoa(&sinfo->addr),(char)0,
-							(unsigned long)sinfo->pkts,(char)0,
-							(unsigned long)(q_sum(sinfo)+sinfo->reqs),(char)0,
-							(unsigned long)sinfo->try,(char)0,
-							(unsigned long)sinfo->flv);
-					} while ((sinfo = sinfo->next));
-					sendrpktwait(0,chld,"%c",0);
-					break;
-				default:
-					write_log("got unsupported packet type: %c",C0(buf[8]));
 				}
 			}
 		}
 		t_dial++;t_rescan++;
 		if(do_rescan)t_dial=0;
 	}
-}
-
-void killdaemon(int sig)
-{
-	FILE *f;
-	long pid;
-	if(!cfgs(CFG_PIDFILE)) {
-		fprintf(stderr,"no pidfile defined\n");
-		return;
-	}
-	f=fopen(cfgs(CFG_PIDFILE),"rt");
-	if(!f) {
-		fprintf(stderr,"can't open pid file - no daemon killed!\n");
-		return;
-	}		
-	fscanf(f,"%ld",&pid);fclose(f);
-	if(kill(pid,sig))fprintf(stderr,"can't send signal!\n");
-	    else fprintf(stderr,"ok!\n");
 }

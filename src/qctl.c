@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.5 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: qctl.c,v 1.6 2004/01/15 23:39:41 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -19,20 +19,17 @@
 #include "xstr.h"
 #include "clserv.h"
 
-#include <sys/ipc.h>
-#include <sys/msg.h>
-
 extern time_t gmtoff(time_t tt,int mode);
 
-//int sock=-1;
-/**/int qipc_msg;
+int sock=-1;
 char qflgs[Q_MAXBIT]=Q_CHARS;
 
 void usage(char *ex)
 {
-	printf("usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
+	printf("usage: %s [<options>] [<port>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h             this help screen\n"
+	           "-P             connect to <port> (default: 60178)\n"
  		   "-q             stop daemon\n"
  		   "-Q             force queue rescan\n"
  		   "-R             reread config\n"
@@ -65,13 +62,12 @@ int getanswer()
 	int rc;
 	signal(SIGALRM, timeout);
 	alarm(1);
-/**/	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
-//	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
-	if(rc<4) return 1;
-	if(buf[4]) fprintf(stderr, "%s\n", buf+5);
+	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+	if(rc<3||*(short*)buf)return 1;
+	if(buf[2])fprintf(stderr, "%s\n", buf+3);
 	signal(SIGALRM, SIG_DFL);
 	alarm(0);
-	return buf[4];
+	return buf[2];
 }
 
 void print_worktime(char *flags)
@@ -111,12 +107,11 @@ int getnodeinfo()
 	int rc;
 	signal(SIGALRM, timeout);
 	alarm(5);
-/**/	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
-//	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
-	if(rc<4) return 1;
-	if(buf[4])fprintf(stderr, "%s\n", buf+5);
+	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+	if(rc<3||*(short*)buf)return 1;
+	if(buf[2])fprintf(stderr, "%s\n", buf+3);
 	    else {
-		for(p=buf+5,rc=0;strlen(p);rc++) {
+		for(p=buf+3,rc=0;strlen(p);rc++) {
 			printf(infostrs[rc], p);
 			u=p;p+=strlen(p)+1;
 			if(rc==5) print_worktime(u);
@@ -125,7 +120,7 @@ int getnodeinfo()
 	}
 	signal(SIGALRM, SIG_DFL);
 	alarm(0);
-	return buf[4];
+	return buf[2];
 }
 
 int getqueueinfo()
@@ -141,13 +136,12 @@ int getqueueinfo()
 	do {
 		signal(SIGALRM, timeout);
 		alarm(5);
-/**/		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
-//		rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+		rc=xrecv(sock,buf,MSG_BUFFER-1,1);
 		alarm(0);
-		if(rc<4) return 1;
-		if(buf[4])fprintf(stderr, "%s\n", buf+5);
-		    else if(buf[5]) {
-			a = buf + 6;
+		if(rc<3||*(short*)buf)return 1;
+		if(buf[2])fprintf(stderr, "%s\n", buf+3);
+		    else if(buf[3]) {
+			a = buf + 4;
 			m = a + strlen(a) + 1;
 			f = m + strlen(m) + 1;
 			t = f + strlen(f) + 1;
@@ -157,21 +151,23 @@ int getqueueinfo()
 			cflags[Q_MAXBIT] = '\x00';
 			printf("%-20s %10s %10s %10s %11s\n",a,m,f,t,cflags);
 		}
-	} while (buf[5]);
+	} while (buf[3]);
 	signal(SIGALRM, SIG_DFL);
 	alarm(0);
-	return buf[4];
+	return buf[2];
 }
 
 int main(int argc, char *argv[])
 {
-/**/	key_t qipc_key;
 	int action=-1, kfs=0, len=0,lkfs;
-	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH];
+	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH],*port=NULL;
 	struct stat filestat;
  	setlocale(LC_ALL, "");
- 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:"))!=EOF) {
+ 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:P:"))!=EOF) {
 		switch(c) {
+		case 'P':
+			if(optarg&&*optarg)port=strdup(optarg);
+			break;
 		case 'k':
 			kfs=1;
 			break;
@@ -226,37 +222,30 @@ int main(int argc, char *argv[])
 		}
 	}
 
-/**/	if((qipc_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
-/**/		fprintf(stderr, "can't get key\n");
-/**/		return 1;
-/**/	}
-/**/	if((qipc_msg=msgget(qipc_key, 0666))<0) {
-/**/		fprintf(stderr, "can't get message queue, may be there's no daemon: %s\n",strerror(errno));
-/**/		return 1;
-/**/	}
+	signal(SIGPIPE,SIG_IGN);
 
-//	sock=cls_conn(CLS_UI);
-//	if(sock<0) {
-//		fprintf(stderr,"can't connect to server: %s\n",str_error(errno));
-//		return 1;
-//	}
+	sock=cls_conn(CLS_UI,port);
+	if(sock<0) {
+		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
+		return 1;
+	}
 	
-	*((int *)buf)=1;
-	*((int *)buf+1)=getpid();
-	buf[8]=action;
+	*(short*)buf=0;
+	buf[2]=QR_STYPE;
+	buf[3]='c';
+	xsend(sock,buf,4);
+	buf[2]=action;
 	
 	switch(action) {
 	case QR_QUIT:
 	case QR_SCAN:
 	case QR_CONF:
-/**/		msgsnd(qipc_msg, buf, 9, 0);
-//		xsend(sock,buf,9);
+		xsend(sock,buf,3);
 		return getanswer();
 	case QR_INFO:
 		if(optind<argc) {
-			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-/**/			msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
-//			xsend(sock,buf,strlen(argv[optind])+10);
+			xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
+			xsend(sock,buf,strlen(argv[optind])+4);
 			return getnodeinfo();
 		} else {
 			usage(argv[0]);
@@ -265,44 +254,40 @@ int main(int argc, char *argv[])
 	case QR_KILL:
 	case QR_POLL:
 		while(optind<argc){
-			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-  			buf[10+strlen(buf+9)]=flv;
-/**/			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);
-//			xsend(sock,buf,strlen(argv[optind++])+11);
+			xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
+  			buf[4+strlen(buf+3)]=flv;
+			xsend(sock,buf,strlen(argv[optind++])+8);
 		}
 		return getanswer();
 	case QR_HANGUP:
 		if(optind<argc){
-			strncpy(buf+9,argv[optind],16);
-/**/			msgsnd(qipc_msg,buf,strlen(buf+9)+10,0);
-//			xsend(sock,buf,strlen(buf+9));
+			strncpy(buf+3,argv[optind],16);
+			xsend(sock,buf,strlen(buf+3));
 		} else { usage(argv[0]); return 1; }
 		return getanswer();
 	case QR_STS:
 		if(optind<argc) {
-			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-			len=strlen(argv[optind])+10;
+			xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
+			len=strlen(argv[optind])+4;
 			xstrcpy(buf+len, str, MSG_BUFFER-len);
-/**/			msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);
-//			xsend(sock,buf,len+strlen(str)+1);
+			xsend(sock,buf,len+strlen(str)+1);
 			return getanswer();
 		} else {
 			usage(argv[0]);
 			return 1;
 		}
 	case QR_REQ:
-		for(str=buf+9;optind<argc;optind++) {
+		for(str=buf+3;optind<argc;optind++) {
 			xstrcpy(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
 			str+=strlen(str)+1;
 		}
 		xstrcpy(str, "", 2);str+=2;
-/**/		msgsnd(qipc_msg, buf, str-buf, 0);
-//		xsend(sock,buf,str-buf);
+		xsend(sock,buf,str-buf);
 		return getanswer();
 	case QR_SEND:
-		str=buf+9;
+		str=buf+3;
 		if(optind<argc) {
-			xstrcpy(str, argv[optind++], MSG_BUFFER-9);
+			xstrcpy(str, argv[optind++], MSG_BUFFER-3);
 			printf("add '%s'\n",str);
 			str+=strlen(str)+1;
 		}
@@ -335,16 +320,14 @@ int main(int argc, char *argv[])
 			str+=strlen(str)+1;
 		}
 		xstrcpy(str, "", 2);str+=2;
-/**/		msgsnd(qipc_msg, buf, str-buf, 0);
-//		xsend(sock,buf,str-buf);
+		xsend(sock,buf,str-buf);
 		return getanswer();
 	case QR_QUEUE:
-/**/		msgsnd(qipc_msg, buf, 9, 0);
-//		xsend(sock,buf,9);
+		xsend(sock,buf,3);
 		return getqueueinfo();
 	default:
 		usage(argv[0]);
 		return 1;
 	}
-//	cls_close(sock);
+	cls_close(sock);
 }

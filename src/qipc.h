@@ -1,15 +1,10 @@
-/* $Id: qipc.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
-
-/*must be removed*/
-
+/* $Id: qipc.h,v 1.5 2004/01/15 23:39:41 sisoft Exp $ */
 #ifndef __QIPC_H__
 #define __QIPC_H__
 #include "mailer.h"
 #include "qcconst.h"
 #include "globals.h"
 
-extern int qipc_init();
-extern void qipc_done();
 extern void vlogs(char *str);
 extern void vlog(char *str, ...);
 extern void sline(char *str, ...);
