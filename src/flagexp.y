@@ -2,7 +2,7 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.10 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: flagexp.y,v 1.11 2003/02/03 14:38:49 cyrilm Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -30,6 +30,7 @@ static int checkport(void);
 static int checkcid(void);
 static int checkfile(void);
 static int yyerror(char *s);
+extern char *yyPTR;
 
 %}
 
@@ -178,6 +179,7 @@ int flagexp(char *expr)
 	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
 
 	p=strdup(expr);
+	yyPTR=p;
 #ifdef FLEX_SCANNER  /* flex requires reinitialization */
 	yy_init=1;
 #endif
