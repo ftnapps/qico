@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.7 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: daemon.c,v 1.8 2004/01/21 15:40:41 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_FNOTIFY
@@ -130,7 +130,16 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	cls_cl_t *uis;
 	cls_ln_t *lins;
 	if(!mode) {
-		daemon_xsend(chld,buf,rc);
+		if(buf[2]==QC_EMSID) {
+			for(lins=ln;lins&&lins->id!=FETCH16(buf);lins=lins->next);
+			if(lins) {
+				if(rc>4)lins->emsi=xrealloc(lins->emsi,rc);
+				    else xfree(lins->emsi);
+				if(lins->emsi)memcpy(lins->emsi,buf,rc);
+				lins->emsilen=rc;
+			} else DEBUG(('I',1,"got EMSI from unknown line %d",FETCH16(buf)));
+		}
+		if(rc>2)daemon_xsend(chld,buf,rc);
 		return;
 	}
 	for(uis=cl;uis&&uis->sock!=chld;uis=uis->next);
@@ -148,10 +157,14 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		}
 		uis->type=buf[3];
 		sendrpkt(0,chld,"ok");
-		tosend=chld;
-		qpmydata();
-		qsendqueue();
-		tosend=0;
+		if(uis->type=='e') {
+			tosend=chld;
+			qpmydata();
+			qsendqueue();
+			for(lins=ln;lins;lins=lins->next)
+			    if(lins->emsi)daemon_xsend(chld,lins->emsi,lins->emsilen);
+			tosend=0;
+		}
 		return;
 	}
 	if(uis->type=='u') {
@@ -827,7 +840,7 @@ nlkil:				is_ip=0;bink=0;
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
 				  socklen_t salen=sizeof(sa);
-				  if(recvfrom(lins_sock,buf,2,MSG_PEEK,&sa,&salen)<2)DEBUG(('I',1,"recvfrom: %s",strerror(errno)));
+				  if(recvfrom(lins_sock,buf,2,MSG_PEEK,&sa,&salen)<2)DEBUG(('I',1,"recvfrom: error: %s",strerror(errno)));
 				    else {
 					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);
 					if(rc<0)DEBUG(('I',3,"xrecv_l: %s",strerror(errno)));
@@ -849,6 +862,7 @@ nlkil:				is_ip=0;bink=0;
 									if(lt)lt->next=lins;
 									if(lntt==ln)ln=lins;
 									xfree(lntt->addr);
+									xfree(lntt->emsi);
 									xfree(lntt);
 									continue;
 								}
@@ -860,11 +874,13 @@ nlkil:				is_ip=0;bink=0;
 							lins->id=FETCH16(buf);
 							lins->addr=xmalloc(salen);
 							memcpy(lins->addr,&sa,salen);
+							lins->emsi=NULL;
+							lins->emsilen=0;
 							lins->next=NULL;
 							if(ln)lnt->next=lins;
 							    else ln=lins;
 						}
-						DEBUG(('I',6,"lines_cl: recv %d bytes from %d",rc,lins->id));
+						DEBUG(('I',9,"lines_cl: recv %d bytes from %d",rc,lins->id));
 					}
 					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
 				    }
@@ -886,7 +902,7 @@ nlkil:				is_ip=0;bink=0;
 							continue;
 						}
 						if(rc<0&&errno!=EAGAIN)DEBUG(('I',3,"xrecv_u %d: %s",uis->id,strerror(errno)));
-						if(rc>0)DEBUG(('I',5,"client %d: recv %d bytes",uis->id,rc));
+						if(rc>0)DEBUG(('I',8,"client %d: recv %d bytes",uis->id,rc));
 						if(rc>1)daemon_evt(uis->sock,buf,rc,1);
 					}
 					uit=uis;
