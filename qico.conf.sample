@@ -163,8 +163,10 @@ defperm		0644
 port 		ttyS1:38400
 #port		ttyS2:9600
 
-# delay between calls in seconds 
-dialdelay	10
+# delay between calls in seconds = dialdelay + (-dialdelta .. dialdelta)
+# it is not recommended to set dialdelta greater than dialdelay/2
+dialdelay	60
+dialdelta	30
 
 # outbound rescan period in seconds
 rescanperiod	30
@@ -376,7 +378,8 @@ endif
 # poll'em all ;)
 #if time 4-5
 # dialdelay 5
+# dialtelta 0
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.2 2000/07/18 12:50:33 lev Exp $
+# $Id: qico.conf.sample,v 1.2.2.1 2000/10/24 09:37:45 lev Exp $
