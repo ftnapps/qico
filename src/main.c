@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.12 2000/10/12 20:32:42 lev Exp $
+ * $Id: main.c,v 1.13 2000/10/17 16:58:07 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -144,7 +144,16 @@ void sendrpkt(char what, pid_t pid, char *fmt, ...)
 void alarmer(int i)
 {
 }
-	
+
+char qchars[]=Q_CHARS;
+char *sts_str(int flags)
+{
+	static char s[9];int i;
+	for(i=0;i<Q_MAXBIT;i++) s[i]=(flags&(1<<i))?qchars[i]:'.';
+	s[Q_MAXBIT]=0;
+	return s;
+}
+
 void daemon_mode()
 {
 	int t_dial=0, t_rescan=0; 
@@ -239,7 +248,9 @@ void daemon_mode()
 						sts.try=0;
 						sts.utime=0;
 						bso_setstatus(&current->addr, &sts);
-                                           f&=~Q_UNDIAL;
+						f&=~Q_UNDIAL;
+						log("changing status of %s to [%s]",
+							ftnaddrtoa(&current->addr), sts_str(sts.flags));
 					}
 				}
  
@@ -441,7 +452,7 @@ void daemon_mode()
 					} else {
 						log("can't kill %s!",
 							ftnaddrtoa(&fa));
-						sendrpkt(1,chld,"can't create kill %s",
+						sendrpkt(1,chld,"can't kill %s",
 								 ftnaddrtoa(&fa));
 					}
 					break;
@@ -467,8 +478,8 @@ void daemon_mode()
 					if(rc) {
 						bso_getstatus(&fa, &sts);
 						sts.flags|=set;sts.flags&=~res;
-						log("changing status of %s to 0x%08x",
-							ftnaddrtoa(&fa), sts.flags);
+						log("changing status of %s to [%s]",
+							ftnaddrtoa(&fa), sts_str(sts.flags));
 						if(set&Q_WAITA && !(res&Q_ANYWAIT))
 							sts.htime=t_set(cfgi(CFG_WAITHRQ)*60);
 						if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
@@ -780,8 +791,7 @@ int main(int argc, char *argv[], char *envp[])
 	printf("...press any key...\n");getchar();
 #endif	
 
-	if(daemon==0 || daemon==1 || daemon==12)
-		if(!qipc_init()) log("can't create ipc key!");
+	if(!qipc_init()) log("can't create ipc key!");
 
 	if(hostname || daemon==12) 
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
