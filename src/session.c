@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.14 2001/01/13 12:03:42 lev Exp $
+ * $Id: session.c,v 1.15 2001/01/16 16:08:57 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -235,7 +235,7 @@ int receivecb(char *fn)
 		slist_t *reqs=NULL;
 		
 		f=fopen(fn,"rt");
-		if(!f) {write_log("can't open '%s' for reading",s);return 0;}
+		if(!f) {write_log("can't open '%s' for reading",fn);return 0;}
 		while(fgets(s,MAX_PATH-1,f)) {
 			p=s+strlen(s)-1;
 			while(*p=='\r' || *p=='\n') *p--=0;
