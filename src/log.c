@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.6 2000/12/12 11:27:29 lev Exp $
+ * $Id: log.c,v 1.7 2001/01/03 15:08:53 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -76,7 +76,7 @@ void write_log(char *fmt, ...)
 		if(log_name) {
 			log_f=fopen(log_name, "at");
 			if(log_f) {
-				fputs(str, log_f);fputc('\n',log_f);		
+				fputs(str, log_f);fputc('\n',log_f);
 				fclose(log_f);
 			}
 		}
