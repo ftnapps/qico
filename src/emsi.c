@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.7 2000/11/01 10:29:23 lev Exp $
+ * $Id: emsi.c,v 1.8 2000/11/26 12:25:47 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -40,7 +40,6 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	char *dat=calloc(EMSI_BUF,1), tmp[1024], *p;int c;
 	falist_t *cs;ftnaddr_t *ba;
 	time_t tm=time(NULL);
-	struct tm *tt=localtime(&tm);
 	
 	strcpy(dat, "**EMSI_DAT0000{EMSI}{");
 	ba=akamatch(remaddr, adrs?adrs:cfgal(CFG_ADDRESS));
@@ -90,7 +89,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
 			mail, files, cfgs(CFG_WORKTIME),
 			cfgs(CFG_FREQTIME)?" ":"",cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"",
-			time(NULL)+tt->tm_gmtoff,tt->tm_gmtoff/3600
+			time(NULL)+gmtoff(tm)/3600
 		);
 	strcat(dat, tmp);
 	sprintf(tmp, "%04X", strlen(dat)-14);

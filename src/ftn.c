@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.16 2000/11/26 12:19:48 lev Exp $
+ * $Id: ftn.c,v 1.17 2000/11/26 12:25:47 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -645,4 +645,28 @@ int needhold(int status, int what)
 	if((status&Q_WAITR)&&!(what&(~T_REQ))) return 1;
 	if((status&Q_WAITX)&&!(what&(~T_ARCMAIL))) return 1;
 	return 0;
+}
+
+time_t gmtoff(time_t tt)
+{
+	struct tm lt;
+#ifndef TM_HAVE_GMTOFF
+	struct tm gt;
+	time_t offset;
+	lt=*localtime(&tt);
+	gt=*gmtime(&tt);
+	offset=gt.tm_yday-lt.tm_yday;
+	if (offset > 1) offset=-24;
+	else if (offset < -1) offset=24;
+	else offset*=24;
+	offset+=gt.tm_hour-lt.tm_hour;
+	offset*=60;
+	offset+=gt.tm_min-lt.tm_min;
+	offset*=60;
+	offset+=gt.tm_sec-lt.tm_sec;
+	return -offset;
+#else
+	lt=*localtime(&tt);
+	return lt.tm_gmtoff;
+#endif
 }

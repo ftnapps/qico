@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.12 2000/11/09 13:42:16 lev Exp $
+ * $Id: ftn.h,v 1.13 2000/11/26 12:25:47 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -222,6 +222,7 @@ extern char *xstrcat(char **to, char *from);
 extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
+extern time_t gmtoff(time_t tt);
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;

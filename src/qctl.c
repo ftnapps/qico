@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.6 2000/11/09 13:42:16 lev Exp $
+ * $Id: qctl.c,v 1.7 2000/11/26 12:25:48 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -67,9 +67,7 @@ void print_worktime(char *flags)
 {
 	char *p;
 	time_t tm=time(NULL);
-	long tz;
-	struct tm *tt=localtime(&tm);
-	tz=tt->tm_gmtoff/3600; 
+	long tz=gmtoff(tm)/3600;
 	
 	while((p=strsep(&flags, ","))) {
 		if(!strcmp(p,"CM")) {
