@@ -1,6 +1,6 @@
-/* $Id: TodayFixes,v 1.73 2004/05/31 13:19:58 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.74 2004/06/01 01:12:45 sisoft Exp $ */
 ---
-manage files.
+add support for recursive <if>-expressions and conditional includes.
 .
 previous:
 ---
