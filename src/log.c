@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.8 2001/02/16 10:41:45 aaz Exp $
+ * $Id: log.c,v 1.9 2001/02/16 11:36:02 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -18,16 +18,12 @@ typedef struct _slncode {
 SLNCODE facilitynames[] =
   {
     { "auth", LOG_AUTH },
-    { "authpriv", LOG_AUTHPRIV },
     { "cron", LOG_CRON },
     { "daemon", LOG_DAEMON },
-    { "ftp", LOG_FTP },
     { "kern", LOG_KERN },
     { "lpr", LOG_LPR },
     { "mail", LOG_MAIL },
-    { "mark", INTERNAL_MARK },		/* INTERNAL */
     { "news", LOG_NEWS },
-    { "security", LOG_AUTH },		/* DEPRECATED */
     { "syslog", LOG_SYSLOG },
     { "user", LOG_USER },
     { "uucp", LOG_UUCP },
