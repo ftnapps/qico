@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.43 2004/05/31 13:19:59 sisoft Exp $
+ * $Id: qcc.c,v 1.44 2004/06/05 00:15:50 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -422,13 +422,6 @@ static void freshslot()
 	}
 }
 
-static char *sscat(char *s,int size)
-{
-	if(size<1024)sprintf(s+strlen(s)," %6d",size);
-	    else sprintf(s+strlen(s),"%6dK",size/1024);
-	return s;
-}
-
 void write_log(char *str,...)
 {
 	int y,x;
@@ -539,9 +532,8 @@ static void freshqueue()
 		mvwaddch(wmain,i+1,0,(k>=999)?'=':' ');
 		mvwaddch(wmain,i+1,1,' ');waddstr(wmain,q->addr);
 		for(k=0;k<COL-24-Q_MAXBIT-strlen(q->addr);k++)waddch(wmain,' ');
-		*str=0;sscat(str,q->mail);strcat(str," ");
-		sscat(str,q->files);
-		sprintf(str+strlen(str),"  %3d  ",q->try);
+		snprintf(str,MAX_STRING," %5d%c %6d%c  %3d  ",
+		    SIZES(q->mail),SIZEC(q->mail),SIZES(q->files),SIZEC(q->files),q->try);
 		waddstr(wmain,str);
 		for(k=0,l=1;k<Q_MAXBIT;k++) {
 			if(q_pos!=q->n)wattron(wmain,COLOR_PAIR(qclrs[k]));
@@ -942,7 +934,6 @@ static int getmessages(char *bbx)
 	static int lastfirst=1,lastpos=1;
 	char buf[MSG_BUFFER];
 	unsigned char *data,*p;
-	/*memset(buf,0,MSG_BUFFER);*/
 	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
 	if(!rc)return -1;
 	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
@@ -988,21 +979,22 @@ static int getmessages(char *bbx)
 			}
 			if(rc>=0)slots[rc]->id=id;
 			    else type=-1;
-			if(type==QC_SLINE) {
+			switch(type) {
+			    case QC_SLINE:
 				restrcpy(&slots[rc]->status,(char*)data);
 				freshstatus();wrefresh(wstat);
-			}
-			if(type==QC_LOGIT) {
+				break;
+			    case QC_LOGIT:
 				logit((char*)data,slots[rc]->wlog,rc);
 				if(currslot==rc&&!edm)wrefresh(slots[rc]->wlog);
-			}
-			if(type==QC_TITLE) {
+				break;
+			    case QC_TITLE:
 				restrcpy(&slots[rc]->header,(char*)data);
 				if(currslot==rc) {
 					freshhdr();wrefresh(whdr);
 				}
-			}
-			if(type==QC_EMSID) {
+				break;
+			    case QC_EMSID:
 				if(!len) {
 					xfree(slots[rc]->name);
 					xfree(slots[rc]->sysop);
@@ -1029,8 +1021,8 @@ static int getmessages(char *bbx)
 					freshslot();wrefresh(wmain);
 				}
 				freshhelp();wnoutrefresh(whelp);
-			}
-			if(type==QC_LIDLE) {
+				break;
+			    case QC_LIDLE:
 				if(slots[rc]->session) {
 					slots[rc]->session=0;
 					memset(&slots[rc]->r,0,sizeof(pfile_t));
@@ -1048,8 +1040,8 @@ static int getmessages(char *bbx)
 					rc=findslot(buf+3);
 					if(rc>=0&&allslots>0)delslot(rc);
 				}
-			}
-			if(type==QC_SENDD) {
+				break;
+			    case QC_SENDD:
 				if(!len) {
 					memset(&slots[rc]->s,0,sizeof(pfile_t));
 				} else {
@@ -1073,8 +1065,8 @@ static int getmessages(char *bbx)
 				if(currslot==rc) {
 					freshslot();wrefresh(wmain);
 				}
-			}
-			if(type==QC_RECVD) {
+				break;
+			    case QC_RECVD:
 				if(!len)memset(&slots[rc]->r,0,sizeof(pfile_t));
 				    else {
 					p=data;
@@ -1097,8 +1089,8 @@ static int getmessages(char *bbx)
 				if(currslot==rc) {
 					freshslot();wrefresh(wmain);
 				}
-			}
-			if(type==QC_CHAT) {
+				break;
+			    case QC_CHAT:
 				while((p=(unsigned char*)strchr((char*)data,7))) {
 					*(char*)p='*';
 					flash();beep();flash();
@@ -1127,28 +1119,30 @@ static int getmessages(char *bbx)
 					memcpy(slots[rc]->cl,slots[rc]->cl+CHH,strlen(slots[rc]->cl)-(CHH-2));
 					slots[rc]->chats=MH;
 				}
+				break;
 			}
 		} else {
-			if(type==QC_SLINE) {
+			switch(type) {
+			    case QC_SLINE:
 				restrcpy(&m_status,(char*)data);
 				if(currslot<0) {
 					freshstatus();wrefresh(wstat);
 				}
-			}
-			if(type==QC_TITLE) {
+				break;
+			    case QC_TITLE:
 				restrcpy(&m_header,(char*)data);
 				if(currslot<0) {
 					freshhdr();wrefresh(whdr);
 				}
-			}
-			if(type==QC_LOGIT) {
+				break;
+			    case QC_LOGIT:
 				logit((char*)data,wlog,-1);
 				if(currslot<0&&!edm)wrefresh(wlog);
-			}
-			if(type==QC_MYDATA) {
+				break;
+			    case QC_MYDATA:
 				restrcpy(&myaddr,(char*)data);
-			}
-			if(type==QC_QUEUE) {
+				break;
+			    case QC_QUEUE:
 				if(!len) {
 					lastfirst=q_first;
 					lastpos=q_pos;
@@ -1171,8 +1165,11 @@ static int getmessages(char *bbx)
 				if(currslot<0) {
 					freshqueue();wrefresh(wmain);
 				}
+				break;
+			    case QC_QUIT:
+				quitflag=1;
+				break;
 			}
-			if(type==QC_QUIT)quitflag=1;
 		}
 	}
 	return(bbx?1:(type==QC_QUEUE));
@@ -1195,22 +1192,22 @@ int main(int argc,char **argv,char **envp)
 #endif
  	while((c=getopt(argc,argv,"hnvP:a:w:"))!=-1) {
 		switch(c) {
-			case 'P':
-				if(optarg&&*optarg)port=xstrdup(optarg);
-				break;
-			case 'a':
-				if(optarg&&*optarg)addr=xstrdup(optarg);
-				break;
-			case 'w':
-				if(optarg&&*optarg)pwd=xstrdup(optarg);
-				break;
-			case 'n':
-				beepdisable=1;
-				break;
-			case 'v':
-				u_vers("qcc");
-			default:
-				usage(argv[0]);
+		    case 'P':
+			if(optarg&&*optarg)port=xstrdup(optarg);
+			break;
+		    case 'a':
+			if(optarg&&*optarg)addr=xstrdup(optarg);
+			break;
+		    case 'w':
+			if(optarg&&*optarg)pwd=xstrdup(optarg);
+			break;
+		    case 'n':
+			beepdisable=1;
+			break;
+		    case 'v':
+			u_vers("qcc");
+		    default:
+			usage(argv[0]);
 		}
 	}
 	setproctitle(

@@ -1,9 +1,8 @@
-/* $Id: TodayFixes,v 1.76 2004/06/03 02:01:47 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.77 2004/06/05 00:15:49 sisoft Exp $ */
 ---
-fix compile without binkp.
+fix <if>-expressions parsing.
 .
 previous:
 ---
-fix multiline defines in config.
-add support for change if--endif to {--} blocks (see conf.sample).
+fix compile without binkp.
 .

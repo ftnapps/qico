@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.20 2004/06/02 13:20:08 sisoft Exp $
+ * $Id: config.c,v 1.21 2004/06/05 00:15:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -185,21 +185,23 @@ int readconfig(char *cfgname)
 		rc=0;
 	}
 	if(!rc)return 0;
-	for(i=0;i<CFG_NNN;i++) {
-		if(!configtab[i].found) {
-			if(configtab[i].required) {
-				write_log("required keyword '%s' not defined",configtab[i].keyword);
-				rc=0;
-			} else {
-				ci=xcalloc(1,sizeof(cfgitem_t));
-				if(configtab[i].def_val)
-				    setvalue(ci,configtab[i].def_val,configtab[i].type);
-				else memset(&ci->value,0,sizeof(ci->value));
-				ci->condition=NULL;
-				ci->next=NULL;
-				configtab[i].items=ci;
-			}
+	for(i=0;i<CFG_NNN;i++)
+	    if(configtab[i].found<2) {
+		if(configtab[i].required) {
+			write_log("required keyword '%s' not defined",configtab[i].keyword);
+			rc=0;
 		}
+		ci=xcalloc(1,sizeof(cfgitem_t));
+		if(configtab[i].def_val)
+		    setvalue(ci,configtab[i].def_val,configtab[i].type);
+		else memset(&ci->value,0,sizeof(ci->value));
+		ci->condition=NULL;ci->next=NULL;
+		if(configtab[i].found) {
+			cfgitem_t *cia=configtab[i].items;
+			for(;cia&&cia->next;cia=cia->next);
+			if(cia)cia->next=ci;
+		}
+		if(!configtab[i].items)configtab[i].items=ci;
 	}
 	if(rc) { /* read tables */
 		recode_to_local(NULL);
@@ -214,7 +216,7 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 	slist_t *cc;
 	cfgitem_t *ci;
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
-	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d",kw,arg,i,cfgname,line));
+	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d%s",kw,arg,i,cfgname,line,curcond?" (c)":""));
 	if(configtab[i].keyword) {
 		for(ci=configtab[i].items;ci;ci=ci->next) {
 			slist_t *a=ci->condition,*b=curcond;
@@ -224,12 +226,15 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 		if(!ci) {
 			ci=xcalloc(1,sizeof(cfgitem_t));
 			for(cc=curcond;cc;cc=cc->next)
-				slist_addl(&ci->condition,cc->str);
+			slist_addl(&ci->condition,cc->str);
 			ci->next=configtab[i].items;
 			configtab[i].items=ci;
 		}
 		if(setvalue(ci,arg,configtab[i].type)) {
-			if(!curcond)configtab[i].found=1;
+			if(configtab[i].found<2) {
+			    if(!curcond)configtab[i].found=2;
+				else configtab[i].found=1;
+			}
 		} else {
 			xfree(ci);
 			write_log("%s:%d: can't parse '%s %s'",cfgname,line,kw,arg);

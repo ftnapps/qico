@@ -1,3 +1,9 @@
+2004-06-03 06:01  sisoft
+
+	* src/: daemon.c, protfm.c, qslib.c:
+
+	fix compile without binkp.
+
 2004-06-02 17:20  sisoft
 
 	* Changes, cvs_com, qico.conf.sample, debian/qcc.8, debian/qctl.8,

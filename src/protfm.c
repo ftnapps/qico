@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.21 2004/06/03 02:01:49 sisoft Exp $
+ * $Id: protfm.c,v 1.22 2004/06/05 00:15:50 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -92,6 +92,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 			skipiftic=FOP_SKIP;
 			return FOP_SKIP;
 		}
+	write_log("xxx");
 	for(i=cfgsl(CFG_AUTOSUSPEND);i;i=i->next)
 		if(!xfnmatch(i->str, bn, FNM_PATHNAME)) {
 			write_log(wesusstr,recvf.fname,"");
