@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.1 2003/08/28 13:42:05 sisoft Exp $
+ * $Id: binkp.c,v 1.2 2003/09/12 18:24:34 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -188,10 +188,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				xstrcpy(tmp,ftnaddrtoa(ba),1023);
 			    } else {
 				xstrcpy(tmp,ftnaddrtoa(&pp->addr),1023);
-				xstrcat(tmp,"@",1023);
-				xstrcat(tmp,cfgs(CFG_DOMAIN)?(ccs+(*ccs=='@')):"fidonet",1023);
 				pp=pp->next;ba=NULL;
 			}
+			xstrcat(tmp,"@",1023);
+			xstrcat(tmp,cfgs(CFG_DOMAIN)?(ccs+(*ccs=='@')):"fidonet",1023);
 			for(;pp;pp=pp->next)
 			    if(&pp->addr!=ba) {
 				xstrcat(tmp," ",1023);
@@ -455,7 +455,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			}
 			if(lst&&txfd) {
 				DEBUG(('B',4,"found: %s",sendf.fname));
-				send_file=1;
+				send_file=1;txpos=0;
 				snprintf(tmp,512,"%s %ld %ld 0",sendf.fname,(long)sendf.ftot,sendf.mtime);
 				msgs(BPM_FILE,tmp,NULL);
 			} else nofiles=1;
@@ -467,7 +467,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				txclose(&txfd,FOP_ERROR);
 				send_file=0;
 			} else {
-				DEBUG(('B',3,"readed %d bytes of %d",n,BP_BLKSIZE));
+				DEBUG(('B',3,"readed %d bytes of %d (D)",n,BP_BLKSIZE));
 				if(n) {
 					*txbuf=((n>>8)&0x7f);txbuf[1]=n&0xff;
 					datas(txbuf,(word)(n+2));
@@ -497,7 +497,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    case BPM_DATA:
 			DEBUG(('B',4,"got: data"));
 			if(recv_file) {
-				if((n=fwrite(rxbuf+2,1,*(long*)tmp,rxfd))<0) {
+				if((n=fwrite(rxbuf,1,*(long*)tmp,rxfd))<0) {
 					recv_file=0;
 					sline("binkp: file write error");
 					write_log("can't write %s, suspended.",recvf.fname);
@@ -541,13 +541,13 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			}
 			if(recvf.fname&&!strncmp(fname,recvf.fname,64) &&
 			    recvf.mtime==ftime&&recvf.ftot==fsize&&recvf.soff==foffs) {
-				recv_file=1;
+				recv_file=1;rxpos=foffs;
 				break;
 			}
 //mb?			if((bp_opt&BP_OPT_MB)&&recv_eob&&!sent_eob)recv_eob=0;
 			switch(rxopen(fname,ftime,fsize,&rxfd)) {
 			    case FOP_OK:
-				recv_file=1;
+				recv_file=1;rxpos=0;
 				break;
 			    case FOP_ERROR:
 				write_log("binkp: error open for write \"%s\"",recvf.fname);
@@ -561,6 +561,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				break;
 			    case FOP_CONT:
 				snprintf(tmp,512,"%s %ld %ld %ld",recvf.fname,(long)recvf.ftot,recvf.mtime,(long)recvf.soff);
+				/* ???? work? */
 				msgs(BPM_GET,tmp,NULL);
 				break;
 			}
@@ -616,11 +617,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				    sendf.mtime==ftime&&sendf.ftot==fsize&&sendf.soff==foffs) {
 					if(fseek(txfd,foffs,SEEK_SET)<0) {
 						write_log("can't send file from requested offset");
+						msgs(BPM_ERR,"can't send file from requested offset",NULL);
 						txclose(&txfd,FOP_ERROR);
 						send_file=0;
 					} else {
-						sendf.soff=foffs;
-						txpos=foffs;
+						sendf.soff=sendf.foff=txpos=foffs;
 						snprintf(tmp,512,"%s %ld %ld %ld",sendf.fname,(long)sendf.ftot,sendf.mtime,(long)foffs);
 						msgs(BPM_FILE,tmp,NULL);
 					}
