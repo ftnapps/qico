@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.53 2001/04/17 10:33:29 lev Exp $
+ * $Id: main.c,v 1.54 2001/05/29 19:13:33 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -689,7 +689,7 @@ void answer_mode(int type)
 #else
 	xstrcpy(ip_id, "ipd", 10);
 #endif
-	rnode->tty=xstrdup(is_ip?"tcpip":basename(ttyname(0)));
+	rnode->tty=xstrdup(is_ip?"tcpip":q_basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
@@ -827,7 +827,7 @@ int main(int argc, char *argv[], char *envp[])
 	int call_flags = 0;
 	char *str=NULL;
 
-#ifndef HAVE_LIBUTIL
+#ifndef HAVE_SETPROCTITLE
 	setargspace(argv,envp);
 #endif
  	setlocale(LC_ALL, "");	 

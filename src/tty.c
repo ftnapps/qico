@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.17 2001/05/07 19:16:48 lev Exp $
+ * $Id: tty.c,v 1.18 2001/05/29 19:13:34 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -555,7 +555,7 @@ char *baseport(char *p)
 {
 	static char pn[20];
 	char *q;
-	xstrcpy(pn, basename(p), sizeof(pn));
+	xstrcpy(pn, q_basename(p), sizeof(pn));
 	if((q=strrchr(pn,':'))) *q=0;
 	return pn;
 }
