@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.17 2001/07/24 13:57:09 lev Exp $
+ * $Id: nodelist.c,v 1.18 2001/09/17 18:48:31 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -538,18 +538,24 @@ int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs)
 	return can_dial(nl,ct);
 }
 
+void nlfree(ninfo_t *nl)
+{
+	if(!nl) return;
+	falist_kill(&(nl)->addrs);
+	xfree(nl->name);
+	xfree(nl->place);
+	xfree(nl->sysop);
+	xfree(nl->phone);
+	xfree(nl->wtime);
+	xfree(nl->flags);
+	xfree(nl->pwd);
+	xfree(nl->mailer);
+}
+
 void nlkill(ninfo_t **nl)
 {
 	if(!*nl) return;
-	falist_kill(&(*nl)->addrs);
-	xfree((*nl)->name);
-	xfree((*nl)->place);
-	xfree((*nl)->sysop);
-	xfree((*nl)->phone);
-	xfree((*nl)->wtime);
-	xfree((*nl)->flags);
-	xfree((*nl)->pwd);
-	xfree((*nl)->mailer);
+	nlfree(*nl);
 	xfree(*nl);
 }
 	
