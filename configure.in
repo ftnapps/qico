@@ -44,7 +44,8 @@ dnl AC_FUNC_STRFTIME
 dnl AC_FUNC_UTIME_NULL
 dnl AC_FUNC_VPRINTF
 dnl AC_CHECK_FUNCS(getcwd mkdir rmdir select socket strcspn strdup strerror strspn strstr strtol uname)
-AC_CHECK_FUNCS(basename)
+AC_CHECK_FUNCS(strcspn vsnprintf snprintf)
+AC_REPLACE_FUNCS(basename strsep usleep)
 
 dnl Checking for FreeBSD setproctitle in libutil
 AC_CHECK_LIB(util, setproctitle)
@@ -153,6 +154,16 @@ AC_TRY_COMPILE([#include <stdlib.h>
 #include <syslog.h>
 #include <sys/syslog.h>], [ char *p=facilitynames[0].c_name; ],
 AC_DEFINE(HAVE_SYSLOG_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
+dnl Socket functions are in libnsl.a on SunOS 5.5
+AC_CHECK_FUNC(socket,,AC_CHECK_LIB(socket,socket))
+AC_CHECK_FUNC(getpeername,,AC_CHECK_LIB(socket,getpeername))
+AC_CHECK_FUNC(gethostbyname,,AC_CHECK_LIB(nsl,gethostbyname))
+AC_CHECK_FUNC(getservbyname,,AC_CHECK_LIB(socket,getservbyname))
+AC_CHECK_FUNC(inet_addr,,AC_CHECK_LIB(nsl,inet_addr))
+AC_CHECK_FUNC(inet_ntoa,,AC_CHECK_LIB(nsl,inet_ntoa))
+AC_CHECK_FUNCS(shutdown)
+AC_CHECK_FUNC(connect,,AC_CHECK_LIB(nsl,connect))
 
 dnl My substs
 AC_SUBST(VERSION)

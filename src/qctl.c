@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.10 2001/01/21 18:11:33 lev Exp $
+ * $Id: qctl.c,v 1.11 2001/02/16 14:45:56 aaz Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -18,6 +18,7 @@
 #include <errno.h>
 #include "qcconst.h"
 #include "ver.h"
+#include "replace.h"
 
 extern time_t gmtoff(time_t tt);
 
@@ -82,9 +83,9 @@ void print_worktime(char *flags)
 		if(p[0]=='T' && p[3]==0) {
 			printf(" WkTime: %02ld:%02d-%02ld:%02d\n",
 				   (toupper(p[1])-'A'+tz)%24, 
-				   islower(p[1]) ? 30:0, 
+				   islower((int)p[1]) ? 30:0, 
 				   (toupper(p[2])-'A'+tz)%24, 
-				   islower(p[2]) ? 30:0); 
+				   islower((int)p[2]) ? 30:0); 
 			break;
 		}
 	}

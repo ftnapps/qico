@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.9 2001/01/09 11:31:31 lev Exp $
+# $Id: Makefile.in,v 1.10 2001/02/16 14:45:55 aaz Exp $
 #
 
 prefix  = @prefix@
@@ -14,6 +14,8 @@ LEX     = @LEX@
 YACC    = @YACC@
 
 QCC     = @QCC@
+
+LIBOBJS= @LIBOBJS@
 
 NEWZMODEM = @NEWZMODEM@
 
@@ -39,11 +41,11 @@ QCLIBS  = @QCCLIBS@
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o session.o call.o qnlc.o qipc.o tcp.o \
-          hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o
+          hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o $(LIBOBJS)
 
 
 QCCOBJS	= qcc.o ver.o
-QCTLOBJS= qctl.o ver.o gmtoff.o
+QCTLOBJS= qctl.o ver.o gmtoff.o $(LIBOBJS)
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c session.c call.c qnlc.c qipc.c tcp.c \

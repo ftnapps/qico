@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.36 2001/02/13 21:49:20 aaz Exp $
+ * $Id: main.c,v 1.37 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -118,7 +118,12 @@ void sendipcpkt(int wait, char what, pid_t pid, char *fmt, va_list args)
 	int rc;
 	STORE32(buf,pid);
 	buf[4]=what;
+#ifdef HAVE_VSNPRINTF
 	rc=vsnprintf(buf+5, MSG_BUFFER-1, fmt, args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
+	rc=vsprintf(buf+5, fmt, args);
+#endif	
 	msgsnd(qipcr_msg, buf, rc+6, wait?0:IPC_NOWAIT);
 }
 
@@ -618,7 +623,7 @@ void daemon_mode()
 void killdaemon(int sig)
 {
 	FILE *f;
-	pid_t pid;
+	long pid;
 	if(!cfgs(CFG_PIDFILE)) {
 		fprintf(stderr, "no pidfile defined\n");
 		return;
@@ -628,7 +633,7 @@ void killdaemon(int sig)
 		fprintf(stderr, "can't open pid file - no daemon killed!\n");
 		return;
 	}		
-	fscanf(f, "%d", &pid);fclose(f);
+	fscanf(f, "%ld", &pid);fclose(f);
 	if(kill(pid, sig))
 		fprintf(stderr, "can't send signal!\n");
 	else

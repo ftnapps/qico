@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.7 2000/12/12 11:27:05 lev Exp $
+ * $Id: freq.c,v 1.8 2001/02/16 14:45:56 aaz Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -22,7 +22,7 @@ int freq_ifextrp(slist_t *reqs)
 	if(rnode->options&O_LST) priv='l';
 	if(rnode->options&O_PWD) priv='p';
 	
-	sprintf(fn,"/tmp/qreq.%04x",getpid());
+	sprintf(fn,"/tmp/qreq.%04lx",(long)getpid());
 	f=fopen(fn,"wt");
 	if(!f) {
 		write_log("can't open '%s' for writing",fn);return got;
@@ -36,19 +36,19 @@ int freq_ifextrp(slist_t *reqs)
 	}
 	fclose(f);
 	
-	sprintf(s, "%s -wazoo -%c -s%d %s /tmp/qreq.%04x /tmp/qfls.%04x /tmp/qrep.%04x",
+	sprintf(s, "%s -wazoo -%c -s%d %s /tmp/qreq.%04lx /tmp/qfls.%04lx /tmp/qrep.%04lx",
 			cfgs(CFG_EXTRP), priv, rnode->realspeed,
-			ftnaddrtoa(&rnode->addrs->addr), getpid(),getpid(),getpid());
+			ftnaddrtoa(&rnode->addrs->addr), (long)getpid(),(long)getpid(),(long)getpid());
 	write_log("exec '%s' returned rc=%d", s,
 		execsh(s));
 	lunlink(fn);
 	
-	sprintf(fn,"/tmp/qfls.%04x",getpid());
+	sprintf(fn,"/tmp/qfls.%04lx",(long)getpid());
 	f=fopen(fn,"rt");
 	if(!f) {
-		sprintf(fn,"/tmp/qrep.%04x",getpid());
+		sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
 		lunlink(fn);
-		sprintf(fn,"/tmp/qfls.%04x",getpid());
+		sprintf(fn,"/tmp/qfls.%04lx",(long)getpid());
 		lunlink(fn);
 		write_log("can't open '%s' for reading",fn);return got;
 	}
@@ -65,11 +65,11 @@ int freq_ifextrp(slist_t *reqs)
 	}
 	fclose(f);lunlink(fn);
 	
-	sprintf(fn,"/tmp/qrep.%04x",getpid());
+	sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
 	f=fopen(fn,"rt");
 	if(!f) write_log("can't open '%s' for reading",fn);
 	
-	sprintf(fn,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);
+	sprintf(fn,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
 	g=openpktmsg(ma, &rnode->addrs->addr,
 				 rnode->sysop,cfgs(CFG_FREQFROM),
 				 cfgs(CFG_FREQSUBJ),rnode->pwd,fn);
@@ -89,12 +89,12 @@ int freq_ifextrp(slist_t *reqs)
 			cfgs(CFG_VERSION)  == NULL ? version  :	cfgs(CFG_VERSION),
 			cfgs(CFG_OSNAME)   == NULL ? osname   : cfgs(CFG_OSNAME));
 		closepkt(g, ma, s, cfgs(CFG_STATION));
-		sprintf(s,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);p=strdup(s);
+		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);p=strdup(s);
 		sprintf(s,"%08lx.pkt", sequencer());
 		addflist(&fl, p, strdup(s), '^',0,NULL,0);
 		freq_pktcount++;
 	}
-	sprintf(fn,"/tmp/qrep.%04x",getpid());
+	sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
 	lunlink(fn);
 	
 	return got;

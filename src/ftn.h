@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.16 2001/01/09 20:14:15 aaz Exp $
+ * $Id: ftn.h,v 1.17 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -289,12 +289,6 @@ extern void qsendqueue();
 #define MIN(a,b) ((a<b)?a:b)
 
 #define C0(c) ((c>=32)?c:'.')
-
-#ifndef basename
-extern char *basename (const char *filename);
-#else
-#define HAS_BASENAME
-#endif
 
 extern int fexist(char *s);
 extern char *fnc(char *s);
