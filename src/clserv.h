@@ -1,4 +1,4 @@
-/* $Id: clserv.h,v 1.6 2004/02/13 22:29:01 sisoft Exp $ */
+/* $Id: clserv.h,v 1.7 2004/03/15 01:19:30 sisoft Exp $ */
 #ifndef __CLSERV_H__
 #define __CLSERV_H__
 
@@ -11,6 +11,11 @@
 #define CLS_LINE CLS_UDP
 #define CLS_SERV_U CLS_SERVER
 #define CLS_SERV_L CLS_SERVER|CLS_UDP
+
+/* hack for some older systems */
+#ifndef MSG_WAITALL
+#define MSG_WAITALL 0
+#endif
 
 typedef struct _cls_cl_t {
 	struct _cls_cl_t *next;

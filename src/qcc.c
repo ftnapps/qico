@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.27 2004/03/03 15:12:58 sisoft Exp $
+ * $Id: qcc.c,v 1.28 2004/03/15 01:19:30 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -243,8 +243,8 @@ static void mvwhline(WINDOW *win,int y,int x,int ch,int n)
 
 static void draw_screen()
 {
+	redrawwin(stdscr);
 	attrset(COLOR_PAIR(2));
-	bkgd(COLOR_PAIR(2)|' ');
 	mvvline(1,0,ACS_VLINE,LINES-3);
 	mvvline(1,COL+1,ACS_VLINE,LINES-3);
 	mvhline(MH+1,1,ACS_HLINE,COL);
@@ -255,6 +255,34 @@ static void draw_screen()
 	mvaddch(LINES-2,COL,']');mvaddch(LINES-2,COL+1,ACS_LRCORNER);
 	attron(COLOR_PAIR(8));mvhline(LINES-1,0,' ',COLS);
 	refresh();
+}
+
+static void initscreen()
+{
+	initscr();start_color();
+	cbreak();noecho();nonl();
+	nodelay(stdscr,TRUE);
+	keypad(stdscr,TRUE);
+	leaveok(stdscr,FALSE);
+	init_pair(1,COLOR_BLUE,COLOR_BLACK);
+	init_pair(2,COLOR_GREEN,COLOR_BLACK);
+	init_pair(3,COLOR_CYAN,COLOR_BLACK);
+	init_pair(4,COLOR_RED,COLOR_BLACK);
+	init_pair(5,COLOR_MAGENTA,COLOR_BLACK);
+	init_pair(6,COLOR_YELLOW,COLOR_BLACK);
+	init_pair(7,COLOR_WHITE,COLOR_BLACK);
+	init_pair(8,COLOR_BLACK,COLOR_WHITE);
+	init_pair(9,COLOR_RED,COLOR_WHITE);
+	init_pair(10,COLOR_MAGENTA,COLOR_WHITE);
+	init_pair(11,COLOR_YELLOW,COLOR_WHITE);
+	init_pair(12,COLOR_YELLOW,COLOR_BLUE);
+	init_pair(13,COLOR_WHITE,COLOR_BLUE);
+	init_pair(14,COLOR_CYAN,COLOR_BLUE);
+	init_pair(15,COLOR_GREEN,COLOR_BLUE);
+	init_pair(16,COLOR_BLACK,COLOR_CYAN);
+	bkgd(COLOR_PAIR(2)|' ');
+	draw_screen();
+ 	signal(SIGWINCH,sigwinch);
 	wmain=newwin(MH,COL,1,1);
 	scrollok(wmain,FALSE);
 	wbkgd(wmain,COLOR_PAIR(6)|' ');
@@ -272,31 +300,6 @@ static void draw_screen()
 	wrefresh(whdr);
  	wrefresh(wlog);
 	wrefresh(whelp);
-}
-
-static void initscreen()
-{
-	initscr();start_color();
-	cbreak();noecho();nonl();
-	nodelay(stdscr,TRUE);keypad(stdscr,TRUE);leaveok(stdscr,FALSE);
-	init_pair(1,COLOR_BLUE,COLOR_BLACK);
-	init_pair(2,COLOR_GREEN,COLOR_BLACK);
-	init_pair(3,COLOR_CYAN,COLOR_BLACK);
-	init_pair(4,COLOR_RED,COLOR_BLACK);
-	init_pair(5,COLOR_MAGENTA,COLOR_BLACK);
-	init_pair(6,COLOR_YELLOW,COLOR_BLACK);
-	init_pair(7,COLOR_WHITE,COLOR_BLACK);
-	init_pair(8,COLOR_BLACK,COLOR_WHITE);
-	init_pair(9,COLOR_RED,COLOR_WHITE);
-	init_pair(10,COLOR_MAGENTA,COLOR_WHITE);
-	init_pair(11,COLOR_YELLOW,COLOR_WHITE);
-	init_pair(12,COLOR_YELLOW,COLOR_BLUE);
-	init_pair(13,COLOR_WHITE,COLOR_BLUE);
-	init_pair(14,COLOR_CYAN,COLOR_BLUE);
-	init_pair(15,COLOR_GREEN,COLOR_BLUE);
-	init_pair(16,COLOR_BLACK,COLOR_CYAN);
-	draw_screen();
- 	signal(SIGWINCH,sigwinch);
 }
 
 static void donescreen()
@@ -562,7 +565,7 @@ static void freshall()
 	if(currslot>=0)freshslot();
 	    else freshqueue();
 	wnoutrefresh(wmain);
-	redrawwin((currslot<0)?wlog:slots[currslot]->wlog);
+	redrawwin(((currslot<0)?wlog:slots[currslot]->wlog));
 	wrefresh((currslot<0)?wlog:slots[currslot]->wlog);
 }
 
@@ -1244,10 +1247,13 @@ int main(int argc,char **argv)
 #ifdef CURS_HAVE_RESIZETERM
 		if (sizechanged) {
 			if(!ioctl(fileno(stdout),TIOCGWINSZ,&size)) {
-				resizeterm(size.ws_row,size.ws_col);
-				draw_screen();
+				LINES=size.ws_row;COLS=size.ws_col;
+				resizeterm(LINES,COLS);draw_screen();
 				for(ch=0;ch<allslots;ch++)wresize(slots[ch]->wlog,LOGSIZE,COL);
-				freshall();
+				wresize(wmain,MH,COL);wresize(wlog,LOGSIZE,COL);
+				mvwin(wstat,LINES-2,2);wresize(wstat,1,COL-2);
+				mvwin(whelp,LINES-1,1);wresize(whelp,1,COL);
+				wresize(whdr,1,COL-2);freshall();
 			}
 			sizechanged=0;
  		}
@@ -1277,8 +1283,8 @@ int main(int argc,char **argv)
 		if(ch==0x1b)ch=getch();
 		if(ch==ERR)continue;
 		if(ch==('L'-'@')) {
+			draw_screen();
 			freshall();
-			refresh();
 		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
 			if(currslot<(allslots-1)||ch=='\t') {
 				currslot++;

@@ -1,8 +1,11 @@
-/* $Id: TodayFixes,v 1.47 2004/03/09 23:11:57 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.48 2004/03/15 01:19:30 sisoft Exp $ */
 ---
-add keyword 'runoncall'.
+apply ispell to docs.
+work on old systems with simple recv() implementation.
+in qcc: fix resize terminal.
+in qcc: add key 'ctrl+l' for refresh screen.
 .
 previous:
 ---
-0.53si-cvs.
+add keyword 'runoncall'.
 .
