@@ -1,3 +1,15 @@
+2004-01-19 23:21  sisoft
+
+	* Changes, src/binkp.c, src/clserv.c, src/clserv.h, src/daemon.c,
+	src/log.c, src/main.c, src/qcc.c, src/qipc.c, src/qipc.h:
+
+	in qcc: fix ESC key.
+	perfect daemon latency.
+	fix skip/suspend/chat/hup functions.
+	in qcc: fix for support multiple ip lines.
+	send cmd for remove old ip windows.
+	fix binkp.
+	
 2004-01-19 00:13  sisoft
 
 	* src/: config.c, daemon.c, qcc.c:
