@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.3 2001/01/04 11:44:33 lev Exp $
+ * $Id: ls_zglue.c,v 1.4 2001/01/06 14:44:47 lev Exp $
  **********************************************************/
 /*
 
@@ -94,9 +94,9 @@ int zmodem_receive(char *c) {
 #endif
 
 	switch((rc=ls_zinitreceiver(LSZ_OPTCRC32|LSZ_OPTZEDZAP|LSZ_OPTSKIPGUARD,effbaud,cfgi(CFG_ZRXWIN),&f))) {
-	case ZEOF:
+	case ZFIN:
 #ifdef Z_DEBUG2
-		write_log("zmodem_receive: EOF after INIT, empty batch");
+		write_log("zmodem_receive: ZFIN after INIT, empty batch");
 #endif
 		ls_zdonereceiver();
 		return LSZ_OK;
