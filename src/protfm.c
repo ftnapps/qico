@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.5 2000/10/07 13:56:39 lev Exp $
+ * $Id: protfm.c,v 1.6 2000/10/17 16:48:28 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -220,6 +220,8 @@ int txclose(FILE **f, int what)
 
 void check_cps()
 {
+	int cpsdelay=cfgi(CFG_MINCPSDELAY);
+	
 	sendf.cps=time(NULL)-sendf.start;
 	if(!sendf.cps) sendf.cps=1;
 	sendf.cps=(sendf.foff-sendf.soff)/sendf.cps;
@@ -229,13 +231,13 @@ void check_cps()
 	recvf.cps=(recvf.foff-recvf.soff)/recvf.cps;
 
 	if(cfgi(CFG_MINCPSOUT)>0 &&
-	   (time(NULL)-sendf.start)>5 &&
+	   (time(NULL)-sendf.start)>cpsdelay &&
 	   sendf.cps<cci) {
 		log("mincpsout=%d reached, aborting session", cci);
 		tty_hangedup=1;
 	}
 	if(cfgi(CFG_MINCPSIN)>0 &&
-	   (time(NULL)-recvf.start)>5 &&
+	   (time(NULL)-recvf.start)>cpsdelay &&
 	   recvf.cps<cci) {
 		log("mincpsin=%d reached, aborting session", cci);
 		tty_hangedup=1;

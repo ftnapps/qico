@@ -283,6 +283,10 @@ waithrq         60
 # minimum connection speed (no check if 0)
 minspeed 	2400
 
+# start checking minimum cps after this amount of seconds
+# from _each_ file transfer start (default is 10 seconds)
+mincpsdelay	10
+
 # minimum cps on receive (no check if 0)
 mincpsin	0
 
@@ -405,4 +409,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.3 2000/10/12 19:40:14 lev Exp $
+# $Id: qico.conf.sample,v 1.4 2000/10/17 16:48:27 lev Exp $

@@ -63,6 +63,7 @@ version,C_STR,char *,0,NULL
 osname,C_STR,char *,0,NULL
 mincpsin,C_INT,int,0,"0"
 mincpsout,C_INT,int,0,"0"
+mincpsdelay,C_INT,int,0,"10"
 lockdir,C_STR,char *,1,NULL
 clearundial,C_INT,int,0,"0"
 aftermail,C_STR,char *,0,NULL
