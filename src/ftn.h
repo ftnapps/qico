@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.5 2003/08/25 15:27:39 sisoft Exp $ */
+/* $Id: ftn.h,v 1.6 2003/09/07 09:34:21 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -267,7 +267,7 @@ extern int is_aso();
 extern int aso_init(char *asopath, int def_zone);
 extern void aso_done(void);
 extern char *aso_name(ftnaddr_t *fa);
-extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
+extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow);
 extern int aso_flavor(char fl);
 extern char *aso_pktn(ftnaddr_t *fa, int fl);
 extern char *aso_flon(ftnaddr_t *fa, int fl);
