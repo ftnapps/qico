@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.2 2004/06/09 22:25:50 sisoft Exp $
+ * $Id: perl.c,v 1.3 2004/06/11 20:30:24 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -35,7 +35,10 @@ typedef enum {
 	PERL_ON_HS,
 	PERL_END_HS,
 	PERL_ON_SESSION,
-	PERL_END_SESSION
+	PERL_END_SESSION,
+	PERL_ON_RECV,
+	PERL_RECV_CB,
+	PERL_ON_SEND
 } perl_subs;
 
 static char *perl_subnames[]={
@@ -46,11 +49,13 @@ static char *perl_subnames[]={
 	"on_handshake",
 	"end_handshake",
 	"on_session",
-	"end_session"
+	"end_session",
+	"on_recv",
+	"recv_cb",
+	"on_send"
 };
 
 static PerlInterpreter *perl = NULL;
-static char *perlargs[]={"",NULL,NULL};
 static unsigned perl_nc=0;
 unsigned short perl_flg=0;
 
@@ -81,6 +86,7 @@ static XS(perl_setflag)
 	if(items==2) {
 		num=SvIV(ST(0));
 		arg=SvIV(ST(1));
+		DEBUG(('P',2,"perl setflag(%d,%d)",num,arg));
 		if(num<0||num>9||arg<0)write_log("perl setflags() error: illegal argument");
 		    else {
 			if(arg)perl_flg|=1<<num;
@@ -110,6 +116,8 @@ static void perl_setup(int daemon,int init)
 	faslist_t *fasl;
 	pladd_int(sv,"init",init);
 	pladd_int(sv,"daemon",daemon);
+	pladd_str(sv,"conf",configname);
+	pladd_strz(sv,"version",version);
 	hv=perl_get_hv("conf",TRUE);
 	hv_clear(hv);
 	for(i=0;i<CFG_NNN;i++)
@@ -167,17 +175,23 @@ static void perl_setup(int daemon,int init)
 
 int perl_init(char *script,int mode)
 {
-	int i=1,rc;
+	int rc;
+	char *perlargs[]={"",NULL,NULL};
 	DEBUG(('P',1,"perl_init(%s, %d)",script,mode));
-	perlargs[i++]=script;
 	if(access(script,R_OK)) {
 		perl=NULL;
 		write_log("can't access perlfile %s: %s",script,strerror(errno));
 		return 0;
 	}
 	perl=perl_alloc();
-	perl_construct(perl);
-	rc=perl_parse(perl,perl_xs_init,i,perlargs,NULL);
+	if(perl) {
+		perlargs[1]=script;
+		perl_construct(perl);
+		rc=perl_parse(perl,perl_xs_init,2,perlargs,NULL);
+	} else {
+		write_log("perl allocation error");
+		return 0;
+	}
 	if(rc) {
 		perl_destruct(perl);
 		perl_free(perl);
@@ -187,8 +201,8 @@ int perl_init(char *script,int mode)
 	}
 	perl_run(perl);
 	perl_setup(mode,1);
-	for(i=0,perl_nc=0;i<sizeof(perl_subnames)/sizeof(perl_subnames[0]);i++)
-		if(perl_get_cv(perl_subnames[i],FALSE))perl_nc|=1<<i;
+	for(rc=0,perl_nc=0;rc<sizeof(perl_subnames)/sizeof(*perl_subnames);rc++)
+		if(perl_get_cv(perl_subnames[rc],FALSE))perl_nc|=1<<rc;
 	perl_on_std(PERL_ON_LOAD);
 	return 1;
 }
@@ -272,8 +286,52 @@ int perl_on_log(char *str)
 
 int perl_on_call()
 {
+	if(PerlHave(PERL_ON_CALL)) {
 
+		DEBUG(('P',3,"perl_on_call()"));
 
+	}
+	return 1;
+}
+
+int perl_on_hs()
+{
+	if(PerlHave(PERL_ON_HS)) {
+
+		DEBUG(('P',3,"perl_on_hs()"));
+
+	}
+	return 1;
+}
+
+int perl_end_hs()
+{
+	if(PerlHave(PERL_END_HS)) {
+
+		DEBUG(('P',3,"perl_end_hs()"));
+
+	}
+	return 1;
+}
+
+int perl_on_session()
+{
+	if(PerlHave(PERL_ON_SESSION)) {
+
+		DEBUG(('P',3,"perl_on_session()"));
+
+	}
+	return 1;
+}
+
+int perl_end_session()
+{
+	if(PerlHave(PERL_END_SESSION)) {
+
+		DEBUG(('P',3,"perl_end_session()"));
+
+	}
+	return 1;
 }
 
 #endif

@@ -1,3 +1,12 @@
+2004-06-10 02:25  sisoft
+
+	* cvs_com, src/daemon.c, src/flagexp.y, src/flaglex.l, src/hydra.c,
+	  src/hydra.h, src/log.c, src/mailer.h, src/main.c, src/perl.c,
+	  src/tools.c, src/tools.h, stuff/test.pl:
+
+	add if-expression flags 'perl[0-9]' - flags, setted from perl script.
+	other perl-related changes.
+
 2004-06-08 15:11  sisoft
 
 	* Changes, qico.conf.sample, src/protfm.c, stuff/test.pl:
