@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.6 2000/11/08 20:55:29 lev Exp $
+ * $Id: main.c,v 1.4.2.7 2001/01/04 18:11:51 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -242,7 +242,7 @@ void daemon_mode()
 					rnode->name=strdup("Unknown");
 					rnode->phone=strdup("");
 				}
-				phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 #ifdef Q_DEBUG			
 				log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum);
@@ -434,7 +434,7 @@ int force_call(ftnaddr_t *fa, int flags)
 
  rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
  if (!rnode) return 0;
- phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+ phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
  rnode->tty=NULL;
 
  if((flags & 2) != 2) {

@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.3 2000/07/18 12:58:58 lev Exp $
+ * $Id: nodelist.c,v 1.3.2.1 2001/01/04 18:10:57 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -119,11 +119,13 @@ int is_listed(ftnaddr_t *addr, char *nlpath)
 	return rc;
 }
 
-void phonetrans(char *ph, slist_t *phtr)
+void phonetrans(char **pph, slist_t *phtr)
 {
 	int rc=1;slist_t *pht;
 	char *s, *t,*p, tmp[MAX_STRING];
-	if(!*ph) return;
+        char *ph = *pph;
+
+	if(!*pph || !*ph) return;
 	for(pht=phtr;pht && rc;pht=pht->next) {
 		s=strdup(pht->str);
 		p=strchr(s,' ');
@@ -136,12 +138,14 @@ void phonetrans(char *ph, slist_t *phtr)
 		if(strncmp(ph, s, strlen(s))==0) {
 			if(p) strcpy(tmp, p);else *tmp=0;
 			strcat(tmp, ph+strlen(s));
+			sfree(ph); ph=malloc(strlen(tmp)+1); *pph=ph;
 			strcpy(ph, tmp);sfree(s);
 			return;
 		}
 		if(s[0]=='=') {
 			if(p) strcpy(tmp, p);else *tmp=0;
 			strcat(tmp, ph);
+			sfree(ph); ph=malloc(strlen(tmp)+1); *pph=ph;
 			strcpy(ph, tmp);sfree(s);
 			return;
 		}
