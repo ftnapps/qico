@@ -1,10 +1,8 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.23 2004/06/22 08:28:30 sisoft Exp $
+ * $Id: config.c,v 1.24 2004/06/22 14:26:21 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-
-extern int flagexp(slist_t *expr,int strict);
 
 static slist_t *condlist=NULL,*curcond;
 
@@ -153,8 +151,8 @@ int readconfig(char *cfgname)
 	}
 	if(!rc)return 0;
 	for(i=0;i<CFG_NNN;i++)
-	    if(configtab[i].found<2) {
-		if(configtab[i].required&1) {
+	    if(!(configtab[i].flags&8)) {
+		if(configtab[i].flags&1) {
 			write_log("required keyword '%s' not defined",configtab[i].keyword);
 			rc=0;
 		}
@@ -163,7 +161,7 @@ int readconfig(char *cfgname)
 		    setvalue(ci,configtab[i].def_val,configtab[i].type);
 		else memset(&ci->value,0,sizeof(ci->value));
 		ci->condition=NULL;ci->next=NULL;
-		if(configtab[i].found) {
+		if(configtab[i].flags&12) {
 			cfgitem_t *cia=configtab[i].items;
 			for(;cia&&cia->next;cia=cia->next);
 			if(cia)cia->next=ci;
@@ -185,7 +183,7 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
 	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d%s",kw,arg,i,cfgname,line,curcond?" (c)":""));
 	if(configtab[i].keyword) {
-		if(curcond&&(configtab[i].required&2)) {
+		if(curcond&&(configtab[i].flags&2)) {
 			write_log("%s:%d: keyword '%s' can't be defined inside if-expression's",cfgname,line,kw);
 			return 0;
 		}
@@ -202,9 +200,9 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 			configtab[i].items=ci;
 		}
 		if(setvalue(ci,arg,configtab[i].type)) {
-			if(configtab[i].found<2) {
-			    if(!curcond)configtab[i].found=2;
-				else configtab[i].found=1;
+			if(!(configtab[i].flags&8)) {
+			    if(!curcond)configtab[i].flags|=8;
+				else configtab[i].flags|=4;
 			}
 		} else {
 			xfree(ci);
@@ -317,9 +315,8 @@ void dumpconfig()
 	falist_t *al;
 	faslist_t *fasl;
 	for(i=0;i<CFG_NNN;i++) {
-		write_log("conf: %s. (type=%d, need=%d, found=%d)",
-			   configtab[i].keyword,configtab[i].type,
-			   configtab[i].required,configtab[i].found);
+		write_log("conf: %s. (type=%d, flags=%d)",configtab[i].keyword,
+				configtab[i].type,configtab[i].flags);
 		for(c=configtab[i].items;c;c=c->next) {
 			xstrcpy(buf,"conf:   ",LARGE_STRING);
 			if(c->condition) {
@@ -390,6 +387,6 @@ void killconfig()
 			xfree(c);
 		}
 		configtab[i].items=NULL;
-		configtab[i].found=0;
+		configtab[i].flags=0;
 	}
 }

@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.21 2004/06/20 21:30:30 sisoft Exp $
+ * $Id: flaglex.l,v 1.22 2004/06/22 14:26:21 sisoft Exp $
  **********************************************************/
 %option noyywrap case-insensitive never-interactive
 %{
@@ -69,13 +69,12 @@ datestr         {month}({day}-{day})?
 [ \t\n]+	;
 {decimal}	RETN(NUMBER,atol(yytext));
 {pathstr}	RETV(PATHSTR);
-[0-9\-]+	RETV(PHSTR);
-==?		RETN(AROP,EQ);
-!=		RETN(AROP,NE);
-\>		RETN(AROP,GT);
-\>=		RETN(AROP,GE);
-\<		RETN(AROP,LT);
-\<=		RETN(AROP,LE);
+eq|==?		RETN(AROP,EQ);
+ne|!=		RETN(AROP,NE);
+gt|\>		RETN(AROP,GT);
+ge|\>=		RETN(AROP,GE);
+lt|\<		RETN(AROP,LT);
+le|\<=		RETN(AROP,LE);
 or|\|		RETN(LOGOP,OR);
 and|\&		RETN(LOGOP,AND);
 xor|\^		RETN(LOGOP,XOR);
@@ -83,7 +82,7 @@ not?|\!		RETV(NOT);
 \(		RETV(LB);
 \)		RETV(RB);
 [\,\;]		RETV(COMMA);
-addr(ess)?	RETV(ADDRESS);
+add?r(ess)?	RETV(ADDRESS);
 cid		RETV(CID);
 connect		RETV(CONNECT);
 connstr		RETV(CONNSTR);
@@ -103,6 +102,7 @@ date		RETV(FLDATE);
 {datestr}       RETN(DATESTR,chkdate(yytext));
 {gapstr}	RETN(GAPSTR,chkgaps(yytext));
 {addrstr}	RETN(ADDRSTR,chkaddr(yytext));
+[0-9\-]+	RETV(PHSTR);
 {ident}		RETV(IDENT);
 {anystr}	RETV(ANYSTR);
 %%

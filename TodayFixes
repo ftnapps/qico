@@ -1,9 +1,11 @@
-/* $Id: TodayFixes,v 1.91 2004/06/22 08:28:30 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.92 2004/06/22 14:26:21 sisoft Exp $ */
 ---
-check for some keywords not placed inside if-expressions.
-fix chat with modem.
+fix parse short time expressions, such as 'time 1-2'.
+perl: add function qexpr(string) - test qico expression.
+perl: speedup execute and support for END perl blocks.
 .
 previous:
 ---
-fix pasring solid expressions.
+check for some keywords not placed inside if-expressions.
+fix chat with modem.
 .

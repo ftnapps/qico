@@ -1,18 +1,20 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.7 2004/06/16 20:24:34 sisoft Exp $
+# $Id: test.pl,v 1.8 2004/06/22 14:26:21 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
 #  sub setflag(num,bool): set user perl flag num to bool.
+#  sub qexpr(string): test qico expression (as in config),
+#                     returns bool result, or -1 if bad expression.
 
-# default commands (outside any subs), executig before on_init().
-#use strict;
+# available hooks:
 
 # called for initialization.
 # $conf: config file name.
 # %conf: hash of config values.
 # $daemon: 1 if script loaded into daemon, 0 else.
 # $init: 1 on init, and 0 after reload configs or daemon forking.
+# return: none.
 sub on_init {
     my $re=$init?"":"re";
     wlog("normally ${re}loaded, daemon=$daemon, ver=$version");
@@ -23,13 +25,14 @@ sub on_init {
 
 # called before exit, for deinitialization.
 # $emerg: 0=normal exit, 1=emergency exit.
+# return: none.
 sub on_exit {
     wlog("on_exit() (emerg=$emerg)");
 }
 
 # called before write to log.
 # $_: full log line.
-# return: 1 if log string changed, 0 else.
+# return: true if log string ($_) changed, else false.
 sub on_log {
     my $rc=0;
     if(/poll /) {
@@ -74,6 +77,7 @@ sub on_session {
     wlog(" he akas: @akas, our akas: @addrs");
     wlog(" remote has flags '$info{flags}' and system flags '$flags'");
     wlog(" need to sent $queue{mail} bytes of mail and $queue{files} bytes of files ($queue{num} files)");
+    return $S_NODIAL if(qexpr("!time 23-7")==1);
     return $S_OK;
 }
 
@@ -84,6 +88,7 @@ sub on_session {
 # $s_files: files sended.
 # $result: session result, set of S_* constants.
 # $sesstime: session time in seconds.
+# return: none.
 sub end_session {
     wlog("end_session() (rb,rf,sb,sf,rc,time)=($r_bytes,$r_files,$s_bytes,$s_files,$result,$sesstime).");
 }
@@ -98,7 +103,7 @@ sub on_recv {
 
 # called afrer receiving file, before writing.
 # $state: receiving status (one of F_* constants).
-# return: empty string for default actions, "!" for kill file, or new file name.
+# return: empty string for default actions, undef for kill file, or new file name.
 sub end_recv {
     my $s=qw/F_OK F_CONT F_SKIP F_ERR F_SUSPEND/[$state];
     wlog("end_recv() file=$recv{file}, state=$s.");
@@ -107,7 +112,7 @@ sub end_recv {
 
 # called before file sending.
 # %send: hash of values: file, name, size, time.
-# return: empty string for send, "!" for skip, or new file name.
+# return: empty string for send, undef for skip, or new file name.
 sub on_send {
     wlog("on_send() file=$send{file}, name=$send{name}, size=$send{size}, time=$send{time}.");
     return "";
@@ -115,6 +120,7 @@ sub on_send {
 
 # called after file sending.
 # $state: sending status (one of F_* constants).
+# return: none.
 sub end_send {
     my $s=qw/F_OK F_CONT F_SKIP F_ERR F_SUSPEND/[$state];
     wlog("end_send() file=$send{file}, state=$s.");
