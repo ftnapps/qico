@@ -8,7 +8,6 @@ config.h
 config.h.in
 config.log
 config.status
-qico.spec
 stamp-h
 stamp-h1
 install-sh
@@ -16,4 +15,4 @@ mkinstalldirs
 missing
 depcomp
 qico*.tar.*
-stamp.h.in
+x

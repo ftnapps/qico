@@ -1,8 +1,6 @@
 /**********************************************************
- * File: crc.h
- * Created at Sun Mar 25 15:32:03 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: crc.h,v 1.1 2001/03/25 15:38:21 lev Exp $
+ * operations with CRC
+ * $Id: crc.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #ifndef __CRC_H__
 #define __CRC_H__
@@ -16,6 +14,8 @@ extern UINT16 crc16prp_tab[256];		/* CRC polynomial 0x8408 -- CCITT proper CRC16
 #define CRC32_TEST					(0xdebb20e3l)
 #define CRC32_UPDATE(b,crc)			((crc32_tab[((crc) ^ (b)) & 0xff] ^ (((crc) >> 8) & 0x00ffffffl)) & 0xffffffffl)
 #define CRC32_FINISH(crc)			((~(crc)) & 0xffffffffl)
+
+#define CRC32_CR(c,b)	(crc32_tab[((int)(c) ^ (b)) & 0xff] ^ ((c) >> 8))
 
 /* CRC-16 CCITT upside-down. Used by ZModem, Janus and EMSI */
 #define CRC16USD_INIT				(0x0000)
@@ -38,5 +38,12 @@ extern UINT16 crc16usd(char *data, int size);
 
 extern UINT16 crc16prps(char *str);
 extern UINT16 crc16prp(char *data, int size);
+
+extern int update_keys(unsigned long keys[3],int c);
+extern void init_keys(unsigned long keys[3],char *passwd);
+extern int decrypt_byte(unsigned long keys[3]);
+extern void decrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
+extern void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
+
 
 #endif

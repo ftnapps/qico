@@ -1,8 +1,6 @@
 /**********************************************************
- * File: types.h
- * Created at Tue Feb 13 22:23:31 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: types.h,v 1.2 2001/04/14 12:42:01 lev Exp $
+ * common types
+ * $Id: types.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #ifndef __TYPES_H__
 #define __TYPES_H__

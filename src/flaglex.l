@@ -1,8 +1,6 @@
 /**********************************************************
- * File: flaglex.l
- * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
- * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.7 2003/02/03 14:38:52 cyrilm Exp $
+ * lexical parser
+ * $Id: flaglex.l,v 1.3 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -42,6 +40,7 @@ int yyBUFL;
 
 #include "flagexp.h"
 #include "headers.h"
+extern ftnaddr_t ndefaddr;
 int flagfor(char *);
 int chkaddr(char*);
 int chktime(char*);
@@ -172,6 +171,10 @@ int flagfor(char *str)
 		DEBUG(('Y',2,"flagfor: tcp/ip: %d",rnode->options&O_TCP));
 		return rnode->options&O_TCP;
 	}
+	if(!strncasecmp(str,"binkp",5)) {
+		DEBUG(('Y',2,"flagfor: binkp: %d",bink));
+		return bink;
+	}
 	if(!strncasecmp(str,"bad",3)) {
 		DEBUG(('Y',2,"flagfor: bad password: %d",rnode->options&O_BAD));
 		return rnode->options&O_BAD;
@@ -203,8 +206,17 @@ int chkaddr(char *str)
 		return 0;
 	}
 	if(!rnode) return 0;
-
-	for(i=rnode->addrs;i;i=i->next) {
+	
+	if(!rnode->addrs) {
+		DEBUG(('Y',2,"chkaddr: check %d:%d/%d.%d",ndefaddr.z,ndefaddr.n,ndefaddr.f,ndefaddr.p));
+		if((addr.z<0 || ndefaddr.z==addr.z) &&
+			   (addr.n<0 || ndefaddr.n==addr.n) &&
+			   (addr.f<0 || ndefaddr.f==addr.f) &&
+			   (addr.p<0 || ndefaddr.p==addr.p)) {
+			DEBUG(('Y',2,"chkaddr: 1"));
+			return 1;
+		}
+	} else for(i=rnode->addrs;i;i=i->next) {
 		DEBUG(('Y',2,"chkaddr: check %d:%d/%d.%d",i->addr.z,i->addr.n,i->addr.f,i->addr.p));
 		if((addr.z<0 || i->addr.z==addr.z) &&
 			   (addr.n<0 || i->addr.n==addr.n) &&

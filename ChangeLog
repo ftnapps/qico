@@ -1,3 +1,13 @@
+2003-07-25 02:50  sisoft
+
+	* Changes, README, src/aso.c, src/bso.c, src/ftn.h, src/main.c,
+	src/session.c: add work with .csy busy flags, change work with .bsy
+	flags.
+
+2003-07-24 21:48  sisoft
+
+	* ChangeLog: add ChangeLog.
+
 2003-07-24 21:46  sisoft
 
 	* .cvs2cl, .cvsignore: foo

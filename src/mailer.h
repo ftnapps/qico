@@ -1,14 +1,13 @@
 /**********************************************************
- * File: mailer.h
- * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: mailer.h,v 1.13 2003/03/10 15:58:10 cyrilm Exp $
+ * protocol definitions
+ * $Id: mailer.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
 #include "ftn.h"
 #include "tty.h"
 #include "opts.h"
+#include "qcconst.h"
 
 #define ZMAXBLOCK  8192
 
@@ -18,7 +17,6 @@
 #define P_DIRZAP	0x0008
 #define P_HYDRA		0x0010
 #define P_JANUS		0x0020
-#define P_TCPP		0x0040
 #ifdef HYDRA8K16K
 #	define P_HYDRA8		0x0080
 #	define P_HYDRA16	0x0100
@@ -26,14 +24,15 @@
 #define P_MASK		0x01FF
 
 #define S_OK      0
-#define S_UNDIAL  1
+#define S_NODIAL  1
 #define S_REDIAL  2
 #define S_BUSY    3
+#define S_FAILURE 4
 #define S_MASK    7
-
 #define S_HOLDR   8
 #define S_HOLDX   16
 #define S_HOLDA   32
+#define S_ADDTRY  64
 #define S_ANYHOLD (S_HOLDR|S_HOLDX|S_HOLDA)
 
 #define FOP_OK      0
@@ -47,6 +46,11 @@
 #define SESSION_FTS0001 2
 #define SESSION_YOOHOO  3
 #define SESSION_BINKP   4
+
+#define RX_SKIP		1
+#define RX_SUSPEND	2
+
+#define TIM_CHAT	90
 
 typedef struct _flist_t {
 	struct _flist_t *next;
@@ -84,7 +88,7 @@ extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 						  unsigned long files, int lopt, char *protos,
 						  falist_t *adrs, int showpwd);
 extern char *emsi_tok(char **b, char *kc);
-extern int hexdcd(char c);
+extern int hexdcd(char c, char d);
 extern void emsi_dcds(char *s);
 extern int emsi_parsedat(char *str, ninfo_t *dat);
 extern void emsi_log(ninfo_t *e);
@@ -147,10 +151,14 @@ extern byte txlastc;
 #define PURGEALL() {tty_purge();tty_purgeout();}
 #define CARRIER() (!tty_hangedup)
 #define PUTBLK(bl, size) tty_put(bl,size)
-#define CANCEL() tty_put((unsigned char*)canistr, strlen(canistr))
+#define CANCEL() tty_put((unsigned char *)canistr, strlen(canistr))
 #define BUFCHAR(c) tty_bufc(c)
 #define BUFFLUSH() tty_bufflush()
 #define BUFCLEAR() tty_bufclear()
+
+/* session.c */
+extern void makeflist(flist_t **fl, ftnaddr_t *fa,int mode);
+extern void flkill(flist_t **l, int rc);
 
 extern void flexecute(flist_t *fl);
 extern void addflist(flist_t **fl, char *loc, char *rem, char kill,
@@ -160,5 +168,21 @@ extern void simulate_send(ftnaddr_t *fa);
 
 extern int freq_ifextrp(slist_t *reqs);
 extern int freq_pktcount;
+
+/* for chat */
+extern void chatinit(int prot);
+extern void c_devrecv(unsigned char *str,unsigned len);
+extern void getipcm();
+extern int rxstatus,chatlg;
+extern unsigned short qsndbuflen;
+extern long chattimer;
+extern unsigned char qsnd_buf[16384];
+extern unsigned char qrcv_buf[MSG_BUFFER];
+
+/* md5.c */
+void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
+void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
+                  int challenge_length,unsigned char *digest);
+
 
 #endif

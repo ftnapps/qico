@@ -74,6 +74,7 @@
 #                                - 'in[bound]' / 'out[bound]'
 #                                - 'bad' - got bad password 
 #                                - 'tcp[ip]' - identifies tcp/ip session
+#                                - 'binkp' - identifies BinkP session  (NEW!!!)
 #                                - nodelist flag 
 #                              ex. 'in & (!listed | !V34)'
 # + file <full-path>         - file <full-path> present
@@ -91,6 +92,11 @@
 # used as default (required)
 address		1:2345/7845
 address 	111:222/44
+
+
+# domain name for BinkP	(required)				       (NEW!!!)
+domain		fidonet
+
 
 # passwords for nodes
 ;password	2:2345/1234		COOLPASS
@@ -148,9 +154,10 @@ log		/var/log/ftn/qico.log
 #  Z -- ZModem
 #  M -- Modem
 #  R -- File requests
-#  X -- Sent debug log to qcc
+#  X -- Sent debug log to qcc					      (NEW!!!)
+#  B -- BinkP							      (NEW!!!)
 #
-;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0
+;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0
 
 # Write to log estimated transfer time befor each file transfer
 estimatedtime no
@@ -243,7 +250,7 @@ rescanperiod	30
 
 # phone translations, `=' means all other phones - must be last translation, 
 # because first matching translation will be used (required)
-phonetr		7-3412-	
+phonetr		7-095-	
 phonetr		7-	8W-
 phonetr		=	8W10-
 
@@ -346,14 +353,14 @@ hstimeout	60
 ###############################################################################
 ### station info and session parameters #######################################
 ###############################################################################
-# EMSI data
+# Handshake data
 station		Station name
 sysop		Sysop Sysopoff
-place		Izhevsk
+place		Urupinsk
 worktime	0:00-7:00
-phone		7-3412-y0U-kN0W
+phone		7-095-y0U-kN0W
 speed		33600
-flags		Linux, anti-ifcico team
+flags		Linux, qico-si team
 # freq time for EMSI only. if don't defined, then `freqtime' used.     (NEW!!!)
 ;emsifreqtime	Always!
 
@@ -370,6 +377,9 @@ zmh		Tcd
 
 # extra mailonly time (additional to zmh) 
 ;mailonly 	4:00-5:00
+
+# HAT in emsi, if enabled. (hold all traffic).			       (NEW!!!)
+;sendonly	no
 
 # protocol order:
 # N - NCP       (can be used to reject session)
@@ -388,9 +398,11 @@ protorder	HJDZ1C
 # it's better to use janus on tcp/ip
 ;if tcpip
 ;   protorder	JDZ1C
+;endif
 # it's not recommended to use these extensions on lower speeds!
 ;if connect >= 14400
 ;   protorder	8HJDZ1C
+;endif
 ;if connect >= 28800
 ;   protorder	68HJDZ1C
 ;endif
@@ -569,11 +581,11 @@ mapin	lk
 #		One (ore more) for hidden line(s)
 ;subst 111:222/33		987-6543	18:00-9:00
 
-#
-;translatesubst	yes
 # WARNING!
-#translatesubst is off by default. In this case subst phones are used WITHOUT translation!
-#if translatesubst = yes, Subst phones are used _WITH_ translation!!!
+# translatesubst is off by default.
+# In this case subst phones are used _WITHOUT_ translation!
+# if translatesubst = yes, Subst phones are used _WITH_ translation!!!
+;translatesubst	yes
 
 # You could include subst file.
 ;include /etc/ftn/substs
@@ -614,6 +626,11 @@ if bad
  phone		Contact to sysop!
 endif
 
+# BinkP without session timeout
+if binkp
+    maxsession	0
+endif
+
 # poll'em all ;)
 ;if time 4-5
 ; dialdelay 5
@@ -622,5 +639,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.5 2003/07/24 11:53:42 sisoft Exp $
+# $Id: qico.conf.sample,v 1.6 2003/08/25 15:27:38 sisoft Exp $
 ###############################################################################

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: protfm.c,v 1.4 2003/08/25 15:27:39 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -75,6 +75,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	recvf.mtime=rtime;recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
+	if(whattype(name)==IS_PKT&&rsize==60)return FOP_SKIP;
 	rc=skipiftic;skipiftic=0;
 	if(rc&&istic(bn)&&cfgi(CFG_AUTOTICSKIP)) {
 		write_log(rc==FOP_SKIP?weskipstr:wesusstr,recvf.fname,"auto");
@@ -227,6 +228,7 @@ FILE *txopen(char *tosend, char *sendas)
 		write_log("can't find file %s!", tosend);
 		return NULL;
 	}
+	if(whattype(sendas)==IS_PKT&&sb.st_size==60)return NULL;
 	xfree(sendf.fname);
  	sendf.fname=xstrdup(sendas);
 	sendf.ftot=sb.st_size;sendf.mtime=sb.st_mtime;

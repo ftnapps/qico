@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.6 2003/07/24 21:50:19 sisoft Exp $
+ * $Id: session.c,v 1.7 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -11,6 +11,7 @@
 
 int runtoss;
 ftnaddr_t ndefaddr;
+extern int binkpsession(int mode,ftnaddr_t *remaddr);
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill, off_t off, FILE *lo, int fromlo)
 {
@@ -138,7 +139,7 @@ int boxflist(flist_t **fl, char *path)
 	return 1;
 }
 
-void makeflist(flist_t **fl, ftnaddr_t *fa)
+void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 {
 	int fls[]={F_IMM, F_CRSH, F_DIR, F_NORM, F_HOLD}, i;
 	char str[MAX_PATH];
@@ -159,7 +160,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 		totalf+=sb.st_size;totaln++;
 	}
 	
-	for(i=0;i<(5-(cfgi(CFG_HOLDOUT)==1));i++) floflist(fl, bso_flon(fa, fls[i]));
+	for(i=0;i<(5-(cfgi(CFG_HOLDOUT)==1&&mode));i++) floflist(fl, bso_flon(fa, fls[i]));
 
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
 		if(ADDRCMP((*fa),j->addr)) {
@@ -239,7 +240,7 @@ void flkill(flist_t **l, int rc)
 void simulate_send(ftnaddr_t *fa)
 {
 	flist_t *fl=NULL, *l=NULL;
-	makeflist(&fl, fa);
+	makeflist(&fl, fa,1);
 	for(l=fl;l;l=l->next) flexecute(l);
 	flkill(&fl, 1);
 }
@@ -370,9 +371,6 @@ int hydra(int mode, int hmod, int rh1)
 	return rc==XFER_ABORT; 	
 }
 
-#define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define SIZEC(x) (((x)<1024)?'b':'k')
- 
 void log_rinfo(ninfo_t *e)
 {
 	falist_t *i;
@@ -389,7 +387,7 @@ void log_rinfo(ninfo_t *e)
 	write_log(" system: %s", e->name);
 	write_log("   from: %s", e->place);
 	write_log("  sysop: %s", e->sysop);
-	write_log("  phone: %s", e->phone);
+	write_log("  phone: %s", e->phone?e->phone:"-Unpublished-");
 	write_log("  flags: [%d] %s", e->speed, e->flags);
 	write_log(" mailer: %s", e->mailer);
 	t=gmtime(&e->time);
@@ -452,8 +450,10 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		}
 		flkill(&fl, 0);totalf=0;totalm=0;
 		for(pp=rnode->addrs;pp;pp=pp->next) 
-			makeflist(&fl, &pp->addr);
+			makeflist(&fl, &pp->addr,mode);
 		if(strlen(rnode->pwd)) rnode->options|=O_PWD;
+		if(is_listed(rnode->addrs, cfgs(CFG_NLPATH), cfgi(CFG_NEEDALLLISTED)))
+			rnode->options|=O_LST;
 	} else {
 		for(pp=cfgal(CFG_ADDRESS);pp;pp=pp->next)
 			if(has_addr(&pp->addr, rnode->addrs)) {
@@ -463,30 +463,27 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		nfiles=0;rc=0;
 		for(pp=rnode->addrs;pp;pp=pp->next) {
 			t=findpwd(&pp->addr);
-			if(!t&&*rnode->pwd&&pp==rnode->addrs)write_log("remote has been password for us!");
-			if(!t || !strcasecmp(rnode->pwd, t)) {
-				makeflist(&fl, &pp->addr);
-				if(t) rnode->options|=O_PWD;
+			if(!t||!strcasecmp(rnode->pwd,t)) {
+				makeflist(&fl,&pp->addr,mode);
+				if(t)rnode->options|=O_PWD;
 			} else {
 				write_log("password not matched for %s",ftnaddrtoa(&pp->addr));
-				write_log("  (got '%s' instead of '%s')", rnode->pwd, t);
+				write_log("  (got '%s' instead of '%s')",rnode->pwd,t);
 				rc=1;
 			}
 		}
-
-		if(is_listed(rnode->addrs, cfgs(CFG_NLPATH), cfgi(CFG_NEEDALLLISTED)))
+		if(!rc&&!(rnode->options&O_PWD))write_log("remote has been password for us!");
+		if(is_listed(rnode->addrs, cfgs(CFG_NLPATH),cfgi(CFG_NEEDALLLISTED)))
 			rnode->options|=O_LST;
 		if(rc) {
 			emsi_lo|=O_BAD;
 			rnode->options|=O_BAD;
 		}
-		if(!cfgs(CFG_FREQTIME)||rc) 
-			emsi_lo|=O_NRQ;
-		if(ccs && !checktimegaps(ccs))
-			emsi_lo|=O_HRQ;
+		if(!cfgs(CFG_FREQTIME)||rc)emsi_lo|=O_NRQ;
+		if(ccs && !checktimegaps(ccs))emsi_lo|=O_HRQ;
 		if(checktimegaps(cfgs(CFG_MAILONLY)) ||
-		   checktimegaps(cfgs(CFG_ZMH))||rc) 
-			emsi_lo|=O_HXT|O_HRQ;
+		   checktimegaps(cfgs(CFG_ZMH))||rc)emsi_lo|=O_HXT|O_HRQ;
+		if(cfgi(CFG_SENDONLY))emsi_lo|=O_HAT;
 
 		pr[2]=0;pr[1]=0;pr[0]=0;
 		for(t=cfgs(CFG_PROTORDER);*t;t++) {
@@ -552,8 +549,6 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="Hydra";break;
 	case P_JANUS:
 		t="Janus";break;
-	case P_TCPP:
-		t="IFCTCP";break;
 	default:
 		t="Unknown";		
 	}
@@ -648,7 +643,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 	signal(SIGCHLD, SIG_DFL);
 
 	switch(type) {
-	case SESSION_AUTO:
+	    case SESSION_AUTO:
 		write_log("trying EMSI...");
 		rc=emsi_init(mode);
 		if(rc<0) {
@@ -657,10 +652,13 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		}
 		rc=emsisession(mode, calladdr, speed);
 		break;
-	case SESSION_EMSI: 
+	    case SESSION_EMSI: 
 		rc=emsisession(mode, calladdr, speed);
 		break;
-	default:
+	    case SESSION_BINKP:
+		rc=binkpsession(mode,calladdr);
+		break;
+	    default:
 		write_log("unsupported session type! (%d)", type);
 		return S_REDIAL|S_ADDTRY;
 	}
