@@ -230,6 +230,9 @@ AC_CHECK_FUNC(inet_ntoa,,AC_CHECK_LIB(nsl,inet_ntoa))
 AC_CHECK_FUNCS(shutdown)
 AC_CHECK_FUNC(connect,,AC_CHECK_LIB(nsl,connect))
 
+dnl On old FreeBSD systems ftok() is only in libcompat
+AC_CHECK_FUNC(ftok,,AC_CHECK_LIB(compat,ftok))
+
 dnl My substs
 AC_SUBST(VERSION)
 AC_SUBST(QCCLIBS)
