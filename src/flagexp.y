@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.20 2004/06/22 14:26:21 sisoft Exp $
+ * $Id: flagexp.y,v 1.21 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 %{
 #include "headers.h"
@@ -32,8 +32,7 @@ static int checkfile();
 static int checkexec();
 static int checkline(int lnum);
 static int yyerror(char *s);
-static int yyerror(char *s);
-int flxpres;
+static int flxpres;
 %}
 
 %token DATESTR GAPSTR PHSTR TIMESTR ADDRSTR PATHSTR ANYSTR IDENT NUMBER
