@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.56 2001/06/15 11:01:58 lev Exp $
+ * $Id: main.c,v 1.57 2001/06/22 13:05:29 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -165,15 +165,15 @@ void to_dev_null()
 	close(STDIN_FILENO);close(STDOUT_FILENO);close(STDERR_FILENO);
 
 	fd=open(devnull,O_RDONLY);
-	if(dup2(STDIN_FILENO,fd)!=STDIN_FILENO) { write_log("reopening of stdin failed");exit(-1); }
+	if(dup2(fd,STDIN_FILENO)!=STDIN_FILENO) { write_log("reopening of stdin failed");exit(-1); }
 	if(fd!=STDIN_FILENO) close(fd);
 
 	fd=open(devnull,O_WRONLY | O_APPEND | O_CREAT,0600);
-	if(dup2(STDOUT_FILENO,fd)!=STDOUT_FILENO) { write_log("reopening of stdout failed");exit(-1); }
+	if(dup2(fd,STDOUT_FILENO)!=STDOUT_FILENO) { write_log("reopening of stdout failed");exit(-1); }
 	if(fd!=STDOUT_FILENO) close(fd);
 
 	fd=open(devnull,O_WRONLY | O_APPEND | O_CREAT,0600);
-	if(dup2(STDERR_FILENO,fd)!=STDERR_FILENO) { write_log("reopening of stderr failed");exit(-1); }
+	if(dup2(fd,STDERR_FILENO)!=STDERR_FILENO) { write_log("reopening of stderr failed");exit(-1); }
 	if(fd!=STDERR_FILENO) close(fd);
 }
 
