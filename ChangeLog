@@ -1,3 +1,14 @@
+2004-02-07 00:52  sisoft
+
+	* Changes, Makefile.am, cvs_com, debian/.cvsignore,
+	debian/Makefile.am:
+
+	correct includes.
+	fix crash on outoging calls over ip.
+	more debugs in queue scan.
+	fix chat in binkp.
+	in qcc: show '=' in queue on active addresses.
+	
 2004-02-05 22:51  sisoft
 
 	* Changes, FAQ, Makefile.am, README, configure.in,
