@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.29 2001/01/04 18:36:26 lev Exp $
+ * $Id: main.c,v 1.30 2001/01/18 18:55:11 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -149,6 +149,7 @@ void daemon_mode()
 	sts_t sts;
 	pid_t chld;
 	qitem_t *current=q_queue, *i;
+	qitem_t *sinfo;
 	key_t qipcr_key;
 	time_t t;
 	ftnaddr_t fa;
@@ -577,6 +578,19 @@ void daemon_mode()
 						sendrpkt(1, chld, "nodelist query error!");
 						break;
 					}
+					break;
+				case QR_QUEUE:
+					sinfo = q_queue;
+					do {
+						sendrpkt(0,chld,"%c%s%c%d%c%d%c%d%c%d%c",
+							1,
+							ftnaddrtoa(&sinfo->addr),0,
+							sinfo->pkts,0,
+							q_sum(sinfo)+sinfo->reqs,0,
+                            sinfo->try,0,
+                            sinfo->flv,0);
+					} while ((sinfo = sinfo->next));
+					sendrpkt(0,chld,"%c",0);
 					break;
 				default:
 					write_log("got unsupported packet type: %c", C0(buf[8]));

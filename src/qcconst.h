@@ -2,7 +2,7 @@
  * File: qcconst.h
  * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.h,v 1.8 2001/01/09 20:14:15 aaz Exp $
+ * $Id: qcconst.h,v 1.9 2001/01/18 18:55:12 lev Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -48,6 +48,7 @@ typedef struct {
 #define QR_INFO  'I'
 #define QR_SCAN  'N'
 #define QR_KILL  'K'
+#define QR_QUEUE 'O'
 
 #define QC_LOGIT 'a'
 #define QC_SLINE 'b'
