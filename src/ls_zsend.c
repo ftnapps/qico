@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.5 2000/12/26 12:14:33 lev Exp $
+ * $Id: ls_zsend.c,v 1.6 2000/12/30 19:38:21 lev Exp $
  **********************************************************/
 /*
 
@@ -50,7 +50,7 @@ int ls_zsendsinit(char *attstr)
 			/* We don't support ESC8, so don't ask for it in any case */
 			ls_txHdr[LSZ_F0] = (ls_Protocol&LSZ_OPTESCAPEALL)?LSZ_TXWNTESCCTL:0;
 			ls_txHdr[LSZ_F1] = ls_txHdr[LSZ_F2] = ls_txHdr[LSZ_F3] = 0;
-			if((rc=ls_zsendhhdr(ZSINIT,4,ls_txHdr))<0) return rc;
+			if((rc=ls_zsendbhdr(ZSINIT,4,ls_txHdr))<0) return rc;
 			if((rc=ls_zsenddata(txbuf,l,ZCRCW))) return rc;
 			retransmit = 0;
 			trys++;
@@ -285,7 +285,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 				write_log("ls_zsendfinfo: double-skip protection! for %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 				ls_storelong(ls_txHdr,0);
-				if((rc=ls_zsendbhdr(ZNAK,4,ls_txHdr))<0) return rc;
+				if((rc=ls_zsendhhdr(ZNAK,4,ls_txHdr))<0) return rc;
 				break;								/* We don't need to skip this file */
 			} else if(sn != ls_SerialNum) {
 #ifdef Z_DEBUG
@@ -313,7 +313,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 			fseek(txfd,0,SEEK_SET);
 			crc = LSZ_FINISH_CRC32(crc);
 			ls_storelong(ls_txHdr,crc);
-			if((rc=ls_zsendbhdr(ZCRC,4,ls_txHdr))<0) return rc;
+			if((rc=ls_zsendhhdr(ZCRC,4,ls_txHdr))<0) return rc;
 			break;
 		case ZNAK:
 		case LSZ_TIMEOUT:
@@ -327,7 +327,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 			write_log("ls_zsendfinfo: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 			ls_storelong(ls_txHdr,0);
-			if((rc=ls_zsendbhdr(ZNAK,4,ls_txHdr))<0) return rc;
+			if((rc=ls_zsendhhdr(ZNAK,4,ls_txHdr))<0) return rc;
 			break;
 		default:
 #ifdef Z_DEBUG
@@ -459,8 +459,11 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		write_log("ls_zsendfile: Send at %d",txpos);
 #endif
 		if((rc=ls_zsenddata(txbuf,bread,frame))<0) return rc;
-		sendf.foff = txpos;
 		txpos += bread;
+
+		sendf.foff = txpos;
+		check_cps();
+		qpfsend();
 		/* Ok, now wait for ACKs if here is window, or sample for RPOSes */
 		trys = 0;
 		do {
@@ -523,7 +526,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		/* We do it here, because we coulde receive ZRPOS as answer */
 		if(feof(txfd)) {
 			ls_storelong(ls_txHdr,txpos);
-			if((rc=ls_zsendbhdr(ZEOF,4,ls_txHdr))<0) return rc;
+			if((rc=ls_zsendhhdr(ZEOF,4,ls_txHdr))<0) return rc;
 			trys = 0;
 			do {
 				switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
