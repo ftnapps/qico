@@ -1,4 +1,8 @@
-/* $Id: TodayFixes,v 1.54 2004/03/24 17:50:01 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.55 2004/03/24 17:52:08 sisoft Exp $ */
+---
+add file.
+.
+previous:
 ---
 fix compile on old systems without socklen_t.
 fix logging about qico execute errors.
@@ -8,7 +12,4 @@ new option for map(in|out): 'r' - recode filenames in *.req files (was: always r
 add keyword 'recodepkts' - recode freq-report packets to transport charset. (was: always recode).
 add keywords 'remotecp' and 'localcp' - see conf.sample for description.
 remove obsoleted keyword 'remoterecode'.
-.
-previous:
----
 .
