@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tty.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>

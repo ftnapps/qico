@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: protfm.c,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>

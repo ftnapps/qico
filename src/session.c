@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: session.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>

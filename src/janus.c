@@ -2,7 +2,7 @@
  * File: janus.c
  * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol implementation
- * $Id: janus.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: janus.c,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */

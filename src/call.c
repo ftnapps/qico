@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: call.c,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <stdlib.h>

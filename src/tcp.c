@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tcp.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/socket.h>

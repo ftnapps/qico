@@ -2,7 +2,7 @@
  * File: globals.c
  * Created at Thu Jul 15 16:11:48 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: globals.c,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: globals.c,v 1.1.1.1 2000/07/18 12:37:19 lev Exp $
  **********************************************************/
 #include "qcconst.h"
 #include "mailer.h"

@@ -2,7 +2,7 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: zrecv.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 
 #include <sys/types.h>

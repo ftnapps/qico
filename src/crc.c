@@ -2,7 +2,7 @@
  * File: crc.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: crc.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: crc.c,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
  **********************************************************/
 unsigned long crc32tab[] =	/* CRC polynomial 0xedb88320 */
 {

@@ -2,7 +2,7 @@
  * File: zmr.c
  * Created at Fri Jul 16 17:22:42 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM RLE compression and decompression functions
- * $Id: zmr.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: zmr.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include "zmodem.h"

@@ -2,7 +2,7 @@
  * File: qcconst.c
  * Created at Sun Aug  8 20:56:51 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qcconst.c,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  **********************************************************/
 #include "qcconst.h"
 

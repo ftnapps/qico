@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: bso.c,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>

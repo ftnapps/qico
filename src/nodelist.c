@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: nodelist.c,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>

@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: config.c,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>

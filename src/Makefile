@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.1 2000/07/18 12:37:18 lev Exp $
+# $Id: Makefile,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
 #
 include	../CONFIG
 

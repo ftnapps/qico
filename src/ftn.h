@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: ftn.h,v 1.1.1.1 2000/07/18 12:37:19 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__

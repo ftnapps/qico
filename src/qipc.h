@@ -2,7 +2,7 @@
  * File: qipc.h
  * Created at Sat Aug  7 22:05:35 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.h,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qipc.h,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  **********************************************************/
 #ifndef __QIPC_H__
 #define __QIPC_H__

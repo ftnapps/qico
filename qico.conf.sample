@@ -368,4 +368,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.1 2000/07/18 12:37:17 lev Exp $
+# $Id: qico.conf.sample,v 1.1.1.1 2000/07/18 12:37:17 lev Exp $

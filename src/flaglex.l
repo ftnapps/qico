@@ -2,7 +2,7 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: flaglex.l,v 1.1.1.1 2000/07/18 12:37:19 lev Exp $
  **********************************************************/
 %{
 

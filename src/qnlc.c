@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qnlc.c,v 1.1.1.1 2000/07/18 12:37:20 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>

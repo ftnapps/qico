@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: emsi.c,v 1.1.1.1 2000/07/18 12:37:18 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>

@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: queue.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #include <unistd.h>
 #include <stdio.h>

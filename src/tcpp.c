@@ -3,7 +3,7 @@
  * Created at Fri Dec 17 00:14:49 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico,
  * but... it was a very bad piece of code ;)
- * $Id: tcpp.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tcpp.c,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <unistd.h>

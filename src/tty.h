@@ -2,7 +2,7 @@
  * File: tty.h
  * Created at Thu Jul 15 16:16:17 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.h,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tty.h,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 #ifndef __TTY_H__
 #define __TTY_H__

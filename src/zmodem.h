@@ -2,7 +2,7 @@
  * File: zmodem.h
  * Created at Fri Jul 16 17:24:54 1999 by pk // aaz@ruxy.org.ru
  * Manifest constants for ZMODEM
- * $Id: zmodem.h,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: zmodem.h,v 1.1.1.1 2000/07/18 12:37:21 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1993 Omen Technology Inc All Rights Reserved
