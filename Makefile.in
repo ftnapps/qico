@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.3 2000/10/12 20:31:51 lev Exp $
+# $Id: Makefile.in,v 1.4 2000/10/17 17:08:01 lev Exp $
 #
 
 prefix  = @prefix@
@@ -40,11 +40,11 @@ install-strip: install-bin-strip
 install-bin: 
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
-	for d in ${DIRS}; do (cd $$d && ${MAKE} install) || exit; done;
+	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install) || exit; done;
 install-bin-strip: install-docs
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
-	for d in ${DIRS}; do (cd $$d && ${MAKE} install-strip) || exit; done;
+	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install-strip) || exit; done;
 
 install-conf:
 	$(INSTALL) -m 644 qico.conf.sample $(CONFIG).sample
