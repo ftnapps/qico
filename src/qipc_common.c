@@ -2,7 +2,7 @@
  * File: qipc_common.c
  * Created at Mon May 7 23:07:41 2001  by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_common.c,v 1.3 2001/06/08 15:43:20 lev Exp $
+ * $Id: qipc_common.c,v 1.4 2001/07/05 19:55:51 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -225,4 +225,24 @@ int pack_ipc_packet(CHAR *data, int maxlen, int *len, char *sig, ...)
 	va_end(args);
 	*len=slen-maxlen;
 	return rc;
+}
+
+/* Encode packet with DES (pkt should be bigger than length!) */
+void encode_ipc_packet(evtany_t *pkt, sessenccontext_t *cx)
+{
+	int len8 = ((pkg->fulllength>>3)|(pkg->fulllength&0x07?1:0))<<3;
+	int i;
+	for(i=pkg->fulllength;i<len8;i++) pkt->data[i] = 0;
+	pkg->fulllength = len8;
+	des_cbc_encrypt(cx->cx,cx->iv,pkg->data,pkg->data,len8);
+}
+
+/* Decode packet with DES (pkt should be bigger than length!) */
+void decode_ipc_packet(evtany_t *pkt, sessenccontext_t *cx)
+{
+	int len8 = ((pkg->fulllength>>3)|(pkg->fulllength&0x07?1:0))<<3;
+	int i;
+	for(i=pkg->fulllength;i<len8;i++) pkt->data[i] = 0;
+	pkg->fulllength = len8;
+	des_cbc_decrypt(cx->cx,cx->iv,pkg->data,pkg->data,len8);
 }
