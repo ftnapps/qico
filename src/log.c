@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.16 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: log.c,v 1.17 2004/03/27 21:38:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -146,7 +146,7 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 	tt=time(NULL);t=localtime(&tt);
 	strftime(str,20,"%d %b %y %H:%M:%S",t);
 
-	snprintf(str+18,MAX_STRING*16-18," %s[%ld]: ",log_tty?log_tty:"",(long)getpid());
+	snprintf(str+18,MAX_STRING*16-18," %s[%ld]: ",SS(log_tty),(long)getpid());
 	p=str+strlen(str);
 	if(prefix&&*prefix) {
 		xstrcpy(p,prefix,p-(char*)str);

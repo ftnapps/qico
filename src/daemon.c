@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.20 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: daemon.c,v 1.21 2004/03/27 21:38:40 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -237,7 +237,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		if(BSO)locked|=bso_locknode(&fa,LCK_t);
 		if(ASO)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
-			p=buf+3+strlen(buf+3)+1;
+			p=buf+strlen(buf+3)+4;
 			if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
 			rc=bso_flavor(*p);
 			if(rc==F_ERR) {
@@ -292,7 +292,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		} break;
 	    case QR_STS:
 		DEBUG(('I',2,"client %d: request flags change addr %s",uis->id,buf+3));
-		p=buf+4+strlen(buf+3);
+		p=buf+strlen(buf+3)+4;
 		rc=1;res=0;set=0;
 		while(*p&&rc) {
 			switch(*p) {
@@ -316,20 +316,20 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 				bso_getstatus(&fa,&sts);
 				sts.flags|=set;sts.flags&=~res;p++;
 				if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));
-				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
-				if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
-				if(res&Q_UNDIAL) sts.try=0;
+				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),FETCH16(p),sts_str(sts.flags));
+				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?(FETCH16(p)):cfgi(CFG_WAITHRQ))*60);
+				if(set&Q_UNDIAL)sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
+				if(res&Q_UNDIAL)sts.try=0;
 				bso_setstatus(&fa,&sts);
 			}
 			if(ASO) {
 				aso_getstatus(&fa,&sts);
 				sts.flags|=set;sts.flags&=~res;p++;
 				if(!BSO){if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
-				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));}
-				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
-				if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
-				if(res&Q_UNDIAL) sts.try=0;
+				    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),FETCH16(p),sts_str(sts.flags));}
+				if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?(FETCH16(p)):cfgi(CFG_WAITHRQ))*60);
+				if(set&Q_UNDIAL)sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
+				if(res&Q_UNDIAL)sts.try=0;
 				aso_setstatus(&fa,&sts);
 			}
 			do_rescan=1;
@@ -342,7 +342,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		if(ASO)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
 			sendrpkt(0,chld,"");
-			sl=NULL;p=buf+3+strlen(buf+3)+1;
+			sl=NULL;p=buf+strlen(buf+3)+4;
 			while(strlen(p)){
 				write_log("requested '%s' from %s",p,ftnaddrtoa(&fa));
 				if(strchr(cfgs(CFG_MAPOUT),'r'))recode_to_remote(p);
@@ -379,8 +379,8 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	    case QR_SEND: {
 		int locked=0;
 		DEBUG(('I',2,"client %d: request send addr %s",uis->id,buf+3));
-		p=buf+3+strlen(buf+3)+1;
-		if('?'==*p)*p=*cfgs(CFG_POLLFLAVOR);
+		p=buf+strlen(buf+3)+4;
+		if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
 		rc=bso_flavor(*p);
 		if(rc==F_ERR) {
 			sendrpkt(1,chld,"unknown flavour %c",C0(*p));

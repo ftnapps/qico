@@ -1,15 +1,12 @@
-/* $Id: TodayFixes,v 1.55 2004/03/24 17:52:08 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.56 2004/03/27 21:38:40 sisoft Exp $ */
 ---
-add file.
+fix a-conf option --with-default-speed.
+in qcc: fix cmd 'h' for numbers >255.
+in qcc: fix mark '='.
+show remote date if it's differ from local.
+set mtime for sending and received files relative to timezone. (patch from Konstantin Marchik)
 .
 previous:
 ---
-fix compile on old systems without socklen_t.
-fix logging about qico execute errors.
-in qcc: print qcc's log time with strftime().
-don't try exchange with daemon, if its not exists.
-new option for map(in|out): 'r' - recode filenames in *.req files (was: always recode).
-add keyword 'recodepkts' - recode freq-report packets to transport charset. (was: always recode).
-add keywords 'remotecp' and 'localcp' - see conf.sample for description.
-remove obsoleted keyword 'remoterecode'.
+add file.
 .

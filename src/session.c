@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.26 2004/02/26 23:55:25 sisoft Exp $
+ * $Id: session.c,v 1.27 2004/03/27 21:38:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -340,9 +340,10 @@ static int hydra(int mode,int hmod,int rh1)
 void log_rinfo(ninfo_t *e)
 {
 	falist_t *i;
-	struct tm *t;
+	struct tm *t,*mt;
 	char s[MAX_STRING];
 	int k=0;
+	time_t tt=time(NULL);
 	if((i=e->addrs)) {
 		write_log("address: %s",ftnaddrtoa(&i->addr));
 		i=i->next;
@@ -362,8 +363,10 @@ void log_rinfo(ninfo_t *e)
 	write_log("  phone: %s",e->phone);
 	write_log("  flags: [%d] %s",e->speed,e->flags);
 	write_log(" mailer: %s",e->mailer);
-	t=gmtime(&e->time);
+	t=gmtime(&e->time);mt=gmtime(&tt);
 	write_log("   time: %02d:%02d:%02d, %s",t->tm_hour,t->tm_min,t->tm_sec,e->wtime?e->wtime:"unknown");
+	if(t->tm_mday!=mt->tm_mday||t->tm_mon!=mt->tm_mon||t->tm_year!=mt->tm_year)
+		write_log("   date: %02d.%02d.%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);
 	if(e->holded&&!e->files&&!e->netmail)write_log(" for us: %d%c on hold",
 		SIZES(e->holded),SIZEC(e->holded));
 	else if(e->files||e->netmail)write_log(" for us: %d%c mail; %d%c files",

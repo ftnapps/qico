@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.31 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: qcc.c,v 1.32 2004/03/27 21:38:41 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -78,10 +78,9 @@
 /* set to 1 for debug */
 #define QDEBUG 0
 
-#define SAFE(s) s?s:nothing
 #define SIZEC(x) (((x)<1024)?'b':'k')
 #define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define xfree(p) do{if(p)free(p);p=NULL;}while(0)
+#define xfree(p) do{if(p)free(p);(p)=NULL;}while(0)
 #define xbeep() if(!beepdisable){beep();}
 
 typedef struct {
@@ -123,7 +122,6 @@ static RETSIGTYPE sigwinch(int sig);
 extern time_t gmtoff(time_t tt,int mode);
 static int getmessages(char *bbx);
 
-static char *nothing="";
 static char *hm[]={
 	"F1",", ",
 	"R","escan, ",
@@ -405,15 +403,15 @@ static void freshslot()
 	if(!slots[currslot]->session)return;
 	scrollok(wmain,FALSE);
 	wattrset(wmain,COLOR_PAIR(3)|A_BOLD);
-	mvwprintw(wmain,0,1,"%s // %s",slots[currslot]->name,SAFE(slots[currslot]->city));
+	mvwprintw(wmain,0,1,"%s // %s",slots[currslot]->name,SS(slots[currslot]->city));
 	wattroff(wmain,A_BOLD);
-	mvwprintw(wmain,0,COL-9-strlen(SAFE(slots[currslot]->sysop))," Sysop: %s",slots[currslot]->sysop);
-	mvwprintw(wmain,1,1,"[%d] %s",slots[currslot]->speed,SAFE(slots[currslot]->flags));
-	mvwprintw(wmain,1,COL-9-strlen(SAFE(slots[currslot]->phone))," Phone: %s",slots[currslot]->phone);
+	mvwprintw(wmain,0,COL-9-strlen(SS(slots[currslot]->sysop))," Sysop: %s",slots[currslot]->sysop);
+	mvwprintw(wmain,1,1,"[%d] %s",slots[currslot]->speed,SS(slots[currslot]->flags));
+	mvwprintw(wmain,1,COL-9-strlen(SS(slots[currslot]->phone))," Phone: %s",slots[currslot]->phone);
 	wattron(wmain,COLOR_PAIR(2)|A_BOLD);
 	mvwaddstr(wmain,2,1,"Addr: ");
 	wattroff(wmain,A_BOLD);
-	waddnstr(wmain,SAFE(slots[currslot]->addrs),COL-14);
+	waddnstr(wmain,SS(slots[currslot]->addrs),COL-14);
 	wattrset(wmain,COLOR_PAIR(4));mvwaddch(wmain,2,COL-12,' ');
 	mvwaddstr(wmain,2,COL-11,slots[currslot]->options&O_PWD?"[pwd]":"");
 	wattrset(wmain,COLOR_PAIR(6));
@@ -539,7 +537,7 @@ static void freshqueue()
 	} else for(i=0;q&&i<MH-1;i++,q=q->next) {
 		wattrset(wmain,COLOR_PAIR(3)|(q->flags&Q_DIAL?A_BOLD:0));
 		if(q_pos==q->n)wattrset(wmain,COLOR_PAIR(16));
-		for(k=0;k<allslots;k++)if(slots[k]->session&&!memcmp(slots[k]->addrs,q->addr,strlen(q->addr)))k=999;
+		for(k=0;k<allslots;k++)if(slots[k]->session&&!strcmp(slots[k]->addrs,q->addr))k=999;
 		mvwaddch(wmain,i+1,0,(k>=999)?'=':' ');
 		mvwaddch(wmain,i+1,1,' ');waddstr(wmain,q->addr);
 		for(k=0;k<COL-24-Q_MAXBIT-strlen(q->addr);k++)waddch(wmain,' ');
@@ -1387,20 +1385,22 @@ int main(int argc,char **argv)
 			case 'i': case 'I': case 'h':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que)break;
 				xstrcpy(buf+3,que->addr,64);
-				len=strlen(que->addr)+4;
-				*(unsigned*)(buf+len)=(char)ch;
+				len=strlen(buf+3)+4;
+				buf[len]=ch;
+				buf[len+1]=0;
 				if(ch=='h') {
-					if(inputstr(buf+len+4,"Set hold status to node for (minutes): ",2))
-					    *(unsigned*)(buf+len+2)=(unsigned)strtoul(buf+len+4,NULL,10);
-						else break;
+					if(inputstr(buf+len+4,"Set hold status to node for (minutes): ",2)) {
+					    STORE16(buf+len+2,(unsigned short)strtoul(buf+len+4,NULL,10));
+					    len+=2;
+					} else break;
 				}
-				xcmd(buf,QR_STS,len+4);
+				xcmd(buf,QR_STS,len+2);
 				break;
 			case 'k': case 'K':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que)break;
 				bf=getnode((ch=='k')?"Kill all files for (addr+'y'): ":"Kill all files for current addr? ('y'=yes, any other=no): ");
 				if(bf&&tolower(*bf)=='y'&&bf[1]) {
-					xstrcpy(buf+3,(ch=='k')?bf+1:que->addr,64);
+					xstrcpy(buf+3,(ch=='k')?(bf+1):que->addr,64);
 					xcmd(buf,QR_KILL,strlen(buf+3)+4);
 				}
 				break;
