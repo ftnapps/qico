@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.15 2001/07/12 21:43:02 lev Exp $
+ * $Id: nodelist.c,v 1.16 2001/07/20 08:37:25 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -395,6 +395,7 @@ int chktxy(char *p)
 int checktxy(char *flags)
 {
 	char *u, *p, *w;
+	int i;
 	
 	w=xstrdup(flags);u=w;
 	while((p=strsep(&u, ","))) {
@@ -403,8 +404,9 @@ int checktxy(char *flags)
 			return 1;
 		}
 		if(p[0]=='T' && p[3]==0) {
+			i=chktxy(p);
 			xfree(w);
-			return chktxy(p);
+			return i;
 		}
 	}
 	xfree(w);
