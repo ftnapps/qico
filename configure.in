@@ -123,6 +123,7 @@ if test x$enable_qcc != xno; then
 	CURSES=curses))
 	if test $CURSES; then
 		AC_CHECK_LIB($CURSES, mvvline, AC_DEFINE(CURS_HAVE_MVVLINE))
+		AC_CHECK_LIB($CURSES, wresize, AC_DEFINE(CURS_HAVE_WRESIZE))
 		QCC=1
 		AC_DEFINE(QCC)
 		AC_CHECK_HEADERS(curses.h ncurses.h)

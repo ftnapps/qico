@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.9 2001/01/09 21:34:51 aaz Exp $
+ * $Id: qcc.c,v 1.10 2001/01/12 13:11:16 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -483,7 +483,8 @@ int main(int argc, char **argv)
 	bzero(&slots, sizeof(slots));
 	freshall();
 	while(!quitflag) {
- 		if (sizechanged) {
+#ifdef CURS_HAVE_WRESIZE		
+		if (sizechanged) {
 			if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) {
 				int i;
 				resizeterm(size.ws_row, size.ws_col);
@@ -493,6 +494,7 @@ int main(int argc, char **argv)
 			}
 			sizechanged=0;
  		} 
+#endif
 		tim=time(NULL);
 		tt=localtime(&tim);wattron(whdr, COLOR_PAIR(15));
 		mvwprintw(whdr, 0, COLS-13, "%02d:%02d:%02d",
