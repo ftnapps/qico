@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.6 2000/11/12 12:29:32 lev Exp $
+ * $Id: janus.c,v 1.7 2000/11/16 18:42:41 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -140,7 +140,7 @@ int janus()
 			*((long *)txbuf) = lasttx = txpos;
 			blklen = fread(txbuf+sizeof(txpos),  1, txblklen, txfd);
 			if(blklen<1) {
-				write_log("read error on %s", recvf.fname);
+				write_log("read error on %s", sendf.fname);
 				goto giveup;
 			}
 			sendpkt(txbuf, sizeof(txpos)+blklen, BLKPKT);
