@@ -2,7 +2,7 @@
  * File: tty.h
  * Created at Thu Jul 15 16:16:17 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.h,v 1.2 2000/11/10 12:37:21 lev Exp $
+ * $Id: tty.h,v 1.3 2001/02/08 19:24:53 lev Exp $
  **********************************************************/
 #ifndef __TTY_H__
 #define __TTY_H__
@@ -49,14 +49,16 @@ extern int tty_close(void);
 extern int tty_unblock(void);
 extern int tty_block();
 extern int tty_put(char *buf, int size);
-extern int tty_get(char *buf, int size, int timeout);
+extern int tty_get(char *buf, int size, int *timeout);
 extern int tty_bufc(char ch);
 extern int tty_bufflush();
 extern void tty_bufclear();
 
 extern int tty_putc(char ch);
 extern int tty_getc(int timeout);
+extern int tty_getc_timed(int *timeout);
 extern int tty_hasdata(int sec, int usec);
+extern int tty_hasdata_timed(int *timeout);
 extern void tty_purge();
 extern void tty_purgeout();
 extern char canistr[];
