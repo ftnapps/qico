@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: call.c,v 1.4 2003/10/08 10:07:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -135,7 +135,7 @@ int do_call(ftnaddr_t *fa,char *phone,char *port)
 	tty_nolocal();
 	if(rc==MC_OK) {
 		rc=session(1,SESSION_AUTO,fa,atoi(conn+strcspn(conn,"0123456789")));
-		if((rc&S_MASK)==S_REDIAL) {
+		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
 			write_log("creating poll for %s",ftnaddrtoa(fa));
 			if(is_bso()==1)bso_poll(fa,F_ERR);
 			    else if(is_aso()==1)aso_poll(fa,F_ERR);

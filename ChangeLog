@@ -1,3 +1,16 @@
+2003-10-08 05:26  sisoft
+
+	* src/: binkp.c, mailer.h, qcc.c, qcconst.h, qconf.x, tcp.c:
+
+	move some defines.
+	partially add work with proxy.
+	
+2003-10-06 17:37  sisoft
+
+	* Changes, configure.in, src/binkp.c, src/main.c:
+
+	fix configure.
+	
 2003-10-05 23:37  sisoft
 
 	* cvs_com, src/Makefile.am:
