@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: protfm.c,v 1.2 2000/07/19 20:21:15 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -37,6 +37,16 @@ byte    txlastc;
 
 char weskipstr[]="recd: %s, 0 bytes, 0 cps [skipped]";
 char wesusstr[]="recd: %s, 0 bytes, 0 cps [suspended]";
+
+int sifname(char *s)
+{	
+	static char ALLOWED_CHARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+	static int CHARS = sizeof(ALLOWED_CHARS) / sizeof(char);
+	int i;
+	for(i = 0; i < CHARS; i++) if(*s < ALLOWED_CHARS[i]) { *s = ALLOWED_CHARS[i]; break; }
+	if(i == CHARS) return 1;
+	return 0;
+}
 
 int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 {
@@ -133,11 +143,22 @@ int rxclose(FILE **f, int what)
 		if(rc) lunlink(p);
 		else {
 			ss=p2+strlen(p2)-1;
-			while(!stat(p2, &sb)) (*ss)++;
-			if(rename(p, p2))
-				log("can't rename %s to %s: %d", p, p2,
-					strerror(errno));
-			utime(p2, &ut);chmod(p2, cfgi(CFG_DEFPERM));
+			while(!stat(p2, &sb) && p2[0]) {
+				if(sifname(ss)) {
+					ss--;
+					if(ss == p2) {
+						log("can't find situable name for %s: leaving in temporary directory",p);
+						p2[0] = '\x00';
+					}
+				}
+			}
+			if(p2[0]) {
+				if(rename(p, p2)) {
+					log("can't rename %s to %s: %d", p, p2, strerror(errno));
+				} else {
+					utime(p2, &ut);chmod(p2, cfgi(CFG_DEFPERM));
+				}
+			}
 		}
 		break;
 	}
