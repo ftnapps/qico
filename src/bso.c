@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.19 2001/04/24 19:15:54 lev Exp $
+ * $Id: bso.c,v 1.20 2003/01/25 18:21:42 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -166,7 +166,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 	while((dez=readdir(dz))) {
 		p=strrchr(dez->d_name, '.');
 		if(!p) continue;
-		*p=0;sscanf(dez->d_name, "%04hd.%04hd.%04hd.%04hd",
+		*p=0;sscanf(dez->d_name, "%hd.%hd.%hd.%hd",
 					&a.z, &a.n, &a.f, &a.p);
 		snprintf(fn, MAX_PATH, "%s/%s.%s", bso_base, dez->d_name,p+1);
 		if(!strcasecmp(p+2, "lo"))
