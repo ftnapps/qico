@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.8 2000/11/26 13:17:33 lev Exp $
+ * $Id: bso.c,v 1.9 2001/01/07 11:25:26 lev Exp $
  **********************************************************/
 #include "headers.h"
 

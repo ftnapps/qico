@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.4 2001/01/06 14:44:47 lev Exp $
+ * $Id: ls_zglue.c,v 1.5 2001/01/07 11:25:26 lev Exp $
  **********************************************************/
 /*
 
