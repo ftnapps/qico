@@ -64,11 +64,15 @@ if test "x${with_config}" = "xNONE"; then
 	fi
 fi
 AC_MSG_RESULT($with_config)
+if test "x`expr "$with_config" : '^/.*$'`" != "x`expr "$with_config" : '^.*$'`"; then
+	AC_MSG_ERROR([Parameter for --with-config must be absolute pathname])
+fi
+
 
 dnl ZModem
 AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=NOTSET)
 if test x$with_new_zmodem != xNOTSET; then
-	AC_MSG_RESULT(new ZModem IN ANY case! WARNING! old ZModem was eliminated!)
+	AC_MSG_WARN([Use new ZModem IN ANY case, old ZModem was eliminated!])
 fi
 
 
@@ -77,18 +81,34 @@ AC_MSG_CHECKING([for TCP connection speed])
 AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ], , with_tcp_speed=115200)
 AC_DEFINE_UNQUOTED(TCP_SPEED, $with_tcp_speed)
 AC_MSG_RESULT($with_tcp_speed)
+changequote(, )dnl
+if test "x`expr "$with_tcp_speed" : '^[0-9]*$'`" != "x`expr "$with_tcp_speed" : '^.*$'`"; then
+changequote([, ])dnl
+	AC_MSG_ERROR([Parameter for --with-tcp-speed must be a number])
+fi
 
 dnl Default Speed
 AC_MSG_CHECKING([for default port locking speed])
 AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ], , with_default_speed=9600)
 AC_DEFINE_UNQUOTED(DEFAULT_SPEED, $with_default_speed)
 AC_MSG_RESULT($with_default_speed)
+changequote(, )dnl
+if test "x`expr "$with_default_speed" : '^[0-9]*$'`" != "x`expr "$with_default_speed" : '^.*$'`"; then
+changequote([, ])dnl	
+	AC_MSG_ERROR([Parameter for --with-default-speed must be a number])
+fi
 
 dnl Shell
 AC_MSG_CHECKING([for shell])
 AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ], , with_shell=/bin/sh)
 AC_DEFINE_UNQUOTED(SHELL, "$with_shell")
 AC_MSG_RESULT($with_shell)
+if test "x`expr "$with_shell" : '^/.*$'`" != "x`expr "$with_shell" : '^.*$'`"; then
+	AC_MSG_ERROR([Parameter for --with-shell must be absolute pathname])
+fi
+if test ! \( -x "$with_shell" -a \( -f "$with_shell" -o -L "$with_shell" \) \); then
+	AC_MSG_ERROR([Parameter for --with-shell must be name of executable file])
+fi
 
 dnl Lock creation style
 AC_MSG_CHECKING([for lock creation style])
@@ -102,7 +122,8 @@ case "$with_lock_style" in
 		AC_DEFINE(LOCKSTYLE_OPEN)
 		;;
 	*)
-		AC_MSG_RESULT(link)
+		AC_MSG_RESULT(unknown)
+		AC_MSG_ERROR([Lock style '$with_lock_style' is unknown. Valid ones are 'link' or 'open]) 
 		;;
 esac
 
@@ -152,7 +173,7 @@ if test x$enable_debug != xno; then
 	NEED_DEBUG=1
 else
 	AC_MSG_RESULT([no, logleves in config is useless])
-    NEED_DEBUG=0
+	NEED_DEBUG=0
 fi
 
 dnl Check for syslog facility names
