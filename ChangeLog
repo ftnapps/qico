@@ -1,3 +1,12 @@
+2003-09-07 13:34  sisoft
+
+	* src/: aso.c, emsi.c, ftn.h, queue.c: fix ASO rescan. fix
+	something in emsi.
+
+2003-09-03 01:00  sisoft
+
+	* ChangeLog, Changes, src/emsi.c: fix in emsi.
+
 2003-09-01 23:12  sisoft
 
 	* Changes, README, src/queue.c, src/session.c: add work with
