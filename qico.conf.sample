@@ -385,6 +385,12 @@ mincpsout	0
 #autoskip	swapper.dat
 #autoskip	*.[Mm][Pp]3
 
+#
+# Always delete file after send - never truncate it.
+# Files without any special character (`^' or `#') will not be touched in any
+# case.
+#alwayskillfiles no  
+
 ###############################################################################
 ### freq processor support ####################################################
 ###############################################################################
@@ -497,4 +503,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.19 2001/06/15 11:01:58 lev Exp $
+# $Id: qico.conf.sample,v 1.20 2001/07/05 15:31:31 lev Exp $
