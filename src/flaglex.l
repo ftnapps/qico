@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.13 2004/03/03 15:12:57 sisoft Exp $
+ * $Id: flaglex.l,v 1.14 2004/03/06 12:50:56 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -65,13 +65,13 @@ Port    	[Pp][Oo][Rr][Tt]
 Date    	[Dd][Aa][Tt][Ee]
 Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
 Cid     	[Cc][Ii][Dd]
-Sun		[Ss][Uu][Nn]?
-Mon		[Mm][Oo][Nn]?
-Tue		[Tt][Uu][Ee]?
-Wed		[Ww][Ee][Dd]?
-Thu		[Tt][Hh][Uu]?
-Fri		[Ff][Rr][Ii]?
-Sat		[Ss][Aa][Tt]?
+Sun		[Ss][Uu]([Nn])?
+Mon		[Mm][Oo]([Nn])?
+Tue		[Tt][Uu]([Ee])?
+Wed		[Ww][Ee]([Dd])?
+Thu		[Tt][Hh]([Uu])?
+Fri		[Ff][Rr]([Ii])?
+Sat		[Ss][Aa]([Tt])?
 Any		[Aa][Nn][Yy]
 Wk		[Ww][Kk]
 We		[Ww][Ee]
@@ -96,7 +96,7 @@ Lt		\<
 Le		\<=
 And		(\&)|([Aa][Nn][Dd])
 Or		(\|)|([Oo][Rr])
-Not		(\!)|([Nn][Oo][Tt]?)
+Not		(\!)|([Nn][Oo]([Tt])?)
 Xor		(\^)|([Xx][Oo][Rr])
 Lb		\(
 Rb		\)
@@ -158,10 +158,10 @@ Datestr         {Month}({Day}-{Day})?
 static int flagfor(char *str)
 {
 	char *p, *q;
-	if(!str||!*str||!strncasecmp(str,"tty",3)||!strncasecmp(str,"cua",3)||
-			!strncasecmp(str,"modem",5))return 0;
+	if(!str||!*str||!strncasecmp(str,"tty",3)||
+			!strncasecmp(str,"cua",3))return 0;
 	DEBUG(('Y',2,"flagfor: \"%s\"",str));
-	if(!rnode) return 0;
+	if(!rnode)return 0;
  	if(!strncasecmp(str,"list",4)) {
 		DEBUG(('Y',3,"flagfor: listed: %d",rnode->options&O_LST));
 		return rnode->options&O_LST;
@@ -212,7 +212,7 @@ static int chkaddr(char *str)
 	falist_t *i;
 
 	DEBUG(('Y',2,"chkaddr: \"%s\"",str));
-	if (!parseftnaddr(str, &addr, &DEFADDR, 1))	{
+	if(!parseftnaddr(str, &addr, &DEFADDR, 1)) {
 		DEBUG(('Y',1,"chkaddr: bad address"));
 		return 0;
 	}

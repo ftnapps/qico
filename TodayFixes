@@ -1,9 +1,9 @@
-/* $Id: TodayFixes,v 1.42 2004/03/03 15:12:53 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.43 2004/03/06 12:50:56 sisoft Exp $ */
 ---
-fix expressions binkp and tcp.
+set rts/cts flow control for tty's on linux.
+fix directory tree creating.
 .
 previous:
 ---
-remove compiler warnings under gcc3.
-fix segfault crash on some systems.
+fix expressions binkp and tcp.
 .

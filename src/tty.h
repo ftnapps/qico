@@ -1,8 +1,22 @@
-/* $Id: tty.h,v 1.6 2004/02/13 22:29:01 sisoft Exp $ */
+/* $Id: tty.h,v 1.7 2004/03/06 12:50:56 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
+#endif
+
+#ifdef CRTSCTS
+#define HARDW_HS CRTSCTS
+#else
+#ifdef CRTSFL
+#define HARDW_HS CRTSFL
+#else
+#ifdef RTSFLOW
+#define HARDW_HS RTSFLOW | CTSFLOW
+#else
+#define HARDW_HS 0
+#endif
+#endif
 #endif
 
 #define MODEM_OK 0

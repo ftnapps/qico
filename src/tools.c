@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.6 2004/02/15 01:22:25 sisoft Exp $
+ * $Id: tools.c,v 1.7 2004/03/06 12:50:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -164,7 +164,7 @@ int mkdirs(char *name)
 {
 	int rc=0;
 	char *p=name+1,*q;
-	while((q=strchr(p,'/'))&&!rc) {
+	while((q=strchr(p,'/'))) {
 		*q=0;rc=mkdir(name,cfgi(CFG_DIRPERM));
 		*q='/';p=q+1;
 	}
