@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.2 2000/10/12 19:38:57 lev Exp $
+# $Id: Makefile.in,v 1.3 2000/10/12 20:31:51 lev Exp $
 #
 
 prefix  = @prefix@
@@ -21,6 +21,8 @@ qico.conf.sample mkinstalldirs qico.spec
 
 DOCS = Changes FAQ LICENSE README stuff qico.conf.sample
 
+AUTOFILES = Makefile config.h configure qico.spec config.cache config.h.in config.log config.status
+
 ###############################################################################
 all:
 	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
@@ -28,6 +30,9 @@ all:
 clean:
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
 	rm -f qico-$(VERSION).tar.gz *~
+
+full-clean: clean
+	rm -f $(AUTOFILES)
 
 install:  install-bin
 install-strip: install-bin-strip
@@ -56,5 +61,3 @@ dist: clean
 	for i in $(DIST_FILES); do cp -f $$i qico-$(VERSION)/$$i; done
 	tar -chf - qico-$(VERSION) | gzip -f -9 > $(DIST)
 	rm -rf qico-$(VERSION)
-
-

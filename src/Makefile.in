@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.2 2000/10/12 19:38:58 lev Exp $
+# $Id: Makefile.in,v 1.3 2000/10/12 20:31:51 lev Exp $
 #
 
 prefix  = @prefix@
@@ -30,16 +30,17 @@ QCC     = @QCC@
 DEFS    += -DQIPC_KEY=\"$(BINDIR)/qico\" -I. -I..
 
 DEFS    += -DSHELL=\"$(SHELL)\"
-CFLAGS	= $(DEFS) -Wall -m486 -O3 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1 @CFLAGS@
+CFLAGS	= $(DEFS) -Wall -D_GNU_SOURCE=1 -D_BSD_SOURCE=1
 LFLAGS  += @LIBS@
 CFLAGS  += @CFLAGS@
 
+LIBS    += @LIBS@
 QCLIBS  = @QCCLIBS@
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o zm.o zmr.o \
           zrecv.o zsend.o session.o call.o qnlc.o qipc.o tcp.o \
-	  hydra.o flagexp.o execsh.o protfm.o janus.o freq.o
+          hydra.o flagexp.o execsh.o protfm.o janus.o freq.o
 
 QCCOBJS	= qcc.o ver.o
 QCTLOBJS= qctl.o ver.o
@@ -47,10 +48,11 @@ QCTLOBJS= qctl.o ver.o
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c zm.c zmr.c \
           zrecv.c zsend.c session.c call.c qnlc.c qipc.c tcp.c \
-	  hydra.c execsh.c protfm.c janus.c freq.c
+          hydra.c execsh.c protfm.c janus.c freq.c
 
 AUTOH = qconf.h 
-AUTOC = qconf.c flagexp.c flaglex.c ver.c
+AUTOC = qconf.c flagexp.c flaglex.c
+AUTOALL = ver.c Makefile
 
 .c.o:
 	$(CC) -c $(CFLAGS) -o $*.o $< 
@@ -64,7 +66,7 @@ all:	qico qctl
 endif
 
 qico:	$(OBJS) 
-	$(CC) $(CFLAGS) -o qico $(OBJS) $(LIBS) $(LIBS) 
+	$(CC) $(CFLAGS) -o qico $(OBJS) $(LIBS)
 
 qcc:	$(QCCOBJS)
 	$(CC) $(CFLAGS) -o qcc $(QCCOBJS) $(QCLIBS) $(LIBS)
@@ -115,3 +117,5 @@ install-qctl-strip: qctl
 clean:
 	rm -f *.o core qico qcc qctl $(AUTOH) $(AUTOC) *~
 
+full-clean: clean
+	rm -f $(AUTOALL)
