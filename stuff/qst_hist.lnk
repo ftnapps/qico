@@ -1,0 +1,66 @@
+#!/bin/awk -f
+BEGIN {
+FS = ",";dat=strftime("%d/%m/%y", systime());low_link=99999999;low_time=999999999;
+low_trafS=9999999;low_trafR=99999999;low_cps=9999999
+print ( "Links statistics. Generated at " strftime("%A %d %B %Y") " (" dat ")")
+      }
+ {
+
+### Чтобы обрабатывался весь файл, надо удалить следующие 2 строки:
+rdat=strftime("%d/%m/%y", $2)
+if (rdat==dat){
+   if (index ($5,"1")==0) {total_abrt[$4]++}
+   if (index ($5,"I")==0) {total_out[$4]++;} else {total_in[$4]++}
+   trafS+=$6;trafR+=$7;sumLin+=$3
+   total_link[$4]++
+   if (total_link[$4]>top_link) {top_link=total_link[$4]; top_link_addr=$4}
+   total_time[$4]+=$3
+   if (total_time[$4]>top_time) {top_time=total_time[$4]; top_time_addr=$4}
+   if (total_time[$4]<low_time) {low_time=total_time[$4]; low_time_addr=$4}
+   total_trafS[$4]+=$6
+   if (total_trafS[$4]>top_trafS) {top_trafS=total_trafS[$4]; top_trafS_addr=$4}
+   if (total_trafS[$4]<low_trafS) {low_trafS=total_trafS[$4]; low_trafS_addr=$4}   
+   total_trafR[$4]+=$7
+   if (total_trafR[$4]>top_trafR) {top_trafR=total_trafR[$4]; top_trafR_addr=$4}
+   if (total_trafR[$4]<low_trafR) {low_trafR=total_trafR[$4]; low_trafR_addr=$4}
+   if (total_time[$4]==0) {total_cps[$4]=0} else {total_cps[$4]=(total_trafR[$4]+total_trafS[$4])/total_time[$4]}
+   if (total_cps[$4]>top_cps) {top_cps=total_cps[$4]; top_cps_addr=$4}
+   if (total_cps[$4]<low_cps) {low_cps=total_cps[$4]; low_cps_addr=$4}
+   
+   }
+ }
+END {
+    
+print(".-----------------.-------.--------.--------.-------.-----.-----.-----.-----.")
+print("|        Address  | Online|  KbOut |  KbIn  |AvgCPS | Ses | In  | Out |Abrt |")
+print("|-----------------+-------+--------+--------+-------+-----+-----+-----+-----|")
+     for (i in total_link) 
+     {
+     if (total_link[i]<low_link) {low_link=total_link[i]; low_link_addr=i}
+     printf("| %15s ", i) 
+     printf("| %5i ",total_time[i]/60)
+     printf("|  %5i ", total_trafS[i]/1024)
+     printf("|  %5i ", total_trafR[i]/1024)
+     printf("| %5i ",total_cps[i])
+     printf("| %3i |",total_link[i])
+     printf(" %3i |",total_in[i])
+     printf(" %3i |",total_out[i])
+     printf(" %3i |\n",total_abrt[i])
+     }
+    
+print("`-----------------^-------^--------^--------^-------^-----^-----^-----^-----'\n")
+print ("      *** List of fame ***\n")
+printf(" Highest number of sessions .... %s (%i)\n",top_link_addr,top_link)
+printf(" Highest speed ................. %s (%i cps)\n",top_cps_addr,top_cps)
+printf(" Highest time online ........... %s (%i mins)\n",top_time_addr,top_time/60)
+printf(" Highest traffic in ............ %s (%i bytes)\n",top_trafR_addr,top_trafR)
+printf(" Highest traffic out ........... %s (%i bytes)\n",top_trafS_addr,top_trafS)
+print ("\n      *** List of shame ***\n")
+printf(" Lowest number of sessions ..... %s (%i)\n",low_link_addr,low_link)
+printf(" Lowest speed .................. %s (%i cps)\n",low_cps_addr,low_cps)
+printf(" Lowest time online ............ %s (%i mins)\n",low_time_addr,low_time/60)
+printf(" Lowest traffic in ............. %s (%i bytes)\n",low_trafR_addr,low_trafR)
+printf(" Lowest traffic out ............ %s (%i bytes)\n",low_trafS_addr,low_trafS)
+
+
+     }

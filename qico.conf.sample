@@ -1,0 +1,371 @@
+###############################################################################
+########################  qico configuration file  ############################ 
+###############################################################################
+#
+# config structure:
+# ~~~~~~~~~~~~~~~~
+# common config structure is similar to ifcico's:
+# <keyword> <value> 
+# strings, beginning with '#' are comments and will be ignored
+# leading and trailing spaces and tabs will be stripped
+# here is 3 types of parameters - string, integer and boolean.
+# for boolean 'y[es]','1','t[rue]' assumed as yes, all other - as no.
+#
+##############################################################################
+# 
+# include:
+# ~~~~~~~
+# you can include some subconfigs using:
+#   include <included_config_file>
+# inclusion is recursive, so be careful ;)
+#
+##############################################################################
+# 
+# dynamic configuration:
+# ~~~~~~~~~~~~~~~~~~~~~
+# some parts of config can be overriden at runtime:
+#   if <conditions> 
+#     <keyword> <value> 
+#           ...
+#     <keyword> <value> 
+#   endif  
+# (endif can be omitted)
+# *last* matching condition will be used!!!
+# where <conditions> is expression with syntax similar to ifcico's one.
+# you can use round brackets, '|' (or), '&' (and), '^' (xor) 
+# and '!' (not) operators, and some tokens:
+#
+# + address <addr_mask>      - remote has this address(s)
+#                              ex.: 'address 2:5030/*'
+# + port <wildcard>          - connection is on <port> (or 'ip' for ip 
+#                              connections)
+#                              ex.: 'port ttyS?'  
+# + phone <substr>           - remote's phone begins with <substr> 
+#                              ex.: 'phone 7-812-'
+# + cid <caller_id>          - $CALLER_ID's value begins with <caller_id>
+#                              ex.: cid 12345          
+# + speed <comp> <value>     - remote's speed is <comp> <value> 
+#                              ex.: speed <= 9600
+# + connect <comp> <value>   - similar to 'speed', but means real connection
+#                              speed
+# + line <num>               - we call on <num>th hidden (for incoming calls 
+#                              and one-line nodes is always 0)    
+# + time <time>[,<time>...]  - current time matches one of <time>s
+#                              <time> is [d.]hh[:mm]-[d.]hh[:mm], 
+#                              ex.: 'time 1.00:01-08:00, 5.21-7'  
+# + itime <time>[,<time>...] - current time matching one of <time>s
+#                              <time> is <pfx>hhmm-hhmm, where <pfx> is
+#                              Any, Wk, Mon, Tue, Wed, Thu, Fri, Sat, Sun
+#                              ex.: 'time Wk2300-0700,Sat2100-0900,Sun'
+# + date <date>[,<date>...]  - current date matching one of <date>s 
+#                              <date> is <mon>[dd-dd], where <mon> is
+#                              Jan-Dec, Any
+#                              ex.: 'date Any10-13, Feb, Mar1-30
+# + <flag>                   - where flag can be:
+#                                - 'list[ed]' (without '')
+#                                - 'prot[ected]'
+#                                - 'in[bound]' / 'out[bound]'
+#                                - 'bad' - got bad password 
+#                                - 'tcp[ip]' - identifies tcp/ip session
+#                                - nodelist flag 
+#                              ex. 'in & (!listed | !V34)'
+### TODO: #####################################################################
+# + host <host_mask>         - where <host_mask> is remote's host or 
+#                              ip-address mask
+# + connstr <substring>      - connect string includes <substring>
+#
+# almost every keyword can be changed at runtime, but some changes won't make 
+# any effect ;)
+###############################################################################
+
+
+###############################################################################
+### addresses and passwords ###################################################
+###############################################################################
+# your addresses, first will be used as primary and its zone and net will be
+# used as default
+address		2:5030/736.25
+address 	47:239/13
+
+# passwords for nodes
+#password        2:5030/1115     COOLPASS
+#password	 47:239/1   	 SOMEPWD
+include		/etc/ftn/qico.passwd
+
+###############################################################################
+### paths and filenames #######################################################
+###############################################################################
+# log variables can be:
+#  - filenames 
+#    ex.: log /var/log/qico.log
+#  - syslogd(8) facility. in this case it must begin with $
+#    ex.: log $local2
+#
+# daemon's log ("master" log)
+masterlog 	/var/log/ftn/qico-master.log
+#masterlog		$local3
+
+# log file 
+log		/var/log/ftn/qico.log
+
+# nodelists path
+nlpath 		/var/spool/ftn/nl
+
+# node- and pointlists (zone can be specified, if omitted in list)
+nodelist 	NET5030.999 2
+nodelist 	PNT5030.999
+nodelist 	nodelist.999
+
+# outbound path
+outbound 	/var/spool/ftn/outb
+#outbound 	/usr/src/qico/outb
+
+# unprotected inbound
+inbound         /var/spool/ftn/inb
+
+# protected inbound (you can add also listed, personal and other inbounds)
+if protected | outbound
+    inbound       /var/spool/ftn/inp
+endif
+
+# if file <nodial>.<portname> exists, we won't dial on this device
+nodial         	/etc/nodial
+
+# history file
+history	        /var/log/ftn/history	
+
+# personal fileboxes
+#filebox 	2:5030/163	/var/spool/ftn/fbox/test
+#filebox 	2:5030/763	/var/spool/ftn/fbox/tma
+#filebox 	47:239/1	/var/spool/ftn/fbox/andrew
+
+# long name fileboxes base directory
+#longboxpath	/var/spool/ftn/lbox
+
+# emsi log file (for saving remote emsi_dat packets)
+emsilog		/var/log/ftn/emsi.log
+
+# pid file (required)
+pidfile		/var/run/qico.pid
+
+# created directories permissions
+dirperm		0755
+
+# created files permissions
+defperm		0644
+
+###############################################################################
+### modem and dialing parameters ##############################################
+###############################################################################
+# modem ports (only one at line) in form <device>[:speed] 
+# (default speed is 9600)
+port 		ttyS1:38400
+#port		ttyS2:9600
+
+# delay between calls in seconds 
+dialdelay	10
+
+# outbound rescan period in seconds
+rescanperiod	30
+
+# phone translations, `=' means all other phones - must be last translation, 
+# because first matching translation will be used
+phonetr		7-812-	
+phonetr		7-	8W-
+phonetr		=	8W10-
+
+# outbound calls enable time
+cancall		CM
+
+# modem connect strings
+modemconnect    CONNECT
+
+# modem ok strings
+modemok		OK
+
+# modem error strings
+modemerror	ERROR
+modemerror	NO CARRIER
+modemerror	NO ANSWER
+
+# modem busy strings
+modembusy	BUSY
+modembusy	NO DIAL
+modembusy	RING
+
+# modem RINGING string
+modemringing    RINGING
+
+# maximal RINGINGs count (no check if 0)
+#maxrings	8
+
+# modem commands substs: | - CR/LF, ~ - 1 sec pause.
+# modem hangup sequence (several lines allowed)
+modemhangup	~~+++~~ATH0|
+
+# modem reset sequence (usually you needn't it if you have mgetty)
+#modemreset 	ATZ|
+#modemreset 	ATM0L0|
+
+# dial strings
+dialprefix	ATM0DT
+dialsuffix	|
+
+# maximum dial fails
+max_fails	30
+
+# reset timeout
+waitreset	20
+waitcarrier	60
+
+###############################################################################
+### station info and session parameters #######################################
+###############################################################################
+# EMSI data (warning! don't use ']' and '}' symbols in this fields!!!!)
+station		Aaz's Lair
+sysop		Pavel Kurnosoff
+place		St.Petersburg
+worktime	0:00-7:00
+phone		7-812-y0U-kN0W
+speed		33600
+flags		Linux, anti-ifcico team
+
+# ZMH (better use Txy)
+zmh		Tcd
+
+# extra mailonly time (additional to zmh) 
+#mailonly 	4:00-5:00
+
+# protocol order:
+# N - NCP       (can be used to reject session)
+# 1 - ZModem
+# Z - ZedZap
+# H - Hydra     (standard hydra with maximal block size of 2048 bytes)
+# 8 - Hydra-8k  (enhanced to use blocks up to 8192 bytes, emsi code - HY8)
+# 6 - Hydra-16k (16k blocks, emsi code - H16)
+protorder	HZ1
+
+# it's not recommended to use these extensions on lower speeds!
+if connect >= 14400
+   protorder	8HZ1
+if connect >= 28800
+   protorder	68HZ1
+endif
+
+# show intro (received before EMSI_REQ) lines in log
+showintro      	yes
+
+# session limit in minutes (0 means unlimited)
+maxsession     	120
+
+# delay freqs after HRQ,HXT or HAT received [minutes]
+waithrq         60
+
+# minimum connection speed (no check if 0)
+minspeed 	2400
+
+# automatically skip these files (in-mapping is made before checking!)
+# shell style patterns allowed, one mask per string
+#autoskip	swapper.dat
+#autoskip	*.[Mm][Pp]3
+
+###############################################################################
+### freq processor support ####################################################
+###############################################################################
+# external freq processor, compatible with ifextrp by Serge Oskin
+extrp         	/usr/local/bin/sfreq
+
+# freq time (NRQ if undefined)
+freqtime	CM
+#0:00-5:00
+
+# freq report "From:" line
+freqfrom       	Freq Processor
+
+# freq report "Subj:" line
+freqsubj       	File Request Report
+
+###############################################################################
+### filenames mapping rules ###################################################
+###############################################################################
+# path mappings. just replaces one string with second one, if found at the 
+# beginning of path. also you must add 'S' (and sometimes 'L') to mapout. 
+# mappath is executed before all other conversions, it is case-insensetive.
+# (there can be unlimited mappath lines)
+#mappath 	c:\dos		/mnt/c/Tmp
+#mappath 	c:\fido\outb	/mnt/dos.c/fido/outb
+
+# mapping rule may be a string of some chars. each char turns on one feature:
+#
+# for local filenames and paths: 
+#   S - convert backslashes to normal (required for dos outbounds)
+#   U - convert to upper case (only filename!)
+#   L - convert to lower case (only filename!)
+#
+# for remote filenames:
+#   b - rename bundles&reqs to 8.3 form (required for amiga-style outbound!!!)
+#   d - convert all dots ('.'), except last to '_'
+#   u - convert to upper case
+#   l - convert to lower case
+#   f - convert to 8.3 form (forced if we got FNC emsi flag)
+mapout 		bS
+
+# incoming files' names conversion (b,d,u,l,f can be used)
+#mapin		l
+
+###############################################################################
+### substs ####################################################################
+###############################################################################
+# substs in format: subst <addr> <phone> <wtime> 
+# each field can be replaced with '-' (keep unchanged)
+# ex: subst 2:5030/532	 - 	23:30-8:00
+#     subst 2:5030/666 	02 	CM 		
+#     subst 111:222/33   - 	-		
+# warning! subst phones are used without translation!
+subst 		47:239/1 	245-8477 0-7
+subst           2:5030/763      521-3530 22:30-9:00
+subst           2:5030/816      - 1-5
+subst           2:5030/754      - 1-8
+
+#subst 		2:5030/1115     315-8915 CM
+#subst 		2:5030/1115     315-8983 CM
+subst 		2:5030/1115     326-3610 CM
+
+subst           2:5030/163      272-6074 CM
+subst           2:5030/163      275-1579 CM
+subst           2:5030/163      275-6354 CM
+#include /etc/ftn/substs
+
+###############################################################################
+### external processes ########################################################
+###############################################################################
+# executed after session
+# calling format: <progname> <address> <I|O> <0|1>  
+aftersession	/usr/local/bin/up
+
+###############################################################################
+### some example conditions ###################################################
+###############################################################################
+# they (or we? ;) have buggy hydra, so we will turn it off
+if address 2:5030/1061.3 | address 2:5030/1061.15 | address 2:5030/1061.16
+ protorder Z1
+
+# endif can be skipped here
+# he has stupid big /etc/issue ;)
+if address 2:5030/763
+ showintro no
+
+# security violation
+if bad
+ flags        	***BAD PASSWORD!***
+ sysop 		Check your security settings
+ phone		Contact sysop!
+endif
+
+# poll'em all ;)
+#if time 4-5
+# dialdelay 5
+# flags Linux,NoFreqsNow!
+#endif
+
+# $Id: qico.conf.sample,v 1.1 2000/07/18 12:37:17 lev Exp $

@@ -1,0 +1,49 @@
+#!/bin/sh
+###################################
+### The simplest freq processor ###
+###################################
+PUB=/var/spool/ifmail/freqs
+ALIASES=/var/spool/ifmail/freqs/magic
+ 
+set -- `getopt w:lps: $*`
+if [ $? != 0 ]; then
+   echo 'Usage: sfreq [-wazoo] [-s speed] [-l|p] <request> <list> <report>'
+   exit 2
+fi
+for i; do
+   case $i in
+   -s)
+       speed=$2; shift; shift;;
+   -w)
+       shift;shift;;    
+   -l|-p)
+       acl=$i; shift;;
+   --)
+       shift; break;;
+   esac
+done
+
+address=$1;shift;
+echo -e "Hello, Sysop of $address!\n" > $3
+REQ=`cat $1`
+echo -n > $2
+for i in $REQ; do
+    i=`basename $i|tr a-z A-Z`
+    echo -n "Requested $i... " >> $3
+    if [ -f $PUB/$i ]; then
+	echo $PUB/$i >> $2
+	echo ok! >> $3
+    else 	
+	if [ -f $ALIASES/$i ]; then
+	    real=`cat $ALIASES/$i`
+	    echo $real >> $2
+	    echo alias for `basename $real`! >> $3
+	else
+	    echo not found! >> $3;
+	fi
+    fi
+done
+echo -e "\nBye!" >> $3
+ 
+
+

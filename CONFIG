@@ -1,0 +1,71 @@
+#############################################################################
+
+VERSION = 0.45pl3.1
+
+# install directory
+BINDIR  = /usr/local/bin
+
+# default config (can be overridden with -I) 
+CONF    = /etc/ftn/qico.conf
+# non-binary file permissions
+PERM    = 00600
+
+# owner of binaries
+OWNER   = news
+GROUP   = news
+# binary file permissions (qico must be suid!)
+BPERM   = 06755
+
+#############################################################################
+
+# qcc features (for building this you must have ncurses-4.2+) 
+MORDA	 = 1
+#DEFS	+= -DFREE_BSD
+
+# lock dir
+DEFS    += -DLOCK_DIR=\"/var/lock\" 
+
+# communication socket
+DEFS    += -DQIPC_SOCKET=\"/tmp/qlog\"
+
+# do not remove empty dirs in outbound
+#DEFS   += -DDONT_RM_DIRS
+
+# status file extension
+DEFS    += -DSTS_EXT=\"qst\"
+
+# enable process title (you can see it in ps(1) output)
+DEFS    += -DPROCTITLE
+
+# use amiga-style outbound instead of binkley-style
+#DEFS   += -DAMIGA4D
+
+# speed, assumed for tcp/ip connections (some protocols require speed for 
+# calculation of block size etc.)
+DEFS    += -DTCP_SPEED=115200 
+
+# some defines (usually you don't need to change it)
+DEFS	+= -DMAX_PATH=256  -DMAX_NODELIST=32 -DMAX_STRING=256
+       
+	  
+##############################################################################
+### OS depended settings #####################################################
+##############################################################################
+
+SHELL   = /bin/sh
+CC      = gcc
+AWK     = awk
+INSTALL = install
+LEX     = lex
+#YACC    = bison -y
+YACC    = yacc
+
+# required for linux glibc2 systems
+#LIBS=-lresolv
+
+# required for FreeBSD, if define -DFREE_BSD
+#LIBS=-lutil
+
+#
+# $Id: CONFIG,v 1.1 2000/07/18 12:37:16 lev Exp $
+#

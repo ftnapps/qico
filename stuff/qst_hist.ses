@@ -1,0 +1,49 @@
+#!/bin/awk -f
+BEGIN {
+FS = ",";dat=strftime("%d/%m/%y", systime())
+print ( "Sessions history. Generated at " strftime("%A %d %B %Y") " (" dat ") \n")
+
+print("                       'P' - password protected  ' ' - unprotected --------+   ")
+print("                       'L' - listed system ----- ' ' - unlisted system ---+|   ")
+print("                       'I' - incoming ---------- 'O' - outgoing ---------+||   ")
+print("                       '*' - OK ---------------- 'A' - aborted ---------+|||   ")
+print(".----------.----------.------.-----------------.-------.-------.------. ||||   ")
+print("| Start    |  End     | Time |     Address     | KbOut | KbIn  | CPS  | ||||   ")
+print("|----------+----------+------+-----------------+-------+-------+------+-||||--.")
+      }
+ {
+
+### Чтобы обрабатывался весь файл, надо удалить следующие 2 строки:
+rdat=strftime("%d/%m/%y", $2)
+if (rdat==dat){
+   printf("| %8s ",strftime("%H:%M:%S",$2))
+   printf("| %8s ",strftime("%H:%M:%S",$2+$3))
+   printf("| %4.0f |",$3/60)
+   printf(" %15s |",$4) 
+   printf(" %5.0f |", $6/1024)
+   printf(" %5.0f |", $7/1024)
+   if ($3==0) {printf(" ---- |");} else {printf(" %4i |",($6+$7)/$3)}
+   trafS+=$6;trafR+=$7;sumLin+=$3
+   if (index ($5,"0")==0) {stat="*";sumC++;} else {stat="A";sumF++ }
+   if (index ($5,"I")==0) {sts="O";sumO++;} else {sts="I";sumI++ }
+   if (index ($5,"L")==0) {sts_l=" ";sumU++;} else {sts_l="L";sumL++ }
+   if (index ($5,"P")==0) {sts_p=" ";sumN++;} else {sts_p="P";sumP++ }
+   printf(" %1s%1s%1s%1s  |\n",stat,sts,sts_l,sts_p)
+   }
+ }
+END {
+    
+print ("`----------^----------^------^-----------------^-------^-------^------^-------'")
+printf("\n  Total summary traffic ........................... %i Kb",(trafS/1024)+(trafR/1024))
+printf("\n  Received summary traffic ........................ %i Kb",trafR/1024)
+printf("\n  Sent summary traffic ............................ %i Kb",trafS/1024)
+printf("\n  Average CPS ..................................... %i\n\n",((trafS)+(trafR))/sumLin)
+printf("  Total sessions .................................. %i\n",sumC+sumF)
+printf("  Good sessions ................................... %i \n", sumC)
+printf("  Aborted Sessions ................................ %i \n",sumF)
+printf("  Listed Sessions ................................. %i \n",sumL)
+printf("  Unlisted Sessions ............................... %i \n",sumU)
+printf("  Protected Sessions .............................. %i \n",sumP)
+printf("  Unprotected Sessions ............................ %i \n\n",sumN)
+printf("  Line usage ...................................... %.2f hour(s), %i%%\n",  sumLin/60/60, (sumLin/60/60)/0.24)
+     }
