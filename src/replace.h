@@ -2,7 +2,7 @@
  * File: replace.h
  * Replace functions declarations
  * Created at Fri Feb 16 16:52:46 2001 by pqr@yasp.com
- * $Id: replace.h,v 1.3 2001/06/02 15:32:05 lev Exp $
+ * $Id: replace.h,v 1.4 2002/04/18 17:02:58 lev Exp $
  ***************************************************************************/
 #ifndef __REPLACE_H__
 #define __REPLACE_H__
@@ -12,9 +12,9 @@ extern char *basename (const char *filename);
 #define q_basename(c) 	(basename((c)))
 #else
 #	ifdef HAVE_BROKEN_BASENAME
-#	define q_basename(c) 	(basename((c))+1)
+		extern char *q_basename(char *c);
 #	else
-#	define q_basename(c) 	(basename((c)))
+#		define q_basename(c) 	(basename((c)))
 #	endif
 #endif
 #ifndef HAVE_STRSEP
