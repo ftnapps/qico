@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.20 2001/05/29 19:13:34 lev Exp $
+ * $Id: protfm.c,v 1.21 2001/09/28 10:21:01 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -44,6 +44,7 @@ char *estimatedtime(size_t size, int cps, unsigned long baud)
 	static char et[16];
 	int h,m,s;
 	if (cps < 1) cps = baud / 10;
+	if (!cps) cps = 1;
 	s = size / cps;
 	if (s < 1) s = 1;
 	h = s / 3600; s %= 3600;
