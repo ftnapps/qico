@@ -24,7 +24,7 @@ case "$1" in
 	killproc qico
 
 	echo
-	rm -f /var/lock/subsys/inet
+	rm -f /var/lock/subsys/fido
 	;;
   status)
 	status qico
