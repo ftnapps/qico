@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.2.2.1 2000/10/25 19:18:42 lev Exp $
+ * $Id: bso.c,v 1.2.2.2 2000/11/08 20:28:37 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -176,6 +176,7 @@ int bso_flavor(char fl)
 	case 'O': return F_NORM;
 	case 'D': return F_DIR;
 	case 'C': return F_CRSH;
+	case 'I': return F_IMM;
 	}
 	return F_ERR;
 }
@@ -195,6 +196,8 @@ char *bso_pktn(ftnaddr_t *fa, int fl)
 		break;
 	case F_HOLD:
 		strcat(bso_tmp, "hut");
+	case F_IMM:
+		strcat(bso_tmp, "iut");
 		break;
 	}
 	return bso_tmp;
@@ -215,6 +218,9 @@ char *bso_flon(ftnaddr_t *fa, int fl)
 		break;
 	case F_HOLD:
 		strcat(bso_tmp, "hlo");
+		break;
+	case F_IMM:
+		strcat(bso_tmp, "ilo");
 		break;
 	}
 	return bso_tmp;
