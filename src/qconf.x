@@ -70,3 +70,4 @@ clearundial,C_INT,int,0,"0"
 aftermail,C_STR,char *,0,NULL
 callonflavors,C_STR,char *,0,"NDCI"
 immonflavors,C_STR,char *,0,"CI"
+pollflavor,C_STR,char *,0,"N"

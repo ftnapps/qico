@@ -242,7 +242,11 @@ callonflavors NDCI
 # Default is CI
 immonflavors CI
 
-
+#
+# Flavor for pols and attaches. Could be overwritten from command line.
+# Alos, this flavor is used, when restore poll after disconnection
+pollflavor N
+            
 # maximum dial fails (the reason to set undialable flag)
 max_fails	30
 
@@ -435,4 +439,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.6 2000/11/09 12:49:03 lev Exp $
+# $Id: qico.conf.sample,v 1.7 2000/11/09 13:42:16 lev Exp $

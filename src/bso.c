@@ -2,13 +2,14 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.5 2000/11/08 20:31:44 lev Exp $
+ * $Id: bso.c,v 1.6 2000/11/09 13:42:16 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "qconf.h"
 
 #define STS_EXT "qst"
 
@@ -335,4 +336,12 @@ int bso_getstatus(ftnaddr_t *fa, sts_t *st)
 	return 0;
 }
 
-
+int bso_poll(ftnaddr_t *fa, int flavor)
+{
+	char *pf;
+	if(F_ERR==flavor) {
+		pf=cfgs(CFG_POLLFLAVOR);
+		flavor=bso_flavor(*pf);
+	}
+	return bso_attach(fa,flavor,NULL);
+}

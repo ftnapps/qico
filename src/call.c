@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.2 2000/11/01 10:29:23 lev Exp $
+ * $Id: call.c,v 1.3 2000/11/09 13:42:16 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <stdlib.h>
@@ -92,7 +92,7 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 		rc=session(1, SESSION_AUTO, fa, atoi(conn+strcspn(conn,"0123456789")));
 		if((rc&S_MASK)==S_REDIAL) {
 			write_log("creating poll for %s", ftnaddrtoa(fa));
-			bso_poll(fa);
+			bso_poll(fa,F_ERR);
 		}
 	} else rc=S_REDIAL;
 	title("Waiting...");

@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.5 2000/11/08 20:51:30 lev Exp $
+ * $Id: qctl.c,v 1.6 2000/11/09 13:42:16 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -31,7 +31,8 @@ void usage(char *ex)
  		   "-R             reread config\n"
 		   "-K             kill outbound of <node> [<node2> <nodeN>]\n"
 		   "-f             query info about <node>\n"
-		   "-p             poll <node1> [<node2> <nodeN>]\n"
+		   "-p[n|c|d|h|i]  poll <node1> [<node2> <nodeN>] with specified flavor\n"
+		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
 		   "-r             freq from <node> files <files>\n"
 		   "-s[n|c|d|h|i]  attach files <files> to <node> with specified flavor\n"
 		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
@@ -125,10 +126,10 @@ int main(int argc, char *argv[])
 {
 	key_t qipc_key;
 	int action=-1, kfs=0;
-	char c, *str="", flv='N', buf[MSG_BUFFER];
+	char c, *str="", flv='?', buf[MSG_BUFFER];
 	
  	setlocale(LC_ALL, "");
- 	while((c=getopt(argc, argv, "KhqvrpfkRQs:x:"))!=EOF) {
+ 	while((c=getopt(argc, argv, "Khqvrp:fkRQs:x:"))!=EOF) {
 		switch(c) {
 		case 'k':
 			kfs=1;
@@ -140,12 +141,21 @@ int main(int argc, char *argv[])
 		case 's':
 			action=QR_SEND;
 			flv=toupper(*optarg);
+			if(strchr("0123456789:./",flv)) {
+				flv='?';
+                optind--;
+			}
 			break;
 		case 'K':
 			action=QR_KILL;
 			break;
 		case 'p':
 			action=QR_POLL;
+			flv=toupper(*optarg);
+			if(strchr("0123456789:./",flv)) {
+				flv='?';
+                optind--;
+			}
 			break;
 		case 'f':
 			action=QR_INFO;
@@ -196,9 +206,10 @@ int main(int argc, char *argv[])
 		return getnodeinfo();
 	case QR_KILL:
 	case QR_POLL:
-		while(optind<argc){		
+		while(optind<argc){
   		    strcpy(buf+9, argv[optind]);
-		    msgsnd(qipc_msg, buf, strlen(argv[optind++])+10, 0);
+  		    buf[10+strlen(buf+9)]=flv;
+			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);
 		}
 		return getanswer();
 	case QR_STS:

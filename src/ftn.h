@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.11 2000/11/09 12:49:04 lev Exp $
+ * $Id: ftn.h,v 1.12 2000/11/09 13:42:16 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -278,6 +278,7 @@ extern int bso_request(ftnaddr_t *adr, slist_t *files);
 extern int bso_rmstatus(ftnaddr_t *adr);
 extern int bso_setstatus(ftnaddr_t *fa, sts_t *st);
 extern int bso_getstatus(ftnaddr_t *fa, sts_t *st);
+extern int bso_poll(ftnaddr_t *fa, int flavor);
 /* log.c */
 extern void (*log_callback)(char *str);
 extern int log_init(char *, char *);
@@ -289,8 +290,6 @@ extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
-
-#define bso_poll(adr) bso_attach(adr, F_NORM, NULL)
 
 #define sfree(p) do { if(p) free(p); p = NULL; } while(0)
 

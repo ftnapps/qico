@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.20 2000/11/09 12:49:04 lev Exp $
+ * $Id: main.c,v 1.21 2000/11/09 13:42:16 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -261,7 +261,7 @@ void daemon_mode()
  
 				if(falist_find(cfgal(CFG_ADDRESS), &current->addr) ||
 					f&Q_UNDIAL ||
-					!havestatus(f,CFG_CALLONFLAVOR) ||
+					!havestatus(f,CFG_CALLONFLAVORS) ||
 					needhold(f,w)) {
 					current=current->next;
 					if(!current) current=q_queue;
@@ -293,7 +293,7 @@ void daemon_mode()
 #endif
 				applysubst(rnode, psubsts);
 				rnode->tty=strdup(baseport(port));
-				if(can_dial(rnode, havestatus(f,CFG_IMMONFLAVOR)) &&
+				if(can_dial(rnode, havestatus(f,CFG_IMMONFLAVORS)) &&
 				   checktimegaps(cfgs(CFG_CANCALL))) {
 					dable=1;current->flv|=Q_DIAL;
 					chld=fork();
@@ -435,9 +435,18 @@ void daemon_mode()
 					break;
 				case QR_POLL:
 					if(bso_locknode(&fa)) {
-						write_log("poll for %s", ftnaddrtoa(&fa));
+						p=buf+9+strlen(buf+9)+1;
+						if('?'==*p) *p=*cfgs(CFG_POLLFLAVOR);
+						rc=bso_flavor(*p);
+						if(rc==F_ERR) {
+							write_log("unknown flavour - '%c'",C0(*p));
+							sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+							break;
+						}
+
+						write_log("poll for %s, flavor %c", ftnaddrtoa(&fa),*p);
 						sendrpkt(0,chld,"");
-						rc=bso_poll(&fa);
+						rc=bso_poll(&fa,rc);
 						bso_unlocknode(&fa);
 						do_rescan=1;
 					} else {
@@ -517,14 +526,8 @@ void daemon_mode()
 					break;
 				case QR_SEND:
 					p=buf+9+strlen(buf+9)+1;
-					switch(*p) {
-					case 'N': rc=F_NORM;break;
-					case 'C': rc=F_CRSH;break;
-					case 'D': rc=F_DIR;break;
-					case 'H': rc=F_HOLD;break;
-					case 'I': rc=F_IMM;break;
-					default: rc=F_ERR;
-					}
+					if('?'==*p) *p=*cfgs(CFG_POLLFLAVOR);
+					rc=bso_flavor(*p);
 					if(rc==F_ERR) {
 						write_log("unknown flavour - '%c'",C0(*p));
 						sendrpkt(1,chld,"unknown flavour %c",C0(*p));
