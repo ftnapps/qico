@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.18 2003/01/20 08:35:05 cyrilm Exp $
+ * $Id: qctl.c,v 1.19 2003/03/16 20:54:48 cyrilm Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -16,6 +16,7 @@
 #include <sys/msg.h>
 #include <config.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "qcconst.h"
 #include "ver.h"
 #include "replace.h"
@@ -289,11 +290,39 @@ int main(int argc, char *argv[])
 		}
 		*str++=flv;*str++=0;
 		for(;optind<argc;optind++) {
-			str[0]=kfs?'^':0;str[1]=0;
+			int lkfs=kfs;
+			char filename[MAX_PATH];
+			struct stat filestat;
+			memset(filename,0,MAX_PATH);
 			if(argv[optind][0]!='/') {
-				getcwd(str+kfs, MAX_PATH-1);xstrcat(str, "/", MSG_BUFFER-(str-(char*)buf));
+				getcwd(filename, MAX_PATH-1);xstrcat(filename, "/", MAX_PATH);
 			}
-			xstrcat(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
+			xstrcat(filename, argv[optind], MAX_PATH);
+			if(access(filename,R_OK) == -1) {
+				printf("Can't access to %s: %s. File skipped!\n",filename,strerror(errno));
+				break;
+			}
+			if(stat(filename,&filestat) == -1) {
+				printf("Can't stat file %s: %s. File skipped!\n",filename,strerror(errno));
+				break;
+			}
+			if(((filestat.st_mode & S_IFREG)  != S_IFREG)  ||
+			   ((filestat.st_mode & S_IFIFO)  == S_IFIFO)  ||
+			   ((filestat.st_mode & S_IFCHR)  == S_IFCHR)  ||
+			   ((filestat.st_mode & S_IFDIR)  == S_IFDIR)  ||
+			   ((filestat.st_mode & S_IFBLK)  == S_IFBLK)  ||
+			   ((filestat.st_mode & S_IFSOCK) == S_IFSOCK) ||
+			   ((filestat.st_mode & S_IFWHT)  == S_IFWHT)) {
+				printf("File %s is not regular file. Skipped!\n",filename);
+				break;
+			}
+			if(lkfs && (access(filename,W_OK )== -1)) {
+				printf("Have no write access to %s. File wouldn't be removed!\n",filename);
+				lkfs=0;
+			}
+
+			str[0]=lkfs?'^':0;str[1]=0;
+			xstrcat(str, filename, MSG_BUFFER-(str-(char*)buf));
 			str+=strlen(str)+1;
 		}
 		xstrcpy(str, "", 2);str+=2;
