@@ -46,7 +46,7 @@ dnl AC_FUNC_UTIME_NULL
 dnl AC_FUNC_VPRINTF
 dnl AC_CHECK_FUNCS(getcwd mkdir rmdir select socket strcspn strdup strerror strspn strstr strtol uname)
 AC_CHECK_FUNCS(strcspn vsnprintf snprintf)
-AC_REPLACE_FUNCS(basename strsep usleep)
+AC_REPLACE_FUNCS(basename strsep usleep getsid)
 
 dnl Checking for FreeBSD setproctitle in libutil
 AC_CHECK_LIB(util, setproctitle)
