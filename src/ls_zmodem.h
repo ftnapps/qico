@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.7 2000/12/26 12:14:32 lev Exp $
+ * $Id: ls_zmodem.h,v 1.8 2001/01/06 14:46:43 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -15,7 +15,7 @@
 */
 
 /* Dirty hack */
-#define LSZ_TRUSTZFINS		5		/* We trust only in MANY ZFINs during initialization */
+#define LSZ_TRUSTZFINS		3		/* We trust only in MANY ZFINs during initialization */
  
 /* ZModem constants */
 
