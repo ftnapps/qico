@@ -2,7 +2,7 @@
  * File: qcconst.h
  * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.h,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qcconst.h,v 1.2 2000/10/07 14:21:42 lev Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -12,7 +12,7 @@
 #define Q_PATH   40
 
 typedef struct {
-	char fname[Q_PATH];
+	char *fname;
 	int  foff, ftot, toff, ttot, nf, allf, cps, soff, stot;
 	time_t start, mtime;
 } pfile_t;
