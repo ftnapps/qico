@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.11 2001/01/08 17:30:02 lev Exp $
+ * $Id: emsi.c,v 1.12 2001/01/08 17:31:55 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -63,7 +63,6 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 		case '8':strcat(dat, ",HY8");c=1;break;
 		case '6':strcat(dat, ",H16");c=1;break;
 		case 'J':strcat(dat, ",JAN");c=1;break;
-		case 'T':strcat(dat, ",TCP");c=1;break;
 		}
 	}
 	if(!c) strcat(dat, ",NCP");
