@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.10 2001/02/16 14:45:56 aaz Exp $
+ * $Id: log.c,v 1.11 2001/03/10 19:50:18 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -44,6 +44,10 @@ char *log_name=NULL;
 char *log_tty=NULL;
 void  (*log_callback)(char *str)=NULL;
 
+#ifdef NEED_DEBUG
+int facilities_levels[256];
+#endif
+
 int parsefacility(char *f)
 {
 	int i=0;
@@ -54,6 +58,23 @@ int parsefacility(char *f)
 	}
 	return -1;
 }
+
+#ifdef NEED_DEBUG
+void parse_log_levels()
+{
+	char *levels;
+	char *w;
+	char c;
+	memchr(facilities_levels,0,sizeof(facilities_levels));
+	levels = strdup(cfgs(CFG_LOGLEVELS));
+	for(w=strtok(levels,",;");w;w=strtok(NULL,",;")) {
+		c = *w; w++;
+		if(*w) facilities_levels[(unsigned char)c] = atoi(w);
+	}
+	sfree(levels);
+}
+#endif
+
 
 int log_init(char *ln, char *tn)
 {
@@ -83,27 +104,30 @@ int log_init(char *ln, char *tn)
 	return 1;
 }
 
-void write_log(char *fmt, ...)
+void vwrite_log(char *fmt, char *prefix, va_list args)
 {
+	FILE *log_f;
 	time_t tt;struct tm *t;
-	FILE *log_f;va_list args;
-	char str[MAX_STRING*16]={0}, *p;
-	
+	char str[MAX_STRING*16]={0}, *p = NULL;
+
 	tt=time(NULL);t=localtime(&tt);
 	strftime(str, 20, "%d %b %y %H:%M:%S", t);
+
 	sprintf(str+18, " %s[%ld]: ", log_tty?log_tty:"", (long)getpid());
-	va_start(args, fmt);
 	p=str+strlen(str);
+	if(prefix && *prefix) {
+		strcpy(p,prefix);
+		p=str+strlen(str);
+	}
 #ifdef HAVE_VSNPRINTF
-	vsnprintf(p, MAX_STRING-1, fmt, args);
+	vsnprintf(p, MAX_STRING*16-50, fmt, args);
 #else
 	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(p, fmt, args);
-#endif	
-	va_end(args);
+#endif
 	if(log_callback) log_callback(str);
 	switch(log_type) {
-	case 0: 
+	case 0:
 		fputs(p, stderr);
 		fputc('\n', stderr);
 		break;
@@ -122,6 +146,28 @@ void write_log(char *fmt, ...)
 	}
 }
 
+void write_log(char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vwrite_log(fmt,NULL,args);
+	va_end(args);
+}
+
+
+#ifdef NEED_DEBUG
+void write_debug_log(unsigned char facility, int level, char *fmt, ...)
+{
+	va_list args;
+	char prefix[16];
+
+	if (facilities_levels[facility] < level) return;
+	snprintf(prefix,16,"DBG_%c%02d: ",facility,level);
+	va_start(args, fmt);
+	vwrite_log(fmt,prefix,args);
+	va_end(args);
+}
+#endif
 
 void log_done()
 {

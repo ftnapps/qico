@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.18 2001/03/08 16:51:54 lev Exp $
+ * $Id: ftn.h,v 1.19 2001/03/10 19:50:17 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -252,6 +252,9 @@ extern falist_t *cfgal(int i);
 extern int readconfig(char *cfgname);
 extern int parseconfig(char *cfgname);
 extern void killconfig(void);
+#ifdef NEED_DEBUG
+extern void dumpconfig();
+#endif
 /* bso.c */
 extern char *bso_tmp;
 extern int bso_init(char *bsopath, int def_zone);
@@ -276,6 +279,14 @@ extern int bso_poll(ftnaddr_t *fa, int flavor);
 extern void (*log_callback)(char *str);
 extern int log_init(char *, char *);
 extern void write_log(char *fmt, ...);
+#ifdef NEED_DEBUG
+extern int facilities_levels[256];
+extern void parse_log_levels();
+extern void write_debug_log(unsigned char facility, int level, char *fmt, ...);
+#	define DEBUG(all)	write_debug_log all
+#else
+#	define DEBUG(all)
+#endif
 extern void log_done(void);
 /* queue.c */
 extern qitem_t *q_queue;

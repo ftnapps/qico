@@ -109,6 +109,29 @@ masterlog 	/var/log/ftn/qico-master.log
 # log file 
 log		/var/log/ftn/qico.log
 
+# 
+# Level of debug logging. It works, only if qico was compiled with
+# debug logging (debug logging could be switched off in compile time
+# with --disable-debug option for configure script).
+# Logging is not ``free'' operation. qico with disabled logging will be run
+# slightly faster, than one with enabled logging and all levels set to zer
+# (no debug logging).
+# Format is: <F><LL>[,<F><LL>...]
+#       <F>  is one-character facility name
+#       <LL> is number -- level of log. 
+#            Default is 0 (no debug logging).
+# 
+# Facilities are: 
+#  C -- Config & substs dumping
+#  E -- EMSI
+#  H -- Hydra
+#  J -- Janus
+#  Q -- Queue managment
+#  S -- Session
+#  Z -- ZModem
+#
+#loglevels E0,H0,J0,Q0,S0,Z0
+
 # Write to log estimated transfer time befor each file transfer
 estimatedtime no
 
@@ -459,4 +482,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.13 2001/01/12 12:56:19 lev Exp $
+# $Id: qico.conf.sample,v 1.14 2001/03/10 19:50:16 lev Exp $

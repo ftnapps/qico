@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.43 2001/03/08 17:56:45 lev Exp $
+ * $Id: main.c,v 1.44 2001/03/10 19:50:19 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -15,10 +15,6 @@
 #include "tty.h"
 #include "qipc.h"
 #include "byteop.h"
-
-#ifdef Q_DEBUG
-#define sline write_log
-#endif
 
 #define IP_D 0
 
@@ -110,6 +106,9 @@ void sighup(int sig)
 		stopit(0);
 	}
 	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+#ifdef NEED_DEBUG
+	parse_log_levels();
+#endif
 	do_rescan=1;
 }
 
@@ -240,9 +239,7 @@ void daemon_mode()
 			port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));			
 			if(!port || !q_queue) dable=1;
 			i=q_queue;
-#ifdef Q_DEBUG			
-			write_log("dabl");
-#endif
+			DEBUG(('Q',1,"dabl"));
 			while(!dable && i) {
 				f=current->flv;
 				w=current->what;
@@ -273,13 +270,9 @@ void daemon_mode()
 					i=i->next;
 					continue;
 				}
-#ifdef Q_DEBUG			
-				write_log("quering");
-#endif
+				DEBUG(('Q',1,"quering"));
 				rc=query_nodelist(&current->addr,cfgs(CFG_NLPATH),&rnode);
-#ifdef Q_DEBUG			
-				write_log("querynl");
-#endif
+				DEBUG(('Q',1,"querynl"));
 				switch(rc) {
 				case 1:write_log("can't query nodelist, index error");break;
 				case 2:write_log("can't query nodelist, nodelist error");break;
@@ -292,18 +285,14 @@ void daemon_mode()
 					rnode->phone=strdup("");
 				}
 				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
-#ifdef Q_DEBUG			
-				write_log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
-					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum);
-#endif
+				DEBUG(('Q',1,"%s %s %s [%d]", ftnaddrtoa(&current->addr),
+					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				rnode->tty=strdup(baseport(port));
 				if(checktimegaps(cfgs(CFG_CANCALL)) &&
 					find_dialable_subst(rnode,  current->flv&Q_IMM, psubsts)) {
 					dable=1;current->flv|=Q_DIAL;
 					chld=fork();
-#ifdef Q_DEBUG			
-					write_log("forking %s",ftnaddrtoa(&current->addr));
-#endif
+					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
 					
 					if(chld==0) {
 						if(!bso_locknode(&current->addr)) exit(S_BUSY);
@@ -378,9 +367,7 @@ void daemon_mode()
 					if(chld<0) write_log("can't fork() caller!");
 				} else current->flv&=~Q_DIAL;
 				nlkill(&rnode);
-#ifdef Q_DEBUG
-				write_log("nlkill");
-#endif
+				DEBUG(('Q',1,"nlkill"));
 				current=current->next;
 				if(!current) current=q_queue;
 				i=i->next;
@@ -431,6 +418,9 @@ void daemon_mode()
 						stopit(0);
 					}
 					psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+#ifdef NEED_DEBUG
+					parse_log_levels();
+#endif
 					do_rescan=1;					
 					sendrpkt(0,chld,"");
 					break;
@@ -837,12 +827,13 @@ int main(int argc, char *argv[], char *envp[])
 		exit(EXC_BADCONFIG);
 	}
 
-#ifdef C_DEBUG
-	dumpconfig();
+#ifdef NEED_DEBUG
+	if (facilities_levels['C'] > 0) dumpconfig();
 #endif	
     psubsts=parsesubsts(cfgfasl(CFG_SUBST));
-#ifdef C_DEBUG
-	{
+#ifdef NEED_DEBUG
+	parse_log_levels();
+	if (facilities_levels['C'] > 0) {
 		subst_t *s;
 		dialine_t *l;
 		for(s=psubsts;s;s=s->next) {
@@ -850,8 +841,8 @@ int main(int argc, char *argv[], char *envp[])
 			for(l=s->hiddens;l;l=l->next)
 				printf(" * %s,%s,%d\n",l->phone,l->timegaps,l->num);
 		}
+		printf("...press any key...\n");getchar();
 	}
-	printf("...press any key...\n");getchar();
 #endif	
 
 	if(!qipc_init()) write_log("can't create ipc key!");

@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.12 2001/02/13 21:49:20 aaz Exp $
+ * $Id: janus.c,v 1.13 2001/03/10 19:50:18 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -18,8 +18,6 @@
 #include "qipc.h"
 #include "janus.h"
 #include "byteop.h"
-
-/* #define J_DEBUG */
 
 long   brain_dead;       /* Time at which to give up on other computer     */
 slist_t *reqs=NULL;
@@ -173,12 +171,10 @@ int janus()
 		/* Catch up on our reading; receive and handle all outstanding packets   */
 		/*-----------------------------------------------------------------------*/
 		while ((pkttype = rcvpkt())) {
-#ifdef J_DEBUG			
-			write_log("rcvpkt %d (%c) len=%d at txs=%d rxs=%d",
+			DEBUG(('J',1,"rcvpkt %d (%c) len=%d at txs=%d rxs=%d",
 				pkttype, C0(pkttype),
 				rxblklen,
-				txstate, rxstate);
-#endif			
+				txstate, rxstate));
 			switch (pkttype) {
 
 				/*-------------------------------------------------------------------*/
@@ -463,9 +459,7 @@ void sendpkt(byte *buf, int len, int type)
 		return;
 	}
 
-#ifdef J_DEBUG	
-	write_log("sendpkt %d bytes, type:%c", len ,type);
-#endif
+	DEBUG(('J',1,"sendpkt %d bytes, type:%c", len ,type));
 
 	BUFCLEAR();
 	

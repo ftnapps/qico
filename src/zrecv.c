@@ -2,7 +2,7 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.7 2000/11/26 13:17:35 lev Exp $
+ * $Id: zrecv.c,v 1.8 2001/03/10 19:50:19 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -23,9 +23,7 @@ int procheader(char *name, char *path)
 {
 	char *p;
 	int a,b,c,d,e,f;
-#ifdef Z_DEBUG
-	write_log("prochdr");
-#endif	
+	DEBUG(('Z',1,"prochdr"));
 	sline("ZRecv %s", name);
 	p=name+1+strlen(name);
 	if(*p) sscanf(p, "%d %o %d %d %d %d", &a, &b, &c, &d, &e, &f);
@@ -53,9 +51,7 @@ void ackbibi()
 {
 	int n;
 
-#ifdef Z_DEBUG	
-	write_log("ackbibi");
-#endif
+	DEBUG(('Z',1,"ackbibi"));
 	stohdr(0L);
 	for (n=3; --n>=0; ) {
 		PURGE();
@@ -81,9 +77,7 @@ int tryz()
 	int c, n, zfins=0;
 	int cmdzack1flg;
 
-#ifdef Z_DEBUG	
-	write_log("tryz");
-#endif
+	DEBUG(('Z',1,"tryz"));
 	for (n=15; --n>=0; ) {
 		/* Set buffer length (0) and capability flags */
 		stohdr(0L);
@@ -187,9 +181,7 @@ int n;
 {
 	char *p,tmp[255];
         struct stat statf;
-#ifdef Z_DEBUG	
-	write_log("putsec");
-#endif
+	DEBUG(('Z',1,"putsec"));
 	sprintf(tmp, "%s/tmp/%s", ccs, recvf.fname);
 	if ( !will_skip && stat(tmp, &statf) && errno == ENOENT) {
 		fflush (rxfd);
@@ -213,9 +205,7 @@ int n;
 int rzfile(char *path)
 {
 	int c, n;
-#ifdef Z_DEBUG	
-	write_log("rzfile");
-#endif
+	DEBUG(('Z',1,"rzfile"));
 
 	n = 20; rxpos = 0l;
 
@@ -334,9 +324,7 @@ int rzfiles(char *path)
 {
 	int c;
 
-#ifdef Z_DEBUG	
-	write_log("rzfiles");
-#endif
+	DEBUG(('Z',1,"rzfiles"));
 	for (;;) {
 		c = rzfile(path);
 		switch (c) {

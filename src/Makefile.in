@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.11 2001/02/18 11:37:41 aaz Exp $
+# $Id: Makefile.in,v 1.12 2001/03/10 19:50:16 lev Exp $
 #
 
 prefix  = @prefix@
@@ -19,15 +19,6 @@ LIBOBJS= @LIBOBJS@
 
 NEWZMODEM = @NEWZMODEM@
 
-#DEFS   += -DEMSI_LOG # log emsi in /tmp/emsi.log
-#DEFS   += -DH_DEBUG # Hydra
-#DEFS   += -DZ_DEBUG # ZModem
-#DEFS   += -DZ_DEBUG2 # VERY noisy debug for ZModem, only for new ZModem
-#DEFS   += -DJ_DEBUG # Janus
-#DEFS   += -DE_DEBUG # EMSI
-#DEFS   += -DS_DEBUG # Session flow
-#DEFS   += -DQ_DEBUG # Queue management
-#DEFS   += -DC_DEBUG # Config & Substs
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..

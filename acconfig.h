@@ -34,4 +34,5 @@
 
 #undef HAVE_SYSLOG_NAMES
 
+#undef NEED_DEBUG
 

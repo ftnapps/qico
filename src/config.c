@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.5 2001/02/16 10:43:40 aaz Exp $
+ * $Id: config.c,v 1.6 2001/03/10 19:50:17 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -273,7 +273,7 @@ int parseconfig(char *cfgname)
 	return rc;
 }
 
-#ifdef C_DEBUG
+#ifdef NEED_DEBUG
 void dumpconfig()
 {
 	cfgitem_t *c;

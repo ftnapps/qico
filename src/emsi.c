@@ -2,19 +2,11 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.22 2001/03/08 12:19:54 lev Exp $
+ * $Id: emsi.c,v 1.23 2001/03/10 19:50:17 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
 #include "qipc.h"
-
-#ifdef E_DEBUG
-#define sline write_log
-#undef PUTSTR
-#undef PUTCHAR
-#define PUTSTR(x) {tty_put(x,strlen(x));write_log("putstr %d %x", strlen(x), strlen(x));}
-#define PUTCHAR(x) {tty_putc(x);write_log("putchar %x '%c'", x, (x>=32)?x:'.');}
-#endif
 
 #define EMSI_BUF 65536
 	
@@ -194,9 +186,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	emsi_dcds(dat->mailer);
 
 	dat->options|=emsi_parsecod(lcod, ccod);
-#ifdef E_DEBUG	
-	write_log("emsi codes %s/%s",lcod,ccod); 
-#endif
+	DEBUG(('E',1,"emsi codes %s/%s",lcod,ccod));
 
 	sfree(dat->wtime);
 	while((p=emsi_tok(&t,"{}"))) {
@@ -253,9 +243,10 @@ int emsi_send(int mode, char *dat)
 	memset(str, 0, MAX_STRING);
 	t1=t_set(60);
 	while(1) {
-		sline("Sending EMSI_DAT");
-		PUTSTR(dat); PUTCHAR('\r');
 		tries++;
+		sline("Sending EMSI_DAT");
+		DEBUG(('E',1,"Sending EMSI_DAT (%d)", tries));
+		PUTSTR(dat); PUTCHAR('\r');
 		if(tries>10) return TIMEOUT;
 		t2=t_set(20);got=0;p=str;
 		while(1) {
@@ -266,14 +257,16 @@ int emsi_send(int mode, char *dat)
 			if(!got && ch=='*') got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
 				*p=0;p=str;got=0;
-#ifdef E_DEBUG	
-				write_log("got str '%s' %d", str, strlen(str));
-#endif
+                DEBUG(('E',2,"Got str '%s' %d", str, strlen(str)));
 				if(!strncmp(str, emsiack, 14)) {
-					sline("Got EMSI_ACK");return OK;
+					sline("Got EMSI_ACK");
+					DEBUG(('E',1,"Got EMSI_ACK"));
+					return OK;
 				}
 				if(!strncmp(str, emsireq, 14)) {
-					sline("Skipping EMSI_REQ");continue;
+					sline("Skipping EMSI_REQ");
+					DEBUG(('E',1,"Skipping EMSI_REQ"));
+					continue;
 				}
 				if(!strncmp(str, emsiack, 7)) break;
 			}
@@ -300,10 +293,12 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 		if(tries>10) return TIMEOUT;
 		if(!mode) {
 			sline("Sending EMSI_REQ (%d)...", tries);
+			DEBUG(('E',1,"Sending EMSI_REQ (%d)...", tries));
 			PUTSTR(emsireq);PUTCHAR('\r');
 			t1=t_set(20);
 		} else if(tries>1) {
 			sline("Sending EMSI_NAK...");
+			DEBUG(('E',1,"Sending EMSI_NAK (%d)...", tries));
 			PUTSTR(emsinak);PUTCHAR('\r');
 			t1=t_set(20);
 		}
@@ -314,28 +309,24 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 			if(ch<0) break;
 			if(!got && ch=='*') got=1;
 			if(got && (ch=='\r' || ch=='\n' || (emsidatgot==emsidatlen))) {
-#ifdef E_DEBUG
-				write_log("Got %d bytes of %d of EMSI_DAT",emsidatgot,emsidatlen);
-#endif
+				DEBUG(('E',2,"Got %d bytes of %d of EMSI_DAT",emsidatgot,emsidatlen));
 				*p=0;p=str;got=0;
 				emsidatgot=-1; emsidatlen=0;
 				emsidathdr=NULL;
-#ifdef E_DEBUG	
-				if(strstr(str, emsidat))
-					write_log("emsidat at offs %d", strstr(str, emsidat)-str);
-				write_log("got str '%s' %d", str, strlen(str));
+
+#ifdef NEED_DEBUG
+				if(strstr(str, emsidat)) DEBUG(('E',1,"EMSI_DAT at offset %d", strstr(str, emsidat)-str));
 #endif
+				DEBUG(('E',1,"got str '%s' %d", str, strlen(str)));
+
 				if(!strncmp(str, emsidat, 10)) {
-#ifdef E_DEBUG	
-					write_log("got emsidat!");
-#endif
 					sline("Received EMSI_DAT");
+					DEBUG(('E',1,"Received EMSI_DAT"));
 					ch=emsi_parsedat(str, rememsi);
-#ifdef E_DEBUG	
-					write_log("parse %d", ch);
-#endif
+					DEBUG(('E',1,"Parser result: %d", ch));
 					if(ch) {
 						sline("Sending EMSI_ACK...");
+						DEBUG(('E',1,"Sending EMSI_ACK"));
 						PUTSTR(emsiack);PUTCHAR('\r');
 						PUTSTR(emsiack);PUTCHAR('\r');
 						return OK;
@@ -353,13 +344,13 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 				*p = 0;
 				sscanf(emsidathdr+10,"%04X",&emsidatlen);
 				emsidatgot = 0;
-#ifdef E_DEBUG
-				write_log("Got start of EMSI_DAT, length is %d (%d with CRC)",emsidatlen,emsidatlen+4);
-#endif
 				emsidatlen += 4; /* CRC on the ned of EMSI_DAT is 4 bytes long */
+				DEBUG(('E',1,"Got start of EMSI_DAT, length is %d",emsidatlen));
 			}
 			if(t_exp(t2)) {
-				sline("Timeout receiving EMSI_DAT");return TIMEOUT;
+				sline("Timeout receiving EMSI_DAT");
+				DEBUG(('E',1,"Timeout receiving EMSI_DAT"));
+				return TIMEOUT;
 			}
 			if(t_exp(t1)) break;
 		}
@@ -384,19 +375,16 @@ int emsi_init(int mode)
 		t2=t_set(5);
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
-#ifdef E_DEBUG	
-			write_log("getchar '%c' %d (%d, %d)", C0(ch), ch, t_rest(t1), t_rest(t2));
-#endif
+			DEBUG(('E',2,"getchar '%c' %d (%d, %d)", C0(ch), ch, t_rest(t1), t_rest(t2)));
+
 			if(NOTTO(ch)) return ch;
 	 		if(!t_rest(t1)) return TIMEOUT;
 			if(!got) got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
 				*p=0;p=str;got=0;
 				if(strstr(str, emsireq)) {
-#ifdef E_DEBUG	
-					write_log("got emsireq!");
-#endif
-					sline("Received EMSI_REQ, sending EMSI_INQ...");
+            		sline("Received EMSI_REQ, sending EMSI_INQ...");
+					DEBUG(('E',1,"Got EMSI_REQ"));
 					PUTSTR(emsiinq);PUTCHAR('\r');
 					return OK;
 				} else {
@@ -425,8 +413,10 @@ int emsi_init(int mode)
 	}
 	t1=t_set(HS_TIMEOUT);
 	sline("Sending EMSI_REQ...");
+	DEBUG(('Z',1,"Sending EMSI_REQ"));
 	PUTSTR(emsireq);PUTCHAR('\r');
 	sline("Waiting for EMSI_INQ...");
+	DEBUG(('Z',1,"Waiting for EMSI_INQ"));
 	ch=tty_expect(emsiinq, HS_TIMEOUT);
 	return ch;
 }

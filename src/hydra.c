@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.12 2001/02/17 15:52:14 aaz Exp $
+ * $Id: hydra.c,v 1.13 2001/03/10 19:50:17 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -22,8 +22,7 @@
 #define SLONG 4 //sizeof(long)
 #define SWORD 2 //sizeof(long)
 
-#ifdef H_DEBUG
-#define sline write_log
+#ifdef NEED_DEBUG
 
 char *hstates[]={
 "HTX_DONE",
@@ -303,9 +302,7 @@ static void txpkt (register word len, int type)
 	byte    format;
 	static char hexdigit[] = "0123456789abcdef";
 
-#ifdef H_DEBUG	
-	write_log("txpkt %s (%c) len=%d", hpkts[type-'A'], type, len);
-#endif	
+	DEBUG(('H',1,"txpkt %s (%c) len=%d", hpkts[type-'A'], type, len));
 	txbufin[len++] = type;
 
 	switch (type) {
@@ -570,11 +567,7 @@ static int rxpkt (void)
 				rxpktlen--;                     /* remove type  */
 
 				if (n) {
-#ifdef H_DEBUG	
-					write_log("rxpkt %s (%c) len=%d",
-						hpkts[rxbuf[rxpktlen]-'A'],
-						rxbuf[rxpktlen], rxpktlen);
-#endif	
+					DEBUG(('H',1,"rxpkt %s (%c) len=%d", hpkts[rxbuf[rxpktlen]-'A'], rxbuf[rxpktlen], rxpktlen));
 					return ((int) rxbuf[rxpktlen]);
 				}/*goodpkt*/
 
@@ -835,6 +828,7 @@ int hydra_file(char *txpathname, char *txalias)
 				STORE32(txbufin,txpos);
 				if ((i = fread(txbufin + 4,1,txblklen,txfd)) < 0) {
 					sline("hydra: file read error");
+					DEBUG(('H',1,"hydra: file read error"));
 					txclose(&txfd, FOP_ERROR);
 					txpos = H_SUSPEND;                            /* Skip */
 				}
@@ -895,12 +889,10 @@ int hydra_file(char *txpathname, char *txalias)
 		if((pkttype=rxpkt())!=H_NOPKT && txstate) {
 /*  		while (txstate && ) { */ 
 			
-#ifdef H_DEBUG
-			write_log("txstate %s (%d) pkttype %s (%d) '%c'",
+			DEBUG(('H',1,"txstate %s (%d) pkttype %s (%d) '%c'",
 				hstates[txstate], txstate,
 				(pkttype>='A')?hpkts[pkttype-'A']:"$", pkttype,
-				(pkttype>='A' && pkttype<='N')?pkttype:'*');
-#endif 
+				(pkttype>='A' && pkttype<='N')?pkttype:'*'));
 			/*----------------------------------------------------------*/
 			switch (pkttype) {
 				/*---------------------------------------------------*/
@@ -935,6 +927,7 @@ int hydra_file(char *txpathname, char *txalias)
 				}
 
 				sline("hydra: Timeout - Retry %u",txretries);
+				DEBUG(('H',1,"hydra: Timeout - Retry %u",txretries));
 				txtimer = h_timer_reset();
 
 				switch (txstate) {
@@ -957,6 +950,7 @@ int hydra_file(char *txpathname, char *txalias)
 				}
 
 				sline("HD: Timeout - Retry %u",devtxretries);
+				DEBUG(('H',1,"HD: Timeout - Retry %u",devtxretries));
 
 				devtxtimer = h_timer_reset();
 				devtxstate = HTD_DATA;
@@ -1013,9 +1007,7 @@ int hydra_file(char *txpathname, char *txalias)
 						p += 8;
 						if ((q = strchr(p,',')) != NULL) *q = ' ';
 						if ((q = strchr(p,',')) != NULL) *q = '/';
-#ifdef H_DEBUG
-						write_log("other end hydra is %s, rev %u",p,revstamp);
-#endif						
+						DEBUG(('H',1,"other end hydra is %s, rev %u",p,revstamp));
 						put_flags((char *) rxbuf,h_flags,rxoptions);
 						if (txwindow || rxwindow)
 							write_log("hydra link options: %s [%d/%d]",rxbuf,
@@ -1186,6 +1178,8 @@ int hydra_file(char *txpathname, char *txalias)
 							
 							sline("HR: bad pkt at %ld - Retry %u (newblklen=%u)",
 								  rxpos,rxretries,i);
+							DEBUG(('H',1,"HR: bad pkt at %ld - Retry %u (newblklen=%u)",
+								  rxpos,rxretries,i));
 							STORE32(txbufin, rxpos);
 							STORE32(txbufin+4, i);
 							STORE32(txbufin+8, rxsyncid);
@@ -1211,6 +1205,7 @@ int hydra_file(char *txpathname, char *txalias)
 						}
 						if (fwrite(rxbuf + 4,rxpktlen,1,rxfd) != 1) {
 							sline("HR: file write error");
+							DEBUG(('H',1,"HR: file write error"));
 							rxclose(&rxfd, FOP_ERROR);
 							rxpos = H_SUSPEND;
 							rxretries = 1;
@@ -1269,6 +1264,7 @@ int hydra_file(char *txpathname, char *txalias)
 						if (txpos < 0L) {
 							if (txfd) {
 								sline("hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
+								DEBUG(('H',1,"hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname));
 								txclose(&txfd, txpos==H_SUSPEND?FOP_SUSPEND:FOP_SKIP);
 								txstate = HTX_EOF;
 							}
@@ -1301,8 +1297,8 @@ int hydra_file(char *txpathname, char *txalias)
 							txgoodneeded = 8192;
 
 						hydra_status(true);
-						sline("hydra: Resending from offset %ld (newblklen=%u)",
-							txpos,txblklen);
+						sline("hydra: Resending from offset %ld (newblklen=%u)",txpos,txblklen);
+						DEBUG(('H',1,"hydra: Resending from offset %ld (newblklen=%u)",txpos,txblklen));
 						if (fseek(txfd,txpos,SEEK_SET) < 0L) {
 							txclose(&txfd, FOP_ERROR);
 							txpos = H_SUSPEND;
@@ -1367,8 +1363,8 @@ int hydra_file(char *txpathname, char *txalias)
 							else if (hydra_modifier == 1 && i > 1024)
 								i = 1024;
 
-							sline("HR: Bad EOF at %ld - Retry %u (newblklen=%u)",
-								  rxpos,rxretries,i);
+							sline("HR: Bad EOF at %ld - Retry %u (newblklen=%u)",rxpos,rxretries,i);
+							DEBUG(('H',1,"HR: Bad EOF at %ld - Retry %u (newblklen=%u)",rxpos,rxretries,i));
 							STORE32(txbufin, rxpos);
 							STORE32(txbufin+4, i);
 							STORE32(txbufin+8, rxsyncid);
