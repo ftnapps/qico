@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.34 2004/06/16 06:22:48 sisoft Exp $
+ * $Id: session.c,v 1.35 2004/06/16 20:24:34 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -450,7 +450,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		(rnode->opt&MO_CHAT)?"/CHT":"");
 	write_log("options: %s",s);
 	chatinit(proto);
-	IFPerl(rc=perl_on_session(mode,s);
+	IFPerl(rc=perl_on_session(s);
 	    if(rc!=S_OK){flkill(&fl,0);return rc;});
 	qemsisend(rnode);
 	qpreset(0);qpreset(1);

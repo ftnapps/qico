@@ -1,8 +1,8 @@
-/* $Id: TodayFixes,v 1.86 2004/06/16 06:22:48 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.87 2004/06/16 20:24:33 sisoft Exp $ */
 ---
-perl: fix compiling, implement end_session() hook.
+perl: fix on_session and implement on_recv/end_recv/on_send/end_send hooks.
 .
 previous:
 ---
-some perl-related changes.
+perl: fix compiling, implement end_session() hook.
 .

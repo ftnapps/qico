@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.18 2004/06/16 06:22:48 sisoft Exp $
+ * $Id: mailer.h,v 1.19 2004/06/16 20:24:34 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -133,8 +133,12 @@ extern void perl_on_reload(int mode);
 extern void perl_on_std(int sub);
 extern void perl_on_log(char *str);
 extern int perl_on_call(ftnaddr_t *fa,char *site,char *port);
-extern int perl_on_session(int mode,char *sysflags);
+extern int perl_on_session(char *sysflags);
 extern void perl_end_session(long sest,int result);
+extern int perl_on_recv();
+extern char *perl_end_recv(int state);
+extern char *perl_on_send(char *tosend);
+extern void perl_end_send(int state);
 #else
 #define IFPerl(x)
 #endif

@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.5 2004/06/16 06:22:48 sisoft Exp $
+ * $Id: perl.c,v 1.6 2004/06/16 20:24:34 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -62,10 +62,15 @@ static struct {char *name;int val;} perl_const[]={
 	{"S_HOLDR",S_HOLDR},
 	{"S_HOLDX",S_HOLDX},
 	{"S_HOLDA",S_HOLDA},
-	{"S_ADDTRY",S_ADDTRY}
+	{"S_ADDTRY",S_ADDTRY},
+	{"F_OK",FOP_OK},
+	{"F_CONT",FOP_CONT},
+	{"F_SKIP",FOP_SKIP},
+	{"F_ERR",FOP_ERROR},
+	{"F_SUSPEND",FOP_SUSPEND}
 };
 
-static PerlInterpreter *perl = NULL;
+static PerlInterpreter *perl=NULL;
 static unsigned perl_nc=0;
 unsigned short perl_flg=0;
 
@@ -328,13 +333,13 @@ int perl_on_call(ftnaddr_t *fa,char *site,char *port)
 			sub_err(PERL_ON_CALL);
 			rc=S_OK;
 		}
-		DEBUG(('P',5,"perl_on_call() return %d",rc));
+		DEBUG(('P',5,"perl_on_call() returns %d",rc));
 		return rc;
 	}
 	return S_OK;
 }
 
-int perl_on_session(int mode,char *sysflags)
+int perl_on_session(char *sysflags)
 {
 	if(PerlHave(PERL_ON_SESSION)) {
 		SV *sv,*svret;
@@ -345,7 +350,7 @@ int perl_on_session(int mode,char *sysflags)
 		AV *av;
 		HV *hv;
 		dSP;
-		DEBUG(('P',4,"perl_on_session(%d, %s)",mode,sysflags));
+		DEBUG(('P',4,"perl_on_session(%s)",sysflags));
 		pladd_int(sv,"start",rnode->starttime);
 		strtr(sysflags,'/',' ');
 		pladd_strz(sv,"flags",sysflags);
@@ -379,8 +384,9 @@ int perl_on_session(int mode,char *sysflags)
 		plhadd_int(hv,sv,"connect",rnode->realspeed);
 		hv=perl_get_hv("flags",TRUE);
 		hv_clear(hv);
-		plhadd_int(hv,sv,"in",!mode);
-		plhadd_int(hv,sv,"out",mode);
+		plhadd_int(hv,sv,"in",(rnode->options&O_INB)?1:0);
+		plhadd_int(hv,sv,"out",(rnode->options&O_INB)?0:1);
+		plhadd_int(hv,sv,"tcp",(rnode->options&O_TCP)?1:0);
 		plhadd_int(hv,sv,"secure",(rnode->options&O_PWD)?1:0);
 		plhadd_int(hv,sv,"listed",(rnode->options&O_LST)?1:0);
 		hv=perl_get_hv("queue",TRUE);
@@ -388,6 +394,8 @@ int perl_on_session(int mode,char *sysflags)
 		plhadd_int(hv,sv,"mail",totalm);
 		plhadd_int(hv,sv,"files",totalf);
 		plhadd_int(hv,sv,"num",totaln);
+		av=perl_get_av("queue",TRUE);
+		av_clear(av);
 		for(lst=fl;lst;lst=lst->next) {
 			sv=newSVpv(lst->tosend,0);
 			SvREADONLY_on(sv);
@@ -408,7 +416,7 @@ int perl_on_session(int mode,char *sysflags)
 			sub_err(PERL_ON_SESSION);
 			rc=S_OK;
 		}
-		DEBUG(('P',5,"perl_on_session() return %d",rc));
+		DEBUG(('P',5,"perl_on_session() returns %d",rc));
 		return rc;
 	}
 	return S_OK;
@@ -437,6 +445,134 @@ void perl_end_session(long sest,int result)
 		LEAVE;
 		if(SvTRUE(ERRSV))sub_err(PERL_END_SESSION);
 	}
+}
+
+int perl_on_recv()
+{
+    if(PerlHave(PERL_ON_RECV)) {
+		SV *sv,*svret;
+		HV *hv;
+		int rc=FOP_OK;
+		dSP;
+		DEBUG(('P',4,"perl_on_recv()"));
+		hv=perl_get_hv("recv",TRUE);
+		hv_clear(hv);
+		plhadd_str(hv,sv,"name",recvf.fname);
+		plhadd_int(hv,sv,"size",recvf.ftot);
+		plhadd_int(hv,sv,"time",recvf.mtime);
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_ON_RECV],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret))rc=SvIV(svret);
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_ON_RECV);
+			rc=FOP_OK;
+		}
+		DEBUG(('P',5,"perl_on_recv() returns %d",rc));
+		return rc;
+    }
+    return FOP_OK;
+}
+
+char *perl_end_recv(int state)
+{
+    if(PerlHave(PERL_END_RECV)) {
+		SV *sv,*svret;
+		char *rc=NULL;
+		STRLEN len;
+		dSP;
+		DEBUG(('P',4,"perl_end_recv(%d)",state));
+		pladd_int(sv,"state",state);
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_END_RECV],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret)) {
+			rc=SvPV(svret,len);
+			if(!len)rc=NULL;
+			if(len==1&&*rc=='!')rc="";
+		}
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_END_RECV);
+			rc=NULL;
+		}
+		DEBUG(('P',5,"perl_end_recv() returns '%s'",rc));
+		return rc;
+    }
+    return NULL;
+}
+
+char *perl_on_send(char *tosend)
+{
+    if(PerlHave(PERL_ON_SEND)) {
+		SV *sv,*svret;
+		HV *hv;
+		char *rc=NULL;
+		STRLEN len;
+		dSP;
+		DEBUG(('P',4,"perl_on_send(%s)",tosend));
+		hv=perl_get_hv("send",TRUE);
+		hv_clear(hv);
+		plhadd_str(hv,sv,"file",tosend);
+		plhadd_str(hv,sv,"name",sendf.fname);
+		plhadd_int(hv,sv,"size",sendf.ftot);
+		plhadd_int(hv,sv,"time",sendf.mtime);
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_ON_SEND],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret)) {
+			rc=SvPV(svret,len);
+			if(!len)rc=NULL;
+			if(len==1&&*rc=='!')rc="";
+		}
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_ON_SEND);
+			rc=NULL;
+		}
+		DEBUG(('P',5,"perl_on_send() returns '%s'",rc));
+		return rc;
+    }
+    return NULL;
+}
+
+void perl_end_send(int state)
+{
+    if(PerlHave(PERL_END_SEND)) {
+		SV *sv;
+		dSP;
+		DEBUG(('P',4,"perl_end_send(%d)",state));
+		pladd_int(sv,"state",state);
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_END_SEND],G_EVAL|G_VOID);
+		SPAGAIN;
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV))sub_err(PERL_END_SEND);
+    }
 }
 
 #endif
