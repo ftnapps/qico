@@ -64,7 +64,7 @@ if test "x${with_config}" = "xNONE"; then
 	fi
 fi
 AC_MSG_RESULT($with_config)
-if test "x`expr "$with_config" : '^/.*$'`" != "x`expr "$with_config" : '^.*$'`"; then
+if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
 	AC_MSG_ERROR([Parameter for --with-config must be absolute pathname])
 fi
 
@@ -82,7 +82,7 @@ AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed 
 AC_DEFINE_UNQUOTED(TCP_SPEED, $with_tcp_speed)
 AC_MSG_RESULT($with_tcp_speed)
 changequote(, )dnl
-if test "x`expr "$with_tcp_speed" : '^[0-9]*$'`" != "x`expr "$with_tcp_speed" : '^.*$'`"; then
+if test "x`expr "$with_tcp_speed" : '[0-9]*'`" != "x`expr "$with_tcp_speed" : '.*'`"; then
 changequote([, ])dnl
 	AC_MSG_ERROR([Parameter for --with-tcp-speed must be a number])
 fi
@@ -93,7 +93,7 @@ AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port lock
 AC_DEFINE_UNQUOTED(DEFAULT_SPEED, $with_default_speed)
 AC_MSG_RESULT($with_default_speed)
 changequote(, )dnl
-if test "x`expr "$with_default_speed" : '^[0-9]*$'`" != "x`expr "$with_default_speed" : '^.*$'`"; then
+if test "x`expr "$with_default_speed" : '[0-9]*'`" != "x`expr "$with_default_speed" : '.*'`"; then
 changequote([, ])dnl	
 	AC_MSG_ERROR([Parameter for --with-default-speed must be a number])
 fi
@@ -103,7 +103,7 @@ AC_MSG_CHECKING([for shell])
 AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ], , with_shell=/bin/sh)
 AC_DEFINE_UNQUOTED(SHELL, "$with_shell")
 AC_MSG_RESULT($with_shell)
-if test "x`expr "$with_shell" : '^/.*$'`" != "x`expr "$with_shell" : '^.*$'`"; then
+if test "x`expr "$with_shell" : '/.*'`" != "x`expr "$with_shell" : '.*'`"; then
 	AC_MSG_ERROR([Parameter for --with-shell must be absolute pathname])
 fi
 if test ! \( -x "$with_shell" -a \( -f "$with_shell" -o -L "$with_shell" \) \); then
