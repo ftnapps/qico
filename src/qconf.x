@@ -40,6 +40,7 @@ skipfiles,C_STR,char *,0,NULL
 showintro,C_YESNO,int,0,"yes"
 maxsession,C_INT,int,0,"0"
 waithrq,C_INT,int,0,"60"
+holdonsuccess,C_INT,int,0,"0"
 modemringing,C_STR,char *,0,"RINGING"
 maxrings,C_INT,int,0,"0"
 extrp,C_PATH,char *,0,NULL

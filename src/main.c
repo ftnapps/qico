@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.48 2001/04/03 15:38:01 lev Exp $
+ * $Id: main.c,v 1.49 2001/04/13 16:40:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -362,6 +362,12 @@ void daemon_mode()
 						case S_BUSY: break;
 						case S_OK:
 							bso_getstatus(&current->addr, &sts);
+							if (cfgi(CFG_HOLDONSUCCESS)) {
+								sts.flags |= S_ANYHOLD;
+								sts.htime=t_set(cci*60);
+								write_log("calls to %s delayed for %d min after successuful session",
+								ftnaddrtoa(&current->addr), cci);
+							}
 							sts.try=0;
 							bso_setstatus(&current->addr, &sts);
 							break;

@@ -352,8 +352,11 @@ showintro      	yes
 # session limit in minutes (0 means unlimited)
 maxsession     	120
 
-# delay freqs after HRQ,HXT or HAT received [minutes]
+# delay freqs, files or all traffic after HRQ,HXT or HAT received [minutes]
 waithrq         60
+
+# delay all traffic after successuful session [minutes]
+holdonsuccess   0
 
 # minimum connection speed (no check if 0)
 minspeed 	2400
@@ -485,4 +488,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.16 2001/03/20 20:45:01 lev Exp $
+# $Id: qico.conf.sample,v 1.17 2001/04/13 16:40:41 lev Exp $
