@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.5 2001/03/20 16:09:33 lev Exp $
+ * $Id: xmem.c,v 1.6 2001/03/20 19:49:57 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -33,7 +33,6 @@ void *xrealloc(void *ptr, size_t size)
 	return NULL;
 }
 
-
 char *xstrdup(char *str)
 {
 	char *s = strdup(str);
@@ -42,39 +41,6 @@ char *xstrdup(char *str)
 	abort();
 	return NULL;
 }
-
-#ifndef HAVE_STRLCPY
-char *xstrcpy(char *dst, char *src, size_t size)
-{
-	char *d;
-	int n;
-	if(size) {
-		d = dst;
-		n = size - 1;
-		while(n-- && *src) *d++ = *src++;
-		n += 2;
-		while(n--) *d++ = 0;
-	}
-	return dst;
-}
-#endif
-#ifndef HAVE_STRLCAT
-char *xstrcat(char *dst, char *src, size_t size)
-{
-	char *d;
-	int n;
-	if(size) {
-		d = dst;
-		n = size - 1;
-		while(n-- && *d) d++;
-		n++;
-		if(n) while(n-- && *src) *d++ = *src++;
-		n++;
-		while(n--) *d++ = 0;
-	}
-	return dst;
-}
-#endif
 
 char *restrcpy(char **dst, char *src)
 {
