@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.26 2001/03/20 16:54:40 lev Exp $
+ * $Id: ftn.c,v 1.27 2001/03/20 19:53:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -237,7 +237,7 @@ int lockpid(char *pidfn)
 	}
 
 #ifndef LOCKSTYLE_OPEN
-	strcpy(tmpname, pidfn);
+	xstrcpy(tmpname, pidfn, MAX_PATH);
 	p=strrchr(tmpname, '/');if(!p) p=tmpname;
 	snprintf(tmpname+(p-tmpname), MAX_PATH-(p-tmpname+1), "/QTEMP.%ld", (long)getpid());
 	if ((f=fopen(tmpname,"w")) == NULL) return 0;
@@ -456,12 +456,12 @@ char *fnc(char *s)
 	}
 	s8[i]='\0';
 
-	if (strstr(s,".tar.gz")) strcat (s8, ".tgz");
-	else if (strstr(s,".tar.bz2")) strcat (s8, ".tb2");
+	if (strstr(s,".tar.gz")) xstrcat (s8, ".tgz", 14);
+	else if (strstr(s,".tar.bz2")) xstrcat (s8, ".tb2", 14);
 	else {
 		p=strrchr(s, '.');
 		if (p) {
-			strcat(s8,".");
+			xstrcat(s8, ".", 14);
 			q=p+4;
 			i=strlen(s8);
 			while (*p && q>p) {
@@ -516,7 +516,7 @@ int lunlink(char *s)
 	return rc;
 }
 			
-char *mapname(char *fn, char *map)
+char *mapname(char *fn, char *map, size_t size)
 {
 	char *l;
 	int t;
@@ -531,7 +531,7 @@ char *mapname(char *fn, char *map)
 		snprintf(fn, 14, "%08lx%s", crc32s(fn), strrchr(fn,'.'));
 	if(strchr(map, 'u')) strupr(fn);
 	if(strchr(map, 'l')) strlwr(fn);
-	if(strchr(map, 'f')) strcpy(fn, fnc(fn));
+	if(strchr(map, 'f')) xstrcpy(fn, fnc(fn), size);
 
 	switch(t) {
 	case IS_PKT:

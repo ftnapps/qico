@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.5 2001/03/20 16:54:40 lev Exp $
+ * $Id: call.c,v 1.6 2001/03/20 19:53:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -51,8 +51,8 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 
 	reset();
 	
-	strcpy(s,cfgs(CFG_DIALPREFIX));
-	strcat(s, phone);strcat(s, cfgs(CFG_DIALSUFFIX));
+	xstrcpy(s,cfgs(CFG_DIALPREFIX), MAX_STRING);
+	xstrcat(s, phone, MAX_STRING);xstrcat(s, cfgs(CFG_DIALSUFFIX), MAX_STRING);
 
 	tty_local();
 

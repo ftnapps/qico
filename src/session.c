@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.23 2001/03/20 16:54:42 lev Exp $
+ * $Id: session.c,v 1.24 2001/03/20 19:53:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -91,7 +91,7 @@ void floflist(flist_t **fl, char *flon)
 				if(map && strchr(map, 'L')) strlwr(l);
 				
 				fn=strrchr(p, '/');if(fn) fn++;else fn=p;
-				mapname(fn, map);
+				mapname(fn, map, fn-(char*)str);
 				
 				addflist(fl, fp, xstrdup(fn), str[0], off, f, 1);
 				
@@ -108,6 +108,7 @@ void floflist(flist_t **fl, char *flon)
 int boxflist(flist_t **fl, char *path)
 {
 	DIR *d;char *p;struct dirent *de;struct stat sb;
+	char mn[MAX_PATH];
 	int len;
 	
 	DEBUG(('S',2,"Add filebox '%s'",path));
@@ -120,9 +121,9 @@ int boxflist(flist_t **fl, char *path)
 			p=xmalloc(len);
 			snprintf(p,len,"%s/%s", path, de->d_name);
 			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
-				addflist(fl, p,
-						 xstrdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
-						 '^', 0, NULL, 1);
+				xstrcpy(mn,de->d_name,MAX_PATH);
+				mapname(mn,cfgs(CFG_MAPOUT),MAX_PATH);
+				addflist(fl, p, xstrdup(mn), '^', 0, NULL, 1);
 				totalf+=sb.st_size;totaln++;
 			} else xfree(p);
 		}
@@ -353,7 +354,7 @@ void log_rinfo(ninfo_t *e)
 
 	if((i=e->addrs)) { write_log("address: %s", ftnaddrtoa(&i->addr));i=i->next; }
 	for(;i;i=i->next) {
-		if(k) strcat(s, " ");strcat(s, ftnaddrtoa(&i->addr));
+		if(k) xstrcat(s, " ", MAX_STRING);xstrcat(s, ftnaddrtoa(&i->addr), MAX_STRING);
 		k++;if(k==2) { write_log("    aka: %s", s);k=0;s[0]=0; }
 	}
 	if(k) write_log("    aka: %s", s);

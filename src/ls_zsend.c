@@ -2,13 +2,13 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.15 2001/03/20 16:54:41 lev Exp $
+ * $Id: ls_zsend.c,v 1.16 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 /*
 
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
-   Global variables, common functions.
+   Sender logic.
 
 */
 #include "headers.h"
@@ -37,7 +37,7 @@ int ls_zsendsinit(char *attstr)
 
 	if (attstr)  {
 		if (strlen(attstr) > LSZ_MAXATTNLEN-1) attstr[LSZ_MAXATTNLEN-1] = '\x00';
-		strcpy(txbuf,attstr);
+		xstrcpy(txbuf,attstr,1024);
 	} else {
 		txbuf[0] = '\x00';
 	}
@@ -226,7 +226,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 	DEBUG(('Z',1,"ls_zsendfinfo: %s, %d, %d, %d, %d, %d",f->name,f->size,f->mtime,sernum,f->filesleft,f->bytesleft));
 
 	txbuf[0] = '\x00';
-	strcpy(txbuf,f->name);
+	xstrcpy(txbuf,f->name,1024);
 	p = txbuf + strlen(f->name);
 	*p = '\x00'; p++;
 	snprintf(p,1024-(p-(char*)txbuf+1),"%ld %lo %o %o %ld %ld",f->size,f->mtime,(int)0,(int)sernum,f->filesleft,f->bytesleft);

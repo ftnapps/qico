@@ -2,13 +2,13 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.13 2001/03/20 15:02:36 lev Exp $
+ * $Id: ls_zreceive.c,v 1.14 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 /*
 
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
-   Global variables, common functions.
+   Receiver logic.
 
 */
 #include "headers.h"
@@ -133,7 +133,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			if(!rc) { 		/* Everything is OK */
 				ls_storelong(ls_txHdr,1L);
 				ls_zsendhhdr(ZACK,4,ls_txHdr);
-				strncpy(ls_rxAttnStr,rxbuf,LSZ_MAXATTNLEN);
+				xstrcpy(ls_rxAttnStr,rxbuf,LSZ_MAXATTNLEN+1);
 				ls_rxAttnStr[LSZ_MAXATTNLEN] = '\x00';
 				if(ls_rxHdr[LSZ_F0]&LSZ_TXWNTESCCTL) ls_Protocol |= LSZ_OPTESCAPEALL;
 				if(ls_rxHdr[LSZ_F0]&LSZ_TXWNTESC8) ls_Protocol |= LSZ_OPTESC8;
@@ -145,7 +145,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			DEBUG(('Z',2,"ls_zrecvfinfo: ZFILE"));
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK, decode frame */
-				strncpy(f->name,rxbuf,MAX_PATH);
+				xstrcpy(f->name,rxbuf,MAX_PATH);
 				f->name[MAX_PATH-1] = '\x00';
 				if(sscanf(rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
 					DEBUG(('Z',1,"ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1));

@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.11 2001/03/20 15:02:36 lev Exp $
+ * $Id: ls_zglue.c,v 1.12 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 /*
 
@@ -26,7 +26,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 	txfd=txopen(tosend,sendas);
 	sline("ZSend %s",sendas);
 	if(txfd) {
-		strcpy(f.name,sendas);
+		xstrcpy(f.name,sendas,MAX_PATH);
 		f.size = sendf.ftot;
 		f.mtime = sendf.mtime;
 		f.filesleft = *filesleft;

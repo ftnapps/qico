@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.13 2001/03/20 16:54:41 lev Exp $
+ * $Id: log.c,v 1.14 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -79,7 +79,7 @@ void parse_log_levels()
 int log_init(char *ln, char *tn)
 {
 	FILE *log_f;
-	char *n;int fc;
+	char *n;int fc, len;
 	log_tty=tn?xstrdup(tn):NULL;
 	if(*ln!='$') {
 		log_f=fopen(ln, "at");
@@ -92,10 +92,11 @@ int log_init(char *ln, char *tn)
 		return 0;
 	}
 	if(tn) {
-		n=malloc(strlen(progname)+2+strlen(tn));
-		strcpy(n,progname);
-		strcat(n,".");
-		strcat(n,tn);
+		len=strlen(progname)+2+strlen(tn);
+		n=malloc(len);
+		xstrcpy(n,progname,len);
+		xstrcat(n,".",len);
+		xstrcat(n,tn,len);
 	} else n=progname;
 	if((fc=parsefacility(ln+1))<0) return 0;
 	log_type=2;
@@ -116,7 +117,7 @@ void vwrite_log(char *fmt, char *prefix, va_list args)
 	snprintf(str+18, MAX_STRING*16 - 18, " %s[%ld]: ", log_tty?log_tty:"", (long)getpid());
 	p=str+strlen(str);
 	if(prefix && *prefix) {
-		strcpy(p,prefix);
+		xstrcpy(p,prefix,p-(char*)str);
 		p=str+strlen(str);
 	}
 #ifdef HAVE_VSNPRINTF

@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.13 2001/02/17 13:29:10 lev Exp $
+ * $Id: qctl.c,v 1.14 2001/03/20 19:53:15 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -19,6 +19,7 @@
 #include "qcconst.h"
 #include "ver.h"
 #include "replace.h"
+#include "xstr.h"
 
 extern time_t gmtoff(time_t tt);
 
@@ -165,7 +166,7 @@ int getqueueinfo()
 int main(int argc, char *argv[])
 {
 	key_t qipc_key;
-	int action=-1, kfs=0;
+	int action=-1, kfs=0, len=0;
 	char c, *str="", flv='?', buf[MSG_BUFFER];
 	
  	setlocale(LC_ALL, "");
@@ -245,7 +246,7 @@ int main(int argc, char *argv[])
 		return getanswer();
 	case QR_INFO:
 		if(optind<argc) {
-			strcpy(buf+9, argv[optind]);
+			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
 			msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
 			return getnodeinfo();
 		} else {
@@ -255,28 +256,29 @@ int main(int argc, char *argv[])
 	case QR_KILL:
 	case QR_POLL:
 		while(optind<argc){
-  		    strcpy(buf+9, argv[optind]);
+			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
   		    buf[10+strlen(buf+9)]=flv;
 			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);
 		}
 		return getanswer();
 	case QR_STS:
-		strcpy(buf+9, argv[optind]);
-		strcpy(strlen(argv[optind])+buf+10, str);
-		msgsnd(qipc_msg, buf, strlen(argv[optind])+strlen(str)+11, 0);
+		xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
+		len=strlen(argv[optind])+10;
+		xstrcpy(buf+len, str, MSG_BUFFER-len);
+		msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);
 		return getanswer();
 	case QR_REQ:
 		for(str=buf+9;optind<argc;optind++) {
-			strcpy(str, argv[optind]);
+			xstrcpy(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
 			str+=strlen(str)+1;
 		}
-		strcpy(str, "");str+=2;
+		xstrcpy(str, "", 2);str+=2;
 		msgsnd(qipc_msg, buf, str-buf, 0);
 		return getanswer();
 	case QR_SEND:
 		str=buf+9;
 		if(optind<argc) {
-			strcpy(str, argv[optind++]);
+			xstrcpy(str, argv[optind++], MSG_BUFFER-9);
 			printf("add '%s'\n",str);
 			str+=strlen(str)+1;
 		}
@@ -284,12 +286,12 @@ int main(int argc, char *argv[])
 		for(;optind<argc;optind++) {
 			str[0]=kfs?'^':0;str[1]=0;
 			if(argv[optind][0]!='/') {
-				getcwd(str+kfs, MAX_PATH-1);strcat(str, "/");
+				getcwd(str+kfs, MAX_PATH-1);xstrcat(str, "/", MSG_BUFFER-(str-(char*)buf));
 			}
-			strcat(str, argv[optind]);
+			xstrcat(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
 			str+=strlen(str)+1;
 		}
-		strcpy(str, "");str+=2;
+		xstrcpy(str, "", 2);str+=2;
 		msgsnd(qipc_msg, buf, str-buf, 0);
 		return getanswer();
 	case QR_QUEUE:

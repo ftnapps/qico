@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.10 2001/03/20 16:54:42 lev Exp $
+ * $Id: zsend.c,v 1.11 2001/03/20 19:53:16 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -381,7 +381,7 @@ int zmodem_sendfile(char *tosend, char *sendas,
 	txfd=txopen(tosend, sendas);
 	sline("ZSend %s %p", sendas); 
 	if(txfd) {
-		strcpy(txbuf, sendas);
+		xstrcpy(txbuf, sendas, 1024);
 		q=strchr(txbuf, 0)+1;
 		snprintf(q, 1024-(q-tzbuf+1), "%d %lo 0 0 %ld %ld",
 				sendf.ftot, sendf.mtime,
