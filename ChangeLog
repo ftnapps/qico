@@ -1,3 +1,11 @@
+2004-01-20 13:42  sisoft
+
+	* Changes, src/binkp.c, src/session.c:
+
+	fix send files.
+	fix binkp detect NR mode with binkd <= 0.9.5.
+	fix binkp crash, if can't lock outbound on incoming call.
+	
 2004-01-19 23:21  sisoft
 
 	* Changes, src/binkp.c, src/clserv.c, src/clserv.h, src/daemon.c,

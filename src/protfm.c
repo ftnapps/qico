@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.6 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: protfm.c,v 1.7 2004/01/20 22:02:19 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -116,7 +116,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 		if(sb.st_size<rsize && sb.st_mtime==rtime) {
 			*f=fopen(p, "ab");
 			if(!*f) {
-				write_log("can't open file %s for writing!", p);
+				write_log("can't open file %s for writing: %s", p,strerror(errno));
 				write_log(wesusstr,recvf.fname,"");
 				skipiftic=FOP_SUSPEND;
 				return FOP_SUSPEND;
@@ -132,7 +132,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 
 	*f=fopen(p, "wb");
 	if(!*f) {
-		write_log("can't open file %s for writing!", p);
+		write_log("can't open file %s for writing: %s", p,strerror(errno));
 		write_log(wesusstr,recvf.fname,"");
 		skipiftic=FOP_SUSPEND;
 		return FOP_SUSPEND;
@@ -204,7 +204,7 @@ int rxclose(FILE **f, int what)
 			if(p2[0]) {
 				if(overwrite)lunlink(p2);
 				if(rename(p, p2)) {
-					write_log("can't rename %s to %s: %d",p,p2,strerror(errno));
+					write_log("can't rename %s to %s: %s",p,p2,strerror(errno));
 				} else {
 					utime(p2,&ut);chmod(p2,cfgi(CFG_DEFPERM));
 				}
@@ -237,7 +237,7 @@ FILE *txopen(char *tosend, char *sendas)
 	sendf.nf++;if(sendf.nf>sendf.allf) sendf.allf++;
 	f=fopen(tosend, "rb");
 	if(!f) {
-		write_log("can't open file %s for reading!", tosend);
+		write_log("can't open file %s for reading: %s", tosend,strerror(errno));
 		return NULL;
 	}
 	if(cfgi(CFG_ESTIMATEDTIME)) {

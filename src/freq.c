@@ -1,6 +1,6 @@
 /***************************************************************************
  * File request support
- * $Id: freq.c,v 1.3 2003/10/03 00:11:36 sisoft Exp $
+ * $Id: freq.c,v 1.4 2004/01/20 22:02:19 sisoft Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -19,7 +19,7 @@ int freq_ifextrp(slist_t *reqs)
 	if(rnode->options&O_PWD){priv='p';sprt+=2;}
 	snprintf(fn,MAX_PATH,"/tmp/qreq.%04lx",tpid);
 	if(!(f=fopen(fn,"wt"))) {
-		write_log("can't open '%s' for writing",fn);
+		write_log("can't open '%s' for writing: %s",fn,strerror(errno));
 		return 0;
 	}
 	while(reqs) {
@@ -32,7 +32,7 @@ int freq_ifextrp(slist_t *reqs)
 	if(!wz) {
 		falist_t *ra;
 		snprintf(sfn,MAX_PATH,"/tmp/qsrif.%04lx",tpid);
-		if(!(r=fopen(sfn,"wt"))){write_log("can't open '%s' for writing",sfn);return 0;}
+		if(!(r=fopen(sfn,"wt"))){write_log("can't open '%s' for writing: %s",sfn,strerror(errno));return 0;}
 		fprintf(r,"SessionType %s\n",bink?"OTHER":"EMSI");
 		fprintf(f,"Sysop %s\n",rnode->sysop);
 		for(ra=rnode->addrs;ra;ra=ra->next)fprintf(r,"AKA %s\n",ftnaddrtoa(&ra->addr));
@@ -83,7 +83,7 @@ int freq_ifextrp(slist_t *reqs)
 	snprintf(fn,MAX_PATH,"/tmp/qpkt.%04lx%02x",tpid,freq_pktcount);
 	g=openpktmsg(ma,&rnode->addrs->addr,cfgs(CFG_FREQFROM),rnode->sysop,cfgs(CFG_FREQSUBJ),NULL,fn,1);
 	if(!g) {
-		write_log("can't open '%s' for writing",fn);
+		write_log("can't open '%s' for writing: %s",fn,strerror(errno));
 		if(f)fclose(f);
 	}
 	if(f&&g) {

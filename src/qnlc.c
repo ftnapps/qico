@@ -1,6 +1,6 @@
 /**********************************************************
  * nodelist compiler
- * $Id: qnlc.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: qnlc.c,v 1.4 2004/01/20 22:02:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -52,7 +52,7 @@ int compile_nodelists()
 	lockpid(fn);
 	snprintf(fn,MAX_PATH,"%s%s",ccs,NL_IDX);
 	if(!(idx=fopen(fn,"wb"))) {
-		write_log("can't open nodelist index %s for writing!",fn);
+		write_log("can't open nodelist index %s for writing: %s",fn,strerror(errno));
 		snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
 		return 0;		
 	}
@@ -67,7 +67,7 @@ int compile_nodelists()
 		if(!strcmp(s+strlen(s)-4,".999")) {
 			s[strlen(s)-4]=0;
 			if(!(d=opendir(ccs))) {
-				write_log("can't open nodelist directory %s!",ccs);
+				write_log("can't open nodelist directory %s: %s",ccs,strerror(errno));
 				fclose(idx);
 				snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
 				return 0;
@@ -97,7 +97,7 @@ int compile_nodelists()
 		}
 		if(!*fn)continue;
 		if(!stat(fn,&sb))idxh.nltime[i]=sb.st_mtime;
-		if(!(f=fopen(fn,"rt")))write_log("can't open %s for reading!",fn);
+		if(!(f=fopen(fn,"rt")))write_log("can't open %s for reading: %s",fn,strerror(errno));
 		    else {
 			k=0;pos=0;line=0;
 			while(1) {
@@ -164,7 +164,7 @@ int compile_nodelists()
 		printf("delete %d duplicate records\n",deleted);
 		if(fwrite(ies,sizeof(*ies),total,idx)!=total) {
 			xfree(ies);
-			write_log("can't write to index!");
+			write_log("can't write to index: %s",strerror(errno));
 			fclose(idx);
 			snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
 			return 0;
@@ -173,7 +173,7 @@ int compile_nodelists()
 	}
 	printf("total %d lists,%d nodes\n",i,total);
 	fseek(idx,0,SEEK_SET);
-	if(fwrite(&idxh,sizeof(idxh),1,idx)!=1)write_log("can't write to index!");
+	if(fwrite(&idxh,sizeof(idxh),1,idx)!=1)write_log("can't write to index: %s",strerror(errno));
 	fclose(idx);
 	snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
 	return 1;

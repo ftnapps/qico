@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.10 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: ftn.c,v 1.11 2004/01/20 22:02:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -350,7 +350,7 @@ int touch(char *fn)
  	if(f) {
  		fclose(f);
  		return 1;
- 	}
+ 	} else write_log("can't touch '%s': %s",fn,strerror(errno));
  	return 0;
 }
 
@@ -358,7 +358,7 @@ int mkdirs(char *name)
 {
 	char *p,*q;int rc=0;
 	p=name+1;
-	while ((q=strchr(p,'/'))) {
+	while ((q=strchr(p,'/'))&&!rc) {
 		*q=0;rc=mkdir(name,cfgi(CFG_DIRPERM));*q='/';
 		p=q+1;
 	}

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.4 2004/01/18 21:13:42 sisoft Exp $
+ * $Id: config.c,v 1.5 2004/01/20 22:02:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -184,7 +184,7 @@ int parseconfig(char *cfgname)
 	cfgitem_t *ci;
 	f=fopen(cfgname, "rt");
 	if(!f) {
-		fprintf(stderr,"can't open config '%s'\n",cfgname);
+		fprintf(stderr,"can't open config '%s': %s\n",cfgname,strerror(errno));
 		return 0;
 	}
 	curcond=NULL;
