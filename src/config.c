@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.9 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: config.c,v 1.10 2004/02/22 21:33:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -107,6 +107,7 @@ char *cfgs(int i)
 	}
 	return ccs=cn->value.v_char;
 }
+
 slist_t *cfgsl(int i)
 {
 	cfgitem_t *ci,*cn=((void*)0);
@@ -230,7 +231,7 @@ int parseconfig(char *cfgname)
 			} else if(!strcasecmp(p,"if"))	{
 				if(curcond)write_log("line %d: warn: 'if' without 'endif' for previous 'if'!",line);
 				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
-				if(*k==':') {
+				if(*k==':'&&k[1]==' ') {
 					*k++=0;
 					if(*(k-2)==' ')*(k-2)=0;
 					while(*k==' ')k++;
@@ -303,12 +304,12 @@ void dumpconfig()
 				break;
 			    case C_ADRSTRL:
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					snprintf(buf+strlen(buf),MAX_STRING,"%s '%s', ",ftnaddrtoa(&fasl->addr), fasl->str);
+					snprintf(buf+strlen(buf),MAX_STRING,"%s '%s', ",fasl->addr.d?ftnaddrtoda(&fasl->addr):ftnaddrtoa(&fasl->addr),fasl->str);
 				xstrcat(buf,"%",MAX_STRING);
 				break;
 			    case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					snprintf(buf+strlen(buf),MAX_STRING,"%s, ",ftnaddrtoa(&al->addr));
+					snprintf(buf+strlen(buf),MAX_STRING,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
 				xstrcat(buf,"%",MAX_STRING);
 				break;
 			    case C_INT:     snprintf(buf+strlen(buf),MAX_STRING,"%d",c->value.v_int);break;
