@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.13 2000/10/17 16:58:07 lev Exp $
+ * $Id: main.c,v 1.14 2000/10/23 18:39:32 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -694,6 +694,7 @@ int force_call(ftnaddr_t *fa, int flags)
 		}
 	}
 
+	applysubst(rnode, psubsts);
 	if(!can_dial(rnode,(flags & 1) == 1)) {
 		fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
 		exit(0);
