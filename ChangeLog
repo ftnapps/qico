@@ -1,3 +1,20 @@
+2004-02-14 01:29  sisoft
+
+	* FAQ, README, src/Makefile.am, src/binkp.c, src/binkp.h,
+	src/byteop.h, src/clserv.c, src/clserv.h, src/crc.c, src/crc.h,
+	src/daemon.c, src/defs.h, src/emsi.c, src/ftn.c, src/ftn.h,
+	src/globals.c, src/globals.h, src/headers.h, src/hydra.c,
+	src/janus.c, src/ls_zglue.c, src/ls_zmodem.c, src/ls_zreceive.c,
+	src/ls_zsend.c, src/mailer.h, src/main.c, src/md5.c, src/opts.h,
+	src/qcc.c, src/qcconst.h, src/qctl.c, src/qipc.c, src/qipc.h,
+	src/session.c, src/tcp.c, src/tools.c, src/tools.h, src/tty.c,
+	src/tty.h, src/types.h, stuff/qhistory, stuff/qico.stat,
+	stuff/qlinks, stuff/qst_hist.lnk, stuff/qst_hist.ses,
+	stuff/stat.run:
+
+	fix updating stat scripts. ;)
+	another src's correcting.
+	
 2004-02-11 15:44  sisoft
 
 	* Changes, src/main.c, src/tty.c, stuff/Makefile.am, stuff/ftn,

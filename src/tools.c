@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.4 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: tools.c,v 1.5 2004/02/14 11:55:34 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -22,12 +22,12 @@ static char *hexdigits="0123456789abcdef";
 
 void strlwr(char *s)
 {
-	while(s&&*s)*s=tolower(*s++);
+	while(s&&*s){*s=tolower(*s);s++;}
 }
 
 void strupr(char *s)
 {
-	while(s&&*s)*s=toupper(*s++);
+	while(s&&*s){*s=toupper(*s);s++;}
 }
 
 void strtr(char *s,char a,char b)
@@ -52,12 +52,12 @@ unsigned char tokoi(unsigned char c)
 
 void stodos(unsigned char *s)
 {
-	while(s&&*s)*s=todos(*s++);
+	while(s&&*s){*s=todos(*s);s++;}
 }
 
 void stokoi(unsigned char *s)
 {
-	while(s&&*s)*s=tokoi(*s++);
+	while(s&&*s){*s=tokoi(*s);s++;}
 }
 
 void chop(char *s,int n)
@@ -106,11 +106,11 @@ size_t filesize(char *fname)
 int islocked(char *pidfn)
 {
 	FILE *f;
-	pid_t pid;
+	long pid;
 	if((f=fopen(pidfn,"rt"))) {
 		fscanf(f,"%ld",&pid);
 		fclose(f);
-		if(kill(pid,0)&&(errno==ESRCH))lunlink(pidfn);
+		if(kill((pid_t)pid,0)&&(errno==ESRCH))lunlink(pidfn);
 		else return((int)pid);
 	}
 	return 0;
