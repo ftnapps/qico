@@ -1,3 +1,9 @@
+2003-10-08 20:45  sisoft
+
+	* qico.conf.sample, src/tcp.c:
+
+	add http/https proxy support. yet not tested.
+	
 2003-10-08 14:07  sisoft
 
 	* qico.conf.sample, src/call.c, src/qconf.x, src/tcp.c:

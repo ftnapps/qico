@@ -192,6 +192,7 @@ if protected | outbound
 endif
 
 # if file <nodial>.<portname> exists, we won't dial on this device
+# if exists file <nodial>.tcpip - won't "call" via tcp/ip.	       (NEW!!!)
 nodial         	/etc/nodial
 
 # history file
@@ -333,13 +334,13 @@ immonflavors	CI
 pollflavor	N
 
 #
-# Create polls after failed session. Yes, by default.		       (NEW!!!)
-failpolls	yes
-
-#
 # Flavor for longbox's in UNIX-like style (z.n.f.p).		       (NEW!!!)
 # Default is H
 defboxflv	H
+
+#
+# Create polls after failed session. Yes, by default.		       (NEW!!!)
+failpolls	yes
 
 # maximum dial fails (the reason to set undialable flag)
 max_fails	30
@@ -401,7 +402,7 @@ zmh		Tcd
 # H - Hydra     (standard hydra with maximal block size of 2048 bytes)
 # 8 - Hydra-8k  (enhanced to use blocks up to 8192 bytes, emsi code - HY8)
 # 6 - Hydra-16k (16k blocks, emsi code - H16)
-# C - Chat enabled					               (NEW!!!)
+# C - Chat enabled (don't work with Janus and BinkP!)	               (NEW!!!)
 # NB: Hydra-8K and Hydra-16K could block and should be enabled at compilation
 #     time.
 protorder	HJDZ1C
@@ -677,5 +678,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.14 2003/10/08 16:45:11 sisoft Exp $
+# $Id: qico.conf.sample,v 1.15 2003/10/13 23:04:07 sisoft Exp $
 ###############################################################################
