@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.15 2001/03/24 21:42:15 lev Exp $
+ * $Id: ls_zmodem.h,v 1.16 2001/03/25 15:38:21 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -83,15 +83,15 @@
 #define LSZ_CRCW		(ZCRCW | 0x0100)
 
 
-#define LSZ_INIT_CRC16 0x0000
-#define LSZ_TEST_CRC16 0x0000
-#define LSZ_UPDATE_CRC16(b,crc) ((crc16tab[(((crc) >> 8) & 0xff)] ^ ((crc) << 8) ^ (b)) & 0xffff)
-#define LSZ_FINISH_CRC16(crc)	(LSZ_UPDATE_CRC16(0,LSZ_UPDATE_CRC16(0,crc)))
+#define LSZ_INIT_CRC16 CRC16USD_INIT
+#define LSZ_TEST_CRC16 CRC16USD_TEST
+#define LSZ_UPDATE_CRC16(b,crc) CRC16USD_UPDATE(b,crc)
+#define LSZ_FINISH_CRC16(crc)	CRC16USD_FINISH(crc)
 
-#define LSZ_INIT_CRC32			0xffffffffl
-#define LSZ_TEST_CRC32			0xdebb20e3l
-#define LSZ_UPDATE_CRC32(b,crc) ((crc32tab[((crc) ^ (b)) & 0xff] ^ (((crc) >> 8) & 0x00ffffffl)) & 0xffffffffl)
-#define LSZ_FINISH_CRC32(crc)	((~(crc)) & 0xffffffffl)
+#define LSZ_INIT_CRC32			CRC32_INIT
+#define LSZ_TEST_CRC32			CRC32_TEST
+#define LSZ_UPDATE_CRC32(b,crc) CRC32_UPDATE(b,crc)
+#define LSZ_FINISH_CRC32(crc)	CRC32_FINISH(crc)
 
 #define LSZ_INIT_CRC			((ls_Protocol & LSZ_OPTCRC32)?LSZ_INIT_CRC32:LSZ_INIT_CRC16)
 #define LSZ_TEST_CRC			((ls_Protocol & LSZ_OPTCRC32)?LSZ_TEST_CRC32:LSZ_TEST_CRC16)

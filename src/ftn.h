@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.22 2001/03/20 19:53:14 lev Exp $
+ * $Id: ftn.h,v 1.23 2001/03/25 15:38:21 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -307,21 +307,6 @@ extern int whattype(char *fn);
 extern int lunlink(char *s);
 extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
-
-/* crc.c */
-extern unsigned long crc32tab[];
-extern unsigned short crc16tab[256];
-extern unsigned short crc16cctab[256];
-extern unsigned long crc32s(char *str);
-extern unsigned long crc32(char *str, int l);
-extern unsigned short crc16s(char *str);
-extern unsigned short crc16(char *str, int l);
-extern unsigned short crc16scc(char *str);
-extern unsigned short crc16cc(char *str, int l);
-extern unsigned long crc32cc(char *str, int l);
-
-#define xcrc(crc,c) (crc16tab[(((crc >> 8) & 0xff) ^ (c)) & 0xff] ^ (crc << 8))
-#define xcrc32(crc,c) (crc32tab[( crc ^ (c)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL))
 
 /* gmtoff.c */
 extern time_t gmtoff(time_t tt);

@@ -2,9 +2,13 @@
  * File: crc.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: crc.c,v 1.2 2001/03/25 10:26:58 lev Exp $
+ * $Id: crc.c,v 1.3 2001/03/25 15:38:20 lev Exp $
  **********************************************************/
-unsigned long crc32tab[] =	/* CRC polynomial 0xedb88320 */
+#include <config.h>
+#include "types.h"
+#include "crc.h"
+
+UINT32 crc32_tab[256] =			/* CRC polynomial 0xedb88320 -- CCITT CRC32. */
 {
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
   0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
@@ -40,7 +44,7 @@ unsigned long crc32tab[] =	/* CRC polynomial 0xedb88320 */
   0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-unsigned short crc16tab[256] =
+UINT16 crc16usd_tab[256] =		/* CRC polynomial 0x1021 -- CCITT upside-down CRC16. EMSI, ZModem, Janus. */
 {
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 
   0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
@@ -77,7 +81,7 @@ unsigned short crc16tab[256] =
 };
 
 
-unsigned short crc16cctab[256] =     /* CRC polynomial 0x8408 */
+UINT16 crc16prp_tab[256] =		/* CRC polynomial 0x8408 -- CCITT proper CRC16. Hydra. */
 {
   0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
   0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
@@ -113,72 +117,44 @@ unsigned short crc16cctab[256] =     /* CRC polynomial 0x8408 */
   0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 };
 
-unsigned long crc32s(char *str)
+UINT32 crc32s(char *str)
 {
-  unsigned long crc;
-
-  for (crc = 0L; *str; str++) 
-    crc = (crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff)) & 0xffffffffl;
-
-  return crc;
+	UINT32 crc;
+	for(crc = CRC32_INIT; *str; str++) crc = CRC32_UPDATE(*str,crc);
+	return crc;
 }
 
-unsigned long crc32(char *str, int l)
+UINT32 crc32(char *data, int size)
 {
-  unsigned long crc;
-
-  for (crc = 0L; l--; str++) 
-    crc = (crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff)) & 0xffffffffl;
-
-  return crc;
+	UINT32 crc;
+	for(crc = CRC32_INIT; size--; data++) crc = CRC32_UPDATE(*data,crc);
+	return crc;
 }
 
-unsigned short crc16s(char *str)
+UINT16 crc16usds(char *str)
 {
-  unsigned short crc;
-
-  for (crc = 0;*str; str++) 
-    crc = crc16tab[(((crc >> 8) & 0xff) ^ (*str)) & 0xff] ^ (crc << 8);
-
-  return crc;
+	UINT16 crc;
+	for(crc = CRC16USD_INIT; *str; str++) crc = CRC16USD_UPDATE(*str,crc);
+	return crc;
 }
 
-unsigned short crc16(char *str, int l)
+UINT16 crc16usd(char *data, int size)
 {
-  unsigned short crc;
-
-  for (crc = 0; l--; str++) 
-    crc = crc16tab[(((crc >> 8) & 0xff) ^ (*str)) & 0xff] ^ (crc << 8);
-
-  return crc;
+	UINT16 crc;
+	for(crc = CRC16USD_INIT; size--; data++) crc = CRC16USD_UPDATE(*data,crc);
+	return crc;
 }
 
-unsigned short crc16scc(char *str)
+UINT16 crc16prps(char *str)
 {
-  unsigned short crc;
-
-  for (crc = 0;*str; str++) 
-	  crc = crc16cctab[(crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ff);
-
-  return crc;
+	UINT16 crc;
+	for(crc = CRC16PRP_INIT; *str; str++) crc = CRC16PRP_UPDATE(*str,crc);
+	return crc;
 }
 
-unsigned short crc16cc(char *str, int l)
+UINT16 crc16prp(char *data, int size)
 {
-  unsigned short crc;
-
-  for (crc = 0xffff; l--; str++)
-	  crc = crc16cctab[(crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ff);
-
-  return crc;
-}
-
-unsigned long crc32cc(char *str, int l)
-{
-  unsigned long crc;
-
-  for (crc = 0xffffffffL; l--; str++)
-    crc = (crc32tab[( crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL)) & 0xffffffffl;
-
-  return crc;
+	UINT16 crc;
+	for(crc = CRC16PRP_INIT; size--; data++) crc = CRC16PRP_UPDATE(*data,crc);
+	return crc;
 }

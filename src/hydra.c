@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.17 2001/03/25 10:26:58 lev Exp $
+ * $Id: hydra.c,v 1.18 2001/03/25 15:38:21 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -66,8 +66,8 @@ unsigned long chatfill;
 int hydra_modifier;
 
 
-#define crc16block crc16cc
-#define crc32block crc32cc
+#define crc16block crc16prp
+#define crc32block crc32
 
 /* HYDRA Some stuff to aid readability of the source and prevent typos ----- */
 #define h_crc16test(crc)   (((crc) == 0xf0b8     ) ? 1 : 0)
