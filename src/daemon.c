@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.29 2004/06/02 13:20:08 sisoft Exp $
+ * $Id: daemon.c,v 1.30 2004/06/03 02:01:49 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -743,7 +743,7 @@ nlkil:				is_ip=0;bink=0;
 					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
 				    }
 				}
-				for(uis=cl,uit=NULL;uis;uit=uis,uis=uis->next)
+				for(uis=cl,uit=NULL;uis;uit=uis,uis=uis?uis->next:NULL)
 					if(FD_ISSET(uis->sock,&rfds)) {
 						rc=xrecv(uis->sock,buf,MSG_BUFFER-1,1);
 						if(!rc||(rc<0&&errno==ECONNRESET)) {

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.20 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: protfm.c,v 1.21 2004/06/03 02:01:49 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -308,8 +308,10 @@ void chatinit(int prot)
 		case P_JANUS:
 			chatprot=P_JANUS;
 			break;
+#ifdef WITH_BINKP
 		case 0:
 			if(bink)chatprot=P_BINKP;
+#endif
 	}
 }
 
