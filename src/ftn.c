@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.28 2001/04/02 19:40:54 lev Exp $
+ * $Id: ftn.c,v 1.29 2001/04/14 12:44:54 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -358,25 +358,48 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 	
 	f=fopen(fn,"w");
 	if(!f) return NULL;
-	memset(&ph,0, sizeof(ph));memset(&mh,0, sizeof(mh));
-	ph.phONode=fa->f;ph.phDNode=ta->f;ph.phONet=fa->n;ph.phDNet=ta->n;
-	ph.phYear=t->tm_year+1900;ph.phMonth=t->tm_mon;ph.phDay=t->tm_mday;
-	ph.phHour=t->tm_hour;ph.phMinute=t->tm_min;ph.phSecond=t->tm_sec;
-	ph.phBaud=0;ph.phPCode=0xFE;ph.phType=2;
-	ph.phAuxNet=0;ph.phCWValidate=0x100;ph.phPCodeHi=1;ph.phPRevMinor=2;
-	ph.phCaps=1;		
-	memset(ph.phPass,' ',8);if(pwd) memcpy(ph.phPass, pwd, strlen(pwd));
-	ph.phQOZone=fa->z;ph.phQDZone=ta->z;
-	ph.phOZone=fa->z;ph.phDZone=ta->z;
-	ph.phOPoint=fa->p;ph.phDPoint=ta->p;
+	memset(&ph,0, sizeof(ph));
+	memset(&mh,0, sizeof(mh));
+	ph.phONode=H2I16(fa->f);
+	ph.phDNode=H2I16(ta->f);
+	ph.phONet=H2I16(fa->n);
+	ph.phDNet=H2I16(ta->n);
+	ph.phYear=H2I16(t->tm_year+1900);
+	ph.phMonth=H2I16(t->tm_mon);
+	ph.phDay=H2I16(t->tm_mday);
+	ph.phHour=H2I16(t->tm_hour);
+	ph.phMinute=H2I16(t->tm_min);
+	ph.phSecond=H2I16(t->tm_sec);
+	ph.phBaud=H2I16(0);
+	ph.phPCode=0xFE;
+	ph.phType=H2I16(2);
+	ph.phAuxNet=H2I16(0);
+	ph.phCWValidate=H2I16(0x100);
+	ph.phPCodeHi=1;
+	ph.phPRevMinor=2;
+	ph.phCaps=H2I16(1);
+
+	memset(ph.phPass,' ',8);
+	if(pwd) memcpy(ph.phPass, pwd, strlen(pwd));
+
+	ph.phQOZone=H2I16(fa->z);
+	ph.phQDZone=H2I16(ta->z);
+	ph.phOZone=H2I16(fa->z);
+	ph.phDZone=H2I16(ta->z);
+	ph.phOPoint=H2I16(fa->p);
+	ph.phDPoint=H2I16(ta->p);
 	fwrite(&ph, sizeof(ph), 1, f);
-	mh.pmONode=fa->f;mh.pmDNode=ta->f;mh.pmONet=fa->n;mh.pmDNet=ta->n;
-	mh.pmAttr=1;mh.pmType=2;
+
+	mh.pmONode=H2I16(fa->f);
+	mh.pmDNode=H2I16(ta->f);
+	mh.pmONet=H2I16(fa->n);
+	mh.pmDNet=H2I16(ta->n);
+	mh.pmAttr=H2I16(1);
+	mh.pmType=H2I16(2);
 	fwrite(&mh, sizeof(mh), 1, f);
-	fprintf(f, "%02d %3s %02d  %02d:%02d:%02d", t->tm_mday,
-			engms[t->tm_mon], t->tm_year%100, t->tm_hour, t->tm_min,
-			t->tm_sec);fputc(0,f);
-	fwrite(from, strlen(from)+1, 1, f);fwrite(to, strlen(to)+1, 1, f);
+	fprintf(f, "%02d %3s %02d  %02d:%02d:%02d%c", t->tm_mday, engms[t->tm_mon], t->tm_year%100, t->tm_hour, t->tm_min, t->tm_sec, 0);
+	fwrite(from, strlen(from)+1, 1, f);
+	fwrite(to, strlen(to)+1, 1, f);
 	fwrite(subj, strlen(subj)+1, 1, f);
 	if(fa->p) fprintf(f, "\001FMPT %d\r", fa->p);
 	if(ta->p) fprintf(f, "\001TOPT %d\r", ta->p);
@@ -388,8 +411,7 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 
 void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
 {
-	fprintf(f,"--- %s\r * Origin: %s (%s)\r", tear, orig, ftnaddrtoa(fa));
-	fputc(0,f);fputc(0,f);fputc(0,f);fclose(f);
+	fprintf(f,"--- %s\r * Origin: %s (%s)\r,%c%c%c", tear, orig, ftnaddrtoa(fa), 0, 0, 0);
 }
 
 #ifndef HAVE_LIBUTIL
