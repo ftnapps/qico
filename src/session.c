@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.34 2002/03/26 17:04:55 aaz Exp $
+ * $Id: session.c,v 1.35 2002/04/10 12:25:56 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -462,10 +462,12 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 
 		pr[1]=0;pr[0]=0;
 		for(t=cfgs(CFG_PROTORDER);*t;t++) {
+#ifdef HYDRA8K16K
 			if(*t=='8' && rnode->options&P_HYDRA8)
 				{pr[0]='8';emsi_lo|=P_HYDRA8;break;}
 			if(*t=='6' && rnode->options&P_HYDRA16)
 				{pr[0]='6';emsi_lo|=P_HYDRA16;break;}
+#endif/*HYDRA8K16K*/			
 			if(*t=='H' && rnode->options&P_HYDRA)
 				{pr[0]='H';emsi_lo|=P_HYDRA;break;}
 			if(*t=='J' && rnode->options&P_JANUS)
@@ -509,10 +511,12 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="ZedZap";break;
 	case P_DIRZAP:
 		t="DirZap";break;
+#ifdef HYDRA8K16K
 	case P_HYDRA8:
 		t="Hydra-8k";break;
 	case P_HYDRA16:
 		t="Hydra-16k";break;
+#endif/*HYDRA8K16K*/	
 	case P_HYDRA:
 		t="Hydra";break;
 	case P_JANUS:
@@ -551,14 +555,18 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		flkill(&fl, !rc);
 		return rc?S_REDIAL:S_OK;
 	case P_HYDRA:
+#ifdef HYDRA8K16K
 	case P_HYDRA8:
 	case P_HYDRA16:
+#endif/*HYDRA8K16K*/
 		sendf.allf=totaln;sendf.ttot=totalf+totalm;
 		recvf.ttot=rnode->netmail+rnode->files;
 		switch(proto) {
 		case P_HYDRA:   rc=1;break;
+#ifdef HYDRA8K16K
 		case P_HYDRA8:  rc=4;break;
 		case P_HYDRA16: rc=8;break;
+#endif/*HYDRA8K16K*/		
 		}
 		rc=hydra(mode, rc, rnode->options&O_RH1);
 		flkill(&fl, !rc);

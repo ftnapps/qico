@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.29 2001/04/03 20:27:21 lev Exp $
+ * $Id: emsi.c,v 1.30 2002/04/10 12:25:56 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -41,8 +41,11 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	xstrcat(dat, "}{8N1", EMSI_BUF);
 	if(strchr(protos,'H')
 		|| strchr(protos,'h')
+#ifdef HYDRA8K16K
 		|| strchr(protos,'8')
-		|| strchr(protos,'6')) xstrcat(dat,",RH1", EMSI_BUF);
+		|| strchr(protos,'6')
+#endif/*HYDRA8K16K*/		
+		) xstrcat(dat,",RH1", EMSI_BUF);
 	if(lopt&O_PUA) xstrcat(dat,",PUA",EMSI_BUF);
 	if(lopt&O_PUP) xstrcat(dat,",PUP",EMSI_BUF);
 	if(lopt&O_HRQ) xstrcat(dat,",HRQ",EMSI_BUF);
@@ -57,8 +60,10 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 		case 'Z':xstrcat(dat, ",ZAP", EMSI_BUF);c=1;break;
 		case 'D':xstrcat(dat, ",DZA", EMSI_BUF);c=1;break;
 		case 'H':xstrcat(dat, ",HYD", EMSI_BUF);c=1;break;
+#ifdef HYDRA8K16K		
 		case '8':xstrcat(dat, ",HY8", EMSI_BUF);c=1;break;
 		case '6':xstrcat(dat, ",H16", EMSI_BUF);c=1;break;
+#endif/*HYDRA8K16K*/	
 		case 'J':xstrcat(dat, ",JAN", EMSI_BUF);c=1;break;
 		}
 	}
@@ -431,8 +436,10 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "ZMO")) { o|=P_ZMODEM;continue;}
 		if(!strcmp(p, "ZAP")) { o|=P_ZEDZAP;continue;}
 		if(!strcmp(p, "DZA")) { o|=P_DIRZAP;continue;}
+#ifdef HYDRA8K16K
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
 		if(!strcmp(p, "H16")) { o|=P_HYDRA16;continue;}
+#endif/*HYDRA8K16K*/		
 		if(!strcmp(p, "HYD")) { o|=P_HYDRA;continue;}
 		if(!strcmp(p, "JAN")) { o|=P_JANUS;continue;}
 		if(!strcmp(p, "NCP")) { o|=P_NCP;continue;}
