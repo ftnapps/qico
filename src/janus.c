@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.2 2000/10/07 13:44:52 lev Exp $
+ * $Id: janus.c,v 1.3 2000/10/29 12:22:13 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -415,7 +415,7 @@ int janus()
 				  rc=1;
 			  }
 			  if(rxstate==RRCVBLK) {
-				  rxclose(&txfd, FOP_ERROR);
+				  rxclose(&rxfd, FOP_ERROR);
 				  rc=1;
 			  }
 			  qpreset(0);qpreset(1);
