@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.10 2001/01/21 18:12:39 lev Exp $
+ * $Id: ls_zsend.c,v 1.11 2001/01/24 11:46:01 lev Exp $
  **********************************************************/
 /*
 
@@ -179,12 +179,12 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 				if(ls_MaxBlockSize<32) ls_txWinSize=ls_MaxBlockSize=32;
 			}
 
-            if(baud<2400) ls_txCurBlockSize = 256;
+                        if(baud<2400) ls_txCurBlockSize = 256;
 			else if(baud>=2400 && baud<4800) ls_txCurBlockSize = 512;
 			else ls_txCurBlockSize = 1024;
             
-            if(ls_Protocol&LSZ_OPTZEDZAP) {
-	            if(baud>=7200 && baud<9600) ls_txCurBlockSize = 2048;
+                        if(ls_Protocol&LSZ_OPTZEDZAP) {
+                                if(baud>=7200 && baud<9600) ls_txCurBlockSize = 2048;
 				else if(baud>=9600 && baud<14400) ls_txCurBlockSize = 4096;
 				else if(baud>=14400) ls_txCurBlockSize = 8192;
 			}
