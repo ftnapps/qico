@@ -1,4 +1,8 @@
-/* $Id: TodayFixes,v 1.59 2004/04/13 17:37:03 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.60 2004/04/14 22:21:25 sisoft Exp $ */
+---
+show milliseconds in logtime if loglevel T >= 1.
+.
+previous:
 ---
 in qcc: now screen splitted at: lines>=20?10:lines/2.
 improve config parsing error reports.
@@ -6,8 +10,4 @@ add support for filename escaping to binkp.
 support for recode codepages of name/station/place/phone in binkp.
 now keywords 'lockdir', 'modem*', 'phonetr' and 'port' not required.
 in qcc: support for request many space-separated files. filenames, containing spaces must be quoted.
-.
-previous:
----
-fix configure without --with-config.
 .

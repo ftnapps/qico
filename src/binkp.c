@@ -1,6 +1,6 @@
 /******************************************************************
- * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.31 2004/04/13 17:37:05 sisoft Exp $
+ * BinkP protocol implementation.
+ * $Id: binkp.c,v 1.32 2004/04/14 22:21:26 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -15,21 +15,23 @@ static char *mess[]={"NUL","ADR","PWD","FILE","OK","EOB","GOT",
 
 static int datas(byte *buf,word len)
 {
-	DEBUG(('B',4,"datas block len=%u%s",len,(opt_cr==O_YES)?" (crypted)":""));
+	DEBUG(('B',4,"datas block len=%u%s",len,(opt_cr==O_YES)?" (c)":""));
 	if(opt_cr==O_YES)encrypt_buf((char*)buf,len,key_out);
 	return(PUTBLK(buf,len));
 }
 
-static int msgs(int msg,char *t1,char *t2)
+static int msgs(int msg,char *str,...)
 {
-	unsigned len=1;
-	DEBUG(('B',2,"msgs M_%s '%s%s'",mess[msg],SS(t1),SS(t2)));
-	if(t1)len+=strlen(t1);
-	if(t2)len+=strlen(t2);
+	va_list args;
+	unsigned len;
+	va_start(args,str);
+	vsnprintf((char*)(txbuf+3),0x7fff,str,args);
+	DEBUG(('B',2,"msgs M_%s '%s'",mess[msg],txbuf+3));
+	va_end(args);
+	len=strlen((char*)(txbuf+3));
 	if(len>0x7fff)len=0x7fff;
 	*txbuf=((len>>8)&0x7f)|0x80;
 	txbuf[1]=len&0xff;txbuf[2]=msg;
-	snprintf((char*)(txbuf+3),len,"%s%s",SS(t1),SS(t2));
 	return(datas(txbuf,(word)(len+2)));
 }
 
@@ -74,7 +76,7 @@ static int msgr(char *buf)
 static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
 {
 	char *n=s,*name,*size,*time,*off=NULL;
-	DEBUG(('B',3,"pars: in '%s'",n));
+	DEBUG(('B',4,"pars: in '%s'",n));
 	name=strsep(&n," ");
 	size=strsep(&n," ");
 	time=strsep(&n," ");
@@ -99,7 +101,7 @@ int bink_devfree()
 int bink_devsend(byte *str,word len)
 {
 	if(opt_cht==O_YES) {
-		msgs(BPM_CHAT,(char*)str,NULL);
+		msgs(BPM_CHAT,"%s",(char*)str);
 		return 1;
 	}
 	return 0;
@@ -164,34 +166,31 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			if(!mode&&chal_len>0&&(opt_md&O_WANT)) {
 				char chall[128];
 				strbin2hex(chall,chal,chal_len);
-				msgs(BPM_NUL,"OPT CRAM-MD5-",chall);
+				msgs(BPM_NUL,"OPT CRAM-MD5-%s",chall);
 			}
 			recode_to_remote(cfgs(CFG_STATION));
-			msgs(BPM_NUL,"SYS ",ccs);
+			msgs(BPM_NUL,"SYS %s",ccs);
 			recode_to_remote(cfgs(CFG_SYSOP));
-			msgs(BPM_NUL,"ZYZ ",ccs);
+			msgs(BPM_NUL,"ZYZ %s",ccs);
 			recode_to_remote(cfgs(CFG_PLACE));
-			msgs(BPM_NUL,"LOC ",ccs);
+			msgs(BPM_NUL,"LOC %s",ccs);
 			recode_to_remote(cfgs(CFG_FLAGS));
 			snprintf(tmp,120,"%d,%s",cfgi(CFG_SPEED),ccs);
-			msgs(BPM_NUL,"NDL ",tmp);
+			msgs(BPM_NUL,"NDL %s",tmp);
 			recode_to_remote(cfgs(CFG_PHONE));
-			msgs(BPM_NUL,"PHN ",ccs);
+			msgs(BPM_NUL,"PHN %s",ccs);
 			ti=time(NULL);tt=gmtime(&ti);
 			strftime(tmp,120,"%a, %d %b %Y %H:%M:%S GMT",tt);
-			msgs(BPM_NUL,"TIME ",tmp);
+			msgs(BPM_NUL,"TIME %s",tmp);
 			snprintf(tmp,128,"%s-%s/%s",qver(0),qver(1),qver(2));
-			strtr(tmp,' ','-');xstrcat(tmp," " BP_VERSION,128);
-			msgs(BPM_NUL,"VER ",tmp);
-			if(mode) {
-				snprintf(tmp,128,"NDA%s%s%s%s%s",
+			strtr(tmp,' ','-');
+			msgs(BPM_NUL,"VER %s %s",tmp,BP_VERSION);
+			if(mode)msgs(BPM_NUL,"OPT NDA%s%s%s%s%s",
 					(opt_nr&O_WANT)?" NR":"",
 					(opt_nd&O_THEY)?" ND":"",
 					(opt_mb&O_WANT)?" MB":"",
 					(opt_cr&O_WE)?" CRYPT":"",
 					(opt_cht&O_WANT)?" CHAT":"");
-				msgs(BPM_NUL,"OPT ",tmp);
-			}
 			pp=cfgal(CFG_ADDRESS);
 			if(mode) {
 				ba=akamatch(remaddr,pp);
@@ -205,23 +204,22 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				xstrcat(tmp," ",BP_BUFS);
 				xstrcat(tmp,ftnaddrtoda(&pp->addr),BP_BUFS);
 			}
-			msgs(BPM_ADR,tmp,NULL);
+			msgs(BPM_ADR,tmp);
 			txstate=(txstate==BPO_Init)?BPO_WaitNul:BPI_WaitAdr;
 			break;
 		    case BPO_SendPwd:
 			DEBUG(('B',3,"state: sendpwd (%d)",txstate));
-			snprintf(tmp,120,"%lu %lu",totalm,totalf);
-			msgs(BPM_NUL,"TRF ",tmp);
+			msgs(BPM_NUL,"TRF %lu %lu",totalm,totalf);
 			p=findpwd(remaddr);
-			if(!p)msgs(BPM_PWD,"-",NULL);
+			if(!p)msgs(BPM_PWD,"-");
 			    else {
 				if(opt_md==O_YES) {
 					char dig_h[33];
 					unsigned char dig_b[16];
 					md5_cram_get((unsigned char*)p,chal,chal_len,dig_b);
 					strbin2hex(dig_h,dig_b,16);
-					msgs(BPM_PWD,"CRAM-MD5-",dig_h);
-				} else msgs(BPM_PWD,p,NULL);
+					msgs(BPM_PWD,"CRAM-MD5-%s",dig_h);
+				} else msgs(BPM_PWD,"%s",p);
 			}
 			txstate=BPO_WaitAdr;
 			break;
@@ -237,14 +235,14 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			if(!rc) {
 				log_rinfo(rnode);
 				write_log("can't lock outbound for %s!",ftnaddrtoa(mode?remaddr:&rnode->addrs->addr));
-				msgs(BPM_BSY,"All addresses are busy",NULL);
+				msgs(BPM_BSY,"All addresses are busy");
 				rc=S_REDIAL;goto failed;
 			}
 			if(mode) {
 				if(!has_addr(remaddr,rnode->addrs)) {
 					log_rinfo(rnode);
 					write_log("remote isn't %s!",ftnaddrtoa(remaddr));
-					msgs(BPM_ERR,"Sorry, you are not who I need",NULL);
+					msgs(BPM_ERR,"Sorry, you are not who I need");
 					rc=S_FAILURE;goto failed;
 				}
 				flkill(&fl,0);totalf=0;totalm=0;
@@ -263,7 +261,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					if(has_addr(&pp->addr,rnode->addrs)) {
 		    				log_rinfo(rnode);
 						write_log("remote also has %s!",ftnaddrtoa(&pp->addr));
-						msgs(BPM_ERR,"Sorry, you also has one of my aka's",NULL);
+						msgs(BPM_ERR,"Sorry, you also has one of my aka's");
 						rc=S_FAILURE;goto failed;
 					}
 				if(is_listed(rnode->addrs,cfgs(CFG_NLPATH),cfgi(CFG_NEEDALLLISTED)))
@@ -275,7 +273,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				} else if(opt_md&O_NEED) {
 	    				log_rinfo(rnode);
 					write_log("got disabled plain password");
-					msgs(BPM_ERR,"You must support MD5",NULL);
+					msgs(BPM_ERR,"You must support MD5");
 					rc=S_FAILURE;goto failed;
 				}
 				if(opt_md&O_WE)opt_md=O_YES;
@@ -296,7 +294,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					} else {
 						log_rinfo(rnode);
 						write_log("password not matched for %s",ftnaddrtoa(&pp->addr));
-						msgs(BPM_ERR,"Security violation",NULL);
+						msgs(BPM_ERR,"Security violation");
 						rnode->options|=O_BAD;
 						rc=S_FAILURE;goto failed;
 					}
@@ -317,10 +315,9 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					(opt_cht&O_WANT)?" CHAT":"",
 					((!(opt_nd&O_WE))!=(!(opt_nd&O_THEY)))?" NDA":"",
 					((opt_cr&O_WE)&&(opt_cr&O_THEY))?" CRYPT":"");
-				if(strlen(tmp))msgs(BPM_NUL,"OPT",tmp);
-				snprintf(tmp,120,"%lu %lu",totalm,totalf);
-				msgs(BPM_NUL,"TRF ",tmp);
-				msgs(BPM_OK,(rnode->options&O_PWD)?"secure":"non-secure",NULL);
+				if(strlen(tmp))msgs(BPM_NUL,"OPT %s",tmp);
+				msgs(BPM_NUL,"TRF %lu %lu",totalm,totalf);
+				msgs(BPM_OK,(rnode->options&O_PWD)?"secure":"non-secure");
 				rxstate=0;
 				break;
 			}
@@ -443,7 +440,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	if(t_exp(t1)) {
 		log_rinfo(rnode);
 		write_log("BinkP handshake timeout");
-		msgs(BPM_ERR,"Handshake timeout",NULL);
+		msgs(BPM_ERR,"Handshake timeout");
 		rc=S_REDIAL;goto failed;
 	}
 	if(!rnode->phone||!*rnode->phone)restrcpy(&rnode->phone,"-Unpublished-");
@@ -507,8 +504,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			if(lst&&txfd) {
 				DEBUG(('B',1,"found: %s",sendf.fname));
 				send_file=1;txpos=(opt_nr&O_WE)?-1:0;
-				snprintf(tmp,512,"%s %ld %ld %ld",sendf.fname,(long)sendf.ftot,sendf.mtime,txpos);
-				msgs(BPM_FILE,tmp,NULL);sent_eob=0;cls=1;
+				msgs(BPM_FILE,"%s %ld %ld %ld",sendf.fname,(long)sendf.ftot,sendf.mtime,txpos);
+				sent_eob=0;cls=1;
 				t1=t_set(BP_TIMEOUT);
 			} else nofiles=1;
 		}
@@ -534,7 +531,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			}
 		}
 		if(nofiles&&!wait_got&&!sent_eob) {
-			msgs(BPM_EOB,NULL,NULL);
+			msgs(BPM_EOB,NULL);
 			t1=t_set(BP_TIMEOUT);
 			sent_eob=1;
 			if(opt_mb!=O_YES)sent_eob++;
@@ -569,31 +566,29 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			t1=t_set(BP_TIMEOUT);
 			if(recv_file) {
 				if((n=fwrite(rxbuf,1,*(long*)tmp,rxfd))<0) {
-					recv_file=0;
+					recv_file=0;mes++;
 					sline("binkp: file write error");
 					write_log("can't write %s, suspended.",recvf.fname);
-					snprintf(tmp,512,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
-					msgs(BPM_SKIP,tmp,NULL);mes++;
+					msgs(BPM_SKIP,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
 					rxclose(&rxfd,FOP_ERROR);
 				} else {
 					rxpos+=*(long*)tmp;
 					recvf.foff+=*(long*)tmp;
 					qpfrecv();
 					if(rxpos>recvf.ftot) {
-						recv_file=0;
+						recv_file=0;mes++;
 						write_log("binkp: got too many data (%ld, %ld expected)",rxpos,(long)recvf.ftot);
 						rxclose(&rxfd,FOP_SUSPEND);
-						snprintf(tmp,512,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
-						msgs(BPM_SKIP,tmp,NULL);mes++;
+						msgs(BPM_SKIP,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
 					} else if(rxpos==recvf.ftot) {
 						recv_file=0;
 						snprintf(tmp,512,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
 						if(rxclose(&rxfd,FOP_OK)!=FOP_OK) {
-							msgs(BPM_SKIP,tmp,NULL);mes++;
+							msgs(BPM_SKIP,tmp);mes++;
 							sline("binkp: file close error");
 							write_log("can't close %s, suspended.",recvf.fname);
 						} else {
-							msgs(BPM_GOT,tmp,NULL);mes++;
+							msgs(BPM_GOT,tmp);mes++;
 						}
 						qpfrecv();
 					}
@@ -610,7 +605,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				recv_file=0;qpfrecv();
 			}
 			if(f_pars(tmp,&fname,&fsize,&ftime,&foffs)) {
-				msgs(BPM_ERR,"FILE: ","unparsable arguments");
+				msgs(BPM_ERR,"FILE: unparsable arguments");
 				write_log("unparsable file info: \"%s\"",tmp);
 				if(send_file)txclose(&txfd,FOP_ERROR);
 				rc=S_FAILURE;goto failed;
@@ -633,13 +628,13 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				write_log("binkp: error open for write file \"%s\"",recvf.fname);
 			    case FOP_SUSPEND:
 				DEBUG(('B',2,"trying to suspend file \"%s\"",recvf.fname));
-				snprintf(tmp,512,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
-				msgs(BPM_SKIP,tmp,NULL);mes++;
+				msgs(BPM_SKIP,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
+				mes++;
 				break;
 			    case FOP_SKIP:
 				DEBUG(('B',2,"trying to skip file \"%s\"",recvf.fname));
-				snprintf(tmp,512,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
-				msgs(BPM_GOT,tmp,NULL);mes++;
+				msgs(BPM_GOT,"%s %ld %ld",rfname,(long)recvf.ftot,rmtime);
+				mes++;
 				break;
 			    case FOP_OK:
 				if(foffs!=-1) {
@@ -650,8 +645,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				}
 			    case FOP_CONT:
 				DEBUG(('B',2,"trying to get file \"%s\" from offset %d",recvf.fname,recvf.soff));
-				snprintf(tmp,512,"%s %ld %ld %ld",rfname,(long)recvf.ftot,rmtime,(long)recvf.soff);
-				msgs(BPM_GET,tmp,NULL);mes++;
+				msgs(BPM_GET,"%s %ld %ld %ld",rfname,(long)recvf.ftot,rmtime,(long)recvf.soff);
+				mes++;
 				break;
 			}
 			break;
@@ -677,7 +672,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				if(sent_eob==1)sent_eob=2;
 			} else if(recv_eob>1&&mes)recv_eob=1;
 			if(recv_eob&&sent_eob==1) {
-				msgs(BPM_EOB,NULL,NULL);
+				msgs(BPM_EOB,NULL);
 				sent_eob=2;
 			}
 			DEBUG(('B',4,"cls=%d, sent_eob=%d, recv_eob=%d",cls,sent_eob,recv_eob));
@@ -730,13 +725,12 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				    sendf.mtime==ftime&&sendf.ftot==fsize) {
 					if(fseek(txfd,foffs,SEEK_SET)<0) {
 						write_log("can't send file from requested offset");
-						msgs(BPM_ERR,"can't send file from requested offset",NULL);
+						msgs(BPM_ERR,"can't send file from requested offset");
 						txclose(&txfd,FOP_ERROR);
 						send_file=0;
 					} else {
 						sendf.soff=sendf.foff=txpos=foffs;
-						snprintf(tmp,512,"%s %ld %ld %ld",sendf.fname,(long)sendf.ftot,sendf.mtime,(long)foffs);
-						msgs(BPM_FILE,tmp,NULL);
+						msgs(BPM_FILE,"%s %ld %ld %ld",sendf.fname,(long)sendf.ftot,sendf.mtime,(long)foffs);
 					}
 				} else write_log("got M_%s for unknown file",mess[rc]);
 			} else DEBUG(('B',1,"unparsable fileinfo"));
@@ -750,19 +744,18 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    default:
 			DEBUG(('B',1,"got unknown msg %d",rc));
 		}
-		/* hack for binkd-0.9.5 */
-		if(!txfd&&!recv_file&&nofiles&&sent_eob==1) {
-			msgs(BPM_EOB,NULL,NULL);
-//			sent_eob=2;
-		}
+/*	???	if(!txfd&&!recv_file&&nofiles&&sent_eob==1) {
+			msgs(BPM_EOB,NULL);
+			sent_eob=2;
+		}*/
 		check_cps();
 	}
 	if(chattimer&&sent_eob==2&&recv_eob==2) {
 		DEBUG(('S',4,"binkp chat autoclosed (%s)",t_exp(chattimer)?"timeout":"hangup"));
-		msgs(BPM_EOB,NULL,NULL);
+		msgs(BPM_EOB,NULL);
 	} else if(t_exp(t1)) {
 		DEBUG(('B',1,"BinkP session timeout (%d)",BP_TIMEOUT));
-		msgs(BPM_ERR,"Session timeout",NULL);
+		msgs(BPM_ERR,"Session timeout");
 		if(send_file)txclose(&txfd,FOP_ERROR);
 		if(recv_file)rxclose(&rxfd,FOP_ERROR);
 		rc=S_REDIAL;goto failed;
