@@ -1,12 +1,9 @@
-/* $Id: TodayFixes,v 1.80 2004/06/08 11:11:44 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.81 2004/06/09 22:25:49 sisoft Exp $ */
 ---
-fix receiving files from last position after abort, not from begin.
+add if-expression flags 'perl[0-9]' - flags, setted from perl script.
+other perl-related changes.
 .
 previous:
 ---
-change version to 0.55si.
-release 0.54si (cvs tag - stbl54).
-add 'make deb' target for make debian packages.
-begin write perl support code.
-add configure option --enable-perl and keyword 'perlfile'.
+fix receiving files from last position after abort, not from begin.
 .

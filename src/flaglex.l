@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.17 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: flaglex.l,v 1.18 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -164,6 +164,7 @@ Anystr		[^ \t\n]+
 
 static int flagfor(char *str)
 {
+	int fln;
 	char *p, *q;
 	if(!str||!*str||!strncasecmp(str,"tty",3)||
 			!strncasecmp(str,"cua",3))return 0;
@@ -197,6 +198,16 @@ static int flagfor(char *str)
 		DEBUG(('Y',3,"flagfor: bad password: %d",rnode->options&O_BAD));
 		return rnode->options&O_BAD;
 	}
+#ifdef WITH_PERL
+	if(!strncasecmp(str,"perl",4)) {
+		if((fln=atoi(str+4))<0||fln>9) {
+			write_log("error: illegal perl flag: %s",str);
+			return 0;
+		}
+		DEBUG(('Y',3,"flagfor: perl%d: %d",fln,(perl_flg&(1<<fln))?1:0));
+		return((perl_flg&(1<<fln))?1:0);
+	}
+#endif
 	if(rnode->flags) {
 		q=xstrdup(rnode->flags);p=strtok(q,",");
 		while(p) {

@@ -1,18 +1,12 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.1 2004/06/07 18:51:14 sisoft Exp $
+ * $Id: perl.c,v 1.2 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
-
-extern int perl_init(char *script,int mode);
-extern void perl_done(int rc);
-extern void perl_on_reload(int mode);
-extern void perl_on_std(int sub);
-extern int perl_on_log(char *str);
 
 #ifndef sv_undef
 #	define sv_undef PL_sv_undef
@@ -58,6 +52,7 @@ static char *perl_subnames[]={
 static PerlInterpreter *perl = NULL;
 static char *perlargs[]={"",NULL,NULL};
 static unsigned perl_nc=0;
+unsigned short perl_flg=0;
 
 static void sub_err(int sub)
 {
@@ -79,10 +74,28 @@ static XS(perl_wlog)
 	XSRETURN_EMPTY;
 }
 
+static XS(perl_setflag)
+{
+	dXSARGS;
+	int num,arg;
+	if(items==2) {
+		num=SvIV(ST(0));
+		arg=SvIV(ST(1));
+		if(num<0||num>9||arg<0)write_log("perl setflags() error: illegal argument");
+		    else {
+			if(arg)perl_flg|=1<<num;
+			else perl_flg&=~(1<<num);
+		}
+		
+	} else write_log("perl setflags() error: wrong number of args");
+	XSRETURN_EMPTY;
+}
+
 static void perl_xs_init()
 {
 	static char *file=__FILE__;
 	newXS("wlog",perl_wlog,file);
+	newXS("setflag",perl_setflag,file);
 }
 
 static void perl_setup(int daemon,int init)
@@ -149,6 +162,7 @@ static void perl_setup(int daemon,int init)
 			break;
 		}
 	}
+	perl_flg=0;
 }
 
 int perl_init(char *script,int mode)
@@ -261,14 +275,5 @@ int perl_on_call()
 
 
 }
-
-
-#else
-
-int perl_init(char *script,int mode) {return 0;}
-void perl_done(int rc) {;}
-void perl_on_reload(int mode) {;}
-void perl_on_std(int sub) {;}
-int perl_on_log(char *s) {return 1;}
 
 #endif

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.32 2004/06/07 18:51:13 sisoft Exp $
+ * $Id: daemon.c,v 1.33 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -55,7 +55,7 @@ static RETSIGTYPE sighup(int sig)
 #ifdef NEED_DEBUG
 	parse_log_levels();
 #endif
-	perl_on_reload(0);
+	IFPerl(perl_on_reload(0));
 	do_rescan=1;
 }
 
@@ -182,7 +182,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		write_log("exiting by request");
 		if(cfgs(CFG_PIDFILE))
 		    if(getpid()==islocked(ccs))lunlink(ccs);
-		perl_done(0);
+		IFPerl(perl_done(0));
 		log_done();
 		qqreset();sline("");title("");
 		qsendpkt(QC_QUIT,"master","",1);
@@ -204,7 +204,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 #ifdef NEED_DEBUG
 		parse_log_levels();
 #endif
-		perl_on_reload(0);
+		IFPerl(perl_on_reload(0));
 		do_rescan=1;
 		break;
 	    case QR_SCAN:
@@ -474,7 +474,7 @@ void daemon_mode()
 	}
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
-	perl_init(cfgs(CFG_PERLFILE),1);
+	IFPerl(perl_init(cfgs(CFG_PERLFILE),1));
 #ifdef HAVE_DNOTIFY
 	if(ASO) {
 		dnot=open(cfgs(CFG_ASOOUTBOUND),O_RDONLY);
@@ -578,7 +578,7 @@ void daemon_mode()
 							write_log("can't init log %s.%s",ccs,port);
 							exit(S_BUSY);
 						}
-						perl_on_reload(1);
+						IFPerl(perl_on_reload(1));
 						DEBUG(('I',4,"connecting to daemon"));
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
@@ -656,7 +656,7 @@ void daemon_mode()
 								break;
 						}
 						aso_unlocknode(&current->addr,LCK_x);
-						perl_done(0);
+						IFPerl(perl_done(0));
 						log_done();
 						cls_close(ssock);
 						exit(rc);
