@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.9 2003/09/12 19:16:44 sisoft Exp $
+ * $Id: session.c,v 1.10 2003/09/14 16:45:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -142,7 +142,7 @@ int boxflist(flist_t **fl, char *path)
 void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 {
 	int fls[]={F_IMM, F_CRSH, F_DIR, F_NORM, F_HOLD}, i;
-	char str[MAX_PATH],*flv="hdicfn";
+	char str[MAX_PATH],*flv="hdicf";
 	struct stat sb;
 	faslist_t *j;
 
@@ -419,7 +419,7 @@ void log_rinfo(ninfo_t *e)
 		e->wtime ? e->wtime : "unknown");
 	if(e->holded && !e->files && !e->netmail)
 		write_log(" for us: %d%c on hold", SIZES(e->holded), SIZEC(e->holded));
-	else
+	else if(e->files||e->netmail)
 		write_log(" for us: %d%c mail; %d%c files",
 			SIZES(e->netmail), SIZEC(e->netmail),
 			SIZES(e->files), SIZEC(e->files));

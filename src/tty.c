@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: tty.c,v 1.4 2003/09/14 16:45:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -8,7 +8,6 @@
 #include "defs.h"
 #include "tty.h"
 
-#undef DEBUG_SLEEP
 //#define DEBUG_SLEEP
 
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
@@ -50,7 +49,7 @@ int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to)
 	} while(sec--&&rc<0);
 	to->tv_sec=sec;
 #ifdef DEBUG_SLEEP
-	if(is_ip)usleep(30);
+	if(is_ip)usleep(300);
 #endif
 	return rc;
 }
@@ -427,7 +426,7 @@ int tty_put(byte *buf, int size)
 	if(is_ip)usleep(300);
 #endif
 #ifdef NEED_DEBUG
-	for(rc=0;rc<size;rc++)DEBUG(('M',9,"tty_put: '%c' (%d)",buf[rc],buf[rc]));
+	for(rc=0;rc<size;rc++)DEBUG(('M',9,"tty_put: '%c' (%d)",C0(buf[rc]),buf[rc]));
 #endif
 	return OK;
 }
@@ -463,7 +462,7 @@ int tty_get(byte *buf, int size, int *timeout)
 	if(is_ip)usleep(300);
 #endif
 #ifdef NEED_DEBUG
-	for(i=0;i<rc;i++)DEBUG(('M',9,"tty_get: '%c' (%d)",buf[i],buf[i]));
+	for(i=0;i<rc;i++)DEBUG(('M',9,"tty_get: '%c' (%d)",C0(buf[i]),buf[i]));
 #endif
 	return rc;
 }
@@ -646,7 +645,7 @@ int modem_sendstr(char *cmd)
 		case '^': rc=tty_setdtr(1); break;
 		case 'v': rc=tty_setdtr(0); break;
 		default: rc=write(STDOUT_FILENO, cmd, 1);
-		DEBUG(('M',4,">>> %c",*cmd));
+		DEBUG(('M',4,">>> %c",C0(*cmd)));
 		}
 		cmd++;
 	}
