@@ -1,0 +1,19 @@
+/* $Id: TodayFixes,v 1.1 2003/10/02 15:17:59 sisoft Exp $ */
+---
+change version to 0.50si-cvs.
+small change in configure.in.
+add support for NR and MB modes in binkp.
+fix binkp: change spaces to underlines in filenames.
+fix stupid error in parse M_GET.
+more correct set PWD flag on outbound binkp sess.
+fix 'binkpopt' keyword.
+added TodayFixes: changes in current commit.
+.
+previous:
+---
+none
+.
+ps: в связи с временным отсутствием фидошки,
+писать мне можно только на <sisoft@bk.ru>.
+буду благодарен, если кто-нибудь скинет на емыл
+наиболее информативные сообщения из ru.qico ;)

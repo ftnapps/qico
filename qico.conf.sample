@@ -415,11 +415,11 @@ protorder	HJDZ1C
 ;endif
 
 # BinkP options:						       (NEW!!!)
-# M - MD5 authentication.
+# M - MD5 authentication
 # C - Crypt traffic (currently not supported)
-# R - NonReliable mode (currently not supported)
-# D - NonDupes mode (currently not supported)
-# B - MultiBatch mode (currently not supported)
+# R - NotReliable mode
+# D - NoDupes mode (currently not supported)
+# B - MultiBatch mode
 # P - Disable plain authentication
 binkpopt	MRDB
 
@@ -666,5 +666,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.10 2003/09/23 12:55:53 sisoft Exp $
+# $Id: qico.conf.sample,v 1.11 2003/10/02 15:17:59 sisoft Exp $
 ###############################################################################

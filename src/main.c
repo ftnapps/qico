@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.6 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: main.c,v 1.7 2003/10/02 15:18:00 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -24,7 +24,7 @@ int qipcr_msg,unhld,force=IPC_EXCL;
 
 void usage(char *ex)
 {
-	printf("%s-%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
+	printf("%s%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
 		   "usage: %s [<options>] [<node>] [<files>]\n"
  		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h           this help screen\n"

@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+if(-f "x.tmp"){goto comm}
+system("mcedit +999 x");
+open(X,"x")||die("can't open 'x'-changes\n");
+open(F,"TodayFixes")||die("can't open TodayFixes\n");
+open(T,">x.tmp")||die("can't create x.tmp\n");
+while(<F>) {
+    if(/^\/\*/){$id=$_;next};
+    if(/^---/){$fixes=$fixes?3:1;next}
+    if(/^\./){$fixes=($fixes==1)?2:0;next}
+    if($fixes==1){push(@fix,$_)}
+    if($fixes==3){next}
+    if(!$fixes){push(@txt,$_)}
+}
+open(F,">TodayFixes")||die("can't create TodayFixes\n");
+print F "$id---\n";
+while(<X>) {
+    print F $_;
+    chomp;
+    print T "$_ \n";
+} 
+print F ".\nprevious:\n---\n";
+foreach(@fix){print F $_}
+print F ".\n";
+foreach(@txt){print F $_}
+close(X,F,T);
+truncate("x",0);
+system("cvs2cl -F trunk --no-wrap -S");
+unlink("ChangeLog.bak");
+comm:
+system("cvs com -F x.tmp")==0 and unlink("x.tmp");
