@@ -1,19 +1,19 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.19 2004/06/07 18:51:14 sisoft Exp $
+#* $Id: qconf.x,v 1.20 2004/06/22 08:28:30 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
 aftersession,C_STR,char *,0,NULL
 alwayskillfiles,C_YESNO,int,0,"no"
 alwaysoverwrite,C_STRL,slist_t *,0,NULL
-asooutbound,C_PATH,char *,0,NULL
+asooutbound,C_PATH,char *,2,NULL
 autohold,C_STRL,slist_t *,0,NULL
 autoskip,C_STRL,slist_t *,0,NULL
 autosuspend,C_STRL,slist_t *,0,NULL
 autoticskip,C_YESNO,int,0,"no"
 binkpopt,C_STR,char *,0,"MB"
-bsooutbound,C_PATH,char *,0,NULL
+bsooutbound,C_PATH,char *,2,NULL
 callonflavors,C_STR,char *,0,"NDCIR"
 cancall,C_STR,char *,0,"CM"
 chathallostr,C_STR,char *,0,"\n * Hello %s!\n"
@@ -64,7 +64,7 @@ mailonly,C_STR,char *,0,NULL
 mapin,C_STR,char *,0,NULL
 mapout,C_STR,char *,0,NULL
 mappath,C_STRL,slist_t *,0,NULL
-masterlog,C_PATH,char *,1,NULL
+masterlog,C_PATH,char *,3,NULL
 max_fails,C_INT,int,0,"20"
 maxrings,C_INT,int,0,"0"
 maxsession,C_INT,int,0,"0"
@@ -83,33 +83,33 @@ modemreset,C_STRL,slist_t *,0,NULL
 modemringing,C_STR,char *,0,"RINGING"
 modemstat,C_STRL,slist_t *,0,NULL
 needalllisted,C_YESNO,int,0,"no"
-nlpath,C_PATH,char *,1,NULL
-nodelist,C_STRL,slist_t *,1,NULL
+nlpath,C_PATH,char *,3,NULL
+nodelist,C_STRL,slist_t *,3,NULL
 nodial,C_PATH,char *,0,NULL
 osname,C_STR,char *,0,NULL
 password,C_ADRSTRL,faslist_t *,0,NULL
-perlfile,C_PATH,char *,0,NULL
+perlfile,C_PATH,char *,2,NULL
 phone,C_STR,char *,0,""
 phonetr,C_STRL,slist_t *,0,NULL
-pidfile,C_PATH,char *,1,NULL
+pidfile,C_PATH,char *,3,NULL
 place,C_STR,char *,0,""
 pollflavor,C_STR,char *,0,"N"
 port,C_STRL,slist_t *,0,NULL
 progname,C_STR,char *,0,NULL
 protorder,C_STR,char *,0,"JHZ1C"
 proxy,C_STR,char *,0,NULL
-qstoutbound,C_PATH,char *,0,NULL
+qstoutbound,C_PATH,char *,2,NULL
 realmincps,C_YESNO,int,0,"yes"
 recodepkts,C_YESNO,int,0,"yes"
 remotecp,C_PATH,char *,0,"none"
 rescanperiod,C_INT,int,0,"300"
 rmboxes,C_YESNO,int,0,"no"
-rootdir,C_PATH,char *,0,NULL
+rootdir,C_PATH,char *,2,NULL
 runoncall,C_STR,char *,0,NULL
 runonchat,C_STR,char *,0,NULL
 runonemsi,C_STR,char *,0,NULL
 sendonly,C_YESNO,int,0,"no"
-server,C_STR,char *,0,NULL
+server,C_STR,char *,2,NULL
 serverpwd,C_STR,char *,0,NULL
 showintro,C_YESNO,int,0,"yes"
 showpkt,C_YESNO,int,0,"no"

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.22 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: config.c,v 1.23 2004/06/22 08:28:30 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -154,7 +154,7 @@ int readconfig(char *cfgname)
 	if(!rc)return 0;
 	for(i=0;i<CFG_NNN;i++)
 	    if(configtab[i].found<2) {
-		if(configtab[i].required) {
+		if(configtab[i].required&1) {
 			write_log("required keyword '%s' not defined",configtab[i].keyword);
 			rc=0;
 		}
@@ -185,6 +185,10 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
 	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d%s",kw,arg,i,cfgname,line,curcond?" (c)":""));
 	if(configtab[i].keyword) {
+		if(curcond&&(configtab[i].required&2)) {
+			write_log("%s:%d: keyword '%s' can't be defined inside if-expression's",cfgname,line,kw);
+			return 0;
+		}
 		for(ci=configtab[i].items;ci;ci=ci->next) {
 			slist_t *a=ci->condition,*b=curcond;
 			for(;a&&b&&a->str==b->str;a=a->next,b=b->next);
@@ -225,14 +229,17 @@ int parseconfig(char *cfgname)
 		return 0;
 	}
 	while(fgets(s,MAX_STRING*2,f)) {
-contl:		line++;p=s;
+		line++;
+contl:		p=s;
 		strtr(p,'\t',' ');
 		while(*p==' ')p++;
 		if(*p&&*p!='#'&&*p!='\n'&&*p!=';'&&(*p!='/'||p[1]!='/')) {
 			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
 			if(*t=='\\'&&t>p&&*(t-1)==' ') {
-				do if(!fgets(t,MAX_STRING*2-(t-p),f))*t=0;
-				while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
+				do {
+					line++;
+					if(!fgets(t,MAX_STRING*2-(t-p),f))*t=0;
+				} while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
 				for(k=t;*k==' ';k++);
 				if(k>t)xstrcpy(t,k,strlen(k));
 				goto contl;

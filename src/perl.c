@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.7 2004/06/20 18:50:50 sisoft Exp $
+ * $Id: perl.c,v 1.8 2004/06/22 08:28:30 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -32,6 +32,8 @@ typedef enum {
 	PERL_ON_EXIT,
 	PERL_ON_LOG,
 	PERL_ON_CALL,
+	PERL_ON_HS,
+	PERL_END_HS,
 	PERL_ON_SESSION,
 	PERL_END_SESSION,
 	PERL_ON_RECV,
@@ -45,6 +47,8 @@ static char *perl_subnames[]={
 	"on_exit",
 	"on_log",
 	"on_call",
+	"on_handshake",
+	"end_handshake",
 	"on_session",
 	"end_session",
 	"on_recv",
