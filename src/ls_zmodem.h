@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.13 2001/03/10 19:50:18 lev Exp $
+ * $Id: ls_zmodem.h,v 1.14 2001/03/24 21:08:21 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -90,7 +90,7 @@
 
 #define LSZ_INIT_CRC32			0xffffffffl
 #define LSZ_TEST_CRC32			0xdebb20e3l
-#define LSZ_UPDATE_CRC32(b,crc) (crc32tab[((crc) ^ (b)) & 0xff] ^ (((crc) >> 8) & 0x00ffffff))
+#define LSZ_UPDATE_CRC32(b,crc) ((crc32tab[((crc) ^ (b)) & 0xff] ^ (((crc) >> 8) & 0x00ffffff)) & 0xffffffff)
 #define LSZ_FINISH_CRC32(crc)	(~crc)
 
 #define LSZ_INIT_CRC			((ls_Protocol & LSZ_OPTCRC32)?LSZ_INIT_CRC32:LSZ_INIT_CRC16)
