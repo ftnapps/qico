@@ -1,4 +1,5 @@
-/*-
+/* $Id: memcmp.c,v 1.2 2004/03/08 22:02:43 sisoft Exp $
+ *
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -34,16 +35,12 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)memcmp.c	8.1 (Berkeley) 6/4/93";
-#endif /* LIBC_SCCS and not lint */
-#ifndef lint
-static const char rcsid[] =
-  "$FreeBSD: src/lib/libc/string/memcmp.c,v 1.1.1.1.14.1 2001/07/09 23:30:03 obrien Exp $";
-#endif
-
+#ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 
 /*
  * Compare memory regions.

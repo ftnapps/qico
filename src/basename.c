@@ -1,8 +1,5 @@
-/*	$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $	*/
-/*	$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2001/07/23 10:13:04 dd Exp $	*/
-/*	$Id: basename.c,v 1.3 2003/02/02 20:18:55 cyrilm Exp $ */
-
-/*
+/* $Id: basename.c,v 1.3 2004/03/08 22:02:43 sisoft Exp $
+ *
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
  *
@@ -29,27 +26,20 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !HAVE_BASENAME
-#ifndef lint
-static char openbsd_rcsid[] = "$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $";
-static char freebsd_rcsid[] = "$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2001/07/23 10:13:04 dd Exp $";
-static char qico_rcsid[] = "$Id";
-#endif /* not lint */
+#ifndef HAVE_BASENAME
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
+#include <config.h>
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
 #endif
-#if HAVE_ERRNO_H
-# include <errno.h>
+#ifdef HAVE_LIBGEN_H
+#include <libgen.h>
 #endif
-#if HAVE_LIBGEN_H
-# include <libgen.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
 #endif
-#if HAVE_STRING_H
-# include <string.h>
-#endif
-#if HAVE_SYS_PARAM_H
-# include <sys/param.h>
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
 #endif
 
 char *
