@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.8 2001/01/24 11:40:05 lev Exp $
+ * $Id: ls_zreceive.c,v 1.9 2001/02/04 14:37:01 lev Exp $
  **********************************************************/
 /*
 
@@ -286,34 +286,7 @@ int ls_zrecvfile(int pos)
 	if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 
 	do {
-		if(needzdata) {		/* We need new position -- ZDATA (and may be ZEOF) */
-#ifdef Z_DEBUG
-			write_log("ls_zrecvfile: want ZDATA/ZEOF at %d",rxpos);
-#endif
-			if((rc=ls_zrecvnewpos(rxpos,&newpos))<0) return rc;
-			if(newpos != rxpos) {
-#ifdef Z_DEBUG
-				write_log("ls_zrecvfile: bad new position %d in %s",newpos,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
-				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
-				PURGE();
-				ls_storelong(ls_txHdr,rxpos);
-				if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
-			} else {
-				if(ZEOF == rc) {
-#ifdef Z_DEBUG2
-					write_log("ls_zrecvfile: ZEOF");
-#endif
-					ls_storelong(ls_txHdr,0);
-					if((rc=ls_zsendhhdr(ZRINIT,4,ls_txHdr))<0) return rc;
-					return LSZ_OK;
-				}
-#ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: ZDATA");
-#endif
-				needzdata = 0;
-			}
-		} else {
+		if(!needzdata) {
 			switch((rc=ls_zrecvdata(rxbuf,&len,ls_DataTimeout,ls_Protocol&LSZ_OPTCRC32))) {
 			case ZCRCE:
 				needzdata = 1;
@@ -364,6 +337,33 @@ int ls_zrecvfile(int pos)
 				ls_storelong(ls_txHdr,rxpos);
 				ls_zsendhhdr(ZRPOS,4,ls_txHdr);
 				needzdata = 1;
+			}
+		} else {		/* We need new position -- ZDATA (and may be ZEOF) */
+#ifdef Z_DEBUG
+			write_log("ls_zrecvfile: want ZDATA/ZEOF at %d",rxpos);
+#endif
+			if((rc=ls_zrecvnewpos(rxpos,&newpos))<0) return rc;
+			if(newpos != rxpos) {
+#ifdef Z_DEBUG
+				write_log("ls_zrecvfile: bad new position %d in %s",newpos,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+#endif
+				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
+				PURGE();
+				ls_storelong(ls_txHdr,rxpos);
+				if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
+			} else {
+				if(ZEOF == rc) {
+#ifdef Z_DEBUG2
+					write_log("ls_zrecvfile: ZEOF");
+#endif
+					ls_storelong(ls_txHdr,0);
+					if((rc=ls_zsendhhdr(ZRINIT,4,ls_txHdr))<0) return rc;
+					return LSZ_OK;
+				}
+#ifdef Z_DEBUG2
+				write_log("ls_zrecvfile: ZDATA");
+#endif
+				needzdata = 0;
 			}
 		}
 	} while(1);
