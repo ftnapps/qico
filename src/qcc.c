@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.2 2000/07/18 12:56:18 lev Exp $
+ * $Id: qcc.c,v 1.3 2000/07/21 20:52:24 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -16,8 +16,8 @@
 #include <sys/ioctl.h>
 #include <time.h>
 #include <signal.h>
-#ifdef FREE_BSD
- #include <ncurses/curses.h>
+#if defined __FreeBSD__ && __FreeBSD__ < 4
+ #include <ncurses.h>
 #else
  #include <curses.h>
 #endif
@@ -28,8 +28,8 @@
 
 extern unsigned short crc16(char *str, int l);
 void sigwinch(int s);
-/*
-#ifdef FREE_BSD
+
+#if defined __FreeBSD__ && __FreeBSD__ < 4
 void mvvline (int y,int x,int ch,int n)
 {
  move (y,x);
@@ -48,7 +48,6 @@ void mvwhline (WINDOW *win,int y,int x,int ch,int n)
  wvline (win,ch,n);
 }
 #endif
-*/
 
 #define MH 10
 #define MAX_SLOTS 9
