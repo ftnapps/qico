@@ -97,6 +97,13 @@ include		/etc/ftn/qico.passwd
 ###############################################################################
 ### paths and filenames #######################################################
 ###############################################################################
+# Root directory is directory, to which qico changes it work directory
+# when become daemon or is called for answer. It is could be directory,
+# writable for qico's owner, for successiful core generation in accident.
+# qico will not change work directory, if this keyword is missed or empty
+#
+#rootdir /var/spool/ftn
+
 # log variables can be:
 #  - filenames 
 #    ex.: log /var/log/qico.log
@@ -490,4 +497,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.18 2001/05/21 20:01:09 lev Exp $
+# $Id: qico.conf.sample,v 1.19 2001/06/15 11:01:58 lev Exp $
