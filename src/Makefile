@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.8 2000/10/12 19:13:16 lev Exp $
+# $Id: Makefile,v 1.9 2000/10/12 19:24:27 lev Exp $
 #
 include	../CONFIG
 
@@ -39,11 +39,12 @@ OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           hydra.o janus.o flagexp.o execsh.o protfm.o freq.o
 
 QCCOBJS	= qcc.o ver.o crc.o
+QCTLOBJS= qctl.o ver.o
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c zm.c zmr.c \
           zrecv.c zsend.c session.c call.c qnlc.c qipc.c tcp.c \
-          hydra.c execsh.c protfm.c
+          hydra.c execsh.c protfm.c qctl.c
 
 AUTOH = qconf.h 
 AUTOC = qconf.c flagexp.c flaglex.c ver.c
@@ -55,13 +56,16 @@ AUTOC = qconf.c flagexp.c flaglex.c ver.c
 ifeq (1,$(MORDA))
 DEFS    += -DMORDA
 
-all:	qico qcc
+all:	qico qctl qcc
 else
-all:	qico
+all:	qico qctl
 endif
 
 qico:	$(OBJS) 
 	$(CC) $(LFLAGS) -o qico $(OBJS) $(LIBS) $(DLIBS)
+
+qctl:	$(QCTLOBJS)
+	$(CC) $(CFLAGS) -o qctl $(QCTLOBJS) $(DLIBS)
 
 qcc:	$(QCCOBJS)
 	$(CC) $(LFLAGS) -o qcc $(QCCOBJS) $(QCLIBS) $(DLIBS)
@@ -85,9 +89,10 @@ flagexp.c: flagexp.y flaglex.c
 
 $(SRCS): $(AUTOH)
 
-install: qico qcc
-	$(INSTALL) $(IFLAGS) -m $(BPERM) -o $(OWNER) -g $(GROUP) qico $(BINDIR)
-	$(INSTALL) $(IFLAGS) -m $(BPERM) -o $(OWNER) -g $(GROUP) qcc $(BINDIR)
+install: qico qcc qctl
+	$(INSTALL) $(IFLAGS) -m 755 -o $(OWNER) -g $(GROUP) qico $(BINDIR)
+	$(INSTALL) $(IFLAGS) -m 755 -o $(OWNER) -g $(GROUP) qctl $(BINDIR)
+	$(INSTALL) $(IFLAGS) -m 755 -o $(OWNER) -g $(GROUP) qcc $(BINDIR)
 
 clean:
 	rm -f *.o core qico qcc $(AUTOH) $(AUTOC) *~

@@ -2,11 +2,12 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.9 2000/10/12 19:13:16 lev Exp $
+ * $Id: main.c,v 1.10 2000/10/12 19:24:27 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <locale.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -41,11 +42,10 @@ int qipcr_msg;
 
 void usage(char *ex)
 {
-	printf("%s-%s copyright (c) pavel kurnosoff, 1999 // 2:5030/1061@fidonet\n"
+	printf("%s-%s copyright (c) pavel kurnosoff, 1999-2000\n"
 		   "usage: %s [<options>] [<node>] [<files>]\n"
  		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h           this help screen\n"
-		   "-v           be verbose\n"
 		   "-I<config>   override default config\n\n"  
 		   "-d           start in daemon (originate) mode\n"
  		   "-a<type>     start in answer mode with <type> session, type can be:\n"
@@ -53,24 +53,12 @@ void usage(char *ex)
 		   "             **EMSI_INQC816 - EMSI session without init phase\n"
 		   "                      tsync - FTS-0001 session (unsuppported)\n"
 		   "                     yoohoo - YOOHOO session (unsuppported)\n"
-		   "                      binkp - BinkP session (unsuppported)\n"
  		   "-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
- 		   "-q           kill existing daemon\n"
- 		   "-R           reread config\n"
-		   "-n           compile nodelists\n"
-		   "-f           query info about <node>\n"
-		   "-p           poll <node>\n"
-		   "-c[N|IA]       force call to <node>\n"
+		   "-c[N|IA]     force call to <node>\n"
 		   "             N - normal call\n"
 		   "             I - call <i>mmidiatly (don't check node worktime)\n"
 		   "             A - call on <a>ny free port (don't check cancall setting)\n"
-		   "-r           freq from <node> files <files>\n"
-		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
-		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
-		   "-k           kill attached files after transmission (for -s)\n"
-		   "-x[UuWwIi]   set[UWI]/reset[uwi] <node> state(s)\n"
-		   "             <u>ndialable, <i>mmediate, <w>ait\n"
-/* 		   "-K           kill all outbound .?lo and .?ut for <node>\n" */
+		   "-n           compile nodelists\n"
 		   "\n", progname, version, ex);
 	exit(0);
 }
@@ -91,6 +79,7 @@ void sigerr(int sig)
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 				  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig, SIG_DFL);
+	msgctl(qipcr_msg, IPC_RMID, 0);
 	bso_done();
 	log("got SIG%s signal",sigs[sig]);
 #if IP_D	
@@ -99,6 +88,7 @@ void sigerr(int sig)
 	if(getpid()==islocked(cfgs(CFG_PIDFILE))) lunlink(ccs);
 	log_done();
 	tty_close();
+	qqreset();sline("");title("");
 	qipc_done();
 	switch(sig) {
 	case SIGSEGV:
@@ -137,15 +127,36 @@ void sighup(int sig)
 }
 
 
+void sendrpkt(char what, pid_t pid, char *fmt, ...)
+{
+	char buf[MSG_BUFFER];
+	int rc;
+	va_list args;
+	
+	*((int *)buf)=pid;
+	buf[4]=what;
+	va_start(args, fmt);
+	rc=vsnprintf(buf+5, MSG_BUFFER-1, fmt, args);
+	va_end(args);
+	msgsnd(qipcr_msg, buf, rc+6, IPC_NOWAIT);
+}	
+
+void alarmer(int i)
+{
+}
+	
 void daemon_mode()
 {
 	int t_dial=0, t_rescan=0; 
-	int rc=1, dable, f, w;
-	char *port;
+	int rc=1, dable, f, w, res, set;
+	char *port, buf[MSG_BUFFER], *p;
 	sts_t sts;
 	pid_t chld;
 	qitem_t *current=q_queue, *i;
 	key_t qipcr_key;
+	time_t t;
+	ftnaddr_t fa;
+	slist_t *sl;
 
 	if(getppid()!=1) {
 		signal(SIGTTOU, SIG_IGN);
@@ -154,23 +165,19 @@ void daemon_mode()
 		if((rc=fork())>0) 
 			exit(0);
 		if(rc<0) {
-			fprintf(stderr, "can't spawn daemon!\n");
+			log("can't spawn daemon!");
 			exit(1);
 		}
 		setsid();
 	}
 
-	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		printf("can't open master log %s!\n", ccs);
-		exit(0);
-	}
 	signal(SIGINT, sigerr);	
 	signal(SIGTERM, sigerr);
-//	signal(SIGSEGV, sigerr);
+/* 	signal(SIGSEGV, sigerr); */
 	signal(SIGFPE, sigerr);
 	signal(SIGCHLD, sigchild);
 	signal(SIGHUP, sighup);
-	
+
 	if(cfgs(CFG_PIDFILE)) {
 		if(!lockpid(ccs)) {
 			log("another daemon exists or can't create pid file!");
@@ -186,11 +193,16 @@ void daemon_mode()
 		exit(1);
 	}
 
-	log("%s-%s/%s daemon started",progname,version,osname);
 	if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-		log("can't init BSO");stopit(1);
+		log("can't init BSO");
+		exit(1);
 	}
 
+	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
+		log("can't open master log %s!", ccs);
+		exit(1);
+	}
+	log("%s-%s/%s daemon started",progname,version,osname);
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	while(1) {
 		title("Queue manager [%d]", cfgi(CFG_RESCANPERIOD)-t_rescan);
@@ -230,6 +242,7 @@ void daemon_mode()
                                            f&=~Q_UNDIAL;
 					}
 				}
+ 
 				if(falist_find(cfgal(CFG_ADDRESS), &current->addr) ||
 				   f&Q_UNDIAL ||
 				   !(f&Q_NORM) ||
@@ -279,6 +292,7 @@ void daemon_mode()
 						log_done();
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 							fprintf(stderr, "can't init log %s!",ccs);
+							exit(S_BUSY);
 						}
 						if(rnode->hidnum) {
 							title("Calling %s #%d, %s",
@@ -324,6 +338,7 @@ void daemon_mode()
 						case S_UNDIAL:
 							bso_getstatus(&current->addr, &sts);
 							sts.flags|=Q_UNDIAL;
+							sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
 							bso_setstatus(&current->addr, &sts);
 							break;
 						case S_REDIAL:
@@ -342,15 +357,6 @@ void daemon_mode()
 						exit(rc);
 					}
 					if(chld<0) log("can't fork() caller!");
-/* 						if(chld>0) { */
-							
-/* 							while((wr=wait(&rc))!=-1 && wr!=chld) { */
-/* 								log("wait ret %d, %d %d[%s]", wr, rc, */
-/* 									errno, strerror(errno)); */
-/* 							} */
-/* 							rc=WEXITSTATUS(rc); */
-/* 							if(wr<0) rc=S_REDIAL; */
-/* 						} */
 				} else current->flv&=~Q_DIAL;
 				nlkill(&rnode);
 #ifdef Q_DEBUG
@@ -360,16 +366,220 @@ void daemon_mode()
 				if(!current) current=q_queue;
 				i=i->next;
 			} 
-		}		
-		sleep(1);t_dial++;t_rescan++;
+		}
+		signal(SIGALRM, alarmer);
+		alarm(1);
+		t=time(NULL);
+		while((time(NULL)-t)<1) {
+			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, 0);
+			if(rc>=5) {
+				chld=*((int *)buf+1);
+				rc=1;
+				if(buf[8]==QR_POLL || buf[8]==QR_REQ ||
+				   buf[8]==QR_INFO || buf[8]==QR_SEND ||
+				   buf[8]==QR_STS || buf[8]==QR_KILL) {
+					if(!parseftnaddr(buf+9, &fa, &DEFADDR, 0)) {
+						log("can't parse address '%s'!", buf+9);
+						sendrpkt(1,chld,"can't parse address '%s'!", buf+9);
+						rc=0;
+					}
+				}
+				if(rc) switch(buf[8]) {
+				case QR_QUIT:
+					sendrpkt(0,chld,"");
+					msgctl(qipcr_msg, IPC_RMID, 0);
+					bso_done();
+					log("exiting by request");
+#if IP_D	
+					if(is_ip) qlerase();
+#endif
+					if(cfgs(CFG_PIDFILE)) {
+						if(getpid()==islocked(ccs)) lunlink(ccs);
+					}
+					log_done();
+					qqreset();sline("");title("");
+					qipc_done();
+					exit(0);
+				case QR_CONF:
+					log("trying to reread configs by request...");
+					killsubsts(&psubsts);
+					killconfig();
+					if(!readconfig(configname)) {
+						log("there was some errors parsing config, exiting");
+						sendrpkt(1,chld,"bad config, terminated");
+						stopit(0);
+					}
+					psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+					do_rescan=1;					
+					sendrpkt(0,chld,"");
+					break;
+				case QR_SCAN:
+					do_rescan=1;					
+					sendrpkt(0,chld,"");
+					break;
+				case QR_POLL:
+					if(bso_locknode(&fa)) {
+						log("poll for %s", ftnaddrtoa(&fa));
+						sendrpkt(0,chld,"");
+						rc=bso_poll(&fa);
+						bso_unlocknode(&fa);
+						do_rescan=1;
+					} else {
+						log("can't create poll for %s!",
+							ftnaddrtoa(&fa));
+						sendrpkt(1,chld,"can't create poll for %s",
+								 ftnaddrtoa(&fa));
+					}
+					break;
+				case QR_KILL:
+					if(bso_locknode(&fa)) {
+						log("kill %s", ftnaddrtoa(&fa));
+						sendrpkt(0,chld,"");
+						simulate_send(&fa);
+						bso_unlocknode(&fa);
+						do_rescan=1;
+					} else {
+						log("can't kill %s!",
+							ftnaddrtoa(&fa));
+						sendrpkt(1,chld,"can't create kill %s",
+								 ftnaddrtoa(&fa));
+					}
+					break;
+				case QR_STS:
+					p=buf+9+strlen(buf+9)+1;
+					rc=1;res=0;set=0;
+					while(*p && rc) {
+						switch(*p) {
+						case 'W': set|=Q_WAITA;break;
+						case 'I': set|=Q_IMM;break;
+						case 'U': set|=Q_UNDIAL;break;
+						case 'w': res|=Q_ANYWAIT;break;
+						case 'i': res|=Q_IMM;break;
+						case 'u': res|=Q_UNDIAL;break;
+						default:
+							log("unknown status action: %c", *p);
+							sendrpkt(1,chld,
+									 "unknown status action: %c", *p);
+							rc=0;
+						}
+						p++;
+					}
+					if(rc) {
+						bso_getstatus(&fa, &sts);
+						sts.flags|=set;sts.flags&=~res;
+						log("changing status of %s to 0x%08x",
+							ftnaddrtoa(&fa), sts.flags);
+						if(set&Q_WAITA && !(res&Q_ANYWAIT))
+							sts.htime=t_set(cfgi(CFG_WAITHRQ)*60);
+						if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
+						if(res&Q_UNDIAL) sts.try=0;
+						bso_setstatus(&fa, &sts);
+						sendrpkt(0,chld,"");
+						do_rescan=1;
+					}
+					break;
+				case QR_REQ:
+					if(bso_locknode(&fa)) {
+						sl=NULL;p=buf+9+strlen(buf+9)+1;
+						while(strlen(p)){
+							log("requested '%s' from %s",p,
+								ftnaddrtoa(&fa));
+							slist_add(&sl, p);
+							p+=strlen(p)+1;
+						}
+						rc=bso_request(&fa, sl);
+						slist_kill(&sl);
+						bso_unlocknode(&fa);
+						sendrpkt(0,chld,"");
+						do_rescan=1;
+					} else {
+						log("can't lock node %s!",
+							ftnaddrtoa(&fa));
+						sendrpkt(1,chld,"can't lock node %s",
+								 ftnaddrtoa(&fa));
+					}
+					break;
+				case QR_SEND:
+					p=buf+9+strlen(buf+9)+1;
+					switch(*p) {
+					case 'N': rc=F_NORM;break;
+					case 'C': rc=F_CRSH;break;
+					case 'D': rc=F_DIR;break;
+					case 'H': rc=F_HOLD;break;
+					default: rc=F_ERR;
+					}
+					if(rc==F_ERR) {
+						log("unknown flavour - '%c'",C0(*p));
+						sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+						break;
+					}
+					p+=strlen(p)+1;
+					if(bso_locknode(&fa)) {
+						sl=NULL;
+						while(strlen(p)){
+							log("attaching '%s' to %s%s",
+								(p[0]=='^')?p+1:p,
+								ftnaddrtoa(&fa),
+								(p[0]=='^')?" (k/s)":"");
+							slist_add(&sl, p);
+							p+=strlen(p)+1;
+						}
+						rc=bso_attach(&fa, rc, sl);
+						slist_kill(&sl);
+						bso_unlocknode(&fa);
+						sendrpkt(0,chld,"");
+						do_rescan=1;
+					} else {
+						log("can't lock node %s!",
+							ftnaddrtoa(&fa));
+						sendrpkt(1,chld,"can't lock node %s",
+								 ftnaddrtoa(&fa));
+					}
+					break;
+				case QR_INFO:
+					rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
+					if(rc) {
+						log("nodelist query error!");
+						sendrpkt(1, chld, "nodelist query error!");
+						break;
+					}
+					if(rnode) {
+						log("returned info about %s (%s)",
+							rnode->name, ftnaddrtoa(&fa));
+						sendrpkt(0, chld, "%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
+								 ftnaddrtoa(&fa), 0,
+								 rnode->name, 0, rnode->place, 0,
+								 rnode->sysop, 0, rnode->phone, 0,
+								 rnode->flags, 0, rnode->speed, 0
+							);
+						nlkill(&rnode);
+					} else {
+						log("%s not found in nodelist!",
+							ftnaddrtoa(&fa));
+						sendrpkt(1, chld, "%s not found in nodelist!",
+								 ftnaddrtoa(&fa));
+					}
+					break;
+				default:
+					log("got unsupported packet type: %c", C0(buf[8]));
+				}
+			}
+		}
+		alarm(0);
+		t_dial++;t_rescan++;
 		if(do_rescan) t_dial=0;
 	}
 }
 
 void killdaemon(int sig)
 {
-	FILE *f=fopen(cfgs(CFG_PIDFILE), "rt");
+	FILE *f;
 	pid_t pid;
+	if(!cfgs(CFG_PIDFILE)) {
+		fprintf(stderr, "no pidfile defined\n");
+		return;
+	}
+	f=fopen(cfgs(CFG_PIDFILE), "rt");
 	if(!f) {
 		fprintf(stderr, "can't open pid file - no daemon killed!\n");
 		return;
@@ -445,114 +655,70 @@ void answer_mode(int type)
 
 int force_call(ftnaddr_t *fa, int flags)
 {
- char *port=NULL;
- slist_t *ports=NULL;
- int rc;
+	char *port=NULL;
+	slist_t *ports=NULL;
+	int rc;
 
- rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
- if (!rnode) return 0;
- phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
- rnode->tty=NULL;
+	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
+	if (!rnode) return 0;
+	phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+	rnode->tty=NULL;
 
- if((flags & 2) != 2) {
+	if((flags & 2) != 2) {
+		ports=cfgsl(CFG_PORT);
+		do {
+			if(!ports) exit(33);
+			port=tty_findport(ports,cfgs(CFG_NODIAL));
+			if(!port) exit(33);
+			if(rnode->tty) sfree(rnode->tty);
+			rnode->tty=strdup(baseport(port));
+			ports=ports->next;
+		} while(!checktimegaps(cfgs(CFG_CANCALL)));
+		if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
+	} else {
+		if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
+			rnode->tty=strdup(baseport(port));
+		} else {
+			exit(33);
+		}
+	}
 
- 	ports=cfgsl(CFG_PORT);
- 	do {
- 		if(!ports) exit(33);
- 		port=tty_findport(ports,cfgs(CFG_NODIAL));
- 		if(!port) exit(33);
- 		if(rnode->tty) sfree(rnode->tty);
-		rnode->tty=strdup(baseport(port));
-        ports=ports->next;
- 	} while(!checktimegaps(cfgs(CFG_CANCALL)));
-	if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
+	if(!can_dial(rnode,(flags & 1) == 1)) {
+		fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
+		exit(0);
+	}
 
- } else {
- 	if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
-		rnode->tty=strdup(baseport(port));
- 	} else {
- 		exit(33);
- 	}
- }
+	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
+		 printf("can't open log %s!\n", ccs);
+		exit(0);
+	}
 
- if(!can_dial(rnode,(flags & 1) == 1)) {
- 	fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
- 	exit(0);
- }
+	if(rnode->hidnum) {
+		log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+	} else {
+		log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
+	}
 
- if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-	 printf("can't open log %s!\n", ccs);
-	 exit(0);
- }
-
- if(rnode->hidnum) {
-	log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
- } else {								
-	log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
- }								
-
- rc=do_call(fa, rnode->phone,port);
- stopit(rc);
- return rc;
+	rc=do_call(fa, rnode->phone,port);
+	return rc;
 }
-
-
-char *flvs[]={"error", "normal", "hold", "direct", "crash"};
+                                                                              
 
 int main(int argc, char *argv[], char *envp[])
 {
-	int c, daemon=-1, rc,
-		flv=F_NORM,
-		kfs=0, verb=0, set=0, res=0, call_flags=0,
-		sesstype=SESSION_AUTO;
-	char *hostname=NULL, *str=NULL;
+	int c, daemon=-1, rc, sesstype=SESSION_AUTO;
+	char *hostname=NULL;
 	ftnaddr_t fa;
-	slist_t *sl=NULL, *l;
-	sts_t sts;
+	int call_flags = 0;
 
 #ifndef FREE_BSD
 	setargspace(argv,envp);
 #endif
  	setlocale(LC_ALL, "");	 
 
-	while((c=getopt(argc, argv, "hI:da:qni:s:c:rpz:x:fkR"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:ni:c:"))!=EOF) {
 		switch(c) {
-		case 'v':
-			verb=1;
-			break;
-		case 'k':
-			kfs=1;
-			break;
-		case 'x':
-			daemon=7;
-			str=optarg;
-			while(*str) {
-				switch(*str) {
-				case 'W': set|=Q_WAITA;break;
-				case 'I': set|=Q_IMM;break;
-				case 'U': set|=Q_UNDIAL;break;
-				case 'w': res|=Q_ANYWAIT;break;
-				case 'i': res|=Q_IMM;break;
-				case 'u': res|=Q_UNDIAL;break;
-				default: log("unknown action: %c", *str);exit(0);
-				}
-				str++;
-			}
-			break;
-		case 's':
-			daemon=5;
-			switch(toupper(*optarg)) {
-			case 'N': flv=F_NORM;break;
-			case 'C': flv=F_CRSH;break;
-			case 'D': flv=F_DIR;break;
-			case 'H': flv=F_HOLD;break;
-			default: log("unknown flavour: %c", *optarg);exit(0);
-			}
-			break;
-		case 'p':
-			daemon=3;
-			break;
-		case 'c':
+		case 'c':                                                       
 			daemon=12;
 			str=optarg;
 			while(str && *str) {
@@ -564,12 +730,6 @@ int main(int argc, char *argv[], char *envp[])
 				}
 				str++;
 			}
-			break;
-		case 'f':
-			daemon=8;
-			break;
-		case 'r':
-			daemon=4;
 			break;
 		case 'i':
 			hostname=optarg;
@@ -588,16 +748,9 @@ int main(int argc, char *argv[], char *envp[])
 			if(!strncasecmp(optarg, "**emsi", 6)) sesstype=SESSION_EMSI;
 			if(!strncasecmp(optarg, "tsync", 5)) sesstype=SESSION_FTS0001;
 			if(!strncasecmp(optarg, "yoohoo", 6)) sesstype=SESSION_YOOHOO;
-			if(!strncasecmp(optarg, "binkp", 5)) sesstype=SESSION_BINKP;
 			break;
 		case 'n':
 			daemon=2;
-			break;
-		case 'q':
-			daemon=10;
-			break;
-		case 'R':
-			daemon=11;
 			break;
 		}
 	}
@@ -611,15 +764,6 @@ int main(int argc, char *argv[], char *envp[])
 		exit(EXC_BADCONFIG);
 	}
 
-	switch(daemon) {
-	case 10: 
-		killdaemon(SIGTERM);
-		exit(0);
-	case 11:
-		killdaemon(SIGHUP);
-		exit(0);
-	}
-	
 	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef C_DEBUG
 	dumpconfig();
@@ -635,15 +779,12 @@ int main(int argc, char *argv[], char *envp[])
 	printf("...press any key...\n");getchar();
 #endif	
 
-	if(daemon==0 || daemon==1 || daemon==12) qipc_init(0);
+	if(daemon==0 || daemon==1 || daemon==12)
+		if(!qipc_init()) log("can't create ipc key!");
 
-#ifdef STDERRLOG	
-	freopen("/usr/src/qico/stderr.out","at",stderr);
-	setbuf(stderr, NULL);
-#endif
-	if(hostname || (daemon>=3 && daemon<=8) || daemon==12) 
+	if(hostname || daemon==12) 
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
-			log("%s: can't parse address '%s'!\n", argv[0],
+			log("%s: can't parse address '%s'!", argv[0],
 				argv[optind]);
 			exit(1);
 		}
@@ -658,7 +799,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 		rnode->tty="tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-			log("can't open log %s!\n", ccs);
+			log("can't open log %s!", ccs);
 			exit(1);
 		}
 		signal(SIGINT, sigerr);
@@ -674,12 +815,22 @@ int main(int argc, char *argv[], char *envp[])
 		stopit(0);
 	}
 
-	if((daemon>=3 && daemon<=8) || daemon==12) 
+	if(daemon==12) {
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-			log("%s: can't init bso!\n", argv[0]);
+			log("%s: can't init bso!", argv[0]);
 			exit(1);
 		}
-	
+		if (bso_locknode(&fa)) {
+			signal(SIGINT, sigerr);
+			signal(SIGTERM, sigerr);
+			signal(SIGSEGV, sigerr);
+			rc=force_call(&fa,call_flags);
+			bso_unlocknode(&fa);
+		} else rc=0;
+		if(rc) log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
+		bso_done();
+		stopit(rc);
+	}
 	switch(daemon) {
 	case 1:
 		daemon_mode();break;
@@ -687,130 +838,7 @@ int main(int argc, char *argv[], char *envp[])
 		answer_mode(sesstype);break;
 	case 2:
 		compile_nodelists();break;
-	case 12:
-		if (bso_locknode(&fa)) {
-			if(verb) log("call %s\n", ftnaddrtoa(&fa));
-			rc=force_call(&fa,call_flags);
-			bso_unlocknode(&fa);
-		} else
-			rc=0;
-		if(!rc) {
-			log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
-		}
-		break;
-	case 3:
-		if(bso_locknode(&fa)) {
-			if(verb) log("poll %s\n", ftnaddrtoa(&fa));
-			rc=bso_poll(&fa);
-			bso_unlocknode(&fa);
-		} else
-			rc=0;
-		if(!rc) {
-			log("%s: can't create poll for %s!\n", argv[0],
-				ftnaddrtoa(&fa));
-		}
-		break;
-	case 4:
-		for(c=optind+1;c<argc;c++) {
-			slist_add(&sl, argv[c]);
-		}
-		if(bso_locknode(&fa)) {
-			if(verb) {
-				log("requesting ");
-				for(l=sl;l;l=l->next) printf("%s ", l->str);
-				log("from %s\n", ftnaddrtoa(&fa));
-			}
-			rc=bso_request(&fa, sl);
-			bso_unlocknode(&fa);
-		} else
-			rc=0;
-		slist_kill(&sl);
-		if(!rc) {
-			log("%s: can't create .req for %s!\n", argv[0],
-				ftnaddrtoa(&fa));
-		}
-		break;
-	case 5:
-		str=malloc(MAX_PATH);
-		for(c=optind+1;c<argc;c++) {
-			str[0]=kfs?'^':0;str[1]=0;
-			if(argv[c][0]!='/') {
-				getcwd(str+kfs, MAX_PATH-1);strcat(str, "/");
-			}
-			strcat(str, argv[c]);
-			slist_add(&sl, str);
-		}
-		sfree(str);
-		if(bso_locknode(&fa)) {
-			if(verb) {
-				log("attaching ");
-				for(l=sl;l;l=l->next) printf("%s ", l->str);
-				log("to %s as %s%s\n", ftnaddrtoa(&fa), flvs[flv],
-					kfs?" (k/s)":"");
-			}
-			rc=bso_attach(&fa, flv, sl);
-			bso_unlocknode(&fa);
-		} else
-			rc=0;
-		slist_kill(&sl);
-		if(!rc) {
-			log("%s: can't create .?lo for %s!\n", argv[0],
-				ftnaddrtoa(&fa));
-		}
-		break;
-	case 7:
-		bso_getstatus(&fa, &sts);
-		sts.flags|=set;sts.flags&=~res;
-		if(set&Q_WAITA && !(res&Q_ANYWAIT)) sts.htime=t_set(cfgi(CFG_WAITHRQ)*60);
-		if(res&Q_UNDIAL) sts.try=0;
-		bso_setstatus(&fa, &sts);
-		break;
-	case 8:
-		rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
-		if(rc) {
-			log("%s: nodelist query error!", argv[0]);
-			break;
-		}
-		if(rnode) {
-			printf("Address: %s\n"
-				   "Station: %s\n"
-				   "  Place: %s\n"
-				   "  Sysop: %s\n"
-				   "  Phone: %s\n"
-				   "  Flags: %s\n"
-				   "  Speed: %d\n"
-				   ,ftnaddrtoa(&fa), rnode->name, rnode->place,
-				   rnode->sysop, rnode->phone, rnode->flags, rnode->speed
-				);
-			{
-				char *u, *p;
-				time_t tm=time(NULL);
-				long tz;
-				struct tm *tt=localtime(&tm);
-				tz=tt->tm_gmtoff/3600; 
-	
-				u=rnode->flags;while((p=strsep(&u, ","))) {
-					if(!strcmp(p,"CM")) {
-						printf(" WkTime: 00:00-24:00\n"); 
-						break;
-					}
-					if(p[0]=='T' && p[3]==0) {
-						printf(" WkTime: %02ld:%02d-%02ld:%02d\n",
-							   (toupper(p[1])-'A'+tz)%24, 
-							   islower(p[1]) ? 30:0, 
-							   (toupper(p[2])-'A'+tz)%24, 
-							   islower(p[2]) ? 30:0); 
-						break;
-					}
-				}
-				nlkill(&rnode);
-			}
-		} else printf("%s not found in nodelist!\n", ftnaddrtoa(&fa));
-		break;
 	}
 	
-	if(daemon>=3 && daemon<=8) bso_done();
 	return 0;
 }
-	
-	
