@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.8 2001/01/06 14:51:38 lev Exp $
+ * $Id: ls_zsend.c,v 1.9 2001/01/07 14:08:27 lev Exp $
  **********************************************************/
 /*
 
@@ -133,7 +133,8 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	ls_DataTimeout = (ls_MaxBlockSize * 30) / baud;
 	ls_DataTimeout = ls_DataTimeout>30?ls_DataTimeout:30;
 
-    ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
+	ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
+	ls_SerialNum = 1;
     
 	/* Why we need to send this? Old, good times... */
 	PUTSTR("rz\r");
@@ -298,14 +299,14 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 		case ZFERR:		/* Refuse */
 			/* Check for double-skip protection */
 			sn = ls_fetchlong(ls_rxHdr);
-			if(ls_SkipGuard && sn && sn == ls_SerialNum - 1) {	/* Here is skip protection */
+			if(ls_SkipGuard && sn && sn == sernum - 1) {	/* Here is skip protection */
 #ifdef Z_DEBUG
-				write_log("ls_zsendfinfo: double-skip protection! for %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+				write_log("ls_zsendfinfo: double-skip protection! for %d, %s (this file: %d, got: %d, ls_SN: %d)",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET],sernum,sn,ls_SerialNum);
 #endif
 				ls_storelong(ls_txHdr,0);
 				if((rc=ls_zsendhhdr(ZNAK,4,ls_txHdr))<0) return rc;
 				break;								/* We don't need to skip this file */
-			} else if(sn != ls_SerialNum) {
+			} else if(sn != sernum) {
 #ifdef Z_DEBUG
 				write_log("ls_zsendfinfo: turn off double-skip protection in %d, %s (%d)",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET],sn);
 #endif
