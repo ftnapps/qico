@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.11 2003/10/05 15:01:19 sisoft Exp $
+ * $Id: binkp.c,v 1.12 2003/10/06 13:37:27 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -16,7 +16,7 @@ static char *mess[]={"NUL","ADR","PWD","FILE",
 
 static int datas(byte *buf,word len)
 {
-	DEBUG(('B',4,"datas block len=%u%s",len,(opt_cr==O_YES)?" (ctypted)":""));
+	DEBUG(('B',4,"datas block len=%u%s",len,(opt_cr==O_YES)?" (crypted)":""));
 	if(opt_cr==O_YES)encrypt_buf((char*)buf,len,key_out);
 	return(PUTBLK(buf,len));
 }
@@ -61,10 +61,10 @@ static int msgr(char *buf)
 		rc=*rxbuf;rxbuf[len]=0;
 		if(!d&&(rc>BPM_MAX||rc<BPM_MIN)) {
 			rc=BPM_NONE;
-			DEBUG(('B',1,"msgr unknown message: %d%s, skipped",rc,(opt_cr==O_YES)?" (ctypted)":""));
+			DEBUG(('B',1,"msgr unknown message: %d%s, skipped",rc,(opt_cr==O_YES)?" (crypted)":""));
 		} else {
-			if(!d)DEBUG(('B',2,"msgr M_%s '%s'%s",mess[rc],rxbuf+1,(opt_cr==O_YES)?" (ctypted)":""));
-			    else DEBUG(('B',2,"msgr data, len=%d%s",len,(opt_cr==O_YES)?" (ctypted)":""));
+			if(!d)DEBUG(('B',2,"msgr M_%s '%s'%s",mess[rc],rxbuf+1,(opt_cr==O_YES)?" (crypted)":""));
+			    else DEBUG(('B',2,"msgr data, len=%d%s",len,(opt_cr==O_YES)?" (crypted)":""));
 		}
 		if(len&&!d)memcpy(buf,rxbuf+1,len);
 		    else *(long*)buf=(long)len;

@@ -1,16 +1,14 @@
-/* $Id: TodayFixes,v 1.4 2003/10/05 17:48:56 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.5 2003/10/06 13:37:26 sisoft Exp $ */
+---
+fix configure.
+.
+previous:
 ---
 added -v option for all programs. see this for version.
 change faq about bugs.
 .
-previous:
----
-apply new exchange-flags algo.
-add support for CRYPT mode.
-partially support for NDA (ND-async) mode.
-.
 
 ps: в связи с временным отсутствием фидошки,
-писать мне можно только на <sisoft@bk.ru>.
+писать мне можно только на <sisoft#bk.ru>.
 буду благодарен, если кто-нибудь скинет на емыл
 наиболее информативные сообщения из ru.qico ;)
