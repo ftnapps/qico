@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.5 2003/07/24 11:30:29 sisoft Exp $
+ * $Id: session.c,v 1.6 2003/07/24 21:50:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -444,7 +444,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	}			
 	log_rinfo(rnode);
 	for(pp=rnode->addrs;pp;pp=pp->next)
-		bso_locknode(&pp->addr);
+		bso_locknode(&pp->addr,LCK_s);
 	if(mode) {
 		if(!has_addr(calladdr, rnode->addrs)) {
 			write_log("remote isn't %s!", ftnaddrtoa(calladdr));
@@ -664,7 +664,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		write_log("unsupported session type! (%d)", type);
 		return S_REDIAL|S_ADDTRY;
 	}
-	for(pp=rnode->addrs;pp;pp=pp->next) bso_unlocknode(&pp->addr);
+	for(pp=rnode->addrs;pp;pp=pp->next) bso_unlocknode(&pp->addr,LCK_x);
 	if((rnode->options&O_NRQ&&!cfgi(CFG_IGNORENRQ))||rnode->options&O_HRQ)rc|=S_HOLDR;
 	if(rnode->options&O_HXT) rc|=S_HOLDX;
 	if(rnode->options&O_HAT) rc|=S_HOLDA;

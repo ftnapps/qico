@@ -1,6 +1,6 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.2 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: aso.c,v 1.3 2003/07/24 21:50:18 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -70,9 +70,11 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 	return 1;
 }
 
-int aso_unlocknode(ftnaddr_t *adr)
+int aso_unlocknode(ftnaddr_t *adr,int l)
 {
-	lunlink(aso_bsyn(adr));
+	if(l==LCK_t)return 1;
+	lunlink(aso_bsyn(adr,'b'));
+	lunlink(aso_bsyn(adr,'c'));
 	return 1;
 }
 
@@ -149,9 +151,11 @@ char *aso_flon(ftnaddr_t *fa, int fl)
 }
 
 
-char *aso_bsyn(ftnaddr_t *fa)
+char *aso_bsyn(ftnaddr_t *fa,char b)
 {
-	aso_name(fa);xstrcat(aso_tmp, "bsy", aso_tmp_len);
+	char bn[]="xsy";
+	*bn=b;aso_name(fa);
+	xstrcat(aso_tmp,bn,aso_tmp_len);
 	return aso_tmp;
 }
 
@@ -170,9 +174,13 @@ char *aso_stsn(ftnaddr_t *fa)
 	return aso_tmp;
 }
 						
-int aso_locknode(ftnaddr_t *adr)
+int aso_locknode(ftnaddr_t *adr,int l)
 {
-	mkdirs(aso_bsyn(adr));
+	mkdirs(aso_bsyn(adr,'b'));
+	if(islocked(aso_tmp))return 0;
+	if(l==LCK_s)return lockpid(aso_tmp);
+	if(l==LCK_t)return getpid();
+	if(islocked(aso_bsyn(adr,'c')))return 0;
 	return lockpid(aso_tmp);
 }
 
