@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.13 2004/06/16 03:42:20 sisoft Exp $
+ * $Id: call.c,v 1.14 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -42,7 +42,7 @@ int do_call(ftnaddr_t *fa,char *site,char *port)
 		    else rc=S_REDIAL|S_ADDTRY;
 	}
 	if(rc==-1) {
-		rc=session(1,bink?SESSION_BINKP:SESSION_AUTO,fa,
+		rc=session(1,bink?SESSION_BINKP:SESSION_EMSI,fa,
 		    port?atoi(connstr+strcspn(connstr,"0123456789")):TCP_SPEED);
 		if(port)mdm_done();
 		    else tcp_done(fd);

@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.19 2004/06/16 20:24:34 sisoft Exp $
+ * $Id: mailer.h,v 1.20 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -42,9 +42,7 @@
 
 #define SESSION_AUTO    0
 #define SESSION_EMSI    1
-#define SESSION_FTS0001 2
-#define SESSION_YOOHOO  3
-#define SESSION_BINKP   4
+#define SESSION_BINKP   2
 
 #define RX_SKIP		1
 #define RX_SUSPEND	2

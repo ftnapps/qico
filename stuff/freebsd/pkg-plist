@@ -5,7 +5,6 @@ etc/fido/qico/qico.conf.sample
 %%PORTDOCS%%%%DOCSDIR%%/FAQ.ru
 %%PORTDOCS%%%%DOCSDIR%%/README.ru
 %%PORTDOCS%%%%DOCSDIR%%/Changes.ru
-%%PORTDOCS%%%%EXAMPLESDIR%%/fts-0001
 %%PORTDOCS%%%%EXAMPLESDIR%%/onchat
 %%PORTDOCS%%%%EXAMPLESDIR%%/qhistory
 %%PORTDOCS%%%%EXAMPLESDIR%%/qico.xpm

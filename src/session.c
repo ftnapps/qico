@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.37 2004/06/24 09:53:32 sisoft Exp $
+ * $Id: session.c,v 1.38 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -532,7 +532,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	signal(SIGINT,tty_sighup);
 	signal(SIGCHLD,SIG_DFL);
 	switch(type) {
-	    case SESSION_AUTO:
+/*	    case SESSION_AUTO:
 		write_log("trying EMSI...");
 		rc=emsi_init(mode);
 		if(rc<0) {
@@ -540,7 +540,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 			return S_REDIAL|S_ADDTRY;
 		}
 		rc=emsisession(mode,calladdr,speed);
-		break;
+		break;*/
 	    case SESSION_EMSI:
 		rc=emsisession(mode,calladdr,speed);
 		break;
