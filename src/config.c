@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.7 2001/03/20 15:02:34 lev Exp $
+ * $Id: config.c,v 1.8 2003/02/07 08:44:45 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -283,33 +283,33 @@ void dumpconfig()
 	faslist_t *fasl;
 
 	for(i=0;i<CFG_NNN;i++) {
-		printf("*** %s, type %d, required %d, found %d\n",
+		write_log("*** %s, type %d, required %d, found %d\n",
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
-			printf("  when '%s': ", c->condition);
+			write_log("  when '%s': ", c->condition);
 			switch(configtab[i].type) {
 			case C_PATH:    
 			case C_STR:
-				printf("'%s'\n", c->value.v_char);break;
+				write_log("'%s'\n", c->value.v_char);break;
 			case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
-					printf("'%s',",sl->str);
-				printf("%%\n");
+					write_log("'%s',",sl->str);
+				write_log("%%\n");
 				break;
 			case C_ADRSTRL: 
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					printf("%s '%s',",ftnaddrtoa(&fasl->addr), fasl->str);
-				printf("%%\n");
+					write_log("%s '%s',",ftnaddrtoa(&fasl->addr), fasl->str);
+				write_log("%%\n");
 				break;
 			case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					printf("%s,",ftnaddrtoa(&al->addr));
-				printf("%%\n");
+					write_log("%s,",ftnaddrtoa(&al->addr));
+				write_log("%%\n");
 				break;
-			case C_INT:     printf("%d\n", c->value.v_int);break;
-			case C_OCT:     printf("%o\n", c->value.v_int);break;
-			case C_YESNO:   printf("%s\n", c->value.v_int?"yes":"no");break;
+			case C_INT:     write_log("%d\n", c->value.v_int);break;
+			case C_OCT:     write_log("%o\n", c->value.v_int);break;
+			case C_YESNO:   write_log("%s\n", c->value.v_int?"yes":"no");break;
 			}
 		}			
 	}
