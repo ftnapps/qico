@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.33 2001/07/12 21:43:02 lev Exp $
+ * $Id: session.c,v 1.34 2002/03/26 17:04:55 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -121,7 +121,7 @@ int boxflist(flist_t **fl, char *path)
 			len=strlen(path)+2+strlen(de->d_name);
 			p=xmalloc(len);
 			snprintf(p,len,"%s/%s", path, de->d_name);
-			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
+			if(!stat(p,&sb)&&(S_ISREG(sb.st_mode)||S_ISLNK(sb.st_mode))) {
 				xstrcpy(mn,de->d_name,MAX_PATH);
 				mapname(mn,cfgs(CFG_MAPOUT),MAX_PATH);
 				addflist(fl, p, xstrdup(mn), '^', 0, NULL, 0);
