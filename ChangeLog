@@ -1,3 +1,17 @@
+2004-05-31 17:15  sisoft
+
+	* Changes, configure.in, debian/qcc.8, debian/qctl.8,
+	  src/Makefile.am, src/byteop.h, src/defs.h, src/ftn.c,
+	  src/gmtoff.c, src/headers.h, src/log.c, src/main.c, src/modem.c,
+	  src/qcc.c, src/qctl.c, src/replace.h, src/tools.c, src/tools.h,
+	  src/tty.c, src/ver.h, src/xmem.c, src/xmem.h, src/xstr.c,
+	  src/xstr.h:
+
+	join files xstr,xmem,gtmoff,ver in qslib.
+	fix internal setproctitle().
+	in qcc/qctl: request password from user, if option '-w-' used.
+	qcc: don't show real cmdline in 'ps' command.
+
 2004-05-30 03:34  sisoft
 
 	* Changes, src/Makefile.am, src/aso.c, src/binkp.c, src/bso.c,

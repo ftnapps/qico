@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.20 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: qctl.c,v 1.21 2004/05/31 13:19:59 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -40,7 +40,6 @@
 #include "replace.h"
 #include "types.h"
 #include "qcconst.h"
-#include "byteop.h"
 #include "qslib.h"
 #include "crc.h"
 #include "clserv.h"

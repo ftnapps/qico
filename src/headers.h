@@ -1,6 +1,6 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.10 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: headers.h,v 1.11 2004/05/31 13:19:59 sisoft Exp $
  **********************************************************/
 #include <config.h>
 
@@ -60,7 +60,6 @@
 #include "qslib.h"
 #include "ftn.h"
 #include "tools.h"
-#include "byteop.h"
 #include "mailer.h"
 #include "globals.h"
 #include "qconf.h"
