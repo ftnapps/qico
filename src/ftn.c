@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.31 2001/05/22 18:56:35 lev Exp $
+ * $Id: ftn.c,v 1.32 2001/05/22 19:49:06 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -336,7 +336,7 @@ void rmdirs(char *name)
 
 FILE *mdfopen(char *fn, char *pr)
 {
-	FILE *f
+	FILE *f;
 	struct stat sb;
 	int nf=(stat(fn,&sb))?1:0;
 
