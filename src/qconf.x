@@ -28,6 +28,8 @@ modemerror,C_STRL,slist_t *,1,NULL
 modembusy,C_STRL,slist_t *,1,NULL
 modemreset,C_STRL,slist_t *,0,NULL
 modemhangup,C_STRL,slist_t *,0,NULL
+modemstat,C_STRL,slist_t *,0,NULL
+modemalive,C_STR,char *,0,"AT|"
 dialprefix,C_STR,char *,0,"ATD"
 dialsuffix,C_STR,char *,0,"|"
 max_fails,C_INT,int,0,"20"

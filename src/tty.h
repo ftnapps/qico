@@ -2,7 +2,7 @@
  * File: tty.h
  * Created at Thu Jul 15 16:16:17 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.h,v 1.4 2001/03/20 16:54:42 lev Exp $
+ * $Id: tty.h,v 1.5 2003/01/22 07:50:12 cyrilm Exp $
  **********************************************************/
 #ifndef __TTY_H__
 #define __TTY_H__
@@ -68,6 +68,8 @@ extern char *baseport(char *p);
 extern int modem_sendstr(char *cmd);
 extern int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 					  char *ringing, int maxr, int timeout, char *rest, size_t restlen);
+extern int modem_stat(char *cmd, slist_t *oks, slist_t *ers, 
+		  int timeout, char *stat, size_t stat_len);
 
 #define M_STAT (tty_hangedup?"hangup":"ok")
 

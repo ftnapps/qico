@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.19 2001/06/22 13:05:30 lev Exp $
+ * $Id: tty.c,v 1.20 2003/01/22 07:50:12 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -265,11 +265,22 @@ int tty_local()
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 
 	rc=tcgetattr(STDIN_FILENO, &tios);
-	if(rc) return ME_ATTRS;
+	if(rc) {
+		DEBUG(('M',3,"tty_local: tcgetattr failed, errno=%d",errno));
+		return ME_ATTRS;
+	}
 	tios.c_cflag|=CLOCAL;
 	tios.c_cflag|=CRTSCTS;
 
 	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
+	if (rc) {
+		DEBUG(('M',3,"tty_local: tcsetattr failed, errno=%d",errno));
+		rc=ME_ATTRS;
+	}
+	else {
+		DEBUG(('M',4,"tty_local: completed"));
+	}
+	tty_hangedup=0;
 	return rc;
 }
 
@@ -284,12 +295,21 @@ int tty_nolocal()
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 	
 	rc=tcgetattr(STDIN_FILENO, &tios);
-	if(rc) return ME_ATTRS;
+	if(rc) {
+		DEBUG(('M',3,"tty_nolocal: tcgetattr failed, errno=%d",errno));
+		return ME_ATTRS;
+	}
 	tios.c_cflag&=~CLOCAL;
 	tios.c_cflag|=CRTSCTS;
 
 	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
-	if(rc) rc=ME_ATTRS;
+	if (rc) {
+		DEBUG(('M',3,"tty_nolocal: tcsetattr failed, errno=%d",errno));
+		rc=ME_ATTRS;
+	}
+	else {
+		DEBUG(('M',4,"tty_nolocal: completed"));
+	}
 	return rc;
 }
 
@@ -300,17 +320,33 @@ int tty_cooked()
 	signal(SIGPIPE, SIG_IGN);
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 	rc=tcsetattr(STDIN_FILENO, TCSAFLUSH, &savetios);
-	if(rc) rc=ME_ATTRS;
+	if (rc) {
+		DEBUG(('M',3,"tty_cooked: tcsetattr failed, errno=%d",errno));
+		rc=ME_ATTRS;
+	}
+	else {
+		DEBUG(('M',4,"tty_cooked: completed"));
+	}
 	return rc;
 }
 
 int tty_setdtr(int dtr)
 {
 	int status;
-	if(ioctl(STDIN_FILENO, TIOCMGET, &status)<0) return 0;
+	int rc;
+	rc=ioctl(STDIN_FILENO, TIOCMGET, &status);
+	if (rc<0) {
+		DEBUG(('M',3,"tty_setdtr: TIOCMGET failed, dtr=%d, errno=%d",dtr,errno));
+		return 0;
+	}
 	if(dtr) status |= TIOCM_DTR;
 	else status &= ~TIOCM_DTR;
-	if(ioctl(STDIN_FILENO, TIOCMSET, status)<0) return 0;
+	rc=ioctl(STDIN_FILENO, TIOCMSET, &status);
+	if (rc<0) {
+		DEBUG(('M',3,"tty_setdtr: TIOCMSET failed, dtr=%d, errno=%d",dtr,errno));
+		return 0;
+	}
+	DEBUG(('M',4,"tty_setdtr: completed"));
 	return 1;
 }
 
@@ -530,8 +566,19 @@ int tty_gets(char *what, int n, int timeout)
 		to-=t_time(t1);
 		if(ch>=0) {what[p]=ch;p++;}
 	}
-	what[--p]=0;
-	return (ch=='\r' || ch=='\n')?OK:TIMEOUT;
+	what[p>0?--p:0]=0;
+	if (p>0) DEBUG(('M',1,"<< %s",what));
+	if (ch=='\r' || ch=='\n') {
+		DEBUG(('M',5,"tty_gets: completed"));
+		return OK;
+	}
+	else if (to<=0) {
+		DEBUG(('M',3,"tty_gets: timed out"));
+	}
+	else {
+		DEBUG(('M',3,"tty_gets: line too long, consider increasing MAX_STRING"));
+	}
+	return TIMEOUT;
 }
 
 int tty_expect(char *what, int timeout)
@@ -565,6 +612,7 @@ int modem_sendstr(char *cmd)
 {
 	int rc=1;
 	if(!cmd) return 1;
+	DEBUG(('M',1,">> %s",cmd));
 	while(*cmd && rc>0) {
 		switch(*cmd) {
 		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000);break;
@@ -574,8 +622,11 @@ int modem_sendstr(char *cmd)
 		case 'v': rc=tty_setdtr(0); break;
 		default: rc=write(STDOUT_FILENO, cmd, 1);
 		}
+		DEBUG(('M',4,">>> %c",*cmd));
 		cmd++;
 	}
+	if (rc>0) DEBUG(('M',4,"modem_sendstr: sent"));
+	else DEBUG(('M',3,"modem_sendstr: error, rc=%d, errno=%d",rc,errno));
 	return rc;
 }
 	
@@ -585,20 +636,24 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	char buf[MAX_STRING];int rc, nrng=0;
 	slist_t *cs;time_t t1=t_set(timeout);
 
+	DEBUG(('M',4,"modem_chat: cmd=\"%s\" timeout=%d",cmd,timeout));
+
 	rc=modem_sendstr(cmd);
 	if(rc!=1) {
 		if(rest) xstrcpy(rest, "FAILURE", restlen);
+		DEBUG(('M',3,"modem_chat: modem_sendstr failed, rc=%d",rc));
 		return MC_FAIL;
 	}
 	if(!oks && !ers && !bys) return MC_OK;
 	rc=OK;
 	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
-		if(!*buf) continue;
 		if(rc!=OK) {
 			if(rest) xstrcpy(rest, "FAILURE", restlen);
+			DEBUG(('M',3,"modem_chat: tty_gets failed, rc=%d",rc));
 			return MC_FAIL;
 		}
+		if(!*buf) continue;
 		if(ringing && !strncmp(buf, ringing, strlen(ringing))) {
 			nrng++;
 			continue;
@@ -622,7 +677,59 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	
 	if(rest) {
 		if(nrng && maxr && nrng>=maxr) snprintf(rest, restlen, "%d RINGINGs", nrng);
-		else xstrcpy(rest, "TIMEOUT", restlen);
+		else if (ISTO(rc)) xstrcpy(rest, "TIMEOUT", restlen);
+		else xstrcpy(rest, "FAILURE", restlen);
+	}
+	return MC_FAIL;
+}
+
+int modem_stat(char *cmd, slist_t *oks, slist_t *ers,
+			   int timeout, char *stat, size_t stat_len)
+{
+	char buf[MAX_STRING];int rc;
+	slist_t *cs;time_t t1=t_set(timeout);
+
+	DEBUG(('M',4,"modem_stat: cmd=\"%s\" timeout=%d",cmd,timeout));
+
+	rc=modem_sendstr(cmd);
+	if(rc!=1) {
+		if(stat) xstrcpy(stat, "FAILURE", stat_len);
+		DEBUG(('M',3,"modem_stat: modem_sendstr failed, rc=%d",rc));
+		return MC_FAIL;
+	}
+	if(!oks && !ers) return MC_OK;
+	rc=OK;
+	while(ISTO(rc) && !t_exp(t1)) {
+		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
+		if(!*buf) continue;
+		if(rc!=OK) {
+			if(stat) xstrcat(stat, "FAILURE", 
+				stat_len);
+			DEBUG(('M',3,"modem_stat: tty_gets failed"));
+			return MC_FAIL;
+		}
+		for(cs=oks;cs;cs=cs->next)
+			if(!strncmp(buf, cs->str, strlen(cs->str))) {
+				if(stat) xstrcat(stat, buf, 
+					stat_len);
+				return MC_OK;
+			}
+		for(cs=ers;cs;cs=cs->next)
+			if(!strncmp(buf, cs->str, strlen(cs->str))) {
+				if(stat) xstrcat(stat, buf, 
+					stat_len);
+				return MC_ERROR;
+			}
+		if(stat)
+			{
+			xstrcat(stat,buf,stat_len);
+		 	xstrcat(stat,"\n",stat_len);
+			}
+	}
+	
+	if(stat) {
+		if (ISTO(rc)) xstrcat(stat, "TIMEOUT", stat_len);
+		else xstrcat(stat, "FAILURE", stat_len);
 	}
 	return MC_FAIL;
 }
