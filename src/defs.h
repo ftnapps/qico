@@ -1,6 +1,6 @@
 /**********************************************************
  * common definitions
- * $Id: defs.h,v 1.5 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: defs.h,v 1.6 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #ifndef __DEFS_H__
 #define __DEFS_H__
@@ -31,5 +31,11 @@
 #define DLE	0x10
 #define CAN	0x18
 #define ESC	0x1b
+
+#ifndef HAVE_STDXXX_FILENO
+#define STDIN_FILENO	0
+#define STDOUT_FILENO	1
+#define STDERR_FILENO	2
+#endif
 
 #endif

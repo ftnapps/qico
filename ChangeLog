@@ -1,3 +1,9 @@
+2004-05-28 08:15  sisoft
+
+	* src/modem.c:
+
+	add mistaked modem.c.
+
 2004-05-27 22:50  sisoft
 
 	* src/: Makefile.am, binkp.c, call.c, config.c, daemon.c, emsi.c,

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.13 2004/05/27 18:50:02 sisoft Exp $
+# $Id: Makefile.am,v 1.14 2004/05/29 11:54:16 sisoft Exp $
 sbin_PROGRAMS = qico
 bin_PROGRAMS = qctl @QCC@
 EXTRA_PROGRAMS = qcc
@@ -11,13 +11,14 @@ noinst_HEADERS = byteop.h crc.h defs.h ftn.h globals.h headers.h hydra.h \
 EXTRA_DIST = x2c.awk
 
 BUILT_SOURCES = qconf.c qconf.h
-qico_SOURCES = aso.c bso.c call.c config.c crc.c emsi.c execsh.c binkp.c md5.c \
-	       freq.c ftn.c globals.c gmtoff.c hydra.c janus.c log.c ls_zglue.c \
-	       ls_zmodem.c ls_zreceive.c ls_zsend.c main.c daemon.c nodelist.c \
-	       protfm.c qconf.c clserv.c qnlc.c queue.c session.c tcp.c tty.c \
-	       modem.c tools.c qipc.c ver.c xmem.c xstr.c flagexp.y flaglex.l
-qctl_SOURCES = gmtoff.c qctl.c ver.c xstr.c xmem.c clserv.c md5.c
-qcc_SOURCES = qcc.c gmtoff.c ver.c xstr.c xmem.c clserv.c md5.c
+qico_SOURCES = aso.c bso.c binkp.c call.c clserv.c config.c crc.c daemon.c \
+	       emsi.c freq.c ftn.c globals.c gmtoff.c hydra.c janus.c log.c \
+	       ls_zglue.c ls_zmodem.c ls_zreceive.c ls_zsend.c main.c md5.c \
+	       modem.c nodelist.c protfm.c qconf.c qipc.c qnlc.c queue.c \
+	       session.c tcp.c tools.c tty.c ver.c xmem.c xstr.c \
+	       flagexp.y flaglex.l
+qctl_SOURCES = qctl.c clserv.c gmtoff.c md5.c ver.c xmem.c xstr.c
+qcc_SOURCES = qcc.c clserv.c gmtoff.c md5.c ver.c xmem.c xstr.c
 qico_LDADD = @LIBOBJS@
 qctl_LDADD = @LIBOBJS@
 qcc_LDADD = @LIBOBJS@
