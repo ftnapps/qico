@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.1 2000/12/26 12:14:32 lev Exp $
+ * $Id: ls_zglue.c,v 1.2 2000/12/30 19:37:21 lev Exp $
  **********************************************************/
 /*
 
@@ -98,7 +98,7 @@ int zmodem_receive(char *c) {
 		break;
 	default:
 #ifdef Z_DEBUG
-		write_log("zmodem_receive: ssomething strange after init: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+		write_log("zmodem_receive: something strange after init: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 		ls_zabort();
 		ls_zdonereceiver();
