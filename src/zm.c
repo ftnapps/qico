@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.3 2000/08/06 20:41:36 lev Exp $
+ * $Id: zm.c,v 1.4 2000/10/07 13:48:28 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -253,7 +253,7 @@ void zsda32(char *buf, int length, int frameend)
 	for (;--length >= 0; ++buf) {
 		c = *buf & 0377;
 		if (c & 0140)
-			BUFCHAR(lastsent = c);
+			BUFCHAR(lastsent = c)
 		else
 			zsendline(c);
 		crc = UPDC32(c, crc);
@@ -665,7 +665,7 @@ void zsendline(int c)
 
 	/* Quick check for non control characters */
 	if (c & 0140)
-		BUFCHAR(lastsent = c);
+		BUFCHAR(lastsent = c)
 	else {
 		switch (c &= 0377) {
 		case ZDLE:
