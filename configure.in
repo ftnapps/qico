@@ -195,7 +195,7 @@ AC_DEFINE(HAVE_SYSLOG_PRI_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 dnl Check for TIOCSCTTY
 AC_MSG_CHECKING([for ioctl(TIOCSCTTY)])
 AC_TRY_COMPILE([#include <stdlib.h>
-#include <ioctl.h>
+#include <sys/ioctl.h>
 #include <termios.h>], [ ioctl(0,TIOCSCTTY); ],
 AC_DEFINE(HAVE_TIOCSCTTY)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 
