@@ -343,9 +343,11 @@ protorder	JHDZ1
 # it's better to use janus on tcp/ip
 if tcpip
    protorder	JDZ1
+endif
 # it's not recommended to use these extensions on lower speeds!
 #if connect >= 14400
 #   protorder	8HJDZ1
+#endif
 #if connect >= 28800
 #   protorder	68HJDZ1
 #endif
@@ -509,4 +511,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.23 2002/04/10 12:25:56 lev Exp $
+# $Id: qico.conf.sample,v 1.24 2002/06/16 17:44:44 lev Exp $
