@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.15 2001/02/11 11:32:24 lev Exp $
+ * $Id: ls_zmodem.c,v 1.16 2001/02/12 20:48:38 lev Exp $
  **********************************************************/
 /*
 
@@ -214,7 +214,6 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	static int inhex = 0;
 	int c = -1;
 	int rc;
-	int zero = 1;
 
 #ifdef Z_DEBUG
 	write_log("ls_zrecvhdr: timeout %d",timeout);
