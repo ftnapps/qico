@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.14 2001/03/20 15:02:35 lev Exp $
+ * $Id: janus.c,v 1.15 2001/03/20 16:54:40 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -242,7 +242,7 @@ int janus()
 				if(rxstate==RRCVFNAME) {
 					if(!rxbuf[0]) {
 						if(reqs && (caps&JCAP_FREQ)) {
-							sprintf(txbuf, "%s%c%c", reqs->str, 0, caps);
+							snprintf(txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
 							write_log("sent janus freq: %s", txbuf);
 							sendpkt((byte *)txbuf,strlen(txbuf)+2,FREQPKT);
 							reqs=reqs->next;
@@ -738,8 +738,8 @@ void getfname(flist_t **l)
 		}
 		*l=(*l)->next;
 	}
-	if(txfd) sprintf(txbuf,"%s%c%u %lo %o%c%c",(*l)->sendas,0,sendf.ftot,sendf.mtime,0644,0,OUR_JCAPS);
-	else sprintf(txbuf,"%c%c%c",0,0,OUR_JCAPS);
+	if(txfd) snprintf(txbuf,1024,"%s%c%u %lo %o%c%c",(*l)->sendas,0,sendf.ftot,sendf.mtime,0644,0,OUR_JCAPS);
+	else snprintf(txbuf,1024,"%c%c%c",0,0,OUR_JCAPS);
 }
 
 void preparereqs(flist_t *l)

@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.25 2001/03/20 15:02:35 lev Exp $
+ * $Id: ftn.c,v 1.26 2001/03/20 16:54:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -103,9 +103,9 @@ char *ftnaddrtoa(ftnaddr_t *a)
 {
 	static char s[50];
 	if(a->p)
-		sprintf(s, "%d:%d/%d.%d", a->z, a->n, a->f, a->p);
+		snprintf(s, 50, "%d:%d/%d.%d", a->z, a->n, a->f, a->p);
 	else
-		sprintf(s, "%d:%d/%d", a->z, a->n, a->f);
+		snprintf(s, 50, "%d:%d/%d", a->z, a->n, a->f);
 	return s;
 }
 
@@ -113,9 +113,9 @@ char *ftnaddrtoia(ftnaddr_t *a)
 {
 	static char s[50];
 	if(a->p)
-		sprintf(s, "p%d.f%d.n%d.z%d", a->p, a->f, a->n, a->z);
+		snprintf(s, 50, "p%d.f%d.n%d.z%d", a->p, a->f, a->n, a->z);
 	else
-		sprintf(s, "f%d.n%d.z%d", a->f, a->n, a->z);
+		snprintf(s, 50, "f%d.n%d.z%d", a->f, a->n, a->z);
 	return s;
 }
 
@@ -239,7 +239,7 @@ int lockpid(char *pidfn)
 #ifndef LOCKSTYLE_OPEN
 	strcpy(tmpname, pidfn);
 	p=strrchr(tmpname, '/');if(!p) p=tmpname;
-	sprintf(tmpname+(p-tmpname), "/QTEMP.%ld", (long)getpid());
+	snprintf(tmpname+(p-tmpname), MAX_PATH-(p-tmpname+1), "/QTEMP.%ld", (long)getpid());
 	if ((f=fopen(tmpname,"w")) == NULL) return 0;
 	fprintf(f,"%10ld\n",(long)getpid());
 	fclose(f);
@@ -249,7 +249,7 @@ int lockpid(char *pidfn)
 #else
 	rc=open(pidfn,O_WRONLY|O_CREAT|O_EXCL,0644);
 	if(rc<0) return 0;
-	sprintf(tmpname,"%10ld\n",(long)getpid());
+	snprintf(tmpname,MAX_PATH,"%10ld\n",(long)getpid());
 	write(rc,tmpname,strlen(tmpname));
 	close(rc);
 #endif
@@ -528,7 +528,7 @@ char *mapname(char *fn, char *map)
 	}
 	t=whattype(fn);
 	if(strchr(map, 'b') && t!=IS_FILE) 
-		sprintf(fn, "%08lx%s", crc32s(fn), strrchr(fn,'.'));
+		snprintf(fn, 14, "%08lx%s", crc32s(fn), strrchr(fn,'.'));
 	if(strchr(map, 'u')) strupr(fn);
 	if(strchr(map, 'l')) strlwr(fn);
 	if(strchr(map, 'f')) strcpy(fn, fnc(fn));

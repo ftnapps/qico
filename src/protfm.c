@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.17 2001/03/20 15:02:36 lev Exp $
+ * $Id: protfm.c,v 1.18 2001/03/20 16:54:41 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -48,7 +48,7 @@ char *estimatedtime(size_t size, int cps, unsigned long baud)
 	if (s < 1) s = 1;
 	h = s / 3600; s %= 3600;
 	m = s / 60;   s %= 60;
-	sprintf(et,"%02d:%02d:%02d",h,m,s);
+	snprintf(et,16,"%02d:%02d:%02d",h,m,s);
 	return et;
 }
 
@@ -72,20 +72,20 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 			return FOP_SKIP;
 		}
 	
-	sprintf(p, "%s/tmp/", cfgs(CFG_INBOUND));
+	snprintf(p, MAX_PATH, "%s/tmp/", cfgs(CFG_INBOUND));
 	if(stat(p, &sb)) 
 		if(mkdirs(p) && errno!=EEXIST) {
 			write_log("can't make directory %s: %s", p, strerror(errno));
 			write_log(wesusstr,recvf.fname);
 			return FOP_SUSPEND;
 		}
-	sprintf(p, "%s/%s", ccs, bn);
+	snprintf(p, MAX_PATH, "%s/%s", ccs, bn);
 	if(!stat(p, &sb) && sb.st_size==rsize) {
 		write_log(weskipstr,recvf.fname);
 		return FOP_SKIP;
 	}
 	
-	sprintf(p, "%s/tmp/%s", ccs, bn);
+	snprintf(p, MAX_PATH, "%s/tmp/%s", ccs, bn);
 	if(!stat(p, &sb)) {
 		if(sb.st_size<rsize && sb.st_mtime==rtime) {
 			*f=fopen(p, "ab");
@@ -141,8 +141,8 @@ int rxclose(FILE **f, int what)
 		write_log("recd: %s, %d bytes, %d cps [%s]",
 			recvf.fname, recvf.foff, cps, ss);
 	fclose(*f);*f=NULL;
-	sprintf(p, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
-	sprintf(p2, "%s/%s", cfgs(CFG_INBOUND), recvf.fname);
+	snprintf(p, MAX_PATH, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
+	snprintf(p2, MAX_PATH, "%s/%s", cfgs(CFG_INBOUND), recvf.fname);
 	ut.actime=ut.modtime=recvf.mtime;
 	recvf.foff=0;
 	switch(what) {

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.24 2001/03/20 15:02:34 lev Exp $
+ * $Id: emsi.c,v 1.25 2001/03/20 16:54:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -66,14 +66,14 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	}
 	if(!c) strcat(dat, ",NCP");
 
-	sprintf(tmp, "}{FE}{%s}{%s}{%s}",
+	snprintf(tmp, 1024, "}{FE}{%s}{%s}{%s}",
 		cfgs(CFG_PROGNAME) == NULL ? progname :	strip8(cfgs(CFG_PROGNAME)),
 		cfgs(CFG_VERSION)  == NULL ? version  :	strip8(cfgs(CFG_VERSION)),
 		cfgs(CFG_OSNAME)   == NULL ? osname   : strip8(cfgs(CFG_OSNAME)));
 
 	strcat(dat, tmp);
 	/* TODO: 8bit conversion */
-	sprintf(tmp,
+	snprintf(tmp, 1024,
 			"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s %s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
 			strip8(cfgs(CFG_STATION)),strip8(cfgs(CFG_PLACE)),
 			strip8(cfgs(CFG_SYSOP)),strip8(cfgs(CFG_PHONE)),
@@ -83,9 +83,9 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			time(NULL)+gmtoff(tm),gmtoff(tm)/3600
 		);
 	strcat(dat, tmp);
-	sprintf(tmp, "%04X", strlen(dat)-14);
+	snprintf(tmp, 1024, "%04X", strlen(dat)-14);
 	memcpy(dat+10,tmp,4);
-	sprintf(tmp, "%04X",crc16s(dat+2));
+	snprintf(tmp, 1024, "%04X",crc16s(dat+2));
 	strcat(dat, tmp);
 	return dat;
 }

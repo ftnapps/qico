@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.22 2001/03/20 15:02:37 lev Exp $
+ * $Id: session.c,v 1.23 2001/03/20 16:54:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -108,6 +108,7 @@ void floflist(flist_t **fl, char *flon)
 int boxflist(flist_t **fl, char *path)
 {
 	DIR *d;char *p;struct dirent *de;struct stat sb;
+	int len;
 	
 	DEBUG(('S',2,"Add filebox '%s'",path));
 
@@ -115,8 +116,9 @@ int boxflist(flist_t **fl, char *path)
 	if(!d) return 0;
 	else {
 		while((de=readdir(d))) {
-			p=xmalloc(strlen(path)+2+strlen(de->d_name));
-			sprintf(p,"%s/%s", path, de->d_name);
+			len=strlen(path)+2+strlen(de->d_name);
+			p=xmalloc(len);
+			snprintf(p,len,"%s/%s", path, de->d_name);
 			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
 				addflist(fl, p,
 						 xstrdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
@@ -139,13 +141,13 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	DEBUG(('S',1,"Make filelist for %s", ftnaddrtoa(fa)));
 	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
-			sprintf(str, "%08lx.pkt", sequencer());
+			snprintf(str, MAX_STRING, "%08lx.pkt", sequencer());
 			addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 1);
 			totalm+=sb.st_size;totaln++;
 		}
 	
 	if(!stat(bso_reqn(fa), &sb)) {
-		sprintf(str, "%04x%04x.req", fa->n, fa->f);
+		snprintf(str, MAX_STRING, "%04x%04x.req", fa->n, fa->f);
 		addflist(fl, xstrdup(bso_tmp), xstrdup(str), ' ', 0, NULL, 1);
 		totalf+=sb.st_size;totaln++;
 	}
@@ -160,7 +162,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 		}
 
 	if(cfgs(CFG_LONGBOXPATH)) {
-		sprintf(str, "%s/%d.%d.%d.%d", ccs, fa->z, fa->n, fa->f, fa->p); 
+		snprintf(str, MAX_STRING, "%s/%d.%d.%d.%d", ccs, fa->z, fa->n, fa->f, fa->p); 
 		boxflist(fl, str);
 	}
 }
@@ -651,7 +653,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		}
 	}
 	while(--freq_pktcount) {
-		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
+		snprintf(s,MAX_STRING,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
 		if(fexist(s)) lunlink(s);
 	}
 	if(cfgs(CFG_AFTERSESSION)) {

@@ -2,13 +2,14 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.14 2001/03/20 15:02:34 lev Exp $
+ * $Id: bso.c,v 1.15 2001/03/20 16:54:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 
 #define STS_EXT "qst"
 
 char *bso_base, *bso_tmp;
+static int bso_base_len, bso_tmp_len;
 #ifndef AMIGA4D
 char *p_domain;
 int bso_defzone=2;
@@ -21,7 +22,9 @@ int bso_init(char *bsopath, int def_zone)
 	else p_domain=xstrdup(p+1);
 	*p=0;
 	bso_base=xstrdup(bsopath);
+	bso_base_len = strlen(bso_base)+1;
 	bso_tmp=xmalloc(strlen(bso_base)+50);
+	bso_tmp_len = bso_base_len + 50;
 	bso_defzone=def_zone;
 	return 1;
 }
@@ -36,13 +39,13 @@ void bso_done()
 char *bso_name(ftnaddr_t *fa)
 {
 	char t[30];
-	sprintf(bso_tmp, "%s/%s", bso_base, p_domain);
+	snprintf(bso_tmp, bso_tmp_len, "%s/%s", bso_base, p_domain);
 	if(fa->z!=bso_defzone) {
-		sprintf(t, ".%03x", fa->z);strcat(bso_tmp, t);
+		snprintf(t, 30, ".%03x", fa->z);strcat(bso_tmp, t);
 	}
-	sprintf(t, "/%04x%04x.", fa->n, fa->f);strcat(bso_tmp, t);
+	snprintf(t, 30, "/%04x%04x.", fa->n, fa->f);strcat(bso_tmp, t);
 	if(fa->p) {
-		sprintf(t, "pnt/%08x.", fa->p);strcat(bso_tmp, t);
+		snprintf(t, 30, "pnt/%08x.", fa->p);strcat(bso_tmp, t);
 	}
 	return bso_tmp;
 }
@@ -65,14 +68,14 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 				sscanf(p, ".%03hx", &a.z);
 			else
 				a.z=bso_defzone;
-			sprintf(fn, "%s/%s", bso_base, dez->d_name);
+			snprintf(fn, MAX_PATH, "%s/%s", bso_base, dez->d_name);
 			dn=opendir(fn);if(dn) {
 				while((den=readdir(dn))) {
 					p=strrchr(den->d_name, '.');
 					if(!p) continue;
 					*p=0;sscanf(den->d_name, "%04hx%04hx", &a.n, &a.f);*p='.';
 					a.p=0;
-					sprintf(fn, "%s/%s/%s", bso_base, dez->d_name,
+					snprintf(fn, MAX_PATH, "%s/%s/%s", bso_base, dez->d_name,
 							den->d_name);
 					if(!strcasecmp(p, ".pnt")) {
 						dp=opendir(fn);if(dp) {
@@ -80,7 +83,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 								p=strrchr(dep->d_name, '.');
 								if(p) {
 									*p=0;sscanf(dep->d_name+4, "%04hx", &a.p);*p='.';
-									sprintf(fn, "%s/%s/%s/%s", bso_base, dez->d_name,
+									snprintf(fn, MAX_PATH, "%s/%s/%s/%s", bso_base, dez->d_name,
 											den->d_name, dep->d_name);
 									if(!strcasecmp(p+2, "lo") && F_ERR != (flv = bso_flavor(p[1])))
 										each(fn, &a, T_ARCMAIL, flv);
@@ -142,7 +145,7 @@ void bso_done()
 
 char *bso_name(ftnaddr_t *fa)
 {
-	sprintf(bso_tmp, "%s/%d.%d.%d.%d.", bso_base,
+	snprintf(bso_tmp, bso_tmp_len, "%s/%d.%d.%d.%d.", bso_base,
 			fa->z, fa->n, fa->f, fa->p);
 	return bso_tmp;
 }
@@ -163,7 +166,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 		if(!p) continue;
 		*p=0;sscanf(dez->d_name, "%04hd.%04hd.%04hd.%04hd",
 					&a.z, &a.n, &a.f, &a.p);
-		sprintf(fn, "%s/%s.%s", bso_base, dez->d_name,p+1);
+		snprintf(fn, MAX_PATH, "%s/%s.%s", bso_base, dez->d_name,p+1);
 		if(!strcasecmp(p+2, "lo"))
 			each(fn, &a, T_ARCMAIL, bso_flavor(p[1]));
 		if(!strcasecmp(p+2, "ut"))

@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.13 2001/03/20 15:02:37 lev Exp $
+ * $Id: tty.c,v 1.14 2001/03/20 16:54:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -40,9 +40,9 @@ int tty_isfree(char *port, char *nodial)
 	FILE *f;int pid;
 	struct stat s;
 	
-	sprintf(lckname, "%s.%s", nodial, port);
+	snprintf(lckname, MAX_PATH, "%s.%s", nodial, port);
 	if(!stat(lckname, &s)) return 0;
-	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),port);
+	snprintf(lckname, MAX_PATH, "%s/LCK..%s",cfgs(CFG_LOCKDIR),port);
 	if ((f=fopen(lckname,"r")))	{
 		fscanf(f,"%d",&pid);
 		fclose(f);
@@ -85,7 +85,7 @@ void tty_unlock(char *port)
 	FILE *f;
 	
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
-	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
+	snprintf(lckname,MAX_PATH,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
 	if ((f=fopen(lckname,"r")))	{
 		fscanf(f,"%d",&pid);         
 		fclose(f);
@@ -99,7 +99,7 @@ int tty_lock(char *port)
 	int rc=-1;
 	
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
-	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
+	snprintf(lckname,MAX_PATH,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
 	rc=lockpid(lckname);
 	if(rc) return 0;
 	return -1;
@@ -557,7 +557,7 @@ int modem_sendstr(char *cmd)
 }
 	
 int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
-			   char *ringing, int maxr, int timeout, char *rest)
+			   char *ringing, int maxr, int timeout, char *rest, size_t restlen)
 {
 	char buf[MAX_STRING];int rc, nrng=0;
 	slist_t *cs;time_t t1=t_set(timeout);
@@ -598,7 +598,7 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	}
 	
 	if(rest) {
-		if(nrng && maxr && nrng>=maxr) sprintf(rest, "%d RINGINGs", nrng);
+		if(nrng && maxr && nrng>=maxr) snprintf(rest, restlen, "%d RINGINGs", nrng);
 		else strcpy(rest, "TIMEOUT");
 	}
 	return MC_FAIL;

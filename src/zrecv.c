@@ -2,7 +2,7 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.9 2001/03/20 15:02:37 lev Exp $
+ * $Id: zrecv.c,v 1.10 2001/03/20 16:54:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -182,7 +182,7 @@ int n;
 	char *p,tmp[255];
         struct stat statf;
 	DEBUG(('Z',1,"putsec"));
-	sprintf(tmp, "%s/tmp/%s", ccs, recvf.fname);
+	snprintf(tmp, 255, "%s/tmp/%s", ccs, recvf.fname);
 	if ( !will_skip && stat(tmp, &statf) && errno == ENOENT) {
 		fflush (rxfd);
 		if ( stat(tmp, &statf) && errno == ENOENT ) {

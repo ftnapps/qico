@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.11 2001/03/20 15:02:36 lev Exp $
+ * $Id: nodelist.c,v 1.12 2001/03/20 16:54:41 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -23,9 +23,9 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 
 	*nl=NULL;
 	memset(nlent, 0, sizeof(ninfo_t));
-	sprintf(nlp, "%s/%s.lock", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s/%s.lock", nlpath, NL_IDX);
 	if(islocked(nlp)) return 0;
-	sprintf(nlp, "%s/%s", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s/%s", nlpath, NL_IDX);
 	idx=fopen(nlp, "rb");
 	if(!idx) { xfree(nlent);return 1; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {

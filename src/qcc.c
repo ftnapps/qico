@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.13 2001/03/20 15:02:36 lev Exp $
+ * $Id: qcc.c,v 1.14 2001/03/20 16:54:41 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -221,7 +221,7 @@ char *timestr(time_t tim)
 	long int hr;
 	if(tim<0) tim=0;
 	hr=tim/3600;
-	sprintf(ts, "%02ld:%02ld:%02ld", hr, tim/60-hr*60, tim%60);
+	snprintf(ts, 10, "%02ld:%02ld:%02ld", hr, tim/60-hr*60, tim%60);
 	return ts;
 }
 
@@ -249,7 +249,7 @@ void freshpfile(int b, int e, pfile_t *s, int act)
 	wattrset(wmain, COLOR_PAIR(6)|A_BOLD);
 	mvwaddnstr(wmain, 5, b, s->fname, e-b);
 	wattrset(wmain, COLOR_PAIR(7)|A_BOLD);
-	sprintf(bf, " %d CPS", s->cps);
+	snprintf(bf, 20, " %d CPS", s->cps);
 	mvwaddstr(wmain, 4, e-strlen(bf), bf);
 	wattroff(wmain, A_BOLD);
 	mvwprintw(wmain, 6, b, "Current: %d of %d bytes",

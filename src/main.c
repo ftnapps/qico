@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.45 2001/03/20 15:02:36 lev Exp $
+ * $Id: main.c,v 1.46 2001/03/20 16:54:41 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -635,7 +635,7 @@ void getsysinfo()
 	struct utsname uts;
 	char tmp[MAX_STRING];
 	if(uname(&uts)) return;
-	sprintf(tmp, "%s-%s (%s)", uts.sysname, uts.release, uts.machine);
+	snprintf(tmp, MAX_STRING, "%s-%s (%s)", uts.sysname, uts.release, uts.machine);
 	osname=xstrdup(tmp);
 }
 
@@ -648,9 +648,9 @@ void answer_mode(int type)
 	rnode=xcalloc(1, sizeof(ninfo_t));
 	is_ip=!isatty(0);
 #if IP_D	
-	sprintf(ip_id, "ip%d", getpid());
+	snprintf(ip_id, 10, "ip%d", getpid());
 #else
-	sprintf(ip_id, "ipd");
+	xstrcpy(ip_id, "ipd", 10);
 #endif
 	rnode->tty=xstrdup(is_ip?"tcpip":basename(ttyname(0)));
 	rnode->options|=O_INB;
@@ -859,9 +859,9 @@ int main(int argc, char *argv[], char *envp[])
 		is_ip=1;
 		rnode=xcalloc(1,sizeof(ninfo_t));
 #if IP_D	
-		sprintf(ip_id, "ip%d", getpid());
+		snprintf(ip_id, 10, "ip%d", getpid());
 #else
-		sprintf(ip_id, "ipd");
+		xstrcpy(ip_id, "ipd", 10);
 #endif
 		rnode->tty="tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {

@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.4 2000/11/26 13:17:33 lev Exp $
+ * $Id: call.c,v 1.5 2001/03/20 16:54:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -20,7 +20,7 @@ int hangup()
 		rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
 					  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
 					  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
-					  cfgi(CFG_WAITRESET), NULL);
+					  cfgi(CFG_WAITRESET), NULL, 0);
 	return rc;
 }
 
@@ -34,7 +34,7 @@ int reset()
 		rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
 					  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
 					  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
-					  cfgi(CFG_WAITRESET), NULL);
+					  cfgi(CFG_WAITRESET), NULL, 0);
 	if(rc!=MC_OK) write_log("modem reset failed [%s]", mcs[rc]);
 	return rc;
 }
@@ -61,7 +61,7 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 				  cfgsl(CFG_MODEMCONNECT), cfgsl(CFG_MODEMERROR),
 				  cfgsl(CFG_MODEMBUSY), cfgs(CFG_MODEMRINGING),
 				  cfgi(CFG_MAXRINGS), cfgi(CFG_WAITCARRIER),
-				  conn);
+				  conn, MAX_STRING);
 	sline("Modem said: %s", conn);
 	if(rc!=MC_OK) {
 		write_log("got %s",conn);
