@@ -8,4 +8,5 @@ config.cache
 qico.spec
 stamp-h
 stamp-h.in
+*.tar.gz
 
