@@ -1,3 +1,23 @@
+2003-09-12 23:16  sisoft
+
+	* src/: binkp.c, session.c: fix ASO. tnx for Michael Kulinich for
+	patch.
+
+2003-09-12 22:24  sisoft
+
+	* src/binkp.c: some fixes in binkp.
+
+2003-09-09 01:17  sisoft
+
+	* src/: aso.c, bso.c, queue.c: fix ASO and BSO scan in one
+	directory. add fool-shield.
+
+2003-09-08 00:27  sisoft
+
+	* ChangeLog, Changes, FAQ, README, qico.conf.sample, src/qconf.x:
+	fix descriptions in config sample. add Q in faq. add keyword
+	`binkpopt`.
+
 2003-09-07 13:34  sisoft
 
 	* src/: aso.c, emsi.c, ftn.h, queue.c: fix ASO rescan. fix

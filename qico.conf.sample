@@ -94,7 +94,7 @@ address		1:2345/7845
 address 	111:222/44
 
 # domain name for BinkP	(required)				       (NEW!!!)
-domain		fidonet
+domain		fidonet.org
 
 ;if address 111:*/*
 ;    domain	leftnet
@@ -648,5 +648,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.7 2003/09/07 20:27:35 sisoft Exp $
+# $Id: qico.conf.sample,v 1.8 2003/09/13 15:31:48 sisoft Exp $
 ###############################################################################
