@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.37 2001/02/16 14:45:56 aaz Exp $
+ * $Id: main.c,v 1.38 2001/02/18 15:04:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -44,6 +44,7 @@ void usage(char *ex)
 		   "             N - normal call\n"
 		   "             I - call <i>mmidiatly (don't check node worktime)\n"
 		   "             A - call on <a>ny free port (don't check cancall setting)\n"
+		   "             You could specify line after <node>, lines are numbered from 1\n"
 		   "-n           compile nodelists\n"
 		   "\n", progname, version, ex);
 	exit(0);
@@ -702,7 +703,7 @@ void answer_mode(int type)
 	stopit(rc);
 }	
 
-int force_call(ftnaddr_t *fa, int flags)
+int force_call(ftnaddr_t *fa, int line, int flags)
 {
 	char *port=NULL;
 	slist_t *ports=NULL;
@@ -742,10 +743,24 @@ int force_call(ftnaddr_t *fa, int flags)
 		}
 	}
 
-	applysubst(rnode, psubsts);
-	if(!can_dial(rnode,(flags & 1) == 1)) {
-		fprintf(stderr,"We should not call to %s at this time\n",ftnaddrtoa(fa));
-		exit(0);
+	if(line) {
+		applysubst(rnode, psubsts);
+		while(rnode->hidnum && line != rnode->hidnum && applysubst(rnode, psubsts) && rnode->hidnum != 1);
+		if(line != rnode->hidnum) {
+			fprintf(stderr,"%s doesn't have line #%d\n",ftnaddrtoa(fa),line);
+			exit(0);
+		}
+		if(!can_dial(rnode,(flags & 1) == 1)) {
+			fprintf(stderr,"We should not call to %s #%d at this time\n",ftnaddrtoa(fa),line);
+			exit(0);
+		}
+	} else {
+		applysubst(rnode, psubsts);
+		while(!can_dial(rnode,(flags & 1) == 1) && rnode->hidnum && applysubst(rnode, psubsts) && rnode->hidnum != 1);
+		if (!can_dial(rnode,(flags & 1) == 1)) {
+			fprintf(stderr,"We should not call to %s at this time\n",ftnaddrtoa(fa));
+			exit(0);
+		}
 	}
 
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
@@ -766,7 +781,7 @@ int force_call(ftnaddr_t *fa, int flags)
 
 int main(int argc, char *argv[], char *envp[])
 {
-	int c, daemon=-1, rc, sesstype=SESSION_AUTO;
+	int c, daemon=-1, rc, sesstype=SESSION_AUTO, line = 0;
 	char *hostname=NULL;
 	ftnaddr_t fa;
 	int call_flags = 0;
@@ -844,12 +859,13 @@ int main(int argc, char *argv[], char *envp[])
 
 	if(!qipc_init()) write_log("can't create ipc key!");
 
-	if(hostname || daemon==12) 
+	if(hostname || daemon==12) {
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
-			write_log("%s: can't parse address '%s'!", argv[0],
-				argv[optind]);
+			write_log("%s: can't parse address '%s'!", argv[0], argv[optind]);
 			exit(1);
 		}
+		optind++;
+	}
 
 	if(hostname) {
 		is_ip=1;
@@ -878,6 +894,14 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	if(daemon==12) {
+		if(optind<argc) {
+			if(1!=sscanf(argv[optind],"%d",&line)) {
+				write_log("%s: can't parse line number '%s'!\n", argv[0], argv[optind]);
+				exit(1);
+			}
+		} else {
+			line = 0;
+		}
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
 			write_log("%s: can't init bso!", argv[0]);
 			exit(1);
@@ -886,7 +910,7 @@ int main(int argc, char *argv[], char *envp[])
 			signal(SIGINT, sigerr);
 			signal(SIGTERM, sigerr);
 			signal(SIGSEGV, sigerr);
-			rc=force_call(&fa,call_flags);
+			rc=force_call(&fa,line,call_flags);
 			bso_unlocknode(&fa);
 		} else rc=0;
 		if(rc&S_MASK) write_log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
