@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.18 2001/09/17 18:48:31 lev Exp $
+ * $Id: nodelist.c,v 1.19 2002/04/17 18:51:47 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -182,7 +182,7 @@ int is_listed(falist_t *addrs, char *nlpath, int needall)
 	falist_t *i;
 	for(i=addrs;i;i=i->next) {
 		if(needall) {
-			if(is_listed_one(&i->addr,nlpath)) return 0;
+			if(!is_listed_one(&i->addr,nlpath)) return 0;
 		} else {
 			if(is_listed_one(&i->addr,nlpath)) return 1;
 		}
