@@ -109,6 +109,9 @@ masterlog 	/var/log/ftn/qico-master.log
 # log file 
 log		/var/log/ftn/qico.log
 
+# Write to log estimated transfer time befor each file transfer
+estimatedtime no
+
 # nodelists path
 nlpath 		/var/spool/ftn/nl
 
@@ -456,4 +459,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.12 2001/01/08 19:37:05 lev Exp $
+# $Id: qico.conf.sample,v 1.13 2001/01/12 12:56:19 lev Exp $
