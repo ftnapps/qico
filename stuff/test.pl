@@ -1,4 +1,5 @@
 # test and info perl script for qicosi.
+# $Id: test.pl,v 1.2 2004/06/08 11:11:46 sisoft Exp $
 
 # available qico functions:
 #  sub wlog(string): write string to log.

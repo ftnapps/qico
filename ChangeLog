@@ -1,3 +1,16 @@
+2004-06-07 22:50  sisoft
+
+	* Changes, Makefile.am, README, autogen.sh, configure.in,
+	  qico.spec, debian/Makefile.am, debian/changelog, src/Makefile.am,
+	  src/binkp.c, src/daemon.c, src/log.c, src/main.c, src/perl.c,
+	  src/qconf.x, stuff/test.pl, stuff/freebsd/Makefile:
+
+	change version to 0.55si.
+	release 0.54si (cvs tag - stbl54).
+	add 'make deb' target for make debian packages.
+	begin write perl support code.
+	add configure option --enable-perl and keyword 'perlfile'.
+
 2004-06-05 10:49  sisoft
 
 	* Changes, qico.conf.sample, src/aso.c, src/config.c, src/daemon.c,
