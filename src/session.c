@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.20 2001/03/10 19:50:19 lev Exp $
+ * $Id: session.c,v 1.21 2001/03/17 10:20:03 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -20,6 +20,9 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 {
 	flist_t **t, *q;
 	int type;
+
+	DEBUG(('S',2,"Add file: '%s', sendas: '%s', kill: '%c', fromLO: %s, offset: %d",
+			loc,rem?rem:"(null)",kill,lo?"yes":"no",off));
 
 	type=whattype(rem);
 	if((checktimegaps(cfgs(CFG_MAILONLY)) ||
@@ -56,6 +59,8 @@ void floflist(flist_t **fl, char *flon)
 	slist_t *i;
 	struct stat sb;
 	int len;
+
+	DEBUG(('S',2,"Add LO '%s'",flon));
 
 	if(!stat(flon, &sb)) if((f=fopen(flon, "r+b"))) {
 		off=ftell(f);
@@ -104,6 +109,8 @@ int boxflist(flist_t **fl, char *path)
 {
 	DIR *d;char *p;struct dirent *de;struct stat sb;
 	
+	DEBUG(('S',2,"Add filebox '%s'",path));
+
 	d=opendir(path);
 	if(!d) return 0;
 	else {
@@ -129,7 +136,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	struct stat sb;
 	faslist_t *j;
 
-	DEBUG(('S',1,"mkflist %s", ftnaddrtoa(fa)));
+	DEBUG(('S',1,"Make filelist for %s", ftnaddrtoa(fa)));
 	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			sprintf(str, "%08lx.pkt", sequencer());
@@ -163,6 +170,8 @@ void flexecute(flist_t *fl)
 	char cmt='~', str[MAX_STRING];
 	FILE *f;int rem;
 
+	DEBUG(('S',2,"Execute file: '%s', sendas: '%s', kill: '%c' fromLO: %s, offset: %d",
+			fl->tosend,fl->sendas?fl->sendas:"(null)",fl->kill,fl->lo?"yes":"no",fl->loff));
 	if(fl->lo) {
 		if(fl->loff<0) {
 			fseek(fl->lo, 0L, SEEK_SET);
@@ -202,7 +211,10 @@ void flexecute(flist_t *fl)
 void flkill(flist_t **l, int rc)
 {
 	flist_t *t;
+	DEBUG(('S',1,"Kill filelist"));
 	while(*l) {
+		DEBUG(('S',2,"Kill file: '%s', sendas: '%s', kill: '%c', type: %d, fromLO: %s, offset: %d",
+			(*l)->tosend,(*l)->sendas?(*l)->sendas:"(null)",(*l)->kill,(*l)->type,(*l)->lo?"yes":"no",(*l)->loff));
 		if((*l)->lo && (*l)->loff<0) {
 			fseek((*l)->lo, 0L, SEEK_END);
 			fclose((*l)->lo);
