@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.5 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: daemon.c,v 1.6 2004/01/18 21:13:42 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_FNOTIFY
@@ -797,7 +797,7 @@ nlkil:				is_ip=0;bink=0;
 			} 
 		}
 		t=time(NULL);
-		while((time(NULL)-t)<1) {
+		while(do_rescan!=1&&(time(NULL)-t)<1) {
 			if((time(NULL)-t)<0)t=time(NULL);
 			FD_ZERO(&rfds);
 			FD_SET(lins_sock,&rfds);
@@ -807,7 +807,7 @@ nlkil:				is_ip=0;bink=0;
 				rc=MAX(rc,uis->sock);
 				FD_SET(uis->sock,&rfds);
 			}
-			tv.tv_sec=0;tv.tv_usec=5000;
+			tv.tv_sec=0;tv.tv_usec=500000;
 			rc=select(rc+1,&rfds,NULL,NULL,&tv);
 			if(rc<0&&errno!=EINTR)DEBUG(('I',1,"select: error: %s",strerror(errno)));
 			if(rc>0) {

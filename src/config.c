@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: config.c,v 1.4 2004/01/18 21:13:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -67,7 +67,7 @@ static int getfasl(faslist_t **to, char *from)
 
 static int getyesno(int *to, char *from)
 {
-	if(tolower(*from)=='y' || *from=='1' || *from=='t') *to=1;
+	if(tolower(*from)=='y' || *from=='1' || tolower(*from)=='t') *to=1;
 	else *to=0;
 	return 1;
 }
@@ -182,12 +182,12 @@ int parseconfig(char *cfgname)
 	int i,line=0,rc=1;
 	slist_t *cc;
 	cfgitem_t *ci;
-
 	f=fopen(cfgname, "rt");
 	if(!f) {
 		fprintf(stderr,"can't open config '%s'\n",cfgname);
 		return 0;
 	}
+	curcond=NULL;
 	while(fgets(s, MAX_STRING, f)) {
 		line++;
 		p=s;strtr(p, '\t', ' ');
@@ -202,21 +202,23 @@ int parseconfig(char *cfgname)
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--) *k=0;
 			i=0;
 			if(!strcasecmp(p, "include")) {
-				if(!parseconfig(t)) {
-					write_log("%d: was errors parsing included file %s",
-							line, p);
+				if(!strncmp(cfgname,t,MAX_STRING)) {
+					write_log("%d: include itself -> infinity loop",line);
+					rc=0;
+				} else if(!parseconfig(t)) {
+					write_log("%d: was errors parsing included file %s",line, p);
 					rc=0;					
 				}
 			} else if(!strcasecmp(p, "if"))	{
+				if(curcond)write_log("%d: warn: 'if' without 'endif' for previous 'if'!",line);
 				if(flagexp(t)<0) {
-					write_log("%d: can't parse expression '%s'",
-							line, t);
+					write_log("%d: can't parse expression '%s'",line, t);
 					rc=0;
 				} else {
 					cc=slist_add(&condlist, t);
 					curcond=cc->str;
 				}
-			} else if(!strcasecmp(p, "endif"))	{
+			} else if(!strcasecmp(p, "endif")) {
 				if(!curcond) {
 					write_log("%d: misplaced 'endif' without 'if'!", line);
 					rc=0;
@@ -249,6 +251,7 @@ int parseconfig(char *cfgname)
 		}
 	}
 	fclose(f);
+	if(curcond)write_log("warn: last 'if' expression unclosed!");
 	return rc;
 }
 
