@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.9 2000/11/26 13:17:33 lev Exp $
+ * $Id: emsi.c,v 1.10 2001/01/03 15:02:35 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -353,7 +353,7 @@ int emsi_init(int mode)
 
 	if(mode) {
 		t1=t_set(HS_TIMEOUT);
-		PUTCHAR('\r');  
+		PUTCHAR('\r');
 		do {
 /* 			PUTCHAR('\r');   */
 			ch=HASDATA(0);
