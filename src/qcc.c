@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.20 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: qcc.c,v 1.21 2004/02/07 20:37:18 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -31,7 +31,6 @@
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
-
 #ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -39,7 +38,6 @@
 #include <curses.h>
 #endif
 #endif
-
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -50,7 +48,6 @@
 #include <time.h>
 #endif
 #endif
-
 #ifndef GWINSZ_IN_SYS_IOCTL
 #include <termios.h>
 #endif
@@ -64,17 +61,19 @@
 /* number of lines for queue. (up window of screen) */
 #define MH 10
 /* max line height (for chat) */
-#define CHH 160
+#define CHH 180
 /* max number of slots */
-#define MAX_SLOTS 9
+#define MAX_SLOTS 16
 /* max scroll lines for log */
 #define LGMAX 255
 /* max input line history */
-#define HSTMAX 48
+#define HSTMAX 50
 /* max shown loglines */
 #define LOGSIZE (LINES-MH-4)
 /* max shown columns */
 #define COL (COLS-2)
+/* set to 1 for debug */
+#define QDEBUG 0
 
 #define SAFE(s) s?s:nothing
 #define SIZEC(x) (((x)<1024)?'b':'k')
@@ -117,14 +116,12 @@ typedef struct _qslot_t {
 	struct _qslot_t *next,*prev;
 } qslot_t;
 
-void sigwinch(int sig);
-void sighup(int sig);
-void xrcvtimeout(int sig);
+static RETSIGTYPE sigwinch(int sig);
 extern time_t gmtoff(time_t tt,int mode);
-int getmessages(char *bbx);
+static int getmessages(char *bbx);
 
-char *nothing="";
-char *hm[]={
+static char *nothing="";
+static char *hm[]={
 	"F1",", ",
 	"R","escan, ",
 	"K","ill, ",
@@ -137,7 +134,7 @@ char *hm[]={
 	"Q","uit",
 NULL
 };
-char *hl[]={
+static char *hl[]={
  	"H","angup, ",
 	"\03X","\03-skip file, ",
 	"\03R","\03efuse file, ",
@@ -147,14 +144,14 @@ char *hl[]={
 	"Q","uit",
 NULL
 };
-char *hc[]={
+static char *hc[]={
  	"ESC",";","F8","-close, ",
 	"F2","-send string, ",
 	"F4","-send bell, ",
 	"Tab","-change window",
 NULL
 };
-char *hi[]={
+static char *hi[]={
 	"\01Ins","-insert mode, ",
 	"\02Ins","-overwrite mode, ",
 	"Up","/","Dn",", ",
@@ -165,7 +162,7 @@ char *hi[]={
 	"Enter",
 NULL
 };
-char *infostrs[]={
+static char *infostrs[]={
 	"Address",
 	"Station",
 	"  Place",
@@ -175,7 +172,7 @@ char *infostrs[]={
 	"  Speed",
 NULL
 };
-char *help[]={
+static char *help[]={
 	"\01* qico control center %s, sisoft\\\\trg edition. help about keys:",
 	"\01 All windows: F10 - quit, Tab/Right - next and Left - previous window",
 	"\01 Main window:                  Line window:                Chat window:",
@@ -191,26 +188,25 @@ char *help[]={
 NULL
 };
 
-slot_t *slots[MAX_SLOTS];
-qslot_t *queue;
-int currslot,allslots=-9,q_pos,q_first,q_max,crey=0,crex=0;
-int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
+static slot_t *slots[MAX_SLOTS];
+static qslot_t *queue;
+static int currslot,allslots=-9,q_pos,q_first,q_max,crey=0,crex=0;
+static int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
 
-char *m_header=NULL;
-char *m_status=NULL;
+static char *m_header=NULL,*m_status=NULL;
 
-WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
+static WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 
-int sock=-1;
-int oldcurr=-1;
+static int sock=-1;
+static int oldcurr=-1;
 
-int hstlast=0;
-char *hst[HSTMAX+1],*myaddr;
+static int hstlast=0;
+static char *hst[HSTMAX+1],*myaddr;
 
-char qflgs[Q_MAXBIT]=Q_CHARS;
-int  qclrs[Q_MAXBIT]=Q_COLORS;
+static char qflgs[Q_MAXBIT]=Q_CHARS;
+static int  qclrs[Q_MAXBIT]=Q_COLORS;
 
-void usage(char *ex)
+static void usage(char *ex)
 {
 	printf("usage: %s [options]\n"
                "-P port      connect to <port> (default: qicoui or %u)\n"
@@ -222,26 +218,26 @@ void usage(char *ex)
 }
 
 #ifndef CURS_HAVE_MVVLINE
-void mvvline(int y,int x,int ch,int n)
+static void mvvline(int y,int x,int ch,int n)
 {
 	move(y,x);
 	vline(ch,n);
 }
 
-void mvhline(int y,int x,int ch,int n)
+static void mvhline(int y,int x,int ch,int n)
 {
 	move(y,x);
 	hline(ch,n);
 }
 
-void mvwhline(WINDOW *win,int y,int x,int ch,int n)
+static void mvwhline(WINDOW *win,int y,int x,int ch,int n)
 {
 	wmove(win,y,x);
 	wvline(win,ch,n);
 }
 #endif
 
-void draw_screen()
+static void draw_screen()
 {
 	attrset(COLOR_PAIR(2));
 	bkgd(COLOR_PAIR(2)|' ');
@@ -274,7 +270,7 @@ void draw_screen()
 	wrefresh(whelp);
 }
 
-void initscreen()
+static void initscreen()
 {
 	initscr();start_color();
 	cbreak();noecho();nonl();
@@ -299,7 +295,7 @@ void initscreen()
  	signal(SIGWINCH,sigwinch);
 }
 
-void donescreen()
+static void donescreen()
 {
 	int i;
 	for(i=0;i<allslots;i++)delwin(slots[i]->wlog);
@@ -313,7 +309,7 @@ void donescreen()
 	endwin();
 }
 
-void freshhelp()
+static void freshhelp()
 {
 	int i,k=0;
 	char **hlp=(edm?hi:((currslot<0)?hm:(slots[currslot]->chat?hc:hl)));
@@ -332,7 +328,7 @@ void freshhelp()
 	mvwprintw(whelp,0,COL-3-strlen(version),"qcc%s",version);
 }
 
-void freshhdr()
+static void freshhdr()
 {
 	werase(whdr);
 	wattron(whdr,COLOR_PAIR(14));
@@ -344,13 +340,13 @@ void freshhdr()
 	waddstr(whdr,currslot>=0?slots[currslot]->header:m_header);
 }
 
-void freshstatus()
+static void freshstatus()
 {
 	werase(wstat);
 	waddstr(wstat,currslot>=0?slots[currslot]->status:m_status);
 }
 
-char *timestr(time_t tim)
+static char *timestr(time_t tim)
 {
 	static char ts[10];
 	long int hr;
@@ -360,13 +356,13 @@ char *timestr(time_t tim)
 	return ts;
 }
 
-void bar(int o,int t,int l)
+static void bar(int o,int t,int l)
 {
 	int i,k=t/l,x=0;
 	for(i=0;i<l;i++,x+=k)waddch(wmain,(k<o-x+1)?ACS_BLOCK:ACS_CKBOARD);
 }
 
-void freshpfile(int b,int e,pfile_t *s,int act)
+static void freshpfile(int b,int e,pfile_t *s,int act)
 {
 	char bf[20];
 	if(!s->ftot)return;
@@ -392,7 +388,7 @@ void freshpfile(int b,int e,pfile_t *s,int act)
 	waddstr(wmain,timestr((s->ttot-s->toff-s->foff)/s->cps));
 }
 
-void freshslot()
+static void freshslot()
 {
 	werase(wmain);
 	if(slots[currslot]->chat) {
@@ -425,14 +421,14 @@ void freshslot()
 	}
 }
 
-char *sscat(char *s,int size)
+static char *sscat(char *s,int size)
 {
 	if(size<1024)sprintf(s+strlen(s)," %6d",size);
 	    else sprintf(s+strlen(s),"%6dK",size/1024);
 	return s;
 }
 
-void mylog(char *str,...)
+static void mylog(char *str,...)
 {
 	char s[MAX_STRING],*mon[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 	struct tm *tt;int y,x;
@@ -456,7 +452,7 @@ void mylog(char *str,...)
 	if(currslot<0)wrefresh(wlog);
 }
 
-void logit(char *str,WINDOW *w,int s)
+static void logit(char *str,WINDOW *w,int s)
 {
 	char bbf[128];
 	int len,y,x,cu=1;
@@ -499,7 +495,7 @@ void logit(char *str,WINDOW *w,int s)
 	}
 }
 
-qslot_t *addqueue(qslot_t **l)
+static qslot_t *addqueue(qslot_t **l)
 {
 	qslot_t **t,*p=NULL;
 	for(t=l;*t;t=&((*t)->next))p=*t;
@@ -510,7 +506,7 @@ qslot_t *addqueue(qslot_t **l)
 	return *t;
 }
 
-void killqueue(qslot_t **l)
+static void killqueue(qslot_t **l)
 {
 	qslot_t *t;
 	while(*l) {
@@ -521,7 +517,7 @@ void killqueue(qslot_t **l)
 	}
 }
 
-void freshqueue()
+static void freshqueue()
 {
 	int i,k,l;
 	char str[MAX_STRING];
@@ -554,7 +550,7 @@ void freshqueue()
 	}
 }
 
-void freshall()
+static void freshall()
 {
 	freshhdr();wnoutrefresh(whdr);
 	freshstatus();wnoutrefresh(wstat);
@@ -566,19 +562,19 @@ void freshall()
 	wrefresh((currslot<0)?wlog:slots[currslot]->wlog);
 }
 
-RETSIGTYPE sigwinch(int sig)
+static RETSIGTYPE sigwinch(int sig)
 {
 	sizechanged=1;
  	signal(SIGWINCH,sigwinch);
 }
 
-RETSIGTYPE sighup(int sig)
+static RETSIGTYPE sighup(int sig)
 {
 	quitflag=1;
 	signal(sig,sighup);
 }
 
-char *strefresh(char **what,char *to)
+static char *strefresh(char **what,char *to)
 {
 	if(*what!=NULL)free(*what);
 	*what=malloc(strlen(to)+1);
@@ -586,14 +582,14 @@ char *strefresh(char **what,char *to)
 	return *what;
 }
 
-int findslot(char *slt)
+static int findslot(char *slt)
 {
 	int i;
 	for(i=0;i<allslots;i++)if(!strcmp(slots[i]->tty,slt))return i;
 	return -1;
 }
 
-int createslot(char *slt,char d)
+static int createslot(char *slt,char d)
 {
 	slots[allslots]=malloc(sizeof(slot_t));
 	memset(slots[allslots],0,sizeof(slot_t));
@@ -610,7 +606,7 @@ int createslot(char *slt,char d)
 	return allslots++;
 }
 
-void delslot(int slt)
+static void delslot(int slt)
 {
 	allslots--;
 	oldcurr=currslot;
@@ -626,7 +622,7 @@ void delslot(int slt)
 	freshall();
 }
 
-int inputstr(char *str,char *name,int mode)
+static int inputstr(char *str,char *name,int mode)
 {
 	WINDOW *iw;
 	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms;
@@ -837,7 +833,7 @@ int inputstr(char *str,char *name,int mode)
 	return(*(char*)str);
 }
 
-char *getnode(char *name)
+static char *getnode(char *name)
 {
 	int i,flv;
 	char buf[MAX_STRING],*nm;
@@ -867,27 +863,34 @@ rei:	zone=strtoul(myaddr,&nm,10);
 			mylog("Error: input: '%s', treat as '%s', but ignore",buf,ou);
 			*(int*)ou=0;
 		}
+#if QDEBUG==1
+		else mylog("input '%s', treat as '%s'",buf,ou);
+#endif
 	}
 	return ou;
 }
 
-void xcmd(char *buf,int cmd,int len)
+static void xcmd(char *buf,int cmd,int len)
 {
 	STORE16(buf,0);
 	buf[2]=cmd;
-	/*mylog("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
+#if QDEBUG==1
+	mylog("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
+#endif
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
 }
 
-void xcmdslot(char *buf,int cmd,int len)
+static void xcmdslot(char *buf,int cmd,int len)
 {
 	STORE16(buf,slots[currslot]->id);
 	buf[2]=cmd;
-	/*mylog("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
+#if QDEBUG==1
+	mylog("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
+#endif
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
 }
 
-void printinfo(char *addr,int what,char *buf)
+static void printinfo(char *addr,int what,char *buf)
 {
 	int rc;char *p,*u,*t;
 	time_t tm=time(NULL);
@@ -917,7 +920,7 @@ void printinfo(char *addr,int what,char *buf)
 	}
 }
 
-int getmessages(char *bbx)
+static int getmessages(char *bbx)
 {
 	unsigned short id;
 	int len,type=0,rc;
@@ -928,7 +931,9 @@ int getmessages(char *bbx)
 	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
 	if(!rc)return -1;
 	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
-	/*if(rc>0)mylog("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));*/
+#if QDEBUG==1
+	if(rc>0)mylog("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));
+#endif
 	if(bbx&&rc>=3&&buf[2]<8) {
 		memcpy(bbx,buf,rc);
 		return 0;
@@ -945,7 +950,7 @@ int getmessages(char *bbx)
 			else if(!strcmp(buf+3,"IPline"))snprintf(buf+3,7,"IP%04x",id);
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
-				if(rc>=0&&allslots<9&&buf[3]=='i'&&buf[4]=='p') {
+				if(rc>=0&&allslots<MAX_SLOTS&&buf[3]=='i'&&buf[4]=='p') {
 					xstrcpy(slots[rc]->tty,"ipline",8);
 					freshhdr();wrefresh(whdr);
 					slots[rc]->session=0;
@@ -964,10 +969,11 @@ int getmessages(char *bbx)
 					    }
 					if(rc>=allslots)rc=-1;
 				}
-				if(rc<0)rc=createslot(buf+3,*data);
+				if(rc<0&&allslots<MAX_SLOTS)rc=createslot(buf+3,*data);
 				freshhdr();wrefresh(whdr);
 			}
 			if(rc>=0)slots[rc]->id=id;
+			    else type=-1;
 			if(type==QC_SLINE) {
 				strefresh(&slots[rc]->status,(char*)data);
 				freshstatus();wrefresh(wstat);
@@ -1243,9 +1249,7 @@ int main(int argc,char **argv)
 		tv.tv_sec=1;
 		tv.tv_usec=0;
 		rc=select(sock+1,&rfds,NULL,NULL,&tv);
-		if(rc<0) {
-			mylog("err in select: %s",strerror(errno));
-		}
+		if(rc<0)mylog("err in select: %s",strerror(errno));
 		if(rc>0&&FD_ISSET(sock,&rfds))do {
 			ch=getmessages(NULL);
 			if(ch<0)quitflag=1;
@@ -1409,10 +1413,7 @@ int main(int argc,char **argv)
 				bf=buf+len+4;
 				*bf++=(ch=='S')?'N':ch;*bf++=0;
 				if(inputstr(bf,"Full file name: ",0)) {
-					if(access(bf,R_OK)==-1) {
-						mylog("Can't access this file. aborted.");
-						break;
-					}
+					if(access(bf,R_OK)==-1)mylog("Warn: can't access file '%s'!",bf);
 					while(*bf++)if(*bf==' ')*bf='?';
 					xcmd(buf,QR_SEND,7+len+strlen(buf+len+6));
 				}

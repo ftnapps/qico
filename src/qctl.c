@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.10 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: qctl.c,v 1.11 2004/02/07 20:37:18 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -44,10 +44,10 @@
 
 extern time_t gmtoff(time_t tt,int mode);
 
-int sock=-1;
-char qflgs[Q_MAXBIT]=Q_CHARS;
+static int sock=-1;
+static char qflgs[Q_MAXBIT]=Q_CHARS;
 
-void usage(char *ex)
+static void usage(char *ex)
 {
 	printf("usage: %s [<options>] [<port>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n"
@@ -73,13 +73,13 @@ void usage(char *ex)
 	exit(0);
 }
 
-RETSIGTYPE timeout(int sig)
+static RETSIGTYPE timeout(int sig)
 {
 	fprintf(stderr,"got timeout\n");
 	exit(1);
 }
 
-int getanswer()
+static int getanswer()
 {
 	char buf[MSG_BUFFER];
 	int rc;
@@ -98,7 +98,7 @@ int getanswer()
 	return buf[2];
 }
 
-void print_worktime(char *flags)
+static void print_worktime(char *flags)
 {
 	char *p;
 	time_t tm=time(NULL);
@@ -119,7 +119,7 @@ void print_worktime(char *flags)
 	}
 }
 
-char *infostrs[]={
+static char *infostrs[]={
 	"Address: %s\n",
 	"Station: %s\n",
 	"  Place: %s\n",
@@ -129,7 +129,7 @@ char *infostrs[]={
 	"  Speed: %s\n",
 };
 
-int getnodeinfo()
+static int getnodeinfo()
 {
 	char buf[MSG_BUFFER], *p, *u;
 	int rc;
@@ -151,7 +151,7 @@ int getnodeinfo()
 	return buf[2];
 }
 
-int getqueueinfo()
+static int getqueueinfo()
 {
 	char buf[MSG_BUFFER], *p;
 	char cflags[Q_MAXBIT+1];

@@ -1,7 +1,14 @@
 2004-02-07 00:52  sisoft
 
 	* Changes, Makefile.am, cvs_com, debian/.cvsignore,
-	debian/Makefile.am:
+	debian/Makefile.am, src/binkp.c, src/call.c, src/clserv.c,
+	src/daemon.c, src/defs.h, src/emsi.c, src/flagexp.y, src/ftn.c,
+	src/headers.h, src/hydra.c, src/hydra.h, src/janus.c, src/log.c,
+	src/ls_zglue.c, src/ls_zmodem.c, src/ls_zreceive.c, src/ls_zsend.c,
+	src/mailer.h, src/main.c, src/md5.c, src/protfm.c, src/qcc.c,
+	src/qcconst.h, src/qctl.c, src/qipc.c, src/qipc.h, src/queue.c,
+	src/replace.h, src/session.c, src/tcp.c, src/tools.c, src/tools.h,
+	src/tty.c, src/tty.h, src/xstr.c, stuff/tossing:
 
 	correct includes.
 	fix crash on outoging calls over ip.
