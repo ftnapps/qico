@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.11 2001/04/03 20:27:21 lev Exp $
+ * $Id: mailer.h,v 1.12 2002/04/10 12:25:56 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -19,8 +19,10 @@
 #define P_HYDRA		0x0010
 #define P_JANUS		0x0020
 #define P_TCPP		0x0040
-#define P_HYDRA8	0x0080
-#define P_HYDRA16	0x0100
+#ifdef HYDRA8K16K
+#	define P_HYDRA8		0x0080
+#	define P_HYDRA16	0x0100
+#endif/*HYDRA8K16K*/
 #define P_MASK		0x01FF
 
 #define S_OK      0

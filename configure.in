@@ -201,7 +201,7 @@ esac
 
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
-AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
+AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound], , enable_aso=no)
 if test "${enable_aso}x" != "nox"; then
 	AC_MSG_RESULT(aso)
 	AC_DEFINE(AMIGA4D)
@@ -209,8 +209,18 @@ else
 	AC_MSG_RESULT(bso)
 fi
 
+dnl HYDRA8/16K support (disable by default)
+AC_MSG_CHECKING([for Hydra8k/16k support])
+AC_ARG_ENABLE(hydra8k, [  --enable-hydra8k        enable buggy Hydra8k/16k protocols support], , enable_hydra8k=no)
+if test "${enable_hydra8k}x" != "nox"; then
+	AC_MSG_RESULT(yes)
+	AC_DEFINE(HYDRA8K16K)
+else
+	AC_MSG_RESULT(no)
+fi
+
 dnl qcc support
-AC_ARG_ENABLE(qcc, [  --disable-qcc           disable building of qcc and its support ], , enable_qcc=yes)
+AC_ARG_ENABLE(qcc, [  --disable-qcc           disable building of qcc and its support], , enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
 	AC_CHECK_LIB(ncurses, main, AC_DEFINE(HAVE_LIBNCURSES)
 	CURSES=ncurses, AC_CHECK_LIB(curses, main,AC_DEFINE(HAVE_LIBCURSES)

@@ -336,18 +336,19 @@ zmh		Tcd
 # H - Hydra     (standard hydra with maximal block size of 2048 bytes)
 # 8 - Hydra-8k  (enhanced to use blocks up to 8192 bytes, emsi code - HY8)
 # 6 - Hydra-16k (16k blocks, emsi code - H16)
-# NB: DirZap available only with new ZModem inplementation.
+# NB: Hydra-8K mand Hydra-16K could block and should be enabled at compilation
+#     time.
 protorder	JHDZ1
 
 # it's better to use janus on tcp/ip
 if tcpip
    protorder	JDZ1
 # it's not recommended to use these extensions on lower speeds!
-if connect >= 14400
-   protorder	8HJDZ1
-if connect >= 28800
-   protorder	68HJDZ1
-endif
+#if connect >= 14400
+#   protorder	8HJDZ1
+#if connect >= 28800
+#   protorder	68HJDZ1
+#endif
 
 # Send window for ZModem (in bytes). 0 -- streamed mode.
 ztxwin          0
@@ -508,4 +509,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.22 2001/07/15 07:46:19 lev Exp $
+# $Id: qico.conf.sample,v 1.23 2002/04/10 12:25:56 lev Exp $
