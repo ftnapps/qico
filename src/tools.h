@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.15 2004/06/09 22:25:50 sisoft Exp $ */
+/* $Id: tools.h,v 1.16 2004/06/22 14:26:21 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -27,7 +27,7 @@ typedef struct _cfgitem_t {
 
 typedef struct {
 	char *keyword;
-	int type,required,found;
+	int type,flags;
 	cfgitem_t *items;
 	char *def_val;
 } cfgstr_t;
@@ -104,5 +104,7 @@ extern RETSIGTYPE sigerr(int sig);
 extern void stopit(int rc);
 /* daemon.c */
 extern void daemon_mode();
+/* flagexp.y */
+extern int flagexp(slist_t *expr,int strict);
 
 #endif

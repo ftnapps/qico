@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.19 2004/06/22 08:28:30 sisoft Exp $
+ * $Id: flagexp.y,v 1.20 2004/06/22 14:26:21 sisoft Exp $
  **********************************************************/
 %{
 #include "headers.h"
@@ -331,7 +331,7 @@ int flagexp(slist_t *expr,int strict)
 			return(strict?-1:0);
 		}
 #ifdef NEED_DEBUG
-		if(!strict)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
+		if(strict!=1)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
 #endif
 		xfree(p);
 		if(!flxpres)return 0;

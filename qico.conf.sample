@@ -1,7 +1,7 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.55si $Id: qico.conf.sample,v 1.39 2004/06/16 03:42:20 sisoft Exp $
+#for 0.55si $Id: qico.conf.sample,v 1.40 2004/06/22 14:26:21 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
@@ -15,6 +15,7 @@
 #
 # keywords, marked as '(required)' must be defined, but keywords, marked
 # as '(required for modem)' required only for non-ip calls (ex. modem).
+# keywords, marked as '(nonif)' can't be defined inside if-expressions.
 #
 ###############################################################################
 #
@@ -123,7 +124,7 @@ domain		fidonet.org
 # when become daemon or is called for answer. It is could be directory,
 # writable for qico's owner, for successful core generation in accident.
 # qico will not change work directory, if this keyword is missed or empty
-#
+# (nonif)
 ;rootdir	/var/spool/ftn
 
 # log variables can be:
@@ -134,7 +135,7 @@ domain		fidonet.org
 #    Priority level could be omitted, default is LOG_INFO:
 #    ex.: log $local2
 
-# daemon's log ("master" log) (required)
+# daemon's log ("master" log) (required)(nonif)
 masterlog 	/var/log/ftn/qico-master.log
 ;masterlog	$local3:info
 
@@ -173,10 +174,11 @@ loglevels	C0,E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0,P0
 # Write to log estimated transfer time before each file transfer
 estimatedtime	no
 
-# nodelists path (required)
+# nodelists path (required)(nonif)
 nlpath 		/var/spool/ftn/nl
 
-# node- and pointlists (zone can be specified, if omitted in list) (required)
+# node- and pointlists (zone can be specified, if omitted in list)
+# (required)(nonif)
 ;nodelist 	NET5030.999 2
 ;nodelist 	PNT5030.999
 nodelist 	nodelist.999
@@ -184,11 +186,11 @@ nodelist 	nodelist.999
 # Check for `listed' all addresses of remote or only one (any).
 needalllisted no
 
-# ASO and(or) BSO outbound path (required)
+# ASO and(or) BSO outbound path (required)(nonif)
 asooutbound 	/var/spool/ftn/outb
 ;bsooutbound 	/var/spool/ftn/outb
 
-# status outbound (path to .qst files). default, same as `outbound'
+# status outbound (path to .qst files). default, same as `outbound' (nonif)
 qstoutbound	/var/spool/ftn/qstoutb
 
 # unprotected inbound (required)
@@ -220,7 +222,7 @@ emsilog		/var/log/ftn/emsi.log
 # chat log file
 chatlog		/var/log/ftn/chat.log
 
-# pid file (required)
+# pid file (required)(nonif)
 pidfile		/var/run/qico.pid
 
 # lock directory path (required for modem)
@@ -395,7 +397,7 @@ flags		Linux, qico-si team
 ;osname		Windows95
 
 # client/server port. default is 60178.
-# may use number or service from /etc/services.
+# can be use number or service from /etc/services. (nonif)
 ;server		qicoui
 
 # password for clients auth.
@@ -678,7 +680,7 @@ mapin	lkr
 # executed before dialing or connecting to remote.
 ;runoncall	/usr/local/bin/oncall
 
-# perl script file with hooks.
+# perl script file with hooks. (nonif)
 ;perlfile	/etc/ftn/qico.pl
 
 ###############################################################################
