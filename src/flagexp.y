@@ -2,7 +2,7 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.7 2001/05/21 20:01:10 lev Exp $
+ * $Id: flagexp.y,v 1.8 2001/07/12 21:40:24 lev Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -184,13 +184,13 @@ int flagexp(char *expr)
 		free(p);
 		return 0;
 	}
-	DEBUG(('Y',1,"checkexpression: result is \"s\"",flxpres?"true":"false"));
+	DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
 	free(p);
 	return flxpres;
 }
 
 static int yyerror(char *s)
 {
-	DEBUG(('Y',1,"parser error: \"s\"",s));
+	DEBUG(('Y',1,"parser error: \"%s\"",s));
 	return 0;
 }
