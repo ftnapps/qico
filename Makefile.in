@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.10 2001/01/12 19:16:06 lev Exp $
+# $Id: Makefile.in,v 1.11 2001/01/13 20:15:18 lev Exp $
 #
 
 prefix  = @prefix@
@@ -40,11 +40,11 @@ full-clean: clean
 install: install-bin
 install-strip: install-bin-strip
 
-install-bin: autogenerate
+install-bin:
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
 	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install) || exit; done;
-install-bin-strip: autogenerate install-docs
+install-bin-strip: install-docs
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
 	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install-strip) || exit; done;
