@@ -1,11 +1,11 @@
 /**********************************************************
- * File: xstr.c
- * Created at Tue Mar 20 22:37:42 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xstr.c,v 1.3 2002/03/16 15:54:20 lev Exp $
+ * safety work with strings
+ * $Id: xstr.c,v 1.3 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
-#include <stdlib.h>
 #include <config.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 
 #ifndef HAVE_STRLCPY
 char *xstrcpy(char *dst, char *src, size_t size)

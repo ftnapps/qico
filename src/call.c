@@ -1,8 +1,9 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.6 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: call.c,v 1.7 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#include "qipc.h"
 #include "tty.h"
 
 static char *mcs[]={"ok","fail","error","busy","no dialtone","ring"};

@@ -1,9 +1,9 @@
-/* $Id: tty.h,v 1.3 2004/02/05 19:51:17 sisoft Exp $ */
+/* $Id: tty.h,v 1.4 2004/02/06 21:54:46 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
-#include "ftn.h"
-#include <time.h>
+#ifdef HAVE_TERMIOS_H
 #include <termios.h>
+#endif
 
 #define MODEM_OK 0
 #define MODEM_PORTLOCKED -1
@@ -31,7 +31,7 @@ extern char *tty_errs[];
 extern char *tty_port;
 extern int tty_hangedup;
 extern int calling;
-extern void tty_sighup(int sig);
+extern RETSIGTYPE tty_sighup(int sig);
 extern int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to);
 extern int tty_isfree(char *port, char *nodial);
 extern char *tty_findport(slist_t *ports, char *nodial);

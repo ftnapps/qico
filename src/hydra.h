@@ -4,10 +4,9 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.h,v 1.5 2004/02/05 19:51:17 sisoft Exp $ */
+/* $Id: hydra.h,v 1.6 2004/02/06 21:54:46 sisoft Exp $ */
 #ifndef __HYDRA_H__
 #define __HYDRA_H__
-#include "mailer.h"
 
 enum boolean { false, true };
 typedef int boolean;

@@ -1,19 +1,16 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.6 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: flagexp.y,v 1.7 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR HOST
 %{
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "headers.h"
+#include <fnmatch.h>
 #ifdef YYTEXT_POINTER
 extern char *yytext;
 #else
 extern char yytext[];
 #endif
-#include <fnmatch.h>
-#include "headers.h"
 
 #define YY_NO_UNPUT
 #undef ECHO

@@ -4,18 +4,16 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.6 2004/02/05 19:51:17 sisoft Exp $ */
+/* $Id: hydra.c,v 1.7 2004/02/06 21:54:46 sisoft Exp $ */
 #include "headers.h"
-#include <stdarg.h>
-#include "defs.h"
 #include "hydra.h"
 #include "byteop.h"
-
-#define SLONG 4 /* sizeof(long) */
-#define SWORD 2 /* sizeof(word) */
+#include "defs.h"
+#include "qipc.h"
+#include "crc.h"
+#include "tty.h"
 
 #ifdef NEED_DEBUG
-
 static char *hstates[]={
 "HTX_DONE",
 "HTX_START",
@@ -50,7 +48,6 @@ static char *hpkts[]={
 "HPKT_DEVDATA",
 "HPKT_DEVDACK"
 };
-
 #endif
 
 static int hydra_modifier;
@@ -550,7 +547,7 @@ static int rxpkt (void)
 						break;
 					}
 					n = h_crc16test(crc16block((char *) rxbuf,rxpktlen));
-					rxpktlen -= (int) SWORD;  /* remove CRC-16 */
+					rxpktlen -= 2;  /* remove CRC-16 */
 				}
 
 				rxpktlen--;                     /* remove type  */

@@ -1,14 +1,14 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.13 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: qipc.c,v 1.14 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-#include <stdarg.h>
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif
 #include "byteop.h"
 #include "clserv.h"
+#include "qipc.h"
 
 void qsendpkt(char what,char *line,char *buff,int len)
 {

@@ -2,11 +2,14 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Sender logic.
-   $Id: ls_zsend.c,v 1.4 2004/02/05 19:51:17 sisoft Exp $
+   $Id: ls_zsend.c,v 1.5 2004/02/06 21:54:46 sisoft Exp $
 */
 #include "headers.h"
-#include "defs.h"
 #include "ls_zmodem.h"
+#include "defs.h"
+#include "qipc.h"
+#include "crc.h"
+#include "tty.h"
 
 /* Finish sending after CANs, ZABORTs and ZFINs in bad places */
 int ls_finishsend()

@@ -1,10 +1,9 @@
 /**********************************************************
  * for exchange with qcc
- * $Id: qcconst.h,v 1.5 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: qcconst.h,v 1.6 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
-#include <time.h>
 
 #define Q_STRING 80
 #define Q_PATH   40

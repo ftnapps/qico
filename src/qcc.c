@@ -1,22 +1,37 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.19 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: qcc.c,v 1.20 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <stdarg.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#include <time.h>
+#endif
 #include <signal.h>
 #include <ctype.h>
+#ifdef HAVE_LOCALE_H
 #include <locale.h>
+#endif
+#ifdef HAVE_ERRNO_H
 #include <errno.h>
+#endif
+
 #ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -24,6 +39,18 @@
 #include <curses.h>
 #endif
 #endif
+
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+
 #ifndef GWINSZ_IN_SYS_IOCTL
 #include <termios.h>
 #endif
@@ -195,22 +222,22 @@ void usage(char *ex)
 }
 
 #ifndef CURS_HAVE_MVVLINE
-void mvvline (int y,int x,int ch,int n)
+void mvvline(int y,int x,int ch,int n)
 {
-	move (y,x);
-	vline (ch,n);
+	move(y,x);
+	vline(ch,n);
 }
 
-void mvhline (int y,int x,int ch,int n)
+void mvhline(int y,int x,int ch,int n)
 {
-	move (y,x);
-	hline (ch,n);
+	move(y,x);
+	hline(ch,n);
 }
 
-void mvwhline (WINDOW *win,int y,int x,int ch,int n)
+void mvwhline(WINDOW *win,int y,int x,int ch,int n)
 {
-	wmove (win,y,x);
-	wvline (win,ch,n);
+	wmove(win,y,x);
+	wvline(win,ch,n);
 }
 #endif
 
@@ -300,7 +327,6 @@ void freshhelp()
 			mvwaddstr(whelp,0,k,hlp[i]+(*hlp[i]<4));
 			k+=strlen(hlp[i]+(*hlp[i]<4));
 		}
-		wattroff(whelp,A_BOLD);
 	}
 	wattron(whelp,COLOR_PAIR(10));
 	mvwprintw(whelp,0,COL-3-strlen(version),"qcc%s",version);
@@ -505,18 +531,18 @@ void freshqueue()
 	wattrset(wmain,COLOR_PAIR(6)|A_BOLD);
 	mvwaddstr(wmain,0,0,"* Node");
 	mvwaddstr(wmain,0,COL-19-Q_MAXBIT,"Mail   Files  Try  Flags");
-	for(q=queue;q && q->n<q_first;q=q->next);
+	for(q=queue;q&&q->n<q_first;q=q->next);
 	if(!q) {
 		wattrset(wmain,COLOR_PAIR(3));
 		mvwaddstr(wmain,MH/2,COL/2-8,"* Empty queue *");
-	} else for(i=0;q && i<MH-1;i++,q=q->next) {
+	} else for(i=0;q&&i<MH-1;i++,q=q->next) {
 		wattrset(wmain,COLOR_PAIR(3)|(q->flags&Q_DIAL?A_BOLD:0));
 		if(q_pos==q->n)wattrset(wmain,COLOR_PAIR(16));
-		mvwaddstr(wmain,i+1,0,"  ");
-		waddstr(wmain,q->addr);
+		for(k=0;k<allslots;k++)if(slots[k]->session&&!memcmp(slots[k]->addrs,q->addr,strlen(q->addr)))k=999;
+		mvwaddch(wmain,i+1,0,(k>=999)?'=':' ');
+		mvwaddch(wmain,i+1,1,' ');waddstr(wmain,q->addr);
 		for(k=0;k<COL-24-Q_MAXBIT-strlen(q->addr);k++)waddch(wmain,' ');
-		*str=0;
-		sscat(str,q->mail);strcat(str," ");
+		*str=0;sscat(str,q->mail);strcat(str," ");
 		sscat(str,q->files);
 		sprintf(str+strlen(str),"  %3d  ",q->try);
 		waddstr(wmain,str);
@@ -540,13 +566,13 @@ void freshall()
 	wrefresh((currslot<0)?wlog:slots[currslot]->wlog);
 }
 
-void sigwinch(int sig)
+RETSIGTYPE sigwinch(int sig)
 {
 	sizechanged=1;
  	signal(SIGWINCH,sigwinch);
 }
 
-void sighup(int sig)
+RETSIGTYPE sighup(int sig)
 {
 	quitflag=1;
 	signal(sig,sighup);
@@ -1163,7 +1189,9 @@ int main(int argc,char **argv)
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
 		return 1;
 	}
+#ifdef HAVE_SETLOCALE
 	setlocale(LC_ALL, "");
+#endif
 /*cyr*/	printf("\033(K");fflush(stdout);
 	signal(SIGHUP,sighup);
 	signal(SIGTERM,sighup);

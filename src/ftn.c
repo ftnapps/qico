@@ -1,9 +1,10 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.15 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: ftn.c,v 1.16 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
+#include "crc.h"
 
 /* domain name for translate ftn addr to inet addr. */
 #define DOMAIN ".fidonet.net"

@@ -1,9 +1,12 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.12 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: emsi.c,v 1.13 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
+#include "qipc.h"
+#include "crc.h"
+#include "tty.h"
 
 #define EMSI_BUF 65536
 

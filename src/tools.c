@@ -1,10 +1,9 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.1 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: tools.c,v 1.2 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
-#include <fnmatch.h>
 
 static unsigned long seq=0xFFFFFFFF;
 

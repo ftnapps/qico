@@ -1,13 +1,23 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.14 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: tcp.c,v 1.15 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 #include "defs.h"
+#include "qipc.h"
+#include "tty.h"
 
 #define H_BUF 4096
 
@@ -302,10 +312,10 @@ void closetcp(int fd)
 int tcp_call(char *host,ftnaddr_t *fa)
 {
 	int rc,fd,s=0;
-	char *p=NULL,*t;
+	char *p=NULL,*t=NULL;
 	if(cfgs(CFG_PROXY))p=xstrdup(ccs);
 	    else if(cfgs(CFG_SOCKS)){p=xstrdup(ccs);s=1;}
-	if((t=strchr(p,' ')))*t=0;
+	if(p&&(t=strchr(p,' ')))*t=0;
 	write_log("connecting to %s at %s%s%s%s [%s]",ftnaddrtoa(fa),host,
 	    p?" via ":"",p?(s?"socks ":"proxy "):"",p?p:"",bink?"binkp":"ifcico");
 	if(t)*t=' ';
