@@ -73,7 +73,9 @@ AC_MSG_CHECKING([for syslog priority names])
 AC_TRY_COMPILE([#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
-#include <sys/syslog.h>], [ char *p=prioritynames[0].c_name; ],
+#ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
+#include <sys/syslog.h>
+#endif], [ char *p=prioritynames[0].c_name; ],
 AC_DEFINE(HAVE_SYSLOG_PRI_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 
 dnl Check for TIOCSCTTY
