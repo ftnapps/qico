@@ -1,9 +1,9 @@
 # 
-# $Id: Makefile,v 1.4 2000/07/18 12:58:57 lev Exp $
+# $Id: Makefile,v 1.5 2000/08/15 16:24:49 lev Exp $
 #
 include	../CONFIG
 
-STRIP=0
+STRIP=1
 #DEFS   += -DEMSI_LOG # log emsi in /tmp/emsi.log
 #DEFS   += -DH_DEBUG # Hydra
 #DEFS   += -DZ_DEBUG # ZModem
