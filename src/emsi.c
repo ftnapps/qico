@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.6 2001/03/02 15:50:39 lev Exp $
+ * $Id: emsi.c,v 1.5.2.7 2001/03/04 10:17:29 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -88,12 +88,12 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	strcat(dat, tmp);
 	/* TODO: 8bit conversion */
 	sprintf(tmp,
-			"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s%s%s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
+			"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s %s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
 			strip8(cfgs(CFG_STATION)),strip8(cfgs(CFG_PLACE)),
 			strip8(cfgs(CFG_SYSOP)),strip8(cfgs(CFG_PHONE)),
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
 			mail, files, cfgs(CFG_WORKTIME),
-			" ",cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"Never",
+			cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"Never",
 			time(NULL)+tt->tm_gmtoff,tt->tm_gmtoff/3600
 		);
 	strcat(dat, tmp);
