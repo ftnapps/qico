@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.10 2000/11/26 13:17:34 lev Exp $
+ * $Id: protfm.c,v 1.11 2001/01/12 12:49:42 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -37,6 +37,19 @@ int sifname(char *s)
 	for(i = 0; i < CHARS; i++) if(*s < ALLOWED_CHARS[i]) { *s = ALLOWED_CHARS[i]; break; }
 	if(i == CHARS) return 1;
 	return 0;
+}
+
+char *estimatedtime(size_t size, int cps, unsigned long baud)
+{
+	static char et[16];
+	int h,m,s;
+	if (cps < 1) cps = baud / 10;
+	s = size / cps;
+	if (s < 1) s = 1;
+	h = s / 3600; s %= 3600;
+	m = s / 60;   s %= 60;
+	snprintf(et,16,"%02d:%02d:%02d",h,m,s);
+	return et;
 }
 
 int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
@@ -81,6 +94,10 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 				return FOP_SUSPEND;
 			}
 			recvf.foff=recvf.soff=ftell(*f);
+			if(cfgi(CFG_ESTIMATEDTIME) {
+				write_log("start recv: %s, %d bytes (from %d), estimated time %s",
+					recvf.fname, rsize, recvf.soff, estimatedtime(rsize,recvf.cps,effbaud));
+			}
 			return FOP_CONT;
 		}
 	}
@@ -92,6 +109,10 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 		return FOP_SUSPEND;
 	}
 	recvf.foff=recvf.soff=0;
+	if(cfgi(CFG_ESTIMATEDTIME) {
+		write_log("start recv: %s, %d bytes, estimated time %s",
+			recvf.fname, rsize, estimatedtime(rsize,recvf.cps,effbaud));
+	}
 	return FOP_OK;
 }
 
@@ -178,6 +199,10 @@ FILE *txopen(char *tosend, char *sendas)
 	if(!f) {
 		write_log("can't open file %s for reading!", tosend);
 		return NULL;
+	}
+	if(cfgi(CFG_ESTIMATEDTIME) {
+		write_log("start send: %s, %d bytes, estimated time %s",
+			recvf.fname, sb.st_size, estimatedtime(sb.st_size,sendf.cps,effbaud));
 	}
 	return f;
 }
