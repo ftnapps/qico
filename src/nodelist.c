@@ -1,6 +1,6 @@
 /**********************************************************
  * work with nodelists
- * $Id: nodelist.c,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: nodelist.c,v 1.4 2004/01/26 21:24:47 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -502,7 +502,8 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	} else if(from_nl && from_nl->phone) {
 		xfree(nl->phone);
 		nl->phone=xstrdup(from_nl->phone);
-		if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&nl->phone,cfgsl(CFG_PHONETR));
+		/*if(!cfgi(CFG_TRANSLATESUBST))*/
+		phonetrans(&nl->phone,cfgsl(CFG_PHONETR));
 	}
 	if(d->host) {
 		xfree(nl->host);

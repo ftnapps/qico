@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.11 2004/01/23 12:44:28 sisoft Exp $
+ * $Id: qipc.c,v 1.12 2004/01/26 21:24:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -39,9 +39,7 @@ int qrecvpkt(char *str)
 	if(rc<0&&errno!=EAGAIN)DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
 	if(rc<3||!str[2])return 0;
 	str[rc]=0;
-//	if(FETCH16(str)==(unsigned short)getpid())
-	    return rc;
-//	return 0;
+	return rc;
 }
 
 void vlogs(char *str)
