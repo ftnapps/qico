@@ -1,3 +1,13 @@
+2004-06-13 21:05  sisoft
+
+	* Changes, debian/changelog, debian/examples, debian/inetd.conf,
+	  debian/init.d, debian/rules, debian/services, src/freq.c,
+	  stuff/Makefile.am, stuff/freebsd/pkg-plist:
+
+	fix freqs: do not include path in outgoing filenames.
+	fix debian packages install.
+	distrubute stuff/test.pl.
+
 2004-06-12 00:30  sisoft
 
 	* src/daemon.c, src/flagexp.y, src/flaglex.l, src/perl.c,
