@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.12 2001/05/29 19:13:33 lev Exp $
+ * $Id: freq.c,v 1.13 2001/10/08 18:42:18 lev Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -15,7 +15,7 @@ int freq_ifextrp(slist_t *reqs)
 	int got=0;
 	ftnaddr_t *ma=akamatch(&rnode->addrs->addr, cfgal(CFG_ADDRESS));
 
-	DEBUG(('S',1,"ifextrp job"));
+	DEBUG(('R',1,"Freq received"));
 	priv='a';
 	if(rnode->options&O_LST) priv='l';
 	if(rnode->options&O_PWD) priv='p';
@@ -23,10 +23,11 @@ int freq_ifextrp(slist_t *reqs)
 	snprintf(fn,MAX_PATH,"/tmp/qreq.%04lx",(long)getpid());
 	f=fopen(fn,"wt");
 	if(!f) {
-		write_log("can't open '%s' for writing",fn);return got;
+		write_log("can't open '%s' for writing",fn);
+		return 0;
 	}
 	while(reqs) {
-		DEBUG(('S',1,"requested '%s'", reqs->str));
+		DEBUG(('R',1,"requested '%s'", reqs->str));
 		fprintf(f, "%s\n", reqs->str);
 		reqs=reqs->next;
 	}
@@ -46,14 +47,15 @@ int freq_ifextrp(slist_t *reqs)
 		lunlink(fn);
 		snprintf(fn, MAX_PATH, "/tmp/qfls.%04lx", (long)getpid());
 		lunlink(fn);
-		write_log("can't open '%s' for reading",fn);return got;
+		write_log("can't open '%s' for reading",fn);
+		return 0;
 	}
 	while(fgets(s,MAX_PATH-1,f)) {
 		p=s+strlen(s)-1;
 		while(*p=='\r' || *p=='\n') *p--=0;
 		p=strrchr(s,' ');
 		if(p) *p++=0;else p=s;
-		DEBUG(('S',1,"sending '%s' as '%s'", s, p));
+		DEBUG(('R',1,"sending '%s' as '%s'", s, p));
 		addflist(&fl, xstrdup(s), xstrdup((p!=s)?p:q_basename(s)), ' ',0,NULL,0);
 		got=1;
 	}
