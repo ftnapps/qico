@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.38 2001/02/18 15:04:42 lev Exp $
+ * $Id: main.c,v 1.39 2001/03/02 15:57:58 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -341,9 +341,9 @@ void daemon_mode()
 							if(rc&S_HOLDA) sts.flags|=Q_WAITA; 
 							if(rc&S_HOLDR) sts.flags|=Q_WAITR;
 							if(rc&S_HOLDX) sts.flags|=Q_WAITX;
-							sts.htime=t_set(cci*60);
 							write_log("calls to %s delayed for %d min %s",
 								ftnaddrtoa(&current->addr), cfgi(CFG_WAITHRQ), sts_str(sts.flags));
+							sts.htime=t_set(cci*60);
 							bso_setstatus(&current->addr, &sts);
 						}
 						if(rc!=S_BUSY) t_rescan=cfgi(CFG_RESCANPERIOD)-1;
