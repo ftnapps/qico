@@ -2,7 +2,7 @@
  * File: types.h
  * Created at Tue Feb 13 22:23:31 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: types.h,v 1.1 2001/02/15 20:31:45 lev Exp $
+ * $Id: types.h,v 1.2 2001/04/14 12:42:01 lev Exp $
  **********************************************************/
 #ifndef __TYPES_H__
 #define __TYPES_H__
@@ -48,6 +48,24 @@ typedef unsigned int	DWORD;
 #	else
 #		error "There is no 32-bit integer type in your compiler, sorry"
 #	endif
+#endif
+
+#ifdef WORDS_BIGENDIAN
+/* We are on non-Intel-like processor */
+	/* Host to Intel */
+#	define H2I16(x)	((((x) & 0x00FF) << 8) | (((x) >> 8) & 0x00FF))
+#	define H2I32(x)	((H2I16((x) & 0x0000FFFF) << 16) | (H2I16(((x) >> 16) & 0x0000FFFF)))
+	/* Intel to host */
+#	define I2H16(x)	((((x) & 0x00FF) << 8) | (((x) >> 8) & 0x00FF))
+#	define I2H32(x)	((I2H16((x) & 0x0000FFFF) << 16) | (I2H16(((x) >> 16) & 0x0000FFFF)))
+#else 
+/* We are on Intel-like processor */
+	/* Host to Intel */
+#	define H2I16(x)	(x)
+#	define H2I32(x)	(x)
+	/* Intel to host */
+#	define I2H16(x)	(x)
+#	define I2H32(x)	(x)
 #endif
 
 #endif
