@@ -16,13 +16,27 @@ dnl AC_HEADER_STDC
 dnl AC_HEADER_SYS_WAIT
 dnl AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h syslog.h unistd.h)
 
+AC_CHECK_HEADERS(sys/time.h)
+AC_HEADER_TIME
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl AC_C_CONST
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
 AC_STRUCT_TM
+
+dnl Check for tm_gmtoff
+AC_MSG_CHECKING([for tm_gmtoff field in struct tm])
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <$ac_cv_struct_tm>], [ struct tm t; t.tm_gmtoff = 0; ],
+HAVE_GMTOFF=yes, HAVE_GMTOFF=no )
+if test "$HAVE_GMTOFF" = yes; then
+	AC_DEFINE(TM_HAVE_GMTOFF)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
 
 dnl Checks for library functions. We don't use results now, so why check?
 dnl AC_FUNC_FNMATCH
@@ -106,6 +120,7 @@ AC_SUBST(CONFIG)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
+AC_SUBST(TM_HAVE_GMTOFF)
 AC_SUBST(QIPC_KEY)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)

@@ -23,3 +23,5 @@
 #undef DEFAULT_SPEED
 
 #undef SHELL
+
+#undef TM_HAVE_GMTOFF
