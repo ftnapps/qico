@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.35 2001/02/08 21:38:20 lev Exp $
+ * $Id: main.c,v 1.36 2001/02/13 21:49:20 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -14,6 +14,7 @@
 #include <sys/msg.h>
 #include "tty.h"
 #include "qipc.h"
+#include "byteop.h"
 
 #ifdef Q_DEBUG
 #define sline write_log
@@ -115,7 +116,7 @@ void sendipcpkt(int wait, char what, pid_t pid, char *fmt, va_list args)
 {
 	char buf[MSG_BUFFER];
 	int rc;
-	*((int *)buf)=pid;
+	STORE32(buf,pid);
 	buf[4]=what;
 	rc=vsnprintf(buf+5, MSG_BUFFER-1, fmt, args);
 	msgsnd(qipcr_msg, buf, rc+6, wait?0:IPC_NOWAIT);
@@ -136,7 +137,6 @@ void sendrpktwait(char what, pid_t pid, char *fmt, ...)
 	sendipcpkt(1,what,pid,fmt,args);
 	va_end(args);
 }
-
 
 
 char qchars[]=Q_CHARS;
