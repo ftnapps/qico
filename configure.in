@@ -1,139 +1,105 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([qico],[0.49.10],[lev@serebryakov.spb.ru])
+AC_INIT([qico], [0.49.10], [cyrilm@users.sourceforge.net])
 AC_PREREQ(2.53)
-
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADER([config.h])
 
 dnl Checks for programs.
-AC_PROG_AWK
 AC_PROG_CC
+AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LEX
 AC_PROG_YACC
-
 AC_LANG([C])
 
-dnl Check for all headers
+dnl Checks for libraries.
 
+dnl Checks for header files.
+AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([sys/time.h])
-AC_HEADER_TIME
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h])
 dnl FreeBSD 3.x have setproctitle(2) in libutil.h
-AC_CHECK_HEADERS([libutil.h])
 dnl FreeBSD 4.x have basename(2) in libgen.h
-AC_CHECK_HEADERS([libgen.h])
 
 dnl whether syslog.h and sys/syslog.h may both be included
-AC_MSG_CHECKING([whether syslog.h and sys/syslog.h may both be included])
-AC_TRY_COMPILE([#include <stdlib.h>
-#define SYSLOG_NAMES
-#include <syslog.h>
-#include <sys/syslog.h>],[ int i=0; i++; ],
-[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,,[Could <syslog.h> and <sys/syslog.h> be included in one file])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
+AC_CHECK_HEADER([sys/syslog.h],[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,,[Could <syslog.h> and <sys/syslog.h> be included in one file])],,[#define SYSLOG_NAMES
+#include <syslog.h>])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_SIZEOF(char,1)
-AC_CHECK_SIZEOF(short,2)
-AC_CHECK_SIZEOF(int,4)
-AC_CHECK_SIZEOF(long,4)
-AC_C_BIGENDIAN
+AC_C_CONST
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
+AC_HEADER_TIME
 AC_STRUCT_TM
-
-dnl Check for tm_gmtoff
-AC_MSG_CHECKING([for tm_gmtoff field in struct tm])
-AC_TRY_COMPILE([#include <sys/types.h>
-#include <$ac_cv_struct_tm>],[ struct tm t; t.tm_gmtoff = 0; ],
-[HAVE_GMTOFF=yes],[HAVE_GMTOFF=no])
-if test "${HAVE_GMTOFF}x" = "yesx"; then
-	AC_DEFINE(TM_HAVE_GMTOFF,,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
-dnl Check for syslog facility names
-AC_MSG_CHECKING([for syslog facility names])
-AC_TRY_COMPILE([#include <stdlib.h>
+AC_CHECK_SIZEOF([char],[1])
+AC_CHECK_SIZEOF([short],[2])
+AC_CHECK_SIZEOF([int],[4])
+AC_CHECK_SIZEOF([long],[4])
+AC_C_BIGENDIAN
+AC_CHECK_MEMBER([struct tm.tm_gmtoff],[AC_DEFINE(TM_HAVE_GMTOFF,,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])],,)
+AC_CHECK_DECL([facilitynames],[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
-#include <sys/syslog.h>
-#endif],[char *p=facilitynames[0].c_name;],
-[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-
-dnl Check for syslog priority names
-AC_MSG_CHECKING([for syslog priority names])
-AC_TRY_COMPILE([#include <stdlib.h>
+# include <sys/syslog.h>
+#endif])
+AC_CHECK_DECL([prioritynames],[AC_DEFINE(HAVE_SYSLOG_PRI_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
-#include <sys/syslog.h>
-#endif],[ char *p=prioritynames[0].c_name; ],
-[AC_DEFINE(HAVE_SYSLOG_PRI_NAMES,,[Define to 1 if 'prioritynames' defined in syslog headers])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-
-dnl Check for TIOCSCTTY
-AC_MSG_CHECKING([for ioctl(TIOCSCTTY)])
-AC_TRY_COMPILE([#include <stdlib.h>
+# include <sys/syslog.h>
+#endif])
+AC_CHECK_DECL([TIOCSCTTY],[AC_DEFINE(HAVE_TIOCSCTTY,,[Define to 1 if system have 'TIOCSCTTY' ioctl()])],,[#include <stdlib.h>
 #include <sys/ioctl.h>
-#include <termios.h>],[ ioctl(0,TIOCSCTTY); ],
-[AC_DEFINE(HAVE_TIOCSCTTY,,[Define to 1 if system have 'TIOCSCTTY' ioctl()])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-
-dnl Is EIDRM defined...
-AC_MSG_CHECKING([for EIDRM errno])
-AC_TRY_COMPILE([#include <stdlib.h>
-#include <errno.h>],[int i=EIDRM;],
-[AC_DEFINE(HAVE_EIDRM,,[Define to 1 if system defines 'EIDRM' errno value])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
-
-dnl Check for STD*_FILENO
-AC_MSG_CHECKING([for STDxxx_FILENO])
-AC_TRY_COMPILE([#include <unistd.h>],
-[int fd1=STDIN_FILENO,fd2=STDOUT_FILENO,fd3=STDERR_FILENO;],
-[AC_DEFINE(HAVE_STDXXX_FILENO,,[Define to 1 if system defines 'STDxxx_FILENO' constants])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
+#include <termios.h>])
+AC_CHECK_DECL([EIDRM],AC_DEFINE(HAVE_EIDRM,,[Define to 1 if system defines 'EIDRM' errno value]),,[#include <stdlib.h>
+#include <errno.h>])
+AC_CHECK_DECLS([STDIN_FILENO,STDOUT_FILENO,STDERR_FILENO],AC_DEFINE(HAVE_STDXXX_FILENO,,[Define to 1 if system defines 'STDxxx_FILENO' constants]),,[#include <unistd.h>])
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(vsnprintf snprintf)
-AC_REPLACE_FUNCS(strsep usleep getsid strcspn basename)
-if test "${ac_cv_func_basename}x" != "nox"; then
-	AC_MSG_CHECKING([for broken basename() implementation])
-	AC_TRY_RUN([
-#include <string.h>
-#include <stdio.h>
-#ifdef HAVE_LIBGEN_H
-#	include <libgen.h>
+AC_FUNC_FNMATCH
+AC_FUNC_FORK
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_TYPE_SIGNAL
+AC_FUNC_STRFTIME
+AC_FUNC_UTIME_NULL
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([alarm bzero dup2 getcwd memchr memmove memset mkdir rmdir select setlocale strcasecmp strchr strcspn strdup strerror strncasecmp strrchr strspn strstr strtol uname utime vsnprintf snprintf])
+AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
+AC_CACHE_CHECK([for nonbroken basename implementation], ac_cv_func_basename_nonbroken,
+[AC_TRY_RUN([#if HAVE_LIBGEN_H
+# include <libgen.h>
 #endif
 static char *fl = "/usr/local/bin/some.file";
-int main(int argn, char **argv) {
-	char *b = basename(fl); return !(*b != '/');
+int main(int argc, char **argv) {
+	char *b = basename(fl); return ((*b != '/')?0:1);
 }
-	],[AC_MSG_RESULT(no)],[AC_DEFINE(HAVE_BROKEN_BASENAME,,[Define to 1 if basename() function returns pointer to '/'])AC_LIBOBJ([basename])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
+],[ac_cv_func_basename_nonbroken=yes], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
+if test $ac_cv_func_basename_nonbroken = yes; then
+	AC_DEFINE([HAVE_BASENAME],,[Define to 1 if basename() is nonbroken])
+else
+	AC_LIBOBJ(basename)
 fi
 
 dnl Checking for FreeBSD setproctitle in libutil
-AC_CHECK_FUNC(setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])],[AC_CHECK_LIB(util,setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])])])
-
-dnl On old FreeBSD systems ftok() is only in libcompat
-AC_CHECK_FUNC(ftok,,[AC_CHECK_LIB(compat,ftok)])
+AC_CHECK_FUNC([setproctitle],[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])],[AC_CHECK_LIB(util,setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])])])
 
 dnl Socket functions are in libnsl.a on SunOS 5.5
-AC_CHECK_FUNC(socket,,[AC_CHECK_LIB(socket,socket)])
-AC_CHECK_FUNC(getpeername,,[AC_CHECK_LIB(socket,getpeername)])
-AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
-AC_CHECK_FUNC(getservbyname,,[AC_CHECK_LIB(socket,getservbyname)])
-AC_CHECK_FUNC(inet_addr,,[AC_CHECK_LIB(nsl,inet_addr)])
-AC_CHECK_FUNC(inet_ntoa,,[AC_CHECK_LIB(nsl,inet_ntoa)])
-AC_CHECK_FUNCS(shutdown)
-AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(nsl,connect)])
+AC_CHECK_FUNCS([socket],,[AC_CHECK_LIB(socket,socket)])
+AC_CHECK_FUNCS([getpeername],,[AC_CHECK_LIB(socket,getpeername)])
+AC_CHECK_FUNCS([gethostbyname],,[AC_CHECK_LIB(nsl,gethostbyname)])
+AC_CHECK_FUNCS([getservbyname],,[AC_CHECK_LIB(socket,getservbyname)])
+AC_CHECK_FUNCS([inet_addr],,[AC_CHECK_LIB(nsl,inet_addr)])
+AC_CHECK_FUNCS([inet_ntoa],,[AC_CHECK_LIB(nsl,inet_ntoa)])
+AC_CHECK_FUNCS([shutdown])
+AC_CHECK_FUNCS([connect],,[AC_CHECK_LIB(nsl,connect)])
 
-dnl --------------------------------------------------------------------------
-dnl All parameters
-dnl --------------------------------------------------------------------------
-dnl Config file 
 AC_MSG_CHECKING([for config path])
-AC_ARG_WITH(config,[  --with-config           specifies config path (default is \${prefix}/etc/qico.conf) ],,with_config=NONE)
+AC_ARG_WITH([config],AC_HELP_STRING([--with-config=config],[specifies config path (default is \${prefix}/etc/qico.conf)]),,with_config=NONE)
 if test "x${with_config}" = "xNONE"; then
 	if test "x${prefix}" = "xNONE"; then
 		with_config="${ac_default_prefix}/etc/qico.conf"
@@ -146,15 +112,9 @@ if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; the
 	AC_MSG_ERROR([Parameter for --with-config must be absolute pathname])
 fi
 
-dnl ZModem
-AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ],,with_new_zmodem=NOTSET)
-if test "${with_new_zmodem}x" != "NOTSETx"; then
-	AC_MSG_WARN([Use new ZModem IN ANY case, old ZModem was eliminated!])
-fi
-
 dnl TCP Speed
 AC_MSG_CHECKING([for TCP connection speed])
-AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ],,with_tcp_speed=115200)
+AC_ARG_WITH(tcp-speed,AC_HELP_STRING([--with-tcp-speed],[specifies TCP connection speed (default is 115200)]),,with_tcp_speed=115200)
 AC_DEFINE_UNQUOTED(TCP_SPEED,$with_tcp_speed,[Speed for TCP connections in bps])
 AC_MSG_RESULT($with_tcp_speed)
 changequote(,)dnl
@@ -165,7 +125,7 @@ fi
 
 dnl Default Speed
 AC_MSG_CHECKING([for default port locking speed])
-AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ],,with_default_speed=9600)
+AC_ARG_WITH(default-speed,AC_HELP_STRING([--with-default-speed],[specifies default port locking speed (default is 9600)]),,with_default_speed=9600)
 AC_DEFINE_UNQUOTED(DEFAULT_SPEED,$with_default_speed,[Default speed for modem connections])
 AC_MSG_RESULT($with_default_speed)
 changequote(,)dnl
@@ -176,7 +136,7 @@ fi
 
 dnl Shell
 AC_MSG_CHECKING([for shell])
-AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ],,with_shell=/bin/sh)
+AC_ARG_WITH(shell,AC_HELP_STRING([--with-shell],[specifies shell (default is /bin/sh)]),,with_shell=/bin/sh)
 AC_DEFINE_UNQUOTED(SHELL,"$with_shell",[Path to system shell])
 AC_MSG_RESULT($with_shell)
 if test "x`expr "$with_shell" : '/.*'`" != "x`expr "$with_shell" : '.*'`"; then
@@ -188,7 +148,7 @@ fi
 
 dnl Lock creation style
 AC_MSG_CHECKING([for lock creation style])
-AC_ARG_WITH(lock-style,[  --with-lock-style       select lock creation style (open or link)],,with_lock_style=LINK)
+AC_ARG_WITH(lock-style,AC_HELP_STRING([--with-lock-style],[select lock creation style (open or link)]),,with_lock_style=LINK)
 case "$with_lock_style" in
 	link | LINK | NFS | nfs )
 		AC_MSG_RESULT(link)
@@ -205,7 +165,7 @@ esac
 
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
-AC_ARG_ENABLE(aso,[  --enable-aso            enable Amiga-style 4D outbound],,enable_aso=no)
+AC_ARG_ENABLE(aso,AC_HELP_STRING([--enable-aso],[enable Amiga-style 4D outbound]),,enable_aso=no)
 if test "${enable_aso}x" != "nox"; then
 	AC_MSG_RESULT(aso)
 	AC_DEFINE(AMIGA4D,,[Use Amiga-style outbound])
@@ -215,7 +175,7 @@ fi
 
 dnl HYDRA8/16K support (disable by default)
 AC_MSG_CHECKING([for Hydra8k/16k support])
-AC_ARG_ENABLE(hydra8k,[  --enable-hydra8k        enable buggy Hydra8k/16k protocols support],,enable_hydra8k=no)
+AC_ARG_ENABLE(hydra8k,AC_HELP_STRING([--enable-hydra8k],[enable buggy Hydra8k/16k protocols support]),,enable_hydra8k=no)
 if test "${enable_hydra8k}x" != "nox"; then
 	AC_MSG_RESULT(yes)
 	AC_DEFINE(HYDRA8K16K,,[Allow Hydra-8K and Hydra-16K protocols])
@@ -224,7 +184,7 @@ else
 fi
 
 dnl qcc support
-AC_ARG_ENABLE(qcc,[  --disable-qcc           disable building of qcc and its support],,enable_qcc=yes)
+AC_ARG_ENABLE(qcc,AC_HELP_STRING([--disable-qcc],[disable building of qcc and its support]),,enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
 	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,,[Define to 1 if system have ncurses])
 	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,,[Define to 1 if system have curses])
@@ -252,7 +212,7 @@ fi
 
 dnl Compile in debug messages
 AC_MSG_CHECKING([for debug logging])
-AC_ARG_ENABLE(debug,[  --disable-debug         disable adding debug messages ],,enable_debug=yes)
+AC_ARG_ENABLE(debug,AC_HELP_STRING([--disable-debug],[disable adding debug messages]),,enable_debug=yes)
 if test "${enable_debug}x" != "nox"; then
 	AC_MSG_RESULT([yes, use loglevels in config to tune])
 	AC_DEFINE(NEED_DEBUG,,[Build debug loglevels support])
@@ -264,7 +224,7 @@ fi
 
 dnl Electric Fence malloc() debbuger support
 AC_MSG_CHECKING([for Electric Fence malloc() debbuger])
-AC_ARG_ENABLE(efence,[  --enable-efence         enable linking with libefence malloc() debugger ],,enable_efence=no)
+AC_ARG_ENABLE(efence,AC_HELP_STRING([--enable-efence],[enable linking with libefence malloc() debugger ]),,enable_efence=no)
 if test "${enable_efence}x" != "nox"; then
 	AC_MSG_RESULT(yes)
 	AC_CHECK_LIB(efence,malloc,[LIBS="${LIBS} -L/usr/local/lib -lefence"],enable_efence=no,["-L/usr/local/lib"])
@@ -295,6 +255,7 @@ CONFIG=$with_config
 
 AC_SUBST(CONFIG)
 
-AC_CONFIG_FILES([src/ver.c src/Makefile Makefile qico.spec])
+AC_CONFIG_FILES([src/ver.c qico.spec src/Makefile Makefile])
 AC_CONFIG_COMMANDS([default],[[echo timestamp > stamp-h]],[[]])
+ 
 AC_OUTPUT
