@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.7 2000/07/26 18:52:10 lev Exp $
+ * $Id: ftn.c,v 1.8 2000/08/13 21:10:01 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -474,11 +474,15 @@ int fexist(char *s)
 
 char dos_allowed[]="-!~$()_";
 
-int isfchar(char p) {
-    if((tolower(p)<='z' && tolower(p)>='a') ||
-	(p<='9' && p>='0') || strchr(dos_allowed, p))
-	    return 1;
-    else return 0;
+int dosallowin83(int c)
+{
+	static char dos_allow[] = "!@#$%^&()~`'-_{}.";
+
+	if((c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		(c >= '0' && c <= '9') ||
+		strchr(dos_allow,c)) return 1;
+	return 0;
 }
 
 char *fnc(char *s)
@@ -491,7 +495,7 @@ char *fnc(char *s)
 
 	if (NULL == (p=strrchr(s,'/'))) p=s; else s=p;
 	while (*p && *p!='.' && i<8) {
-		if (isfchar(*p)) s8[i++]=tolower(*p);
+		if (dosallowin83(*p)) s8[i++]=tolower(*p);
 		p++;
 	}
 	s8[i]='\0';
@@ -505,7 +509,7 @@ char *fnc(char *s)
 			q=p+4;
 			i=strlen(s8);
 			while (*p && q>p) {
-				if(isfchar(*p)) s8[i++]=tolower(*p);
+				if(dosallowin83(*p)) s8[i++]=tolower(*p);
 				p++;
 			}
 			s8[i]='\0';
@@ -589,17 +593,6 @@ char *mapname(char *fn, char *map)
 
 	return fn;
 }	
-
-int dosallowin83(int c)
-{
-	static char dos_allow[] = "!@#$%^&()~`'-_{}.";
-	
-	if((c >= 'a' && c <= 'z') ||
-		(c >= 'A' && c <= 'Z') ||
-		(c >= '0' && c <= '9') ||
-		strchr(dos_allow,c)) return 1;
-	return 0;
-}
 
 int isdos83name(char *fn)
 {
