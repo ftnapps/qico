@@ -2,12 +2,16 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.11 2000/12/26 12:22:09 lev Exp $
+ * $Id: session.c,v 1.12 2001/01/08 17:30:31 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
 #include "qipc.h"
-#include "zmodem.h"
+#ifndef NEWZMODEM
+#	include "zmodem.h"
+#else
+#	include "ls_zmodem.h"
+#endif
 #include "hydra.h"
 #include "janus.h"
 
