@@ -1,0 +1,17 @@
+#!/bin/awk -f
+# $Id: synctime,v 1.1.1.1 2003/07/12 21:27:20 sisoft Exp $
+# script to qico for synchronize local and remote time by sisoft\\trg'2OO2
+# exec: synctime qico_log
+
+{ 
+ if($6=="address:"){addr=$7}
+ if($6=="time:"&&addr=="2:5050/33"){timemy=$4;timehe=$7} 
+#                       ^^^^^^^^^^ change this addr to addr, need for sync.
+}
+END{
+ split(timemy,mt,":");split(timehe,ht,":")
+ tm=ht[1]*3600+ht[2]*60+ht[3]-mt[1]*3600-mt[2]*60-mt[3]
+ if(tm>43199){tm-=86400}else{if(tm<-43200){tm+=86400}}
+ st=strftime("date %m%d%H%M.%S",systime()+tm)
+ system(st);
+}

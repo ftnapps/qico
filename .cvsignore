@@ -11,8 +11,8 @@ config.status
 qico.spec
 stamp-h
 stamp-h1
-cscope.out
 install-sh
 mkinstalldirs
 missing
 depcomp
+qico*.tar.*

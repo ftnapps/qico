@@ -1,8 +1,6 @@
 /**********************************************************
- * File: xstr.c
- * Created at Tue Mar 20 22:37:42 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xstr.c,v 1.3 2002/03/16 15:54:20 lev Exp $
+ * safety work with strings
+ * $Id: xstr.c,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $
  **********************************************************/
 #include <stdlib.h>
 #include <config.h>

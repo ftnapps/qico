@@ -1,3 +1,4 @@
+# $Id: x2c.awk,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $
 BEGIN {
  print "#include \"headers.h\""
  print

@@ -1,8 +1,6 @@
 /**********************************************************
- * File: qcconst.h
- * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: qcconst.h,v 1.10 2001/03/11 20:15:27 lev Exp $
+ * for exchange with qcc
+ * $Id: qcconst.h,v 1.1.1.1 2003/07/12 21:27:11 sisoft Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -13,8 +11,8 @@
 
 typedef struct {
 	char *fname;
-	int  foff, ftot, toff, ttot, nf, allf, cps, soff, stot;
-	time_t start, mtime;
+	int  foff,ftot,toff,ttot,nf,allf,cps,soff,stot,sts;
+	time_t start,mtime;
 } pfile_t;
 
 #include "opts.h"
@@ -34,31 +32,40 @@ typedef struct {
 #define Q_WAITR		0x0000100
 #define Q_WAITX		0x0000200
 #define Q_WAITA		0x0000400
-#define Q_MAXBIT	11
 #define Q_ANYWAIT	(Q_WAITR|Q_WAITX|Q_WAITA)
+#define Q_MAXBIT	11
 
-#define QC_MSGQ  'C'
-#define QR_MSGQ  'R'
+#define QC_MSGQ   'C'
+#define QR_MSGQ   'R'
 
-#define QR_POLL  'P'
-#define QR_REQ   'R'
-#define QR_SEND  'S'
-#define QR_STS   'X'
-#define QR_CONF  'C'
-#define QR_QUIT  'Q'
-#define QR_INFO  'I'
-#define QR_SCAN  'N'
-#define QR_KILL  'K'
-#define QR_QUEUE 'O'
+#define QR_POLL   'A'
+#define QR_REQ    'B'
+#define QR_SEND   'D'
+#define QR_STS    'E'
+#define QR_CONF   'F'
+#define QR_QUIT   'G'
+#define QR_INFO   'H'
+#define QR_SCAN   'I'
+#define QR_KILL   'J'
+#define QR_QUEUE  'K'
+#define QR_SKIP   'L'
+#define QR_REFUSE 'M'
+#define QR_HANGUP 'N'
+#define QR_RESTMR 'O'
+#define QR_CHAT   'P'
 
-#define QC_LOGIT 'a'
-#define QC_SLINE 'b'
-#define QC_RECVD 'c'
-#define QC_SENDD 'd'
-#define QC_LIDLE 'e'
-#define QC_TITLE 'f'
-#define QC_EMSID 'g'
-#define QC_QUEUE 'h'
-#define QC_ERASE 'i'
+#define QC_LOGIT  'a'
+#define QC_SLINE  'b'
+#define QC_RECVD  'c'
+#define QC_SENDD  'd'
+#define QC_LIDLE  'e'
+#define QC_TITLE  'f'
+#define QC_EMSID  'g'
+#define QC_QUEUE  'h'
+#define QC_ERASE  'i'
+#define QC_QUIT   'j'
+#define QC_CHAT   'k'
+#define QC_CERASE 'l'
+#define QC_MYDATA 'm'
 
 #endif

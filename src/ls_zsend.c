@@ -1,20 +1,12 @@
-/**********************************************************
- * File: ls_zsend.c
- * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: ls_zsend.c,v 1.19 2003/04/06 14:39:22 cyrilm Exp $
- **********************************************************/
 /*
-
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Sender logic.
-
+   $Id: ls_zsend.c,v 1.1.1.1 2003/07/12 21:26:58 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
 #include "ls_zmodem.h"
-#include "qipc.h"
 
 /* Finish sending after CANs, ZABORTs and ZFINs in bad places */
 int ls_finishsend()
@@ -117,7 +109,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	ls_SerialNum = 1;
     
 	/* Why we need to send this? Old, good times... */
-	PUTSTR((unsigned char*)"rz\r");
+	PUTSTR((unsigned char *)"rz\r");
 	do {
 		if(retransmit) {
 			/* Send first ZRQINIT (do we need it?) */

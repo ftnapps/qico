@@ -1,8 +1,6 @@
 /******************************************************************
- * File: janus.c
- * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol defines
- * $Id: janus.h,v 1.3 2000/10/22 18:55:03 lev Exp $
+ * $Id: janus.h,v 1.1.1.1 2003/07/12 21:26:45 sisoft Exp $
  ******************************************************************/
 #ifndef __JANUS_H__
 #define __JANUS_H__

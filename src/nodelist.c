@@ -1,8 +1,6 @@
 /**********************************************************
- * File: nodelist.c
- * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: nodelist.c,v 1.20 2003/02/04 17:30:46 cyrilm Exp $
+ * work with nodelists
+ * $Id: nodelist.c,v 1.1.1.1 2003/07/12 21:27:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -34,9 +32,9 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 
 	*nl=NULL;
 	memset(nlent, 0, sizeof(ninfo_t));
-	snprintf(nlp, MAX_PATH, "%s/%s.lock", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s%s.lock", nlpath, NL_IDX);
 	if(islocked(nlp)) return 0;
-	snprintf(nlp, MAX_PATH, "%s/%s", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s%s", nlpath, NL_IDX);
 	idx=fopen(nlp, "rb");
 	if(!idx) { xfree(nlent);return 1; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
@@ -386,7 +384,9 @@ int chktxy(char *p)
 {
 	time_t tim=time(NULL);
 	struct tm *ti=gmtime(&tim);
-	int t=ti->tm_hour*60+ti->tm_min, t1, t2;
+	int t=ti->tm_hour*60+ti->tm_min,t1,t2;
+	ti=localtime(&tim);
+	if(ti->tm_isdst>0){t+=60;if(t>86399)t-=86400;}
 	t1=(toupper((int)p[1])-'A')*60+(islower((int)p[1]) ? 30:0);
 	t2=(toupper((int)p[2])-'A')*60+(islower((int)p[2]) ? 30:0);
 	return ((t1<=t2 && t>=t1 && t<=t2) || (t1>t2 && (t>=t1 || t<=t2)));
@@ -480,7 +480,7 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	} else if(from_nl && from_nl->phone) {
 		if(nl->phone) xfree(nl->phone);
 		nl->phone=xstrdup(from_nl->phone);
-		if(cfgi(CFG_TRANSLATESUBST) == 0) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+		if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&nl->phone,cfgsl(CFG_PHONETR));
 	}
 	if(d->timegaps) {
 		if(nl->wtime) xfree(nl->wtime);

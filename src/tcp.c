@@ -1,8 +1,6 @@
 /**********************************************************
- * File: tcp.c
- * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.9 2003/05/29 07:44:48 cyrilm Exp $
+ * $Id: tcp.c,v 1.1.1.1 2003/07/12 21:27:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -11,7 +9,6 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include "tty.h"
-#include "qipc.h"
 
 int opentcp(char *name)
 {
@@ -91,12 +88,7 @@ int tcp_call(char *host, ftnaddr_t *fa)
 		closetcp();
 		if((rc&S_MASK)==S_REDIAL) {
 			write_log("creating poll for %s", ftnaddrtoa(fa));
-			if(is_bso() == 1) {
-				bso_poll(fa,F_ERR); 
-			}
-			else if(is_aso() == 1) {
-				aso_poll(fa,F_ERR);
-			}
+			bso_poll(fa,F_ERR); 
 		} 
 	} else rc=S_REDIAL;
 	title("Waiting...");

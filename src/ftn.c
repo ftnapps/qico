@@ -1,10 +1,9 @@
 /**********************************************************
- * File: ftn.c
- * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.40 2002/04/15 19:55:46 lev Exp $
+ * $Id: ftn.c,v 1.1.1.1 2003/07/12 21:26:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#include "charset.h"
 
 unsigned long seq=0xFFFFFFFF;
 
@@ -108,7 +107,7 @@ char *ftnaddrtoa(ftnaddr_t *a)
 		snprintf(s, 50, "%d:%d/%d", a->z, a->n, a->f);
 	return s;
 }
-
+/*
 char *ftnaddrtoia(ftnaddr_t *a)
 {
 	static char s[50];
@@ -118,7 +117,7 @@ char *ftnaddrtoia(ftnaddr_t *a)
 		snprintf(s, 50, "f%d.n%d.z%d", a->f, a->n, a->z);
 	return s;
 }
-
+*/
 
 void falist_add(falist_t **l, ftnaddr_t *a)
 {
@@ -166,7 +165,6 @@ void slist_kill(slist_t **l)
 	}
 }
 
-
 void faslist_add(faslist_t **l, char *s, ftnaddr_t *a)
 {
 	faslist_t **t;
@@ -200,12 +198,34 @@ void strupr(char *s)
 
 void strtr(char *s, char a, char b)
 {
-	while(*s) {
+	while(s&&*s) {
 		if(*s==a) *s=b;
 		s++;
 	}
 }
-	
+
+unsigned char todos(unsigned char c)
+{
+	if(cfgi(CFG_REMOTERECODE)&&c>=128)c=tab_koidos[c-128];
+	return c;
+}
+
+unsigned char tokoi(unsigned char c)
+{
+	if(cfgi(CFG_REMOTERECODE)&&c>=128)c=tab_doskoi[c-128];
+	return c;
+}
+
+void stodos(unsigned char *s)
+{
+	while(s&&*s){*s=todos(*s);s++;}
+}
+
+void stokoi(unsigned char *s)
+{
+	while(s&&*s){*s=tokoi(*s);s++;}
+}
+
 char *chop(char *s,int n)
 {
 	int i=0;char *p=strchr(s,0);
@@ -272,12 +292,22 @@ int islocked(char *pidfn)
 	
 char *strip8(char *s)
 {
-	char *p=s;
-	while (*s) {
-	  if (s[0] == '}' || s[0] == ']') s[0] = 'x';
-	  *s++&=0x7f;
+	unsigned char *p=(unsigned char*)s,buf[128],t;
+	int i=0;
+	while(*p) {
+		t=todos(*p);
+		if(t>127)
+		{
+			buf[i++]='\\';
+			buf[i++]=t/16+((t/16)>9?'a'-10:'0');
+			buf[i]=t%16+((t%16)>9?'a'-10:'0');
+		} else buf[i]=t;
+		if(buf[i]=='}'||buf[i]==']')buf[i]=')';
+		i++;p++;
 	}
-	return p;
+	*s=0;buf[i]=0;
+	strcat(s,(char*)buf);
+	return s;
 }
 
 unsigned long sequencer()
@@ -291,7 +321,6 @@ unsigned long sequencer()
 	return seq;
 }
 
-
 int has_addr(ftnaddr_t *a, falist_t *l)
 {
 	while(l) {
@@ -301,16 +330,16 @@ int has_addr(ftnaddr_t *a, falist_t *l)
 	return 0;
 }
 
-
-/* int touch(char *fn) */
-/* { */
-/* 	FILE *f=fopen(fn, "a"); */
-/* 	if(f) { */
-/* 		fclose(f); */
-/* 		return 1; */
-/* 	} */
-/* 	return 0; */
-/* } */
+/*
+int touch(char *fn)
+{
+	FILE *f=fopen(fn, "a");
+ 	if(f) {
+ 		fclose(f);
+ 		return 1;
+ 	}
+ 	return 0;
+} */
 
 int mkdirs(char *name)
 {
@@ -354,17 +383,15 @@ FILE *mdfopen(char *fn, char *pr)
 	return NULL;
 }
 
-char *engms[]={"Jan","Feb","Mar","Apr","May","Jun",
-			   "Jul","Aug","Sep","Oct","Nov","Dec"};
+char *engms[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
-FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
-				 char *subj, char *pwd, char *fn)
+FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,char *subj, char *pwd, char *fn,unsigned attr)
 {
 	FILE *f;
 	pkthdr_t ph;pktmhdr_t mh;
 	time_t tim=time(NULL);
 	struct tm *t=localtime(&tim);
-	
+
 	f=fopen(fn,"w");
 	if(!f) return NULL;
 	memset(&ph,0, sizeof(ph));
@@ -387,9 +414,7 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 	ph.phPCodeHi=1;
 	ph.phPRevMinor=2;
 	ph.phCaps=H2I16(1);
-
-	if(pwd) memcpy(ph.phPass, pwd, MAX(strlen(pwd),8));
-
+	if(pwd)memcpy(ph.phPass,pwd,MAX(strlen(pwd),8));
 	ph.phQOZone=H2I16(fa->z);
 	ph.phQDZone=H2I16(ta->z);
 	ph.phOZone=H2I16(fa->z);
@@ -397,30 +422,51 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 	ph.phOPoint=H2I16(fa->p);
 	ph.phDPoint=H2I16(ta->p);
 	fwrite(&ph, sizeof(ph), 1, f);
-
 	mh.pmONode=H2I16(fa->f);
 	mh.pmDNode=H2I16(ta->f);
 	mh.pmONet=H2I16(fa->n);
 	mh.pmDNet=H2I16(ta->n);
-	mh.pmAttr=H2I16(1);
+	mh.pmAttr=H2I16(attr);
 	mh.pmType=H2I16(2);
 	fwrite(&mh, sizeof(mh), 1, f);
 	fprintf(f, "%02d %3s %02d  %02d:%02d:%02d%c", t->tm_mday, engms[t->tm_mon], t->tm_year%100, t->tm_hour, t->tm_min, t->tm_sec, 0);
-	fwrite(from, strlen(from)+1, 1, f);
+	stodos((unsigned char*)to);
+	if(attr<128){stodos((unsigned char*)subj);stodos((unsigned char*)from);}
 	fwrite(to, strlen(to)+1, 1, f);
+	fwrite(from, strlen(from)+1, 1, f);
 	fwrite(subj, strlen(subj)+1, 1, f);
+	fprintf(f, "\001INTL %d:%d/%d %d:%d/%d\r",ta->z,ta->n,ta->f,fa->z,fa->n,fa->f);
 	if(fa->p) fprintf(f, "\001FMPT %d\r", fa->p);
-	if(ta->p) fprintf(f, "\001TOPT %d\r", ta->p);
-	fprintf(f, "\001INTL %d:%d/%d %d:%d/%d\r",
-			ta->z,ta->n,ta->f,fa->z,fa->n,fa->f);
+	if(ta->p)fprintf(f, "\001TOPT %d\r", ta->p);
 	fprintf(f, "\001MSGID: %s %08lx\r", ftnaddrtoa(fa), sequencer());
+	fprintf(f, "\001PID: %s %s/%s\r",progname,version,osname);
 	return f;
 }
 
 void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
 {
-	fprintf(f,"--- %s\r * Origin: %s (%s)\r%c%c%c", tear, orig, ftnaddrtoa(fa), 0, 0, 0);
+	stodos((unsigned char*)orig);
+	fprintf(f,"--- %s\r * Origin: %s (%s)\r%c%c%c",tear,orig,ftnaddrtoa(fa),0,0,0);
 	fclose(f);
+}
+
+char *qver(int w)
+{
+	cfgs(CFG_PROGNAME);
+	if(!w) {
+		if(ccs)if(strncasecmp(ccs,progname,4))return ccs;
+		return progname;
+	} else if(w==1) {
+		if(ccs)if(strncasecmp(ccs,progname,4))if(cfgs(CFG_VERSION))return ccs;
+		return version;
+	} else return(cfgs(CFG_OSNAME)?ccs:osname);
+}
+
+void closeqpkt(FILE *f,ftnaddr_t *fa)
+{
+	char str[MAX_STRING];
+	snprintf(str,MAX_STRING*4,"%s-%s/%s",strdup(qver(0)),strdup(qver(1)),strdup(qver(2)));
+	closepkt(f,fa,str,cfgs(CFG_STATION));
 }
 
 #ifndef HAVE_SETPROCTITLE
@@ -552,7 +598,7 @@ int istic(char *fn)
 	p=strrchr(fn,'.');
 	if(!p) return 0;
 	if(!strncasecmp(p+1,"tic",3)) return 1;
-	else return 0;
+	    else return 0;
 }
 		
 int lunlink(char *s)
@@ -565,9 +611,11 @@ int lunlink(char *s)
 			
 char *mapname(char *fn, char *map, size_t size)
 {
-	char *l;
 	int t;
+	char *l;
 	if(!map) return fn;
+	if(strchr(map, 'c'))stodos((unsigned char*)fn);
+	if(strchr(map, 'k'))stokoi((unsigned char*)fn);
 	if(strchr(map, 'd')) {
 		l=strrchr(fn, '.');if(l) {
 			strtr(fn,'.','_');*l='.';
@@ -575,7 +623,7 @@ char *mapname(char *fn, char *map, size_t size)
 	}
 	t=whattype(fn);
 	if(strchr(map, 'b') && t!=IS_FILE) 
-		snprintf(fn, 14, "%08lx%s", crc32s(fn), strrchr(fn,'.'));
+		snprintf(fn,14,"%08lx%s",crc32s(fn),strrchr(fn,'.'));
 	if(strchr(map, 'u')) strupr(fn);
 	if(strchr(map, 'l')) strlwr(fn);
 	if(strchr(map, 'f')) xstrcpy(fn, fnc(fn), size);
@@ -609,26 +657,21 @@ char *mapname(char *fn, char *map, size_t size)
 
 int isdos83name(char *fn)
 {
-	int nl,el,ec,uc,lc,f;
-	char *p = fn;
-    nl=el=ec=uc=lc=0;
-    f=1;
-    while(*p) {
-    	if(!dosallowin83(*p) && ('.'!=*p)) {
-    		f=0;
-    		break;
-    	}
-    	if('.'==*p) ec++;
-    	else {
-			if(!ec) nl++; else el++;
+	int nl=0,el=0,ec=0,uc=0,lc=0,f=1;
+	char *p=fn;
+	while(*p) {
+		if(!dosallowin83(*p)&&('.'!=*p)){f=0;break;}
+	    	if('.'==*p)ec++;
+	    	    else {
+			if(!ec)nl++; else el++;
 			if(isalpha((int)*p)) {
-				if(isupper((int)*p)) uc++;
-				else lc++;
+				if(isupper((int)*p))uc++;
+				    else lc++;
 			}
 		}
-    	p++;
-    }
-    return (f && ec < 2 && el < 4 && nl < 9 && (!lc || !uc));
+	    	p++;
+	}
+	return (f&&ec<2&&el<4&&nl<9&&(!lc||!uc));
 }
 
 int havestatus(int status, int cfgkey)
@@ -649,4 +692,3 @@ int needhold(int status, int what)
 	if((status&Q_WAITX)&&!(what&(~T_ARCMAIL))) return 1;
 	return 0;
 }
-

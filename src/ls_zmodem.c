@@ -1,20 +1,12 @@
-/**********************************************************
- * File: ls_zmodem.c
- * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: ls_zmodem.c,v 1.19 2003/03/10 15:58:05 cyrilm Exp $
- **********************************************************/
 /*
-
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-
+   $Id: ls_zmodem.c,v 1.1.1.1 2003/07/12 21:26:50 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
 #include "ls_zmodem.h"
-#include "qipc.h"
 
 /* Common variables */
 byte ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
@@ -80,11 +72,15 @@ char *LSZ_FRAMETYPES[] = {
 
 /* Special table to FAST calculate header type */
 /*                 CRC32,VAR,RLE */
-static int HEADER_TYPE[2][2][2] = {{{ZBIN,-1},{ZVBIN,-1}},
-									{{ZBIN32,ZBINR32},{ZVBIN32,ZVBINR32}}};
+static int HEADER_TYPE[2][2][2] = {{{ZBIN,-1},{ZVBIN,-1}},{{ZBIN32,ZBINR32},{ZVBIN32,ZVBINR32}}};
 
 /* Hex digits */
 static char HEX_DIGITS[] = "0123456789abcdef";
+
+
+unsigned char inchatbuf[16384],*chattxbuf;
+unsigned short inchatfill=0;
+static int chattxstate=CHAT_DONE;
 
 /* Functions */
 
@@ -116,7 +112,7 @@ int ls_zsendbhdr(int frametype, int len, byte *hdr)
 	for (n=0; n < len; n++) {
 		ls_sendchar(*hdr);
 		crc = LSZ_UPDATE_CRC((unsigned char)(*hdr),crc);
-        hdr++;
+    		hdr++;
 	}
 	crc = LSZ_FINISH_CRC(crc);
 	DEBUG(('Z',2,"ls_zsendbhdr: CRC%d is %08x",(ls_Protocol&LSZ_OPTCRC32)?32:16,crc));
@@ -385,6 +381,12 @@ int ls_zsenddata(byte *data, int len, int frame)
 		}
 		BUFCHAR(ZDLE); BUFCHAR(frame);
 		crc = LSZ_UPDATE_CRC32(frame,crc);
+//chat
+		if(rnode->chat) {
+			if(frame==ZCRCG||frame==ZCRCW)z_devsend_c(1);
+			BUFCHAR(0);
+		}
+//
 		crc = LSZ_FINISH_CRC32(crc);
 		crc = LTOI(crc);
 		DEBUG(('Z',2,"ls_zsenddata: CRC32 is %08x",crc));
@@ -400,6 +402,12 @@ int ls_zsenddata(byte *data, int len, int frame)
 		}
 		BUFCHAR(ZDLE); BUFCHAR(frame);
 		crc = LSZ_UPDATE_CRC16(frame,crc);
+//chat
+		if(rnode->chat) {
+			if(frame==ZCRCG||frame==ZCRCW)z_devsend_c(1);
+			BUFCHAR(0);
+		}
+//
 		crc = LSZ_FINISH_CRC16(crc);
 		crc = STOI(crc & 0xffff);
 		DEBUG(('Z',2,"ls_zsenddata: CRC16 is %04x",crc));
@@ -619,7 +627,7 @@ int ls_readhex(int *timeout)
 /* Retrun 8bit character, strip <DLE> */
 int ls_readzdle(int *timeout)
 {
-	int c;
+	int c,r=0,rr;
 
 	if(!ls_GotZDLE) { /* There was no ZDLE in stream, try to read one */
 		do {
@@ -642,13 +650,29 @@ int ls_readzdle(int *timeout)
 		ls_GotZDLE = 0;
         switch(c) {
 		case ZCRCE:
-			return LSZ_CRCE;
+			r=LSZ_CRCE;
+			break;
 		case ZCRCG:
-			return LSZ_CRCG;
-		case ZCRCQ:
-			return LSZ_CRCQ;
+			r=LSZ_CRCG;
+			break;
 		case ZCRCW:
-			return LSZ_CRCW;
+			r=LSZ_CRCW;
+			break;
+		case ZCRCQ:
+			r=LSZ_CRCQ;
+			break;
+	}																	
+//chat
+	if(rnode->chat&&r) {
+		do {
+			rr=ls_readcanned(timeout);
+			z_devrecv_c(rr,0);
+		} while(rr);
+		z_devsend_c(0);
+	}
+//
+	if(r)return r;
+	switch(c) {
 		case ZRUB0:
 			return ZDEL;
 		case ZRUB1:
@@ -702,5 +726,51 @@ void ls_zabort()
 	BUFCHAR(XON);
 	for(i = 0; i < 8; i++) BUFCHAR(CAN);
 	BUFFLUSH();
-	return;
+}
+
+// chat routines
+int z_devfree()
+{
+	if(chattxstate||!rnode->chat)return 0;
+	    else return 1;
+}
+
+int z_devsend(unsigned char *data,unsigned short len)
+{
+	if(!data||!len||!z_devfree())return 0;
+	chattxbuf=data;
+	chattxbuf[(len>16383)?16383:len]=0;
+	chattxstate=CHAT_DATA;
+	return 1;
+}
+
+void z_devsend_c(int buffr)
+{
+	unsigned char *p;
+	if(chattxstate==CHAT_DATA) {
+		p=chattxbuf;
+//		write_log("ss: %s",p);
+		strtr((char*)p,ZPAD,(unsigned char)248);
+		while(*p++)if(buffr)BUFCHAR(*p);
+		    else ls_sendchar(*p);
+		chattxstate=CHAT_DONE;
+	}
+}
+
+void z_devrecv_c(unsigned char c,int flushed)
+{
+//	write_log("rr: %c",c);
+	inchatbuf[inchatfill++]=c;
+	if(c) {
+		if(inchatfill>255||flushed) {
+			inchatbuf[inchatfill]=0;
+			goto flush;
+		}
+	    } else {
+flush:		if(*inchatbuf) {
+			strtr((char*)inchatbuf,(unsigned char)248,ZPAD);
+			c_devrecv(inchatbuf,inchatfill);
+		}
+	inchatfill=0;
+	}
 }

@@ -1,0 +1,20 @@
+#!/bin/bash
+# script for tossing mail by sisoft\trg'2002
+# $Id: tossing,v 1.1.1.1 2003/07/12 21:27:20 sisoft Exp $
+
+# netmail
+ find /fido/files/uncheck/*.[pP][kK][tT] >/dev/null 2>&1 && (
+	mv /fido/files/uncheck/*.[pP][kK][tT] /fido/files/in/ )
+ find /fido/files/in/*.[pP][kK][tT] >/dev/null 2>&1 && (
+ 	/fido/bin/ftrack -c/fido/etc/ftrack
+	touch /fido/lock/rescan.net )
+
+# fileecho
+ find /fido/files/in/*.[tT][iI][cC] >/dev/null 2>&1 && (
+	/fido/bin/htick toss )
+
+# echomail
+ find /fido/files/in/*.[sSmMtTwWfF][aAuUoOeEhHrR][0-z] >/dev/null 2>&1 && (
+	/fido/bin/hpt toss scan
+	touch /fido/lock/rescan.ged )
+    

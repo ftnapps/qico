@@ -1,5 +1,3 @@
-*.o
-*.core
 qico
 qcc
 qctl
@@ -9,8 +7,6 @@ flagexp.c
 flagexp.h
 flaglex.c
 ver.c
-ver.h
 Makefile
 Makefile.in
 .deps
-cscope.out

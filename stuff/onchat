@@ -1,0 +1,8 @@
+#!/bin/sh
+# sample of script for run in `runonchat'
+# $Id: onchat,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $
+for a in 1 2 3 6 5 4 8 6 20 10; do
+    echo -en "\033[11;300]\033[10;${a}00]\a\033[10]\033[11]" >/dev/tty12
+    echo -n|cat
+done
+play /fido/etc/chat.wav

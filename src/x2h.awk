@@ -1,3 +1,4 @@
+# $Id: x2h.awk,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $
 BEGIN {
  print "#ifndef __QCONF_H__"
  print "#define __QCONF_H__"

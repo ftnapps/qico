@@ -1,18 +1,11 @@
-/**********************************************************
- * File: ls_zmodem.h
- * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: ls_zmodem.h,v 1.17 2003/03/10 15:58:08 cyrilm Exp $
- **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
 /*
-
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-
 */
+/* $Id: ls_zmodem.h,v 1.1.1.1 2003/07/12 21:26:54 sisoft Exp $ */
 
 /* Dirty hack */
 #define LSZ_TRUSTZFINS		3		/* We trust only in MANY ZFINs during initialization */
@@ -167,6 +160,9 @@
 #define LTOH(x) (x)
 #define STOH(x) (x)
 
+#define CHAT_DONE 0
+#define CHAT_DATA 1
+
 /* ZModem state */
 
 /* Common variables */
@@ -240,6 +236,14 @@ int ls_zrecvfile(int pos);
 int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first);
 /* Done receiver */
 int ls_zdonereceiver();
+
+//chat
+void z_devsend_c(int buffr);
+void z_devrecv_c(unsigned char c,int flushed);
+
+int z_devfree();
+int z_devsend(unsigned char *data,unsigned short len);
+
 
 /* Debug logging */
 #ifdef NEED_DEBUG

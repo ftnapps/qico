@@ -1,0 +1,3 @@
+#!/bin/sh
+
+make all && ( qctl -q; make install; qico -d -f )

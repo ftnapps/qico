@@ -1,3 +1,4 @@
+/* $Id: ver.c.in,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $ */
 #include "ver.h"
 
 char progname[]="@PACKAGE_NAME@";

@@ -1,8 +1,6 @@
 /**********************************************************
- * File: xmem.c
- * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xmem.c,v 1.8 2002/03/16 15:54:20 lev Exp $
+ * safety work with memory
+ * $Id: xmem.c,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 

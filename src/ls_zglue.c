@@ -1,20 +1,12 @@
-/**********************************************************
- * File: ls_zglue.c
- * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
- *
- * $Id: ls_zglue.c,v 1.13 2001/03/23 20:46:25 lev Exp $
- **********************************************************/
 /*
-
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-
+   $Id: ls_zglue.c,v 1.1.1.1 2003/07/12 21:26:46 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
 #include "ls_zmodem.h"
-#include "qipc.h"
 
 /* For external use */
 int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsigned long *filesleft)

@@ -1,17 +1,10 @@
-/**********************************************************
- * File: hydra.h
- * Created at Tue Aug 10 22:49:42 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: hydra.h,v 1.5 2003/02/25 21:23:02 cyrilm Exp $
- **********************************************************/
 /*=============================================================================
-
                        The HYDRA protocol was designed by
                  Arjen G. Lentz, LENTZ SOFTWARE-DEVELOPMENT and
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
-
-=============================================================================*/
+ =============================================================================*/
+/* $Id: hydra.h,v 1.1.1.1 2003/07/12 21:26:43 sisoft Exp $ */
 #ifndef __HYDRA_H__
 #define __HYDRA_H__
 #include "mailer.h"
@@ -131,8 +124,7 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define HOPT_FPT      (0x00000400L)     /* Can handle filenames with paths   */
 
 /* What we can do */
-#define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32) 
-/* |HOPT_DEVICE */
+#define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE) 
 /* Vital options if we ask for any; abort if other side doesn't support them */
 #define HNEC_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANBRK)
 /* Non-vital options; nice if other side supports them, but doesn't matter */
@@ -154,8 +146,7 @@ boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
 
 /* end of hydra.h */
 
-extern unsigned long chattimer, lasttimer, chatfill;
-extern boolean hdxsession/* CYRILM:, originator*/; 
+extern boolean hdxsession/* CYRILM:, originator*/;
 extern int hydra_modifier;
 
 #endif

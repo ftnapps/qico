@@ -1,8 +1,6 @@
 /**********************************************************
- * File: config.c
- * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: config.c,v 1.9 2003/02/07 16:05:52 cyrilm Exp $
+ * work with config
+ * $Id: config.c,v 1.1.1.1 2003/07/12 21:26:29 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -95,24 +93,6 @@ int setvalue(cfgitem_t *ci, char *t, int type)
 	}
 	return 0;
 }
-
-
-
-/*  #define CFGFUNC(x,y) { \ */
-/*  	cfgitem_t *ci, *cn=NULL; \ */
-/*  	for(ci=configtab[i].items;ci;ci=ci->next) { \ */
-/*  		if(ci->condition && flagexp(ci->condition)==1)  \ */
-/*  			return y=ci->value.x; \ */
-/*  		if(!ci->condition) cn=ci; \ */
-/*  	} \ */
-/*  	return y=cn->value.x; \ */
-/*  }  */
-
-/*  int cfgi(int i) CFGFUNC(v_int,cci) */
-/*  char *cfgs(int i) CFGFUNC(v_char,ccs) */
-/*  slist_t *cfgsl(int i) CFGFUNC(v_sl, ccsl)  */
-/*  faslist_t *cfgfasl(int i) CFGFUNC(v_fasl, ccfasl)  */
-/*  falist_t *cfgal(int i) CFGFUNC(v_al, ccal)  */
 
 int cfgi(int i)
 {

@@ -1,8 +1,6 @@
 /**********************************************************
- * File: crc.h
- * Created at Sun Mar 25 15:32:03 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: crc.h,v 1.1 2001/03/25 15:38:21 lev Exp $
+ * operations with CRC
+ * $Id: crc.h,v 1.1.1.1 2003/07/12 21:26:30 sisoft Exp $
  **********************************************************/
 #ifndef __CRC_H__
 #define __CRC_H__

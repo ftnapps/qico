@@ -1,9 +1,4 @@
-/**********************************************************
- * File: xmem.h
- * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xmem.h,v 1.4 2001/03/20 19:52:08 lev Exp $
- **********************************************************/
+/* $Id: xmem.h,v 1.1.1.1 2003/07/12 21:27:19 sisoft Exp $ */
 #ifndef __XMEM_H__
 #define __XMEM_H__
 

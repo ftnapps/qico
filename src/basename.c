@@ -1,7 +1,3 @@
-/*	$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $	*/
-/*	$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2001/07/23 10:13:04 dd Exp $	*/
-/*	$Id: basename.c,v 1.3 2003/02/02 20:18:55 cyrilm Exp $ */
-
 /*
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -33,7 +29,7 @@
 #ifndef lint
 static char openbsd_rcsid[] = "$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $";
 static char freebsd_rcsid[] = "$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2001/07/23 10:13:04 dd Exp $";
-static char qico_rcsid[] = "$Id";
+static char qico_rcsid[] = "$Id: basename.c,v 1.1.1.1 2003/07/12 21:26:28 sisoft Exp $";
 #endif /* not lint */
 
 #ifdef HAVE_CONFIG_H

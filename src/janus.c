@@ -1,10 +1,8 @@
 /******************************************************************
- * File: janus.c
- * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.20 2003/02/25 21:23:03 cyrilm Exp $
+ * $Id: janus.c,v 1.1.1.1 2003/07/12 21:26:45 sisoft Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -15,7 +13,6 @@
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
-#include "qipc.h"
 #include "janus.h"
 #include "byteop.h"
 
@@ -202,7 +199,7 @@ int janus()
 						brain_dead=t_set(120);
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
-                        rxblklen -= 4;
+                    				rxblklen -= 4;
 						if(fwrite(rxbuf+4, rxblklen, 1, rxfd)<0) {
 							write_log("write error on %s", recvf.fname);
 							goto giveup;
@@ -242,9 +239,9 @@ int janus()
 				if(rxstate==RRCVFNAME) {
 					if(!rxbuf[0]) {
 						if(reqs && (caps&JCAP_FREQ)) {
-							snprintf((char *)txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
+							snprintf((char*)txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
 							write_log("sent janus freq: %s", txbuf);
-							sendpkt((byte *)txbuf,strlen((char *)txbuf)+2,FREQPKT);
+							sendpkt((byte*)txbuf,strlen((char*)txbuf)+2,FREQPKT);
 							reqs=reqs->next;
 							break;
 						} else {
@@ -335,7 +332,7 @@ int janus()
 					xmit_retry = 0L;
 					write_log("recd janus freq: %s", rxbuf);
 					/* TODO FREQS */
-					if(cfgs(CFG_EXTRP)) {
+					if(cfgs(CFG_EXTRP)||cfgs(CFG_SRIFRP)) {
 						slist_t req;
 						req.str=(char *)rxbuf;
 						req.next=NULL;

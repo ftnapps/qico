@@ -1,20 +1,12 @@
-/************************************************************
- * File: ls_zreceive.c
- * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: ls_zreceive.c,v 1.16 2003/03/10 15:58:08 cyrilm Exp $
- **********************************************************/
 /*
-
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Receiver logic.
-
+   $Id: ls_zreceive.c,v 1.1.1.1 2003/07/12 21:26:55 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
 #include "ls_zmodem.h"
-#include "qipc.h"
 
 static unsigned char ls_rxAttnStr[LSZ_MAXATTNLEN+1] = "";
 
@@ -232,6 +224,7 @@ int ls_zrecvfile(int pos)
 	DEBUG(('Z',1,"ls_zrecvfile form %d",pos));
 
 	rxpos = pos;
+	rxstatus=0;
 	ls_storelong(ls_txHdr,rxpos);
 	if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 
@@ -300,6 +293,7 @@ int ls_zrecvfile(int pos)
 				needzdata = 0;
 			}
 		}
+		if(rxstatus)return((rxstatus==RX_SKIP)?ZSKIP:ZFERR);
 	} while(1);
 	return LSZ_OK;
 }

@@ -1,8 +1,6 @@
 /***************************************************************************
- * File: qctl.c
  * command-line qico control tool
- * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.21 2003/03/19 18:43:31 cyrilm Exp $
+ * $Id: qctl.c,v 1.1.1.1 2003/07/12 21:27:12 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -14,23 +12,23 @@
 #include <ctype.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
 #include <config.h>
 #include <errno.h>
-#include <sys/stat.h>
 #include "qcconst.h"
 #include "ver.h"
 #include "replace.h"
 #include "xstr.h"
 
-extern time_t gmtoff(time_t tt);
+extern time_t gmtoff(time_t tt,int mode);
 
 int qipc_msg;
 char qflgs[Q_MAXBIT]=Q_CHARS;
 
 void usage(char *ex)
 {
-	printf("qctl-%s copyright (c) pavel kurnosoff, 1999-2000\n"
-		   "usage: %s [<options>] [<node>] [<files>]\n"
+	printf("qctl-%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
+		   "usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h             this help screen\n"
  		   "-q             stop daemon\n"
@@ -46,9 +44,13 @@ void usage(char *ex)
 		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
 		   "-k             kill attached files after transmission (for -s)\n"
 		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
-		   "               < u>ndialable, <i>mmediate, <w>ait\n"
+		   "               <u>ndialable, <i>mmediate, <w>ait\n"
+		   "-H             hangup modem session on <tty>\n"
 		   "\n", version, ex);
 }
+
+void to_dev_null(){;}
+void write_log(){;}
 
 void timeout(int sig)
 {
@@ -75,7 +77,7 @@ void print_worktime(char *flags)
 {
 	char *p;
 	time_t tm=time(NULL);
-	long tz=gmtoff(tm)/3600;
+	long tz=gmtoff(tm,1)/3600;
 	
 	while((p=strsep(&flags, ","))) {
 		if(!strcmp(p,"CM")) {
@@ -137,8 +139,8 @@ int getqueueinfo()
 	long flags;
 	int k;
 
-	printf("%-20s %10s %10s %10s %10s\n","Address","Mail","Files","Trys","Flags");
-	printf("----------------------------------------------------------------\n");
+	printf("%-20s %10s %10s %10s %11s\n","Address","Mail","Files","Trys","Flags");
+	printf("-----------------------------------------------------------------\n");
 	do {
 		signal(SIGALRM, timeout);
 		alarm(5);
@@ -156,7 +158,7 @@ int getqueueinfo()
 			sscanf(p,"%ld",&flags);
 			for(k=0;k<Q_MAXBIT;k++) cflags[k] = (flags&(1<<k))?qflgs[k]:'.';
 			cflags[Q_MAXBIT] = '\x00';
-			printf("%-20s %10s %10s %10s %10s\n",a,m,f,t,cflags);
+			printf("%-20s %10s %10s %10s %11s\n",a,m,f,t,cflags);
 		}
 	} while (buf[5]);
 	signal(SIGALRM, SIG_DFL);
@@ -167,11 +169,12 @@ int getqueueinfo()
 int main(int argc, char *argv[])
 {
 	key_t qipc_key;
-	int action=-1, kfs=0, len=0;
-	char c, *str="", flv='?', buf[MSG_BUFFER];
+	int action=-1, kfs=0, len=0,lkfs;
+	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH];
+	struct stat filestat;
 	
- 	setlocale(LC_ALL, "");
- 	while((c=getopt(argc, argv, "Khqovrp:fkRQs:x:"))!=EOF) {
+// 	setlocale(LC_ALL, "");
+ 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:"))!=EOF) {
 		switch(c) {
 		case 'k':
 			kfs=1;
@@ -220,6 +223,9 @@ int main(int argc, char *argv[])
 		case 'Q':
 			action=QR_SCAN;
 			break;
+		case 'H':
+			action=QR_HANGUP;
+			break;
 		default:
 			return 1;
 		}
@@ -258,9 +264,15 @@ int main(int argc, char *argv[])
 	case QR_POLL:
 		while(optind<argc){
 			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-  		    buf[10+strlen(buf+9)]=flv;
+  			buf[10+strlen(buf+9)]=flv;
 			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);
 		}
+		return getanswer();
+	case QR_HANGUP:
+		if(optind<argc){
+			strncpy(buf+9,argv[optind],16);
+			msgsnd(qipc_msg,buf,strlen(buf+9)+10,0);
+		} else { usage(argv[0]); return 1; }
 		return getanswer();
 	case QR_STS:
 		if(optind<argc) {
@@ -290,9 +302,7 @@ int main(int argc, char *argv[])
 		}
 		*str++=flv;*str++=0;
 		for(;optind<argc;optind++) {
-			int lkfs=kfs;
-			char filename[MAX_PATH];
-			struct stat filestat;
+			lkfs=kfs;
 			memset(filename,0,MAX_PATH);
 			if(argv[optind][0]!='/') {
 				getcwd(filename, MAX_PATH-1);xstrcat(filename, "/", MAX_PATH);
@@ -314,7 +324,6 @@ int main(int argc, char *argv[])
 				printf("Have no write access to %s. File wouldn't be removed!\n",filename);
 				lkfs=0;
 			}
-
 			str[0]=lkfs?'^':0;str[1]=0;
 			xstrcat(str, filename, MSG_BUFFER-(str-(char*)buf));
 			str+=strlen(str)+1;

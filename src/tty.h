@@ -1,9 +1,4 @@
-/**********************************************************
- * File: tty.h
- * Created at Thu Jul 15 16:16:17 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: tty.h,v 1.6 2003/03/10 15:58:14 cyrilm Exp $
- **********************************************************/
+/* $Id: tty.h,v 1.1.1.1 2003/07/12 21:27:18 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #include "ftn.h"
@@ -29,11 +24,15 @@
 #define MC_FAIL 1
 #define MC_ERROR 2
 #define MC_BUSY 3
+#define MC_NODIAL 4
+#define MC_RING 5
 
 extern char *tty_errs[];
 extern char *tty_port;
 extern int tty_hangedup;
+extern int calling;
 extern void tty_sighup(int sig);
+extern int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to);
 extern int tty_isfree(char *port, char *nodial);
 extern char *tty_findport(slist_t *ports, char *nodial);
 extern int tty_openport(char *port);
@@ -66,10 +65,12 @@ extern int tty_gets(char *what, int n, int timeout);
 extern int tty_expect(char *what, int timeout);
 extern char *baseport(char *p);
 extern int modem_sendstr(char *cmd);
-extern int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
+extern int modem_chat(char *cmd, slist_t *oks, slist_t *dns, slist_t *ers, slist_t *bys,
 					  char *ringing, int maxr, int timeout, char *rest, size_t restlen);
 extern int modem_stat(char *cmd, slist_t *oks, slist_t *ers, 
 		  int timeout, char *stat, size_t stat_len);
+
+extern pid_t getsid(pid_t pid);
 
 #define M_STAT (tty_hangedup?"hangup":"ok")
 

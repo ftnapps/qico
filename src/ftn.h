@@ -1,9 +1,4 @@
-/**********************************************************
- * File: ftn.h
- * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: ftn.h,v 1.32 2003/05/29 07:44:47 cyrilm Exp $
- **********************************************************/
+/* $Id: ftn.h,v 1.1.1.1 2003/07/12 21:26:39 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -81,10 +76,10 @@ typedef struct _faslist_t {
 } faslist_t;
 
 typedef struct {
-    falist_t *addrs;
+	falist_t *addrs;
 	char *name, *place, *sysop, *phone, *wtime, *flags, *pwd, *mailer;
-    int options, speed, realspeed, netmail, files, haswtime, hidnum,
-		type, holded;
+	int options, speed, realspeed, netmail, files, haswtime, hidnum,
+		type, holded, chat;
 	long int time, starttime;
 	char *tty;
 } ninfo_t;
@@ -183,7 +178,7 @@ typedef struct {
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
-extern char *ftnaddrtoia(ftnaddr_t *a);
+//extern char *ftnaddrtoia(ftnaddr_t *a);
 extern void falist_add(falist_t **l, ftnaddr_t *a);
 extern void falist_kill(falist_t **l);
 extern slist_t *slist_add(slist_t **l, char *s);
@@ -193,6 +188,10 @@ extern void faslist_kill(faslist_t **l);
 extern void strlwr(char *s);
 extern void strupr(char *s);
 extern void strtr(char *s, char a, char b);
+extern unsigned char todos(unsigned char c);
+extern unsigned char tokoi(unsigned char c);
+extern void stodos(unsigned char *str);
+extern void stokoi(unsigned char *str);
 extern char *chop(char *s, int n);
 extern unsigned long filesize(char *fname);
 extern int lockpid(char *pidfn);
@@ -204,8 +203,9 @@ extern int mkdirs(char *name);
 extern void rmdirs(char *name);
 extern FILE *mdfopen(char *fn, char *pr);
 extern char *engms[];
-extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn);
+extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn,unsigned attr);
 extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
+extern void closeqpkt(FILE *f,ftnaddr_t *fa);
 #ifndef HAVE_SETPROCTITLE
 extern void setargspace(int argc, char **argv, char **envp);
 extern void setproctitle(char *str);
@@ -255,34 +255,12 @@ extern void killconfig(void);
 #ifdef NEED_DEBUG
 extern void dumpconfig();
 #endif
-/* aso.c */
-extern char *aso_tmp;
-extern int is_aso();
-extern int aso_init(char *asopath, int def_zone);
-extern void aso_done(void);
-extern char *aso_name(ftnaddr_t *fa);
-extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
-extern int aso_flavor(char fl);
-extern char *aso_pktn(ftnaddr_t *fa, int fl);
-extern char *aso_flon(ftnaddr_t *fa, int fl);
-extern char *aso_bsyn(ftnaddr_t *fa);
-extern char *aso_reqn(ftnaddr_t *fa);
-extern char *aso_stsn(ftnaddr_t *fa);
-extern int aso_locknode(ftnaddr_t *adr);
-extern int aso_unlocknode(ftnaddr_t *adr);
-extern int aso_attach(ftnaddr_t *adr, int flv, slist_t *files);
-extern int aso_request(ftnaddr_t *adr, slist_t *files);
-extern int aso_rmstatus(ftnaddr_t *adr);
-extern int aso_setstatus(ftnaddr_t *fa, sts_t *st);
-extern int aso_getstatus(ftnaddr_t *fa, sts_t *st);
-extern int aso_poll(ftnaddr_t *fa, int flavor);
 /* bso.c */
 extern char *bso_tmp;
-extern int is_bso();
 extern int bso_init(char *bsopath, int def_zone);
 extern void bso_done(void);
 extern char *bso_name(ftnaddr_t *fa);
-extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
+extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int, int),int rslow);
 extern int bso_flavor(char fl);
 extern char *bso_pktn(ftnaddr_t *fa, int fl);
 extern char *bso_flon(ftnaddr_t *fa, int fl);
@@ -301,6 +279,9 @@ extern int bso_poll(ftnaddr_t *fa, int flavor);
 extern void (*log_callback)(char *str);
 extern int log_init(char *, char *);
 extern void write_log(char *fmt, ...);
+extern int chatlog_init(char *remname,ftnaddr_t *remaddr,int side);
+extern void chatlog_write(char *text,int side);
+extern void chatlog_done();
 #ifdef NEED_DEBUG
 extern int facilities_levels[256];
 extern void parse_log_levels();
@@ -318,7 +299,7 @@ extern void log_done(void);
 /* queue.c */
 extern qitem_t *q_queue;
 extern qitem_t *q_find(ftnaddr_t *fa);
-extern int q_rescan(qitem_t **curr);
+extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
 
@@ -335,9 +316,11 @@ extern int whattype(char *fn);
 extern int lunlink(char *s);
 extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
+extern char *qver(int what);
+extern int istic(char *fn);
 
 /* gmtoff.c */
-extern time_t gmtoff(time_t tt);
+extern time_t gmtoff(time_t tt,int mode);
 
 /* main.c */
 extern void to_dev_null();

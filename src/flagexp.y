@@ -1,8 +1,6 @@
 /**********************************************************
- * File: flagexp.y
- * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
- * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.11 2003/02/03 14:38:49 cyrilm Exp $
+ * expression parser
+ * $Id: flagexp.y,v 1.1.1.1 2003/07/12 21:26:33 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -146,7 +144,7 @@ static int checkphone(void)
 static int checkcid(void)
 {
 	char *cid = getenv("CALLER_ID");
-	if(!cid) cid = "none";
+	if(!cid||strlen(cid?cid:"")<4) cid = "none";
 	DEBUG(('Y',2,"checkcid: \"%s\" <-> \"%s\"",yytext,cid));
 	if(!strncasecmp(yytext,cid,strlen(yytext))) return 1;
 	return 0;

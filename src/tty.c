@@ -1,8 +1,6 @@
 /**********************************************************
- * File: tty.c
- * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: tty.c,v 1.24 2003/04/19 20:31:30 cyrilm Exp $
+ * work with tty's
+ * $Id: tty.c,v 1.1.1.1 2003/07/12 21:27:18 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -10,14 +8,15 @@
 #include "defs.h"
 #include "tty.h"
 
+#undef DEBUG_SLEEP
+//#define DEBUG_SLEEP
+
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
-				"read error", "write error", "timeout", "close error",
+			"read error", "write error", "timeout", "close error",
 				"can't lock port", "can't set/get flags"};
-
-
 struct termios savetios;
 char *tty_port=NULL;
-int tty_hangedup=0;
+int tty_hangedup=0,calling=0;
 
 #define IN_MAXBUF       16384
 unsigned char in_buffer[IN_MAXBUF];
@@ -27,13 +26,33 @@ int in_bufpos=0, in_bufmax=0;
 unsigned char out_buffer[OUT_MAXBUF];
 int out_bufpos=0;
 
+char ipcbuf[MSG_BUFFER];
+
 void tty_sighup(int sig)
 {
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
-				  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
+			  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	tty_hangedup=1;
 	DEBUG(('M',3,"tty: got SIG%s signal",sigs[sig]));
 	return;
+}
+
+int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to)
+{
+	int sec=to->tv_sec,rc;
+	do {
+		if(calling)if(qrecvpkt(ipcbuf)&&ipcbuf[8]==QR_HANGUP) {
+			tty_hangedup=1;
+			return -1;
+		}
+		to->tv_sec=sec?1:0;
+		rc=select(n,rfs,wfs,efs,to);
+	} while(sec--&&rc<0);
+	to->tv_sec=sec;
+#ifdef DEBUG_SLEEP
+	if(is_ip)usleep(30);
+#endif
+	return rc;
 }
 
 int tty_isfree(char *port, char *nodial)
@@ -278,10 +297,7 @@ int tty_local()
 	if (rc) {
 		DEBUG(('M',3,"tty_local: tcsetattr failed, errno=%d",errno));
 		rc=ME_ATTRS;
-	}
-	else {
-		DEBUG(('M',4,"tty_local: completed"));
-	}
+	} else DEBUG(('M',4,"tty_local: completed"));
 	tty_hangedup=0;
 	return rc;
 }
@@ -305,13 +321,10 @@ int tty_nolocal()
 	tios.c_cflag|=CRTSCTS;
 
 	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
-	if (rc) {
+	if(rc) {
 		DEBUG(('M',3,"tty_nolocal: tcsetattr failed, errno=%d",errno));
 		rc=ME_ATTRS;
-	}
-	else {
-		DEBUG(('M',4,"tty_nolocal: completed"));
-	}
+	} else DEBUG(('M',4,"tty_nolocal: completed"));
 	return rc;
 }
 
@@ -322,29 +335,25 @@ int tty_cooked()
 	signal(SIGPIPE, SIG_IGN);
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 	rc=tcsetattr(STDIN_FILENO, TCSAFLUSH, &savetios);
-	if (rc) {
+	if(rc) {
 		DEBUG(('M',3,"tty_cooked: tcsetattr failed, errno=%d",errno));
 		rc=ME_ATTRS;
-	}
-	else {
-		DEBUG(('M',4,"tty_cooked: completed"));
-	}
+	} else DEBUG(('M',4,"tty_cooked: completed"));
 	return rc;
 }
 
 int tty_setdtr(int dtr)
 {
-	int status;
-	int rc;
+	int status,rc;
 	rc=ioctl(STDIN_FILENO, TIOCMGET, &status);
-	if (rc<0) {
+	if(rc<0) {
 		DEBUG(('M',3,"tty_setdtr: TIOCMGET failed, dtr=%d, errno=%d",dtr,errno));
 		return 0;
 	}
 	if(dtr) status |= TIOCM_DTR;
-	else status &= ~TIOCM_DTR;
+	    else status &= ~TIOCM_DTR;
 	rc=ioctl(STDIN_FILENO, TIOCMSET, &status);
-	if (rc<0) {
+	if(rc<0) {
 		DEBUG(('M',3,"tty_setdtr: TIOCMSET failed, dtr=%d, errno=%d",dtr,errno));
 		return 0;
 	}
@@ -402,13 +411,15 @@ int tty_block()
 int tty_put(byte *buf, int size)
 {
 	int rc;
-
 	if(tty_hangedup) return RCDO;
 	rc=write(STDOUT_FILENO, buf, size);
 	if(rc!=size) {
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return ERROR;
 	}		
+#ifdef DEBUG_SLEEP
+	if(is_ip)usleep(300);
+#endif
 	return OK;
 }
 		
@@ -418,7 +429,6 @@ int tty_get(byte *buf, int size, int *timeout)
 	struct timeval tv;
 	int rc;
 	time_t t;
-	
 	if(tty_hangedup) return RCDO;
 	FD_ZERO(&rfds);FD_ZERO(&wfds);FD_ZERO(&efds);
 	FD_SET(STDIN_FILENO,&rfds);FD_SET(STDIN_FILENO,&efds);
@@ -426,7 +436,7 @@ int tty_get(byte *buf, int size, int *timeout)
 	tv.tv_usec=0;
 	
 	t=time(NULL);
-	rc=select(1, &rfds, &wfds, &efds, &tv);
+	rc=selectmy(1, &rfds, &wfds, &efds, &tv);
 	if(rc<0) {
 		if(tty_hangedup) return RCDO;
 		else return ERROR;
@@ -440,6 +450,9 @@ int tty_get(byte *buf, int size, int *timeout)
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return (errno!=EAGAIN && errno!=EINTR)?ERROR:TIMEOUT;
 	}
+#ifdef DEBUG_SLEEP
+	if(is_ip)usleep(300);
+#endif
 	return rc;
 }
 
@@ -502,7 +515,7 @@ int tty_hasdata(int sec, int usec)
 	tv.tv_sec=sec;
 	tv.tv_usec=usec;
 
-	rc=select(1, &rfds, NULL, &efds, &tv);
+	rc=selectmy(1, &rfds, NULL, &efds, &tv);
 	if(rc<0) {
 		if(tty_hangedup) return RCDO;
 		else return ERROR;
@@ -530,7 +543,7 @@ int tty_hasdata_timed(int *timeout)
 	tv.tv_usec=0;
 
 	t=time(NULL);
-	rc=select(1, &rfds, NULL, &efds, &tv);
+	rc=selectmy(1, &rfds, NULL, &efds, &tv);
 	if(rc<0) {
 		if(tty_hangedup) return RCDO;
 		else return ERROR;
@@ -558,9 +571,9 @@ char canistr[] = {
 
 int tty_gets(char *what, int n, int timeout)
 {
-	int to=timeout, p=0;int ch=0;
+	int to=timeout,p=0,ch=0;
 	time_t t1;
-
+	*what=0;
 	while(to>0 && p<n-1 && ch!='\r' && ch!='\n') {
 		t1=t_start();
 		ch=tty_getc(to);
@@ -569,17 +582,13 @@ int tty_gets(char *what, int n, int timeout)
 		if(ch>=0) {what[p]=ch;p++;}
 	}
 	what[p>0?--p:0]=0;
-	if (p>0) DEBUG(('M',1,"<< %s",what));
-	if (ch=='\r' || ch=='\n') {
+	if(p>0)DEBUG(('M',1,"<< %s",what));
+	if(ch=='\r' || ch=='\n') {
 		DEBUG(('M',5,"tty_gets: completed"));
 		return OK;
-	}
-	else if (to<=0) {
+	} else if(to<=0) {
 		DEBUG(('M',3,"tty_gets: timed out"));
-	}
-	else {
-		DEBUG(('M',3,"tty_gets: line too long, consider increasing MAX_STRING"));
-	}
+	} else DEBUG(('M',3,"tty_gets: line too long, consider increasing MAX_STRING"));
 	return TIMEOUT;
 }
 
@@ -587,7 +596,8 @@ int tty_expect(char *what, int timeout)
 {
 	int to=timeout, got=0, p=0;int ch;
 	time_t t1;
-	
+
+	calling=0;
 	while(!got && to>0) {
 		t1=t_start();
 		ch=tty_getc(to);
@@ -617,29 +627,30 @@ int modem_sendstr(char *cmd)
 	DEBUG(('M',1,">> %s",cmd));
 	while(*cmd && rc>0) {
 		switch(*cmd) {
-		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000);break;
+		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000L);break;
 		case '~': sleep(1);rc=1;break;
 		case '\'': usleep(200000L);rc=1;break;
 		case '^': rc=tty_setdtr(1); break;
 		case 'v': rc=tty_setdtr(0); break;
 		default: rc=write(STDOUT_FILENO, cmd, 1);
-		}
 		DEBUG(('M',4,">>> %c",*cmd));
+		}
 		cmd++;
 	}
-	if (rc>0) DEBUG(('M',4,"modem_sendstr: sent"));
-	else DEBUG(('M',3,"modem_sendstr: error, rc=%d, errno=%d",rc,errno));
+	if(rc>0) DEBUG(('M',4,"modem_sendstr: sent"));
+	    else DEBUG(('M',3,"modem_sendstr: error, rc=%d, errno=%d",rc,errno));
 	return rc;
 }
 	
-int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
+int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist_t *bys,
 			   char *ringing, int maxr, int timeout, char *rest, size_t restlen)
 {
-	char buf[MAX_STRING];int rc, nrng=0;
-	slist_t *cs;time_t t1=t_set(timeout);
-
+	char buf[MAX_STRING];
+	int rc,nrng=0;
+	slist_t *cs;
+	time_t t1;
+	calling=1;
 	DEBUG(('M',4,"modem_chat: cmd=\"%s\" timeout=%d",cmd,timeout));
-
 	rc=modem_sendstr(cmd);
 	if(rc!=1) {
 		if(rest) xstrcpy(rest, "FAILURE", restlen);
@@ -648,45 +659,58 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	}
 	if(!oks && !ers && !bys) return MC_OK;
 	rc=OK;
+	t1=t_set(timeout);
 	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
+		if(qrecvpkt(ipcbuf)&&ipcbuf[8]==QR_HANGUP)tty_hangedup=1;
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
+		if(rc==RCDO) {
+			if(rest)xstrcpy(rest,"HANGUP",restlen);
+	    		return MC_BUSY;
+		}
 		if(rc!=OK) {
 			if(rest) xstrcpy(rest, "FAILURE", restlen);
 			DEBUG(('M',3,"modem_chat: tty_gets failed, rc=%d",rc));
 			return MC_FAIL;
 		}
-		if(!*buf) continue;
-		if(ringing && !strncmp(buf, ringing, strlen(ringing))) {
-			nrng++;
-			continue;
-		}
+		if(!*buf)continue;
 		for(cs=oks;cs;cs=cs->next)
-			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) xstrcpy(rest, buf, restlen);
+			if(!strncmp(buf,cs->str,strlen(cs->str))) {
+				if(rest)xstrcpy(rest,buf,restlen);
 				return MC_OK;
 			}
 		for(cs=ers;cs;cs=cs->next)
-			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) xstrcpy(rest, buf, restlen);
+			if(!strncmp(buf,cs->str,strlen(cs->str))) {
+				if(rest)xstrcpy(rest,buf,restlen);
 				return MC_ERROR;
 			}
+		if(ringing&&!strncmp(buf,ringing,strlen(ringing))) {
+			if(!nrng&&strlen(ringing)==4) {
+				if(rest)xstrcpy(rest,buf,restlen);
+				return MC_RING;
+			}
+			nrng++;
+			continue;
+		}
+		for(cs=nds;cs;cs=cs->next)
+			if(!strncmp(buf,cs->str,strlen(cs->str))) {
+				if(rest)xstrcpy(rest,buf,restlen);
+				return MC_NODIAL;
+			}
 		for(cs=bys;cs;cs=cs->next)
-			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) xstrcpy(rest, buf, restlen);
+			if(!strncmp(buf,cs->str,strlen(cs->str))) {
+				if(rest)xstrcpy(rest,buf,restlen);
 				return MC_BUSY;
 			}
 	}
-	
 	if(rest) {
 		if(nrng && maxr && nrng>=maxr) snprintf(rest, restlen, "%d RINGINGs", nrng);
-		else if (ISTO(rc)) xstrcpy(rest, "TIMEOUT", restlen);
-		else xstrcpy(rest, "FAILURE", restlen);
+		    else if(ISTO(rc)) xstrcpy(rest, "TIMEOUT", restlen);
+			else xstrcpy(rest, "FAILURE", restlen);
 	}
 	return MC_FAIL;
 }
 
-int modem_stat(char *cmd, slist_t *oks, slist_t *ers,
-			   int timeout, char *stat, size_t stat_len)
+int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout, char *stat, size_t stat_len)
 {
 	char buf[MAX_STRING];int rc;
 	slist_t *cs;time_t t1=t_set(timeout);
