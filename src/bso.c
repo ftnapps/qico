@@ -1,6 +1,6 @@
 /**********************************************************
  * bso management
- * $Id: bso.c,v 1.3 2003/07/24 21:50:19 sisoft Exp $
+ * $Id: bso.c,v 1.4 2003/09/08 21:17:23 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -76,16 +76,18 @@ int bso_rescan(void (*each)(char *,ftnaddr_t *,int,int,int),int rslow)
 			if((dn=opendir(fn))!=0) {
 				while((den=readdir(dn))) {
 					p=strrchr(den->d_name,'.');
-					if(!p)continue;
-					*p=0;sscanf(den->d_name,"%04hx%04hx",&a.n,&a.f);*p='.';
-					a.p=0;
+					if(!p)continue;	*p=0;
+					if(sscanf(den->d_name,"%04hx%04hx",&a.n,&a.f)!=2)continue;
+					*p='.';a.p=0;
 					snprintf(fn,MAX_PATH,"%s/%s/%s",bso_base,dez->d_name,den->d_name);
 					if(!strcasecmp(p,".pnt")) {
 						if((dp=opendir(fn))!=0) {
 							while((dep=readdir(dp))) {
 								p=strrchr(dep->d_name,'.');
 								if(p) {
-									*p=0;sscanf(dep->d_name+4,"%04hx",&a.p);*p='.';
+									*p=0;
+									if(sscanf(dep->d_name+4,"%04hx",&a.p)!=1)continue;
+									*p='.';
 									snprintf(fn,MAX_PATH,"%s/%s/%s/%s",bso_base,dez->d_name,den->d_name,dep->d_name);
 									if(!strcasecmp(p+2,"lo")&&F_ERR!=(flv=bso_flavor(p[1])))
 										each(fn,&a,T_ARCMAIL,flv,rslow);

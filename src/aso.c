@@ -1,6 +1,6 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.4 2003/09/07 09:34:21 sisoft Exp $
+ * $Id: aso.c,v 1.5 2003/09/08 21:17:23 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -54,9 +54,8 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow)
 	dz=opendir(aso_base);if(!dz) return 0;
 	while((dez=readdir(dz))) {
 		p=strrchr(dez->d_name, '.');
-		if(!p) continue;
-		*p=0;sscanf(dez->d_name, "%hd.%hd.%hd.%hd",
-					&a.z, &a.n, &a.f, &a.p);
+		if(!p) continue; *p=0;
+		if(sscanf(dez->d_name, "%hd.%hd.%hd.%hd",&a.z, &a.n, &a.f, &a.p)!=4)continue;
 		snprintf(fn, MAX_PATH, "%s/%s.%s", aso_base, dez->d_name,p+1);
 		if(!strcasecmp(p+2, "lo"))
 			each(fn, &a, T_ARCMAIL, aso_flavor(p[1]),rslow);
@@ -64,8 +63,8 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow)
 			each(fn, &a, T_NETMAIL, aso_flavor(p[1]),rslow);	
 		if(!strcasecmp(p+1, "req"))
 			each(fn, &a, T_REQ, F_REQ,rslow);	
-	}	
-		
+	}
+
 	closedir(dz);
 	return 1;
 }

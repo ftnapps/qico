@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations 
- * $Id: queue.c,v 1.4 2003/09/07 09:34:21 sisoft Exp $
+ * $Id: queue.c,v 1.5 2003/09/08 21:17:23 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -198,11 +198,19 @@ int q_rescan(qitem_t **curr,int rslow)
 		if(!q->touched) {
 			*p=q->next;if(q==*curr)*curr=*p;xfree(q);
 		} else {
-			bso_getstatus(&q->addr,&sts);
-			q->flv|=sts.flags;q->try=sts.try;
-			if(sts.htime>time(NULL))q->onhold=sts.htime;
-			    else q->flv&=~Q_ANYWAIT;
-			qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			if(is_bso()==1) {
+				bso_getstatus(&q->addr,&sts);
+				q->flv|=sts.flags;q->try=sts.try;
+				if(sts.htime>time(NULL))q->onhold=sts.htime;
+				    else q->flv&=~Q_ANYWAIT;
+				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			} else if(is_aso()==1) {
+				aso_getstatus(&q->addr,&sts);
+				q->flv|=sts.flags;q->try=sts.try;
+				if(sts.htime>time(NULL))q->onhold=sts.htime;
+				    else q->flv&=~Q_ANYWAIT;
+				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			}
 			p=&((*p)->next);
 		}
 	}
