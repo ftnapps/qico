@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.13 2004/02/02 17:31:46 sisoft Exp $
+ * $Id: ftn.c,v 1.14 2004/02/05 13:09:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -307,9 +307,8 @@ int islocked(char *pidfn)
 char *strip8(char *s)
 {
 	int i=0;
-	char *ss=s;
 	unsigned char t;
-	unsigned char buf[MAX_STRING+1];
+	char buf[MAX_STRING+1],*ss=s;
 	while(*s&&i<MAX_STRING) {
 		t=todos(*s);
 		if(t>127)
