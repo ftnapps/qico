@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.12 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: session.c,v 1.13 2003/10/05 15:01:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -410,7 +410,7 @@ void log_rinfo(ninfo_t *e)
 	write_log(" system: %s", e->name);
 	write_log("   from: %s", e->place);
 	write_log("  sysop: %s", e->sysop);
-	write_log("  phone: %s", (e->phone&&*e->phone)?e->phone:"-Unpublished-");
+	write_log("  phone: %s", e->phone);
 	write_log("  flags: [%d] %s", e->speed, e->flags);
 	write_log(" mailer: %s", e->mailer);
 	t=gmtime(&e->time);
