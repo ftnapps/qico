@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.2 2003/09/12 18:24:34 sisoft Exp $
+ * $Id: binkp.c,v 1.3 2003/09/12 19:16:44 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -222,8 +222,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			DEBUG(('B',3,"state: auth (%d)",txstate));
 			title("%sbound session %s",mode?"Out":"In",ftnaddrtoa(&rnode->addrs->addr));
 			log_rinfo(rnode);rc=0;
-			for(pp=rnode->addrs;pp;pp=pp->next)
+			if(is_bso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
 				rc+=bso_locknode(&pp->addr,LCK_s);
+			if(is_aso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
+				rc+=aso_locknode(&pp->addr,LCK_s);
 			if(!rc) {
 				write_log("can't lock outbound for %s!",ftnaddrtoa(remaddr));
 				msgs(BPM_BSY,"All addresses are busy",NULL);
