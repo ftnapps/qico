@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.16 2001/03/25 15:38:21 lev Exp $
+ * $Id: janus.c,v 1.17 2001/03/28 17:07:51 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -32,7 +32,7 @@ void preparereqs(flist_t *l);
 int janus()
 {
 	byte   pkttype;          /* Type of packet last received                   */
-	word   blklen;           /* Length of last data block sent                 */
+	int     blklen;           /* Length of last data block sent                 */
 	word   goodneeded;       /* # good blocks to send before upping txblklen   */
 	word   goodblks;         /* Number of good blocks sent at this block size  */
 	word   rpos_count;       /* Number of RPOS packets sent at this position   */
@@ -131,7 +131,7 @@ int janus()
 			lasttx = txpos;
 			STORE32(txbuf,lasttx);
 			blklen = fread(txbuf+4,  1, txblklen, txfd);
-			if(blklen<1) {
+			if(blklen<0) {
 				write_log("read error on %s", sendf.fname);
 				goto giveup;
 			}
