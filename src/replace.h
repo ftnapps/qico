@@ -1,6 +1,6 @@
 /***************************************************************************
  * Replace functions declarations
- * $Id: replace.h,v 1.3 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: replace.h,v 1.4 2004/05/31 13:15:39 sisoft Exp $
  ***************************************************************************/
 #ifndef __REPLACE_H__
 #define __REPLACE_H__
@@ -20,6 +20,18 @@ extern size_t strcspn(const char *s1, register const char *s2);
 #endif
 #ifndef HAVE_GETSID
 extern pid_t getsid(pid_t pid);
+#endif
+#ifndef HAVE_VSNPRINTF
+#define vsnprintf(C,S,F,A...)	vsprintf((C),(F),##A)
+#endif
+#ifndef MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
+#ifndef WEXITSTATUS
+#define WEXITSTATUS(stat_val) ((unsigned)(stat_val)>>8)
 #endif
 
 #endif

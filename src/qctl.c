@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.19 2004/05/26 07:46:13 sisoft Exp $
+ * $Id: qctl.c,v 1.20 2004/05/31 13:15:39 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -41,13 +41,9 @@
 #include "types.h"
 #include "qcconst.h"
 #include "byteop.h"
-#include "xstr.h"
-#include "xmem.h"
+#include "qslib.h"
 #include "crc.h"
 #include "clserv.h"
-#include "ver.h"
-
-extern time_t gmtoff(time_t tt,int mode);
 
 static int sock=-1;
 static char qflgs[Q_MAXBIT]=Q_CHARS;
@@ -55,12 +51,12 @@ static char buf[MSG_BUFFER];
 
 static void usage(char *ex)
 {
-	printf("usage: %s [<options>] [<node>] [<files>]\n"
- 		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n"
+	printf("usage: %s [<options>] [<nodes>] [<files>]\n"
+ 		   "<nodes>        must be in ftn-style (i.e. zone:net/node[.point])\n"
 		   "-h             this help screen\n"
 	           "-P port        connect to <port> (default: qicoui or %u)\n"
 	           "-a host        connect to <host> (default: localhost)\n"
-	           "-w password    set <password> for connect\n"
+	           "-w password    set <password> for connect.\n"
  		   "-q             stop daemon\n"
  		   "-Q             force queue rescan\n"
  		   "-R             reread config\n"
@@ -191,7 +187,7 @@ static int xsendget(int sock,char *buf,size_t len)
 	return getanswer();
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv,char **envp)
 {
 	int action=-1, kfs=0, len=0,lkfs,rc=1;
 	char filename[MAX_PATH];
@@ -288,7 +284,17 @@ int main(int argc, char *argv[])
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
 	if(strcmp(buf,"qs-noauth")) {
-		if(!pwd) {
+		if(pwd&&*pwd=='-'&&!pwd[1]) {
+			xfree(pwd);
+			pwd=getpass("password: ");
+			if(!pwd) {
+				write_log("getpass() error: %s",strerror(errno));
+				cls_close(sock);
+				return 1;
+			}
+			pwd=xstrdup(pwd);
+		}
+		if(!pwd||(pwd&&!*pwd)) {
 			write_log("can't connect: password required");
 			cls_close(sock);
 			return 1;

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.30 2004/05/29 23:34:50 sisoft Exp $
+ * $Id: main.c,v 1.31 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -18,8 +18,6 @@
 #include <sys/utsname.h>
 #include "clserv.h"
 #include "tty.h"
-
-char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 
 static void usage(char *ex)
 {
@@ -168,7 +166,7 @@ static void answer_mode(int type)
 	stopit(rc);
 }
 
-int main(int argc,char *argv[],char *envp[])
+int main(int argc,char **argv,char **envp)
 {
 	int c,daemon=-1,rc,sesstype=SESSION_AUTO,line=0,call_flags=0;
 	char *hostname=NULL,*str=NULL;

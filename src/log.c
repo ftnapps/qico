@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.20 2004/05/29 23:34:49 sisoft Exp $
+ * $Id: log.c,v 1.21 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -85,7 +85,7 @@ static int parsefacorprio(char *f,SLNCODE *names)
 void parse_log_levels()
 {
 	char *w,c,*levels=xstrdup(cfgs(CFG_LOGLEVELS));
-	memchr(facilities_levels,0,sizeof(facilities_levels));
+	memset(facilities_levels,0,sizeof(facilities_levels));
 	for(w=strtok(levels,",;");w;w=strtok(NULL,",;")) {
 		c=*w++;
 		if(*w)facilities_levels[(unsigned char)c]=atoi(w);
@@ -185,7 +185,6 @@ void write_log(char *fmt,...)
 	vwrite_log(fmt,NULL,1,args);
 	va_end(args);
 }
-
 
 #ifdef NEED_DEBUG
 void write_debug_log(unsigned char facility,int level,char *fmt,...)

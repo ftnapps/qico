@@ -1,6 +1,6 @@
 /**********************************************************
  * common definitions
- * $Id: defs.h,v 1.6 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: defs.h,v 1.7 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #ifndef __DEFS_H__
 #define __DEFS_H__
@@ -37,5 +37,8 @@
 #define STDOUT_FILENO	1
 #define STDERR_FILENO	2
 #endif
+
+#define LARGE_STRING (MAX_STRING*16)
+#define C0(c) (((c)>=' ')?(c):'.')
 
 #endif

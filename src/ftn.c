@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.23 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: ftn.c,v 1.24 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -238,8 +238,6 @@ int has_addr(ftnaddr_t *a,falist_t *l)
 	}
 	return 0;
 }
-
-char *engms[13]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Any"};
 
 int showpkt(char *fn)
 {
