@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.9 2001/02/04 14:37:01 lev Exp $
+ * $Id: ls_zreceive.c,v 1.10 2001/02/17 13:51:49 lev Exp $
  **********************************************************/
 /*
 
@@ -138,7 +138,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 		}
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
 		case ZRQINIT:		/* Send ZRINIT again */
-                        first = 0;      /* We will trust in first ZFIN after ZRQINIT */
+			first = 0;      /* We will trust in first ZFIN after ZRQINIT */
 		case ZNAK:
 		case LSZ_TIMEOUT:
 #ifdef Z_DEBUG2
@@ -150,7 +150,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 #ifdef Z_DEBUG2
 			write_log("ls_zrecvfinfo: ZSINIT");
 #endif
-                        first = 0;      /* We will trust in first ZFIN after ZSINIT */
+			first = 0;      /* We will trust in first ZFIN after ZSINIT */
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK */
 				ls_storelong(ls_txHdr,1L);
@@ -170,11 +170,13 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK, decode frame */
 				strncpy(f->name,rxbuf,MAX_PATH);
-                                f->name[MAX_PATH-1] = '\x00';
-                                if(sscanf(rxbuf+strlen(rxbuf)+1,"%ld %lo %o %o %ld %ld",
-					&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
+				f->name[MAX_PATH-1] = '\x00';
+				if(sscanf(rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
+#ifdef Z_DEBUG
+					write_log("ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1);
+#endif
 					f->filesleft = -1;
-                                }
+				}
 				return ZFILE;
 			} else {		/* We could not receive ZCRCW subframe, but error is not fatal */
 				trys++;
@@ -280,7 +282,7 @@ int ls_zrecvfile(int pos)
 #ifdef Z_DEBUG
 	write_log("ls_zrecvfile form %d",pos);
 #endif
-    	
+
 	rxpos = pos;
 	ls_storelong(ls_txHdr,rxpos);
 	if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
