@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.3 2000/11/03 17:15:08 lev Exp $
+ * $Id: ls_zmodem.h,v 1.4 2000/11/06 08:56:36 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -59,7 +59,7 @@
 #define LSZ_INIT_CRC16 0x0000
 #define LSZ_TEST_CRC16 0x0000
 #define LSZ_UPDATE_CRC16(b,crc) ((crc16tab[(((crc & 0xFFFF) >> 8) & 255)] ^ ((crc & 0xFFFF) << 8) ^ (b)) & crc & 0xFFFF)
-#define LSZ_FINISH_CRC32(crc)	(LSZ_UPDATE_CRC16(0,LSZ_UPDATE_CRC16(0,crc)))
+#define LSZ_FINISH_CRC16(crc)	(LSZ_UPDATE_CRC16(0,LSZ_UPDATE_CRC16(0,crc)))
 
 #define LSZ_INIT_CRC32			0xFFFFFFFFl
 #define LSZ_TEST_CRC32			0xDEBB20E3l
@@ -87,9 +87,14 @@
 /* Functions */
 int ls_zsendbhdr(int frametype, int len, char *hdr);
 int ls_zsendhhdr(int frametype, int len, char *hdr);
-int ls_zrecvhdr(char *hdr, int timeout);
+int ls_zrecvhdr(char *hdr, int *hlen, int timeout);
+
+int ls_senddata(char *data, int len, int frame);
+int ls_recvdata(char *data, int *len, int timeout, int crc32);
+
 void ls_sendchar(int c);
 void ls_sendhex(int i);
+
 int ls_read7bit(int timeout);
 int ls_readhex(int timeout);
 int ls_readzdle(int timeout);

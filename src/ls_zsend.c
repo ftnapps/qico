@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.1 2000/11/02 07:00:20 lev Exp $
+ * $Id: ls_zsend.c,v 1.2 2000/11/06 08:56:16 lev Exp $
  **********************************************************/
 /*
 
@@ -22,4 +22,8 @@
 #include "qipc.h"
 #include "globals.h"
 #include "defs.h"
+#include "ls_zmodem.c"
 
+
+/* Function, which start receiving and receive all files */
+int ls_
