@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.18 2001/02/08 19:23:53 lev Exp $
+ * $Id: emsi.c,v 1.19 2001/02/16 10:43:40 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -250,7 +250,7 @@ int emsi_send(int mode, char *dat)
 	int tries=0, got=0, ch;
 	char str[MAX_STRING], *p=str;
 
-	bzero(str, MAX_STRING);
+	memset(str, 0, MAX_STRING);
 	t1=t_set(60);
 	while(1) {
 		sline("Sending EMSI_DAT");
