@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.9.2.2 2000/11/01 14:08:20 lev Exp $
+ * $Id: ftn.c,v 1.9.2.3 2000/12/17 11:10:56 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -257,8 +257,8 @@ int lockpid(char *pidfn)
 /* 	chmod(tmpname,0444); */
 	unlink(pidfn);
 	rc=link(tmpname,pidfn);
-	if(rc) return 0;
 	unlink(tmpname);
+	if(rc) return 0;
 	return 1;
 }
 	
