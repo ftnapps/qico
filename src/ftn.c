@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.4 2003/07/24 11:53:43 sisoft Exp $
+ * $Id: ftn.c,v 1.5 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -108,7 +108,7 @@ char *ftnaddrtoa(ftnaddr_t *a)
 		snprintf(s, 50, "%d:%d/%d", a->z, a->n, a->f);
 	return s;
 }
-/*
+
 char *ftnaddrtoia(ftnaddr_t *a)
 {
 	static char s[50];
@@ -118,7 +118,6 @@ char *ftnaddrtoia(ftnaddr_t *a)
 		snprintf(s, 50, "f%d.n%d.z%d", a->f, a->n, a->z);
 	return s;
 }
-*/
 
 void falist_add(falist_t **l, ftnaddr_t *a)
 {
@@ -552,6 +551,9 @@ char *fnc(char *s)
 
 	if (strstr(s,".tar.gz")) xstrcat (s8, ".tgz", 14);
 	else if (strstr(s,".tar.bz2")) xstrcat (s8, ".tb2", 14);
+	else if (strstr(s,".html")) xstrcat (s8, ".htm", 14);
+	else if (strstr(s,".jpeg")) xstrcat (s8, ".jpg", 14);
+	else if (strstr(s,".desc")) xstrcat (s8, ".dsc", 14);
 	else {
 		p=strrchr(s, '.');
 		if (p) {

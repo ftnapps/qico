@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.4 2003/07/23 20:33:27 sisoft Exp $
+#* $Id: qconf.x,v 1.5 2003/08/25 15:27:39 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -26,6 +26,7 @@ dialdelta,C_INT,int,0,"0"
 dialprefix,C_STR,char *,0,"ATD"
 dialsuffix,C_STR,char *,0,"|"
 dirperm,C_OCT,int,0,"755"
+domain,C_STR,char *,0,"fidonet"
 emsifreqtime,C_STR,char *,0,NULL
 emsilog,C_PATH,char *,0,NULL
 estimatedtime,C_YESNO,int,0,"no"
@@ -100,6 +101,7 @@ rescanperiod,C_INT,int,0,"300"
 rootdir,C_PATH,char *,0,NULL
 runonchat,C_STR,char *,0,NULL
 runonemsi,C_STR,char *,0,NULL
+sendonly,C_YESNO,int,0,"no"
 showintro,C_YESNO,int,0,"yes"
 showpkt,C_YESNO,int,0,"no"
 speed,C_INT,int,0,"300"

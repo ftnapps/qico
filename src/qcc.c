@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: qcc.c,v 1.4 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -500,7 +500,10 @@ void freshqueue()
 	mvwaddstr(wmain,0,0,"* Node");
 	mvwaddstr(wmain,0,COL-19-Q_MAXBIT,"Mail   Files  Try  Flags");
 	for(q=queue;q && q->n<q_first;q=q->next);
-	for(i=0;q && i<MH-1;i++,q=q->next) {
+	if(!q) {
+		wattrset(wmain,COLOR_PAIR(3));
+		mvwaddstr(wmain,MH/2,COL/2-8,"* Empty queue *");
+	} else for(i=0;q && i<MH-1;i++,q=q->next) {
 		wattrset(wmain,COLOR_PAIR(3)|(q->flags&Q_DIAL?A_BOLD:0));
 		if(q_pos==q->n)wattrset(wmain,COLOR_PAIR(16));
 		mvwaddstr(wmain,i+1,0,"  ");
@@ -1194,7 +1197,10 @@ int main(int argc,char **argv)
 		rc=select(1,&rfds,NULL,NULL,&tv);
 		while(getmessages());
 		ch=getch();
-		if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
+		if(ch==12/*ctrl+l*/) {
+
+
+		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
 			if(currslot<(allslots-1)||ch=='\t') {
 				currslot++;
 				if(currslot==allslots)currslot=-1;

@@ -1,8 +1,6 @@
 /**********************************************************
- * File: tcp.c
- * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.9 2003/05/29 07:44:48 cyrilm Exp $
+ * $Id: tcp.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -11,7 +9,6 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include "tty.h"
-#include "qipc.h"
 
 int opentcp(char *name)
 {
@@ -30,11 +27,11 @@ int opentcp(char *name)
 				server.sin_port=htons(portnum);
 			else if ((se=getservbyname(portname,"tcp")))
 				server.sin_port=se->s_port;
-			else server.sin_port=htons(60179);
+			else server.sin_port=htons(bink?24554:60179);
 	} else {
-		if ((se=getservbyname("fido","tcp")))
+		if ((se=getservbyname(bink?"binkp":"fido","tcp")))
 			server.sin_port=se->s_port;
-		else server.sin_port=htons(60179);
+		else server.sin_port=htons(bink?24554:60179);
 	}
 	if (sscanf(name,"%d.%d.%d.%d",&a1,&a2,&a3,&a4) == 4)
 		server.sin_addr.s_addr=inet_addr(name);
@@ -67,7 +64,7 @@ int opentcp(char *name)
 		write_log("cannot connect %s: %s",inet_ntoa(server.sin_addr),strerror(errno));
 		return 0;
 	}
-	write_log("TCP/IP connection with %s",inet_ntoa(server.sin_addr));
+	write_log("TCP/IP connection with %s:%d",inet_ntoa(server.sin_addr),(int)ntohs(server.sin_port));
 	sline("Fido-server found... Waiting for reply...");
 	return 1;
 }
@@ -83,20 +80,14 @@ void closetcp(void)
 int tcp_call(char *host, ftnaddr_t *fa)
 {
 	int rc;
-
-	write_log("connecting to %s at %s", ftnaddrtoa(fa), host);
+	write_log("connecting to %s at %s [%s]", ftnaddrtoa(fa), host,bink?"binkp":"ifcico");
 	rc=opentcp(host);
 	if(rc) {
-		rc=session(1, SESSION_AUTO, fa, TCP_SPEED);
+		rc=session(1,bink?SESSION_BINKP:SESSION_AUTO, fa, TCP_SPEED);
 		closetcp();
 		if((rc&S_MASK)==S_REDIAL) {
 			write_log("creating poll for %s", ftnaddrtoa(fa));
-			if(is_bso() == 1) {
-				bso_poll(fa,F_ERR); 
-			}
-			else if(is_aso() == 1) {
-				aso_poll(fa,F_ERR);
-			}
+			bso_poll(fa,F_ERR); 
 		} 
 	} else rc=S_REDIAL;
 	title("Waiting...");

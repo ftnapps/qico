@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.4 2003/07/24 21:50:19 sisoft Exp $
+ * $Id: main.c,v 1.5 2003/08/25 15:27:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -33,6 +33,7 @@ void usage(char *ex)
  		   "-a<type>     start in answer mode with <type> session, type can be:\n"
 		   "                       auto - autodetect\n"
 		   "             **EMSI_INQC816 - EMSI session without init phase\n"
+		   "                      binkp - BinkP session\n"
 		   "                      tsync - FTS-0001 session (unsuppported)\n"
 		   "                     yoohoo - YOOHOO session (unsuppported)\n"
  		   "-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
@@ -41,6 +42,7 @@ void usage(char *ex)
 		   "             I - call <i>mmediately (don't check node worktime)\n"
 		   "             A - call on <a>ny free port (don't check cancall setting)\n"
 		   "             You could specify line after <node>, lines are numbered from 1\n"
+		   "-b           call with BinkD (default call ifcico)\n"
 		   "-n           compile nodelists\n"
 		   "-t           check config file for errors\n"
 #ifdef NEED_DEBUG
@@ -332,9 +334,8 @@ void daemon_mode()
 				DEBUG(('Q',1,"%s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				if(checktimegaps(cfgs(CFG_CANCALL))&&find_dialable_subst(rnode,havestatus(f,CFG_IMMONFLAVORS),psubsts)) {
 					dable=1;current->flv|=Q_DIAL;
-					chld=fork();
 					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
-
+					chld=fork();
 					if(chld==0) {
 						setsid();
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
@@ -356,14 +357,14 @@ void daemon_mode()
 						log_done();
 						if(!log_init(cfgs(CFG_MASTERLOG),NULL))fprintf(stderr,"can't init log %s.%s!",ccs,port);
 						hld=0;
-						if(rc&S_ANYHOLD) {
+						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
 							if(is_bso()==1) {
 								bso_getstatus(&current->addr,&sts);
 								if(rc&S_HOLDA)sts.flags|=Q_WAITA;
 								if(rc&S_HOLDR)sts.flags|=Q_WAITR;
 								if(rc&S_HOLDX)sts.flags|=Q_WAITX;
 								hld=cfgi(CFG_WAITHRQ);
-								write_log("calls to %s delayed for %d min %s",ftnaddrtoa(&current->addr),hld,sts_str(sts.flags));
+								write_log("calls to %s delayed for %d min [%s]",ftnaddrtoa(&current->addr),hld,sts_str(sts.flags));
 								sts.htime=t_set(hld*60);
 								bso_setstatus(&current->addr,&sts);
 							}
@@ -373,7 +374,7 @@ void daemon_mode()
 								if(rc&S_HOLDR)sts.flags|=Q_WAITR;
 								if(rc&S_HOLDX)sts.flags|=Q_WAITX;
 								hld=cfgi(CFG_WAITHRQ);
-								if(is_bso()!=1)write_log("calls to %s delayed for %d min %s",ftnaddrtoa(&current->addr),hld,sts_str(sts.flags));
+								if(is_bso()!=1)write_log("calls to %s delayed for %d min [%s]",ftnaddrtoa(&current->addr),hld,sts_str(sts.flags));
 								sts.htime=t_set(hld*60);
 								aso_setstatus(&current->addr,&sts);
 							}
@@ -483,6 +484,7 @@ void daemon_mode()
 						exit(rc);
 					}
 					if(chld<0) write_log("can't fork() caller!");
+					c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 				} else current->flv&=~Q_DIAL;
 				nlkill(&rnode);
 				DEBUG(('Q',1,"nlkill"));
@@ -848,9 +850,9 @@ void answer_mode(int type)
 #if IP_D	
 	snprintf(ip_id, 10, "ip%d", getpid());
 #else
-	xstrcpy(ip_id, "ipd", 10);
+	xstrcpy(ip_id, bink?"binkp":"ifcico", 10);
 #endif
-	rnode->tty=xstrdup(is_ip?"tcpip":basename(ttyname(0)));
+	rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
@@ -885,7 +887,7 @@ void answer_mode(int type)
 	tty_nolocal();
 	rc=session(0, type, NULL, spd);
 	tty_local();
-	if(!is_ip) {
+	if(!is_ip&&!bink) {
 		hangup();
 		stat_collect();
 	}
@@ -1012,7 +1014,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 // 	setlocale(LC_ALL, "");	 
 
-	while((c=getopt(argc, argv, "hI:da:ni:c:ft"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:ni:c:ftb"))!=EOF) {
 		switch(c) {
 		case 'c':                                                       
 			daemon=12;
@@ -1042,12 +1044,16 @@ int main(int argc, char *argv[], char *envp[])
 			if(!strncasecmp(optarg, "**emsi", 6)) sesstype=SESSION_EMSI;
 			if(!strncasecmp(optarg, "tsync", 5)) sesstype=SESSION_FTS0001;
 			if(!strncasecmp(optarg, "yoohoo", 6)) sesstype=SESSION_YOOHOO;
+			if(!strncasecmp(optarg, "binkp", 5)){sesstype=SESSION_BINKP;bink=1;}
 			break;
 		case 'n':
 			daemon=2;
 			break;
 		case 't':
 			daemon=3;
+			break;
+		case 'b':
+			bink=1;
 			break;
 #ifdef NEED_DEBUG
 		case 'f':
@@ -1077,7 +1083,7 @@ int main(int argc, char *argv[], char *envp[])
 	parse_log_levels();
 	if (facilities_levels['C'] >= 1) dumpconfig();
 #endif	
-    psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
 	if (facilities_levels['C'] >= 1) {
 		subst_t *s;
@@ -1087,7 +1093,6 @@ int main(int argc, char *argv[], char *envp[])
 			for(l=s->hiddens;l;l=l->next)
 				write_log(" * %s,%s,%d\n",l->phone,l->timegaps,l->num);
 		}
-		//printf("...press any key...\n");getchar();
 	}
 #endif	
 
@@ -1108,9 +1113,9 @@ int main(int argc, char *argv[], char *envp[])
 #if IP_D	
 		snprintf(ip_id, 10, "ip%d", getpid());
 #else
-		xstrcpy(ip_id, "ipd", 10);
+		xstrcpy(ip_id, bink?"binkp":"ifcico", 10);
 #endif
-		rnode->tty="tcpip";
+		rnode->tty=bink?"binkp":"tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 			write_log("can't open log %s!", ccs);
 			qipc_done();

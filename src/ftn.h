@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.4 2003/07/24 21:50:19 sisoft Exp $ */
+/* $Id: ftn.h,v 1.5 2003/08/25 15:27:39 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -183,7 +183,7 @@ typedef struct {
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
-//extern char *ftnaddrtoia(ftnaddr_t *a);
+extern char *ftnaddrtoia(ftnaddr_t *a);
 extern void falist_add(falist_t **l, ftnaddr_t *a);
 extern void falist_kill(falist_t **l);
 extern slist_t *slist_add(slist_t **l, char *s);
@@ -337,6 +337,9 @@ extern void qsendqueue();
 #define MIN(a,b) ((a<b)?a:b)
 
 #define C0(c) ((c>=32)?c:'.')
+
+#define SIZES(x) (((x)<1024)?(x):((x)/1024))
+#define SIZEC(x) (((x)<1024)?'b':'k')
 
 extern int fexist(char *s);
 extern char *fnc(char *s);
