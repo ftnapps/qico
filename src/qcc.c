@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.6 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: qcc.c,v 1.7 2003/10/05 17:48:57 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -181,15 +181,15 @@ int  qclrs[Q_MAXBIT]=Q_COLORS;
 
 void usage(char *ex)
 {
-	printf("qcc%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
-	       "usage: %s [options]\n"
+	printf("usage: %s [options]\n"
 	       "-n           disable sound (noise)\n"
 #ifdef NEED_DEBUG
-	       "-f           force (don't check queue)\n"
+	       "-f           force (don't check IPC's queue)\n"
 #endif
-               "-v           version\n"
 	       "-h           this help screen\n"
-	       "\n",version,ex);
+               "-v           show version\n"
+	       "\n",ex);
+	exit(0);
 }
 
 #ifndef CURS_HAVE_MVVLINE
@@ -1127,11 +1127,9 @@ int main(int argc,char **argv)
 				break;
 #endif
 			case 'v':
-				printf("qcc-%s\n",version);
-				return 0;
+				u_vers("qcc");
 			default:
 				usage(argv[0]);
-				return 0;
 		}
 	} 
 		
@@ -1406,7 +1404,8 @@ int main(int argc,char **argv)
 				break;
 			case 'h':
 				strncpy(buf+9,slots[currslot]->tty,16);
-				ipccmd(buf,QR_HANGUP,strlen(buf+9)+10);
+				if(!(slots[currslot]->opt&3/*MO_IFC|MO_BINKP*/))
+					ipccmd(buf,QR_HANGUP,strlen(buf+9)+10);
 				ipccmdslot(buf,QR_HANGUP,9);
 				break;
 			case 'c':

@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.3 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: qctl.c,v 1.4 2003/10/05 17:48:57 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -27,8 +27,7 @@ char qflgs[Q_MAXBIT]=Q_CHARS;
 
 void usage(char *ex)
 {
-	printf("qctl%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
-		   "usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
+	printf("usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h             this help screen\n"
  		   "-q             stop daemon\n"
@@ -46,7 +45,9 @@ void usage(char *ex)
 		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
 		   "               <u>ndialable, <i>mmediate, <w>ait\n"
 		   "-H             hangup modem session on <tty>\n"
-		   "\n", version, ex);
+                   "-v             show version\n"
+		   "\n", ex);
+	exit(0);
 }
 
 void to_dev_null(){;}
@@ -173,7 +174,7 @@ int main(int argc, char *argv[])
 	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH];
 	struct stat filestat;
 	
-// 	setlocale(LC_ALL, "");
+ 	setlocale(LC_ALL, "");
  	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:"))!=EOF) {
 		switch(c) {
 		case 'k':
@@ -211,9 +212,6 @@ int main(int argc, char *argv[])
 		case 'r':
 			action=QR_REQ;
 			break;
-		case 'h':
-			usage(argv[0]);
-			return 0;
 		case 'q':
 			action=QR_QUIT;
 			break;
@@ -226,11 +224,12 @@ int main(int argc, char *argv[])
 		case 'H':
 			action=QR_HANGUP;
 			break;
+		case 'v':
+			u_vers("qctl");
 		default:
-			return 1;
+			usage(argv[0]);
 		}
 	}
-
 
 	if((qipc_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
 		fprintf(stderr, "can't get key\n");

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.7 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: main.c,v 1.8 2003/10/05 17:48:57 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -24,8 +24,7 @@ int qipcr_msg,unhld,force=IPC_EXCL;
 
 void usage(char *ex)
 {
-	printf("%s%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
-		   "usage: %s [<options>] [<node>] [<files>]\n"
+	printf("usage: %s [<options>] [<node>]\n"
  		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h           this help screen\n"
 		   "-I<config>   override default config\n\n"  
@@ -48,7 +47,8 @@ void usage(char *ex)
 #ifdef NEED_DEBUG
 		   "-f           run force\n"
 #endif
-		   "\n", progname, version, ex);
+                   "-v           show version\n"
+		   "\n",ex);
 	exit(0);
 }
 
@@ -197,7 +197,6 @@ void daemon_mode()
 	time_t t;
 	ftnaddr_t fa;
 	slist_t *sl;
-
 
 	/* Change our root, if we are asked for */ 
 	if(cfgs(CFG_ROOTDIR)&&*ccs)chdir(ccs);
@@ -1034,11 +1033,11 @@ int main(int argc, char *argv[], char *envp[])
 #ifndef HAVE_SETPROCTITLE
 	setargspace(argc,argv,envp);
 #endif
-// 	setlocale(LC_ALL, "");	 
+ 	setlocale(LC_ALL, "");
 
-	while((c=getopt(argc, argv, "hI:da:ni:c:ftb"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:ni:c:ftbv"))!=EOF) {
 		switch(c) {
-		case 'c':                                                       
+		case 'c':
 			daemon=12;
 			str=optarg;
 			while(str && *str) {
@@ -1082,6 +1081,8 @@ int main(int argc, char *argv[], char *envp[])
 			force=0;
 			break;
 #endif
+		case 'v':
+			u_vers(progname);
 		default:
 			usage(argv[0]);
 		}

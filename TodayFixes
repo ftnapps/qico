@@ -1,17 +1,13 @@
-/* $Id: TodayFixes,v 1.3 2003/10/05 15:01:17 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.4 2003/10/05 17:48:56 sisoft Exp $ */
+---
+added -v option for all programs. see this for version.
+change faq about bugs.
+.
+previous:
 ---
 apply new exchange-flags algo.
 add support for CRYPT mode.
 partially support for NDA (ND-async) mode.
-.
-previous:
----
-another fix of binkp opt.
-tested with binkd-0.9.6a and binkleyforce-0.22.8.kst7 - success.
-fix work with multiple batches.
-fix set MD5-auth mode on incoming binkp calls.
-add freq support. work only with MB mode (binkp/1.1).
-change position of message TRF in handshake.
 .
 
 ps: в связи с временным отсутствием фидошки,
