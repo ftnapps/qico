@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.30 2001/07/05 15:31:38 lev Exp $
+ * $Id: session.c,v 1.31 2001/07/06 12:13:53 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -40,7 +40,9 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 	for(t=fl;*t && ((*t)->type<=type);t=&((*t)->next));
 	q=(flist_t *)xmalloc(sizeof(flist_t));
 	q->next=*t;*t=q;
-	q->kill=kill;q->loff=off;
+	if(fromlo && '#'==kill && cfgi(CFG_ALWAYSKILLFILES)) q->kill = '^';
+	else q->kill=kill;
+	q->loff=off;
 	if(rnode && (rnode->options&O_FNC) && rem) {
 	    q->sendas=xstrdup(fnc(rem));
 	    xfree(rem);
@@ -184,15 +186,13 @@ void flexecute(flist_t *fl)
 			if(!rem) lunlink(fl->tosend);
 		} else if(fl->sendas) {
 			switch(fl->kill) {
-			case '#':	/* truncate */
-				if(!cfgi(CFG_ALWAYSKILLFILES)) {
-					f=fopen(fl->tosend, "w");
-					if(f) fclose(f);
-					else write_log("can't truncate %s!", fl->tosend);
-					break;
-				} /* Fall througth if ALWAYSKILLFILES set! */
-			case '^':	/* kill */
+			case '^':
 				lunlink(fl->tosend);break;
+			case '#':
+				f=fopen(fl->tosend, "w");
+				if(f) fclose(f);
+				else write_log("can't truncate %s!", fl->tosend);
+				break;
 			}
 			fseek(fl->lo, fl->loff, SEEK_SET);
 			fwrite(&cmt, 1, 1, fl->lo);
@@ -200,15 +200,13 @@ void flexecute(flist_t *fl)
 		}
  	} else if(fl->sendas) {
 		switch(fl->kill) {
-		case '#':	/* truncate */
-			if(!cfgi(CFG_ALWAYSKILLFILES)) {
-				f=fopen(fl->tosend, "w");
-				if(f) fclose(f);
-				else write_log("can't truncate %s!", fl->tosend);
-				break;
-			} /* Fall througth if ALWAYSKILLFILES set! */
-		case '^':	/* kill */
+		case '^':
 			lunlink(fl->tosend);break;
+		case '#':
+			f=fopen(fl->tosend, "w");
+			if(f) fclose(f);
+			else write_log("can't truncate %s!", fl->tosend);
+			break;
 		}
 		xfree(fl->sendas);
 	}
