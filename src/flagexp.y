@@ -1,10 +1,8 @@
 /**********************************************************
- * File: flagexp.y
- * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
- * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.11 2003/02/03 14:38:49 cyrilm Exp $
+ * expression parser
+ * $Id: flagexp.y,v 1.3 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
-%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
+%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -24,6 +22,7 @@ int flxpres;
 	
 
 static int logic(int e1, int op,int e2);
+static int checkconnstr(void);
 static int checkspeed(int op, int speed, int real);
 static int checkphone(void);
 static int checkport(void);
@@ -53,6 +52,8 @@ elemexp		: flag
 			{$$ = checkspeed($2,$3,1);}
 		| SPEED AROP NUMBER
 			{$$ = checkspeed($2,$3,0);}
+		| CONNSTR CONNSTR
+			{$$ = checkconnstr();}
 		| PHONE PHSTR
 			{$$ = checkphone();}
 		| CID PHSTR
@@ -108,8 +109,19 @@ static int logic(int e1, int op,int e2)
 	}
 }
 
+static int checkconnstr(void)
+{
+	DEBUG(('Y',2,"checkconnstr: \"%s\"",yytext));
+	if(!connstr||is_ip) return 0;
+	DEBUG(('Y',2,"checkconnstr: \"%s\" <-> \"%s\"",yytext,connstr));
+	if(!strncmp(yytext,connstr,strlen(yytext))) return 1;
+	return 0;
+}
+
 static int checkspeed(int op, int speed, int real)
 {
+	DEBUG(('Y',2,"checkspeed: \"%s\"",yytext));
+	if(!rnode) return 0;
 	DEBUG(('Y',2,"check%sspeed: %d (%d,%s) %d",real?"real":"",real?rnode->realspeed:rnode->speed,op,
 		(EQ==op?"==":
 		(NE==op?"!=":
@@ -118,7 +130,6 @@ static int checkspeed(int op, int speed, int real)
         (LT==op?"<":
         (LE==op?"<=":"???"
 		)))))),speed));
-	if(!rnode) return 0;
 	switch (op)
 	{
 	case EQ:	return(real?rnode->realspeed:rnode->speed == speed);
@@ -146,7 +157,7 @@ static int checkphone(void)
 static int checkcid(void)
 {
 	char *cid = getenv("CALLER_ID");
-	if(!cid) cid = "none";
+	if(!cid||strlen(cid?cid:"")<4) cid = "none";
 	DEBUG(('Y',2,"checkcid: \"%s\" <-> \"%s\"",yytext,cid));
 	if(!strncasecmp(yytext,cid,strlen(yytext))) return 1;
 	return 0;
@@ -178,7 +189,7 @@ int flagexp(char *expr)
 
 	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
 
-	p=strdup(expr);
+	p=xstrdup(expr);
 	yyPTR=p;
 #ifdef FLEX_SCANNER  /* flex requires reinitialization */
 	yy_init=1;

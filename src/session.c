@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.10 2003/09/14 16:45:20 sisoft Exp $
+ * $Id: session.c,v 1.11 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -530,7 +530,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='1';emsi_lo|=P_ZMODEM;break;}
 		}
 		if(strchr(cfgs(CFG_PROTORDER),'C'))pr[1]='C';
-		    else rnode->chat=0;
+		    else rnode->opt&=~MO_CHAT;
 		if(!pr[0]) emsi_lo|=P_NCP;
 		mydat=(unsigned char*)emsi_makedat(&rnode->addrs->addr, totalm, totalf, emsi_lo,
 						   pr, NULL, !(emsi_lo&O_BAD));
@@ -577,7 +577,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	default:
 		t="Unknown";		
 	}
-	DEBUG(('S',1,"emsopts: %s %x %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo, rnode->chat));
+	DEBUG(('S',1,"emsopts: %s %x %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo, rnode->opt));
 	write_log("options: %s%s%s%s%s%s%s%s%s%s", t,
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
@@ -587,7 +587,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		(rnode->options&O_NRQ)?"/NRQ":"",
 		(rnode->options&O_FNC)?"/FNC":"",
 		(rnode->options&O_BAD)?"/BAD":"",
-		(rnode->chat)?"/CHT":"");
+		(rnode->opt&MO_CHAT)?"/CHT":"");
 	chatinit(proto);
 	switch(proto) {
 	case P_ZEDZAP:

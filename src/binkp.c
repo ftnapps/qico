@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.6 2003/09/16 10:05:55 sisoft Exp $
+ * $Id: binkp.c,v 1.7 2003/09/23 12:55:54 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -113,10 +113,10 @@ static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
 
 int binkpsession(int mode,ftnaddr_t *remaddr)
 {
-	int rc,n=0,chal_len=0;
 	int nofiles=0,wait_got=0;
 	int sent_eob=0,recv_eob=0;
 	int send_file=0,recv_file=0;
+	int rc,n=0,chal_len=0,bp_supp;
 	char tmp[1024],*p,*fname;
 	size_t fsize,foffs;
 	falist_t *pp=NULL;
@@ -127,7 +127,17 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	struct tm *tt;
 	time_t ti,t1,ftime;
 	totaln=0;totalf=0;totalm=0;got_req=0;
-	bp_opt=BP_OPTIONS;rxstate=1;was_req=0;bp_crypt=0;
+	bp_supp=0;rxstate=1;was_req=0;bp_crypt=0;
+	for(p=cfgs(CFG_BINKPOPT);p;p++)switch(tolower(*p)) {
+	    case 'm': bp_supp|=BP_OPT_MD5; break;
+	    case 'c': bp_supp|=BP_OPT_CRYPT; break;
+	    case 'r': bp_supp|=BP_OPT_NR; break;
+	    case 'd': bp_supp|=BP_OPT_ND; break;
+	    case 'b': bp_supp|=BP_OPT_MB; break;
+	    case 'p': bp_supp|=BP_OPT_NOPLAIN; break;
+	    default: write_log("unknown binkp option: %c",*p);
+	}
+	bp_supp&=BP_OPTIONS;bp_opt=bp_supp;
 	write_log("starting %sbound BinkP session",mode?"out":"in");
 	txbuf=(byte*)xcalloc(32770,1);
 	rxbuf=(byte*)xcalloc(32770,1);
@@ -174,29 +184,24 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			snprintf(tmp,128,"%s-%s/%s",qver(0),qver(1),qver(2));
 			strtr(tmp,' ','_');xstrcat(tmp," " BP_VERSION,128);
 			msgs(BPM_NUL,"VER ",tmp);
-			snprintf(tmp,128,"%s%s%s%s%s",
+			snprintf(tmp,128,"%s%s%s%s",
 				(bp_opt&BP_OPT_NR)?" NR":"",
 				(bp_opt&BP_OPT_ND)?" ND":"",
 				(bp_opt&BP_OPT_MB)?" MB":"",
-				(bp_opt&BP_OPT_MPWD)?" MPWD":"",
 				(bp_opt&BP_OPT_CRYPT&&bp_opt&BP_OPT_MD5)?" CRYPT":"");
 			if(!mode&&strlen(tmp))msgs(BPM_NUL,"OPT",tmp);
 			pp=cfgal(CFG_ADDRESS);
 			if(mode) {
 				ba=akamatch(remaddr,pp);
-				xstrcpy(tmp,ftnaddrtoa(ba),1023);
+				xstrcpy(tmp,ftnaddrtoda(ba),1023);
 			    } else {
-				xstrcpy(tmp,ftnaddrtoa(&pp->addr),1023);
+				xstrcpy(tmp,ftnaddrtoda(&pp->addr),1023);
 				pp=pp->next;ba=NULL;
 			}
-			xstrcat(tmp,"@",1023);
-			xstrcat(tmp,cfgs(CFG_DOMAIN)?(ccs+(*ccs=='@')):"fidonet",1023);
 			for(;pp;pp=pp->next)
 			    if(&pp->addr!=ba) {
 				xstrcat(tmp," ",1023);
-				xstrcat(tmp,ftnaddrtoa(&pp->addr),1023);
-				xstrcat(tmp,"@",1023);
-				xstrcat(tmp,cfgs(CFG_DOMAIN)?(ccs+(*ccs=='@')):"fidonet",1023);
+				xstrcat(tmp,ftnaddrtoda(&pp->addr),1023);
 			}
 			msgs(BPM_ADR,tmp,NULL);
 			txstate=(txstate==BPO_Init)?BPO_WaitNul:BPI_WaitAdr;
@@ -259,7 +264,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				if(chal_len>0&&!strncmp(rnode->pwd,"CRAM-MD5-",9))rc=9;
 				for(pp=rnode->addrs;pp;pp=pp->next) {
 					p=findpwd(&pp->addr);n=0;
-					if(!p||(!rc&&!strcasecmp(rnode->pwd,p)))n=1;
+					if(!p||(!rc&&!strcasecmp(rnode->pwd,p)&&!(bp_opt&BP_OPT_NOPLAIN)))n=1;
 					    else if(p&&rc) {
 						char dig_h[33];
 						unsigned char dig_b[16];
@@ -280,12 +285,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				}
 			}
 			if(mode) {
-				bp_opt&=BP_OPTIONS;
-				snprintf(tmp,128,"%s%s%s%s%s",
+				bp_opt&=bp_supp;
+				snprintf(tmp,128,"%s%s%s%s",
 					(bp_opt&BP_OPT_NR)?" NR":"",
 					(bp_opt&BP_OPT_ND)?" ND":"",
 					(bp_opt&BP_OPT_MB)?" MB":"",
-					(bp_opt&BP_OPT_MPWD)?" MPWD":"",
 					(bp_opt&BP_OPT_CRYPT&&bp_opt&BP_OPT_MD5)?" CRYPT":"");
 				if(strlen(tmp))msgs(BPM_NUL,"OPT",tmp);
 			}
@@ -348,7 +352,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 						if(!strcmp(p,"NR"))bp_opt|=BP_OPT_NR;
 						else if(!strcmp(p,"MB"))bp_opt|=BP_OPT_MB;
 						else if(!strcmp(p,"ND"))bp_opt|=BP_OPT_ND;
-						else if(!strcmp(p,"MPWD"))bp_opt|=BP_OPT_MPWD;
+						else if(!strcmp(p,"MPWD"))bp_opt|=0;
 						else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
 						else if(!strncmp(p,"CRAM-",5)) {
 							char *hash_t=p+5,*chall;
@@ -366,7 +370,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 							} else write_log("binkp got invalid option \"%s\"",p);
 						}
 					}
-					bp_opt&=BP_OPTIONS;
+					bp_opt&=bp_supp;
 				} else if(!strncmp(tmp,"VER ",4))restrcpy(&rnode->mailer,tmp+4);
 				    else write_log("BinkP: got invalid NUL: \"%s\"",tmp);
 				if(txstate==BPO_WaitNul)txstate=BPO_SendPwd;
@@ -442,7 +446,6 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		(bp_opt&BP_OPT_NR)?"/NR":"",
 		(bp_opt&BP_OPT_ND)?"/ND":"",
 		(bp_opt&BP_OPT_MB)?"/MB":"",
-		(bp_opt&BP_OPT_MPWD)?"/MPWD":"",
 		(bp_opt&BP_OPT_MD5)?"/MD5":"/Plain",
 		(bp_opt&BP_OPT_CRYPT)?"/CRYPT":"");
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
@@ -509,10 +512,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					if(!strcmp(p,"NR"))bp_opt|=BP_OPT_NR;
 					else if(!strcmp(p,"MB"))bp_opt|=BP_OPT_MB;
 					else if(!strcmp(p,"ND"))bp_opt|=BP_OPT_ND;
-					else if(!strcmp(p,"MPWD"))bp_opt|=BP_OPT_MPWD;
+					else if(!strcmp(p,"MPWD"))bp_opt|=0;
 					else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
 				}
-				bp_opt&=BP_OPTIONS;
+				bp_opt&=bp_supp;
 			} else if(!strncmp(tmp,"TRF ",4)) {
 				n=tmp+4;rnode->netmail=atoi(n);
 				n=strchr(n,' ');

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.5 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: main.c,v 1.6 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -269,8 +269,7 @@ void daemon_mode()
 			c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 			t_dial=dable=0;
 			mailonly=checktimegaps(cfgs(CFG_MAILONLY))||checktimegaps(cfgs(CFG_ZMH));
-			port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
-			if(!port||!q_queue)dable=1;
+			if(!q_queue)dable=1;
 			i=q_queue;
 			DEBUG(('Q',1,"dabl"));
 			while(!dable&&i) {
@@ -329,10 +328,29 @@ void daemon_mode()
 					rnode->name=xstrdup("Unknown");
 					rnode->phone=xstrdup("");
 				}
-				rnode->tty=xstrdup(baseport(port));
-				if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
-				DEBUG(('Q',1,"%s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
+				if(!(rnode->opt&(MO_BINKP|MO_IFC)))xfree(rnode->host);
+				DEBUG(('Q',1,"ndl: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				if(checktimegaps(cfgs(CFG_CANCALL))&&find_dialable_subst(rnode,havestatus(f,CFG_IMMONFLAVORS),psubsts)) {
+					DEBUG(('Q',1,"sbs: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
+					if(rnode->host) {
+						static struct stat s;
+						static char lckname[MAX_PATH];
+						snprintf(lckname,MAX_PATH,"%s.tcpip",cfgs(CFG_NODIAL));
+						if(!stat(lckname,&s))goto nlkil;
+						is_ip=1;
+						if(rnode->opt&MO_BINKP)bink=1;
+#if IP_D
+						snprintf(ip_id,10,"ip%d",getpid());
+#else
+						xstrcpy(ip_id,bink?"binkp":"ifcico", 10);
+#endif
+						rnode->tty=xstrdup(bink?"binkp":"tcpip");
+					} else {
+						port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
+						if(!port)goto nlkil;
+						rnode->tty=xstrdup(baseport(port));
+						if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
+					}
 					dable=1;current->flv|=Q_DIAL;
 					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
 					chld=fork();
@@ -340,23 +358,25 @@ void daemon_mode()
 						setsid();
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
-						if(cfgi(CFG_TRANSLATESUBST)==1)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
+						if(cfgi(CFG_TRANSLATESUBST)==1&&!is_ip)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 						log_done();
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
 						}
-						if(rnode->hidnum) {
-							title("Calling %s #%d, %s",rnode->name,rnode->hidnum,ftnaddrtoa(&current->addr));
-							write_log("calling %s #%d, %s (%s)",rnode->name,rnode->hidnum,ftnaddrtoa(&current->addr),rnode->phone);
-						    } else {
-							title("Calling %s, %s",rnode->name,ftnaddrtoa(&current->addr));
-							write_log("calling %s, %s (%s)",rnode->name,ftnaddrtoa(&current->addr),rnode->phone);
+						if(is_ip)rc=tcp_call(rnode->host,&current->addr);
+						    else {
+							if(rnode->hidnum) {
+								title("Calling %s #%d, %s",rnode->name,rnode->hidnum,ftnaddrtoa(&current->addr));
+								write_log("calling %s #%d, %s (%s)",rnode->name,rnode->hidnum,ftnaddrtoa(&current->addr),rnode->phone);
+							    } else {
+								title("Calling %s, %s",rnode->name,ftnaddrtoa(&current->addr));
+								write_log("calling %s, %s (%s)",rnode->name,ftnaddrtoa(&current->addr),rnode->phone);
+							}
+							rc=do_call(&current->addr,rnode->phone,port);
 						}
-						rc=do_call(&current->addr,rnode->phone,port);
-						log_done();
+						log_done();hld=0;
 						if(!log_init(cfgs(CFG_MASTERLOG),NULL))fprintf(stderr,"can't init log %s.%s!",ccs,port);
-						hld=0;
 						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
 							if(is_bso()==1) {
 								bso_getstatus(&current->addr,&sts);
@@ -486,6 +506,7 @@ void daemon_mode()
 					if(chld<0) write_log("can't fork() caller!");
 					c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 				} else current->flv&=~Q_DIAL;
+nlkil:				is_ip=0;bink=0;
 				nlkill(&rnode);
 				DEBUG(('Q',1,"nlkill"));
 				current=current->next;
@@ -876,6 +897,7 @@ void answer_mode(int type)
 		spd=TCP_SPEED;
 	} else {	
 		cs=getenv("CONNECT");spd=cs?atoi(cs):0;
+		xfree(connstr);connstr=xstrdup(cs);
 		if(cs && spd) {
 			write_log("*** CONNECT %s", cs);
 		} else {
@@ -1091,7 +1113,7 @@ int main(int argc, char *argv[], char *envp[])
 		for(s=psubsts;s;s=s->next) {
 			write_log("subst for %s [%d]\n", ftnaddrtoa(&s->addr), s->nhids);
 			for(l=s->hiddens;l;l=l->next)
-				write_log(" * %s,%s,%d\n",l->phone,l->timegaps,l->num);
+				write_log(" * %s,%s,%s,%d,%d\n",l->phone,l->host,l->timegaps,l->flags,l->num);
 		}
 	}
 #endif	

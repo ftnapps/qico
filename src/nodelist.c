@@ -1,8 +1,6 @@
 /**********************************************************
- * File: nodelist.c
- * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: nodelist.c,v 1.20 2003/02/04 17:30:46 cyrilm Exp $
+ * work with nodelists
+ * $Id: nodelist.c,v 1.3 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -34,9 +32,9 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 
 	*nl=NULL;
 	memset(nlent, 0, sizeof(ninfo_t));
-	snprintf(nlp, MAX_PATH, "%s/%s.lock", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s%s.lock", nlpath, NL_IDX);
 	if(islocked(nlp)) return 0;
-	snprintf(nlp, MAX_PATH, "%s/%s", nlpath, NL_IDX);
+	snprintf(nlp, MAX_PATH, "%s%s", nlpath, NL_IDX);
 	idx=fopen(nlp, "rb");
 	if(!idx) { xfree(nlent);return 1; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
@@ -115,7 +113,14 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 					if(p) {
 						nlent->speed=atoi(p);
 						p=strsep(&t, "\r\n\0");
-						if(p) nlent->flags=xstrdup(p);
+						if(p) {
+							nlent->flags=xstrdup(p);
+							if(nlent->type==NT_PVT) {
+								if(strstr(p,"IBN"))nlent->opt|=MO_BINKP;
+								if(strstr(p,"IFC"))nlent->opt|=MO_IFC;
+								if(nlent->opt)nlent->host=xstrdup(ftnaddrtoia(addr));
+							}
+						}
 					}
 				}
 			}
@@ -386,7 +391,9 @@ int chktxy(char *p)
 {
 	time_t tim=time(NULL);
 	struct tm *ti=gmtime(&tim);
-	int t=ti->tm_hour*60+ti->tm_min, t1, t2;
+	int t=ti->tm_hour*60+ti->tm_min,t1,t2;
+	ti=localtime(&tim);
+	if(ti->tm_isdst>0){t+=60;if(t>86399)t-=86400;}
 	t1=(toupper((int)p[1])-'A')*60+(islower((int)p[1]) ? 30:0);
 	t2=(toupper((int)p[2])-'A')*60+(islower((int)p[2]) ? 30:0);
 	return ((t1<=t2 && t>=t1 && t<=t2) || (t1>t2 && (t>=t1 || t<=t2)));
@@ -421,9 +428,9 @@ subst_t *findsubst(ftnaddr_t *fa, subst_t *subs)
 
 subst_t *parsesubsts(faslist_t *sbs)
 {
-	subst_t *subs=NULL,*q;char *p,*t;
+	char *p,*t;
+	subst_t *subs=NULL,*q;
 	dialine_t *d, *c;
-
 	while(sbs) {
 		q=findsubst(&sbs->addr, subs);
 		if(!q) {
@@ -440,10 +447,12 @@ subst_t *parsesubsts(faslist_t *sbs)
 		if(!c) { q->current=q->hiddens=d;
 		} else { while(c->next)c=c->next; c->next=d; }
 		
-        d->next=NULL;
+    		d->next=NULL;
 		d->num=++q->nhids;
 		d->phone=NULL;
 		d->timegaps=NULL;
+		d->host=NULL;
+		d->flags=0;
 		p=sbs->str;
 		while(*p==' ') p++;
 		t=strsep(&p, " ");
@@ -452,8 +461,21 @@ subst_t *parsesubsts(faslist_t *sbs)
 				d->phone=xstrdup(t);
 			if(p) {
 				while(*p==' ') p++;
-				t=strsep(&p, " ");	
+				t=strsep(&p, " ");
 				if(t) if(*t!='-') d->timegaps=xstrdup(t);
+				if(p) {
+					while(*p==' ') p++;
+					t=strsep(&p, " ");
+					if(t) if(*t!='-') {
+						if(!strcasecmp(t,"ifc"))d->flags|=MO_IFC;
+						else if(!strcasecmp(t,"binkp"))d->flags|=MO_BINKP;
+						    else write_log("unknown subst flag: %s",t);
+						if(d->flags) {
+							d->host=xstrdup(d->phone?d->phone:ftnaddrtoia(&sbs->addr));
+							xfree(d->phone);
+						}
+					}
+				}
 			}
 		}
 		sbs=sbs->next;
@@ -472,25 +494,31 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	sb->current=sb->current->next;
 	if(!sb->current) sb->current=sb->hiddens;
 
-	if(!d->phone) query_nodelist(&nl->addrs->addr,cfgs(CFG_NLPATH),&from_nl);
+	if(!d->phone&&!d->host) query_nodelist(&nl->addrs->addr,cfgs(CFG_NLPATH),&from_nl);
 
 	if(d->phone) {
-		if(nl->phone) xfree(nl->phone);
+		xfree(nl->phone);
 		nl->phone=xstrdup(d->phone);
 	} else if(from_nl && from_nl->phone) {
-		if(nl->phone) xfree(nl->phone);
+		xfree(nl->phone);
 		nl->phone=xstrdup(from_nl->phone);
-		if(cfgi(CFG_TRANSLATESUBST) == 0) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+		if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&nl->phone,cfgsl(CFG_PHONETR));
+	}
+	if(d->host) {
+		xfree(nl->host);
+		nl->host=xstrdup(d->host);
 	}
 	if(d->timegaps) {
-		if(nl->wtime) xfree(nl->wtime);
+		xfree(nl->wtime);
 		nl->wtime=xstrdup(d->timegaps);
 		nl->haswtime=1;
 	} else {
-		if(nl->wtime) xfree(nl->wtime);
+		xfree(nl->wtime);
 		nl->haswtime=0;
 	}
 	nl->hidnum=(sb->nhids>1)?d->num:0;
+	nl->opt&=~(MO_BINKP|MO_IFC);
+	nl->opt|=d->flags;
 	if(from_nl) nlkill(&from_nl);
 	return 1;
 }
@@ -505,7 +533,7 @@ void killsubsts(subst_t **l)
 		while(d) {
 			e=d->next;
 			xfree(d->phone);xfree(d->timegaps);
-			xfree(d);
+			xfree(d->host);xfree(d);
 			d=e;
 		}
 		xfree(*l);
@@ -517,12 +545,14 @@ int can_dial(ninfo_t *nl, int ct)
 {
 	char *p;int d=0;
 	if(!nl) return 0;
-	if(!*nl->phone) return 0;
-	for(p=nl->phone;*p;p++) if(!strchr("0123456789*#TtPpRr,.\"Ww@!-",*p)) d++;
-	if(d>0) return 0;
+	if(!nl->host||!*nl->host) {
+		if(!*nl->phone) return 0;
+		for(p=nl->phone;*p;p++) if(!strchr("0123456789*#TtPpRr,.\"Ww@!-",*p)) d++;
+		if(d>0) return 0;
+	}
 	if(ct) return 1;
 	if(nl->haswtime) return checktimegaps(nl->wtime);
-	if(nl->type==NT_HOLD||nl->type==NT_DOWN||nl->type==NT_PVT) return 0;
+	if(nl->type==NT_HOLD||nl->type==NT_DOWN||(nl->type==NT_PVT&&!nl->host))return 0;
 	if(checktxy(nl->flags)) return 1;
 	if(nl->addrs->addr.p==0 && checktimegaps(cfgs(CFG_ZMH)))
 		return 1;
@@ -550,6 +580,7 @@ void nlfree(ninfo_t *nl)
 	xfree(nl->flags);
 	xfree(nl->pwd);
 	xfree(nl->mailer);
+	xfree(nl->host);
 }
 
 void nlkill(ninfo_t **nl)
@@ -558,4 +589,3 @@ void nlkill(ninfo_t **nl)
 	nlfree(*nl);
 	xfree(*nl);
 }
-	

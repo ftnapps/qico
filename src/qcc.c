@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.4 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: qcc.c,v 1.5 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -74,7 +74,7 @@ typedef struct {
 	int  chaty;
 	int  chatx;
 	int  options;
-	int  chatenable;
+	int  opt;
 	pfile_t s,r;
 	time_t start;
 	WINDOW *wlog;
@@ -945,7 +945,7 @@ int getmessages()
 				} else {
 					p=data;
 					slots[rc]->speed=FETCH16(p);INC16(p);
-					slots[rc]->chatenable=FETCH16(p);INC16(p);
+					slots[rc]->opt=FETCH16(p);INC16(p);
 					slots[rc]->options=FETCH32(p);INC32(p);
 					slots[rc]->start=FETCH32(p);INC32(p);
 					strefresh(&slots[rc]->name,(char*)p);p+=strlen((char*)p)+1;
@@ -1410,7 +1410,7 @@ int main(int argc,char **argv)
 				ipccmdslot(buf,QR_HANGUP,9);
 				break;
 			case 'c':
-				if(slots[currslot]->chatenable&&slots[currslot]->session) {
+				if((slots[currslot]->opt&4/*MO_CHAT*/)&&slots[currslot]->session) {
 					buf[9]=5;
 					ipccmdslot(buf,QR_CHAT,10);
 				} else xbeep();

@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.6 2003/09/07 09:34:21 sisoft Exp $ */
+/* $Id: ftn.h,v 1.7 2003/09/23 12:55:54 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -21,6 +21,8 @@
 
 #define C_INT     1
 #define C_STR     2
+#define C_ADDR    3
+#define C_ADRSTR  4
 #define C_PATH    5
 #define C_YESNO   6
 #define C_ADDRL   7
@@ -28,20 +30,17 @@
 #define C_STRL    9
 #define C_OCT     10
 
-#define C_ADDR    3
-#define C_ADRSTR  4
-
 #define NT_NORMAL 0
 #define NT_DOWN   1
 #define NT_HOLD   2
 #define NT_PVT    3
 #define NT_HUB    4
 
-#define IS_ERR         4
-#define IS_REQ         3
-#define IS_FILE        2
-#define IS_ARC         1
-#define IS_PKT         0
+#define IS_ERR    4
+#define IS_REQ    3
+#define IS_FILE   2
+#define IS_ARC    1
+#define IS_PKT    0
 
 #define LCK_x   0
 #define LCK_c	1
@@ -50,6 +49,7 @@
 
 typedef struct {
 	short int z,n,f,p;
+	char *d;
 } ftnaddr_t;
 
 typedef struct {
@@ -82,9 +82,9 @@ typedef struct _faslist_t {
 
 typedef struct {
 	falist_t *addrs;
-	char *name, *place, *sysop, *phone, *wtime, *flags, *pwd, *mailer;
+	char *name, *place, *sysop, *phone, *wtime, *flags, *pwd, *mailer,*host;
 	int options, speed, realspeed, netmail, files, haswtime, hidnum,
-		type, holded, chat;
+		type, holded, opt;
 	long int time, starttime;
 	char *tty;
 } ninfo_t;
@@ -119,8 +119,8 @@ typedef struct _qitem_t {
 } qitem_t;
 
 typedef struct _dialine_t {
-	char *phone, *timegaps;
-	int num;
+	char *phone, *timegaps,*host;
+	int num,flags;
 	struct _dialine_t *next;
 } dialine_t;
 
@@ -132,7 +132,7 @@ typedef struct _subst {
 } subst_t;
 
 #define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)  
-#define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;}
+#define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=b.d?xstrdup(b.d):NULL;}
 
 typedef struct {
 	UINT16 phONode,
@@ -183,6 +183,7 @@ typedef struct {
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
+extern char *ftnaddrtoda(ftnaddr_t *a);
 extern char *ftnaddrtoia(ftnaddr_t *a);
 extern void falist_add(falist_t **l, ftnaddr_t *a);
 extern void falist_kill(falist_t **l);
@@ -330,8 +331,6 @@ extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
-
-#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
 
 #define MAX(a,b) ((a>b)?a:b)
 #define MIN(a,b) ((a<b)?a:b)
