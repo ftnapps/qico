@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.3.2.1 2001/01/04 18:10:57 lev Exp $
+ * $Id: nodelist.c,v 1.3.2.2 2001/02/18 15:05:18 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -346,7 +346,7 @@ subst_t *findsubst(ftnaddr_t *fa, subst_t *subs)
 subst_t *parsesubsts(faslist_t *sbs)
 {
 	subst_t *subs=NULL,*q;char *p,*t;
-	dialine_t *d;
+	dialine_t *d, *c;
 
 	while(sbs) {
 		q=findsubst(&sbs->addr, subs);
@@ -358,7 +358,13 @@ subst_t *parsesubsts(faslist_t *sbs)
 			q->nhids=0;
 		}
 		d=malloc(sizeof(dialine_t));
-		d->next=q->hiddens;q->current=q->hiddens=d;
+
+		/* Insert ind _end_ of list */
+		c=q->hiddens;
+		if(!c) { q->current=q->hiddens=d;
+		} else { while(c->next)c=c->next; c->next=d; }
+
+        d->next=NULL;
 		d->num=++q->nhids;
 		d->phone=NULL;
 		d->timegaps=NULL;
@@ -385,9 +391,9 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	dialine_t *d;
 
 	if(!sb) return 0;
+	d=sb->current;
 	sb->current=sb->current->next;
 	if(!sb->current) sb->current=sb->hiddens;
-	d=sb->current;
 
 	if(d->phone) {
 		if(nl->phone) sfree(nl->phone);

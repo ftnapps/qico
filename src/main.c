@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.13 2001/01/04 18:40:04 lev Exp $
+ * $Id: main.c,v 1.4.2.14 2001/02/18 15:05:18 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -61,6 +61,7 @@ void usage(char *ex)
 		   "               N - normal call\n"
 		   "               I - call <i>mmidiatly (don't check node worktime)\n"
 		   "               A - call on <a>ny free port (don't check cancall setting)\n"
+		   "               You could specify line after <node>, lines are numbered from 1\n"
 		   "-r             freq from <node> files <files>\n"
 		   "-s[n|c|d|h|i]  attach files <files> to <node> with specified flavor\n"
 		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
@@ -425,7 +426,7 @@ void answer_mode(int type)
 	stopit(rc);
 }	
 
-int force_call(ftnaddr_t *fa, int flags)
+int force_call(ftnaddr_t *fa, int line, int flags)
 {
 	char *port=NULL;
 	slist_t *ports=NULL;
@@ -442,6 +443,7 @@ int force_call(ftnaddr_t *fa, int flags)
 		falist_add(&rnode->addrs, fa);
 		rnode->name=strdup("Unknown");
 		rnode->phone=strdup("");
+		rnode->hidnum = 0;
 	}
 	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	rnode->tty=NULL;
@@ -465,11 +467,26 @@ int force_call(ftnaddr_t *fa, int flags)
 		}
 	}
 
-	applysubst(rnode, psubsts);
-	if(!can_dial(rnode,(flags & 1) == 1)) {
-		fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
-		exit(0);
+	if(line) {
+		applysubst(rnode, psubsts);
+		while(rnode->hidnum && line != rnode->hidnum && applysubst(rnode, psubsts) && rnode->hidnum != 1);
+		if(line != rnode->hidnum) {
+			fprintf(stderr,"%s doesn't have line #%d\n",ftnaddrtoa(fa),line);
+			exit(0);
+		}
+		if(!can_dial(rnode,(flags & 1) == 1)) {
+			fprintf(stderr,"We should not call to %s #%d at this time\n",ftnaddrtoa(fa),line);
+			exit(0);
+		}
+	} else {
+		applysubst(rnode, psubsts);
+		while(!can_dial(rnode,(flags & 1) == 1) && rnode->hidnum && applysubst(rnode, psubsts) && rnode->hidnum != 1);
+		if (!can_dial(rnode,(flags & 1) == 1)) {
+			fprintf(stderr,"We should not call to %s at this time\n",ftnaddrtoa(fa));
+			exit(0);
+		}
 	}
+
 
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
@@ -477,7 +494,7 @@ int force_call(ftnaddr_t *fa, int flags)
 	}
 
 	if(rnode->hidnum) {
-		log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+		log("calling %s #%d, %s (%s)", rnode->name,rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
 	} else {								
 		log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
 	}								
@@ -494,7 +511,7 @@ int main(int argc, char *argv[], char *envp[])
 {
 	int c, daemon=-1, rc,
 		flv=F_NORM,
-		kfs=0, verb=0, set=0, res=0, call_flags=0,
+		kfs=0, verb=0, set=0, res=0, call_flags=0, line=0,
 		sesstype=SESSION_AUTO;
 	char *hostname=NULL, *str=NULL;
 	ftnaddr_t fa;
@@ -633,11 +650,12 @@ int main(int argc, char *argv[], char *envp[])
 	freopen("/usr/src/qico/stderr.out","at",stderr);
 	setbuf(stderr, NULL);
 #endif
-	if(hostname || (daemon>=3 && daemon<=8) || daemon==12) 
+	if(hostname || (daemon>=3 && daemon<=8) || daemon==12)
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
-			log("%s: can't parse address '%s'!\n", argv[0],
-				argv[optind]);
+			log("%s: can't parse address '%s'!\n", argv[0], argv[optind]);
 			exit(1);
+		} else { 
+			optind++;
 		}
 
 	if(hostname) {
@@ -680,9 +698,19 @@ int main(int argc, char *argv[], char *envp[])
 	case 2:
 		compile_nodelists();break;
 	case 12:
+		if(optind<argc) {
+			if(1!=sscanf(argv[optind],"%d",&line)) {
+				log("%s: can't parse line number '%s'!\n", argv[0], argv[optind]);
+				exit(1);
+			}
+		} else {
+			line = 0;
+		}
 		if (bso_locknode(&fa)) {
-			if(verb) log("call %s\n", ftnaddrtoa(&fa));
-			rc=force_call(&fa,call_flags);
+			if(verb) 
+				if (line) log("call %s\n", ftnaddrtoa(&fa));
+				else log("call %s, line %d\n", ftnaddrtoa(&fa),line);
+			rc=force_call(&fa,line,call_flags);
 			bso_unlocknode(&fa);
 		} else rc=0;
 		if(!(rc&S_MASK)) log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
