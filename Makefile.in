@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.9 2001/01/09 11:31:31 lev Exp $
+# $Id: Makefile.in,v 1.10 2001/01/12 19:16:06 lev Exp $
 #
 
 prefix  = @prefix@
@@ -16,21 +16,22 @@ DIRS    = src
 DIST    = qico-$(VERSION).tar.gz
 DIST_DIRS = src stuff
 DIST_FILES = stuff/* src/*.[chlyx] src/*.in src/*.awk \
-Changes FAQ LICENSE README *.in acconfig.h configure install-sh \
-qico.conf.sample mkinstalldirs qico.spec
+	Changes FAQ LICENSE README *.in acconfig.h configure install-sh \
+	qico.conf.sample mkinstalldirs qico.spec
 DIST_EXCLUDE = src/tcpp.c
 
 DOCS = Changes FAQ LICENSE README stuff qico.conf.sample
 
-AUTOFILES = Makefile config.h configure qico.spec config.cache config.h.in config.log config.status
+AUTOFILES = Makefile config.h configure qico.spec config.h.in \
+	config.log config.status config.cache stamp-h stamp-h.in
 
 ###############################################################################
-all: autogenerate
+all: Makefile config.h
 	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
 
 clean:
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
-	rm -f qico-$(VERSION).tar.gz config.cache *~
+	rm -f qico-$(VERSION).tar.gz *~ 
 
 full-clean: clean
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
@@ -55,8 +56,6 @@ install-docs:
 	./mkinstalldirs $(prefix)/doc/qico-$(VERSION)
 	cp -Rf $(DOCS) $(prefix)/doc/qico-$(VERSION)
 
-autogenerate: configure config.h.in Makefile config.h
-
 configure: configure.in
 	@rm -rf configure
 	autoconf
@@ -77,7 +76,7 @@ Makefile: Makefile.in config.status
 config.status: configure
 	./config.status --recheck
 
-dist: clean config.h.in configure
+dist: config.h.in configure clean
 	mkdir qico-$(VERSION)
 	for i in $(DIST_DIRS); do mkdir qico-$(VERSION)/$$i; done
 	for i in $(DIST_FILES); do cp -f $$i qico-$(VERSION)/$$i; done
