@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.6 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: flaglex.l,v 1.7 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -53,6 +53,7 @@ Blank		[ \t\n]+
 Host    	[Hh][Oo][Ss][Tt]
 ConnStr		[Cc][Oo][Nn][Nn][Ss][Tt][Rr]
 Speed		[Ss][Pp][Ee][Ee][Dd]
+Sfree		[Ss][Ff][Rr][Ee][Ee]
 Phone		[Pp][Hh][Oo][Nn][Ee]
 Time		[Tt][Ii][Mm][Ee]
 iTime		[Ii][Tt][Ii][Mm][Ee]
@@ -137,6 +138,7 @@ Datestr         {Month}({Day}-{Day})?
 {Connect}	{yylval=CONNECT;return(CONNECT);}
 {ConnStr}	{yylval=CONNSTR;return(CONNSTR);}
 {Speed}		{yylval=SPEED;return(SPEED);}
+{Sfree}		{yylval=SFREE;return(SFREE);}
 {File}		{yylval=FLFILE;return(FLFILE);}
 {Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
 {Phone}		{yylval=PHONE;return(PHONE);}

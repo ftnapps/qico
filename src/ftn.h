@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.11 2004/02/05 19:51:17 sisoft Exp $ */
+/* $Id: ftn.h,v 1.12 2004/02/09 01:05:33 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -168,6 +168,7 @@ extern void faslist_kill(faslist_t **l);
 extern char *strip8(char *s);
 extern int has_addr(ftnaddr_t *a, falist_t *l);
 extern char *engms[];
+extern int showpkt(char *fn);
 extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn,unsigned attr);
 extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
 extern void closeqpkt(FILE *f,ftnaddr_t *fa);
@@ -175,7 +176,7 @@ extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
 extern int xfnmatch(char *pattern,char *name,int flags);
-extern int runtoss;
+extern char *findpwd(ftnaddr_t *a);
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
@@ -194,8 +195,7 @@ extern int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs);
 extern void nlfree(ninfo_t *nl);
 extern void nlkill(ninfo_t **nl);
 /* aso.c */
-extern char *aso_tmp;
-extern int is_aso();
+#define ASO (aso_tmp)
 extern int aso_init(char *asopath, int def_zone);
 extern void aso_done(void);
 extern char *aso_name(ftnaddr_t *fa);
@@ -215,8 +215,7 @@ extern int aso_setstatus(ftnaddr_t *fa, sts_t *st);
 extern int aso_getstatus(ftnaddr_t *fa, sts_t *st);
 extern int aso_poll(ftnaddr_t *fa, int flavor);
 /* bso.c */
-extern char *bso_tmp;
-extern int is_bso();
+#define BSO (bso_tmp)
 extern int bso_init(char *bsopath, int def_zone);
 extern void bso_done(void);
 extern char *bso_name(ftnaddr_t *fa);
@@ -236,7 +235,6 @@ extern int bso_setstatus(ftnaddr_t *fa, sts_t *st);
 extern int bso_getstatus(ftnaddr_t *fa, sts_t *st);
 extern int bso_poll(ftnaddr_t *fa, int flavor);
 /* queue.c */
-extern qitem_t *q_queue;
 extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
@@ -253,7 +251,5 @@ extern int istic(char *fn);
 extern int hangup();
 extern int stat_collect();
 int do_call(ftnaddr_t *fa, char *phone, char *port);
-/* main.c */
-extern subst_t *psubsts;
 
 #endif

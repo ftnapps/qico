@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.17 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: main.c,v 1.18 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -20,9 +20,6 @@
 #include "byteop.h"
 #include "clserv.h"
 #include "tty.h"
-
-char *configname=CONFIG;
-subst_t *psubsts;
 
 static void usage(char *ex)
 {
@@ -66,8 +63,8 @@ RETSIGTYPE sigerr(int sig)
 {
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig,SIG_DFL);
-	if(is_bso()==1)bso_done();
-	if(is_aso()==1)aso_done();
+	if(BSO)bso_done();
+	if(ASO)aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
 	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
 	log_done();
@@ -125,7 +122,7 @@ static void answer_mode(int type)
 
 	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
 	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
-	if(is_bso()!=1&&is_aso()!=1) {
+	if(!BSO&&!ASO) {
 		write_log("No outbound defined");
 		stopit(1);
 	}
@@ -156,7 +153,7 @@ static void answer_mode(int type)
 	if((S_OK==(rc&S_MASK))&&cfgi(CFG_HOLDONSUCCESS)) {
 		log_done();
 		log_init(cfgs(CFG_MASTERLOG),NULL);
-		if(is_bso()==1) {
+		if(BSO) {
 			bso_getstatus(&rnode->addrs->addr, &sts);
 			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 			sts.htime=MAX(t_set(cci*60),sts.htime);
@@ -164,11 +161,11 @@ static void answer_mode(int type)
 					ftnaddrtoa(&rnode->addrs->addr),cci);
 			bso_setstatus(&rnode->addrs->addr,&sts);
 		}
-		if(is_aso()==1) {
+		if(ASO) {
 			aso_getstatus(&rnode->addrs->addr,&sts);
 			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 			sts.htime=MAX(t_set(cci*60),sts.htime);
-			if(is_bso()!=1)write_log("calls to %s delayed for %d min after successuful incoming session",
+			if(!BSO)write_log("calls to %s delayed for %d min after successuful incoming session",
 					ftnaddrtoa(&rnode->addrs->addr),cci);
 			aso_setstatus(&rnode->addrs->addr,&sts);
 		}
@@ -178,8 +175,8 @@ static void answer_mode(int type)
 
 	title("Waiting...");
 	vidle();sline("");
-	if(is_bso()==1)bso_done();
-	if(is_aso()==1)aso_done();
+	if(BSO)bso_done();
+	if(ASO)aso_done();
 	stopit(rc);
 }
 
@@ -370,13 +367,13 @@ int main(int argc,char *argv[],char *envp[])
 
 		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
 		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
-		if(is_bso()!=1&&is_aso()!=1) {
+		if(!BSO&&!ASO) {
 			write_log("No outbound defined");
 			stopit(1);
 		}
 		tcp_call(hostname,&fa);
-		if(is_bso()==1)bso_done();
-		if(is_aso()==1)aso_done();
+		if(BSO)bso_done();
+		if(ASO)aso_done();
 		stopit(0);
 	}
 	if(daemon==12) {
@@ -395,25 +392,25 @@ int main(int argc,char *argv[],char *envp[])
 
 		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init BSO",argv[0]);
 		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init ASO",argv[0]);
-		if(is_bso()!=1&&is_aso()!=1) {
+		if(!BSO&&!ASO) {
 			write_log("%s: No outbound defined",argv[0]);
 			cls_close(ssock);
 			exit(1);
 		}
-		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_c);
-		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_c);
+		if(BSO)locked|=bso_locknode(&fa,LCK_c);
+		if(ASO)locked|=aso_locknode(&fa,LCK_c);
 		if(locked) {
 			signal(SIGINT,sigerr);
 			signal(SIGTERM,sigerr);
 			signal(SIGSEGV,sigerr);
 			signal(SIGPIPE,SIG_IGN);
 			rc=force_call(&fa,line,call_flags);
-			if(is_bso()==1)bso_unlocknode(&fa,LCK_x);
-			if(is_aso()==1)aso_unlocknode(&fa,LCK_x);
+			if(BSO)bso_unlocknode(&fa,LCK_x);
+			if(ASO)aso_unlocknode(&fa,LCK_x);
 		} else rc=0;
 		if(rc&S_MASK)write_log("%s: can't call to %s",argv[0],ftnaddrtoa(&fa));
-		if(is_bso()==1)bso_done();
-		if(is_aso()==1)aso_done();
+		if(BSO)bso_done();
+		if(ASO)aso_done();
 		stopit(rc);
 	}
 	switch(daemon) {

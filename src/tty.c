@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.8 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: tty.c,v 1.9 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -15,8 +15,6 @@ char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
 			"read error", "write error", "timeout", "close error",
 				"can't lock port", "can't set/get flags"};
 static struct termios savetios;
-char *tty_port=NULL;
-int tty_hangedup=0,calling=0;
 
 #define IN_MAXBUF       16384
 static unsigned char in_buffer[IN_MAXBUF];
@@ -66,7 +64,7 @@ int tty_isfree(char *port, char *nodial)
 		fscanf(f,"%d",&pid);
 		fclose(f);
 		if (kill(pid,0) && (errno ==  ESRCH)) {
-			unlink(lckname);
+			lunlink(lckname);
 			return 1;
 		}
 		return 0;
@@ -110,7 +108,7 @@ void tty_unlock(char *port)
 		fscanf(f,"%d",&pid);
 		fclose(f);
 	}
-	if(pid==getpid()) unlink(lckname);
+	if(pid==getpid()) lunlink(lckname);
 }
 
 int tty_lock(char *port)

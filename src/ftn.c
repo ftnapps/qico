@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.16 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: ftn.c,v 1.17 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -230,6 +230,37 @@ int has_addr(ftnaddr_t *a, falist_t *l)
 
 char *engms[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
+int showpkt(char *fn)
+{
+	FILE *f;
+	int i,n=1;
+	pkthdr_t ph;
+	pktmhdr_t mh;
+	char from[36],to[36],a;
+	f=fopen(fn,"r");
+	if(!f){write_log("can't open '%s' for reading: %s",fn,strerror(errno));return 0;}
+	if(fread(&ph,sizeof(ph),1,f)!=1)write_log("packet read error");
+	    else if(ph.phType!=2)write_log("packet isn't 2+ format");
+		else {
+		    while(fread(&mh,sizeof(mh),1,f)==1) {
+			i=0;while(fgetc(f)>0&&i<30)i++;i=0;
+			if(i>=30)break;
+			while((a=fgetc(f))>0&&i<36)to[i++]=a;
+			if(i>=36)break;
+			to[i]=0;i=0;
+			while((a=fgetc(f))>0&&i<36)from[i++]=a;
+			if(i>=32)break;
+			from[i]=0;i=0;
+			while(fgetc(f)>0&&i<72)i++;
+			if(i>=72)break;
+			while(fgetc(f)>0);
+			write_log(" *msg:%d from: \"%s\", to: \"%s\"",n++,from,to);
+		    }
+	}
+	fclose(f);
+	return 0;
+}
+
 FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,char *subj, char *pwd, char *fn,unsigned attr)
 {
 	FILE *f;
@@ -441,4 +472,13 @@ int xfnmatch(char *pat,char *name,int flags)
 	} else q=!fnmatch(pat,name,flags);
 	rc^=q;
 	return rc?0:FNM_NOMATCH;
+}
+
+char *findpwd(ftnaddr_t *a)
+{
+	faslist_t *cf;
+	for(cf=cfgfasl(CFG_PASSWORD);cf;cf=cf->next)
+		if(ADDRCMP(cf->addr, (*a)))
+			return cf->str;
+	return NULL;
 }

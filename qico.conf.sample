@@ -65,9 +65,14 @@
 #                              Jan-Dec, Any
 #                              ex.: 'date Any10-13, Feb, Mar1-30
 # + file <full-path>         - file <full-path> present
-#                              ex. 'file /fido/flags/flag'
+#                              ex. 'file /var/fido/flags/flag'
 # + connstr <substring>      - connect string includes <substring>
+#                              ex. 'connstr LAP-M'
 # + host <host>              - where <host> is remote host or ip-addr.
+#                              ex. 'host foo.bar.com'
+# + sfree <path> <comp> <value> - free disk space on <path> path 
+#                              is <comp> <value> (in KBytes).
+#                              ex. 'sfree /mnt/dos < 100'
 # + <flag>                   - where flag can be:
 #                                - 'list[ed]' (without '')
 #                                - 'prot[ected]'
@@ -653,14 +658,19 @@ mapin	lk
 
 # security violation
 if bad
- flags        	***BAD PASSWORD!***
- sysop 		Check your security settings
- phone		Contact to sysop!
+ flags	***BAD PASSWORD!***
+ sysop	Check your security settings
+ phone	Contact to sysop!
 endif
 
 # BinkP without session timeout
 ;if binkp
-;    maxsession	0
+; maxsession 0
+;endif
+
+# only send, if free space less 1Mb
+;if sfree /var/spool/ftn < 1024
+; sendonly yes
 ;endif
 
 # poll'em all ;)
@@ -671,5 +681,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.22 2004/02/05 19:51:15 sisoft Exp $
+# $Id: qico.conf.sample,v 1.23 2004/02/09 01:05:33 sisoft Exp $
 ###############################################################################

@@ -1,15 +1,13 @@
-/* $Id: TodayFixes,v 1.29 2004/02/07 20:37:14 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.30 2004/02/09 01:05:33 sisoft Exp $ */
 ---
-in qcc: change error to warning if file not accessed.
-in qcc: increase maximum lines to 16.
+add if-expression 'sfree' - free disk space.
+small resctructure srcs.
+try to fix arbitrarily open chat.
 .
 previous:
 ---
-correct includes.
-fix crash on outoging calls over ip.
-more debugs in queue scan.
-fix chat in binkp.
-in qcc: show '=' in queue on active addresses.
+in qcc: change error to warning if file not accessed.
+in qcc: increase maximum lines to 16.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,8 +1,6 @@
 /**********************************************************
- * File: xmem.c
- * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xmem.c,v 1.8 2002/03/16 15:54:20 lev Exp $
+ * safety work with memory
+ * $Id: xmem.c,v 1.3 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -43,10 +41,9 @@ char *xstrdup(char *str)
 	return NULL;
 }
 
-
 char *restrcpy(char **dst, char *src)
 {
-	if(*dst) free(*dst);
+	xfree(*dst);
 	return *dst=xstrdup(src?src:"");
 }
 

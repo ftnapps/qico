@@ -1,10 +1,8 @@
 /***************************************************************************
  * File request support
- * $Id: freq.c,v 1.5 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: freq.c,v 1.6 2004/02/09 01:05:33 sisoft Exp $
  ***************************************************************************/
 #include "headers.h"
-
-int freq_pktcount=1;
 
 int freq_ifextrp(slist_t *reqs)
 {
@@ -104,4 +102,23 @@ int freq_ifextrp(slist_t *reqs)
 	snprintf(fn,MAX_PATH,"/tmp/qrep.%04lx",tpid);
 	lunlink(fn);
 	return got;
+}
+
+int freq_recv(char *fn)
+{
+	FILE *f;
+	char s[MAX_PATH],*p;
+	slist_t *reqs=NULL;
+	f=fopen(fn,"rt");
+	if(!f){write_log("can't open '%s' for reading: %s",fn,strerror(errno));return 0;}
+	while(fgets(s,MAX_PATH-1,f)) {
+		p=s+strlen(s)-1;
+		while(*p=='\r'||*p=='\n')*p--=0;
+		slist_add(&reqs,s);
+	}
+	fclose(f);
+	freq_ifextrp(reqs);
+	slist_kill(&reqs);
+	got_req=1;
+	return 1;
 }

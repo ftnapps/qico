@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.21 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: binkp.c,v 1.22 2004/02/09 01:05:33 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -11,7 +11,6 @@
 #include "crc.h"
 
 extern int receivecb(char *fn);
-static char *hexdigits="0123456789abcdef";
 static unsigned long key_in[3],key_out[3];
 static int opt_nr,opt_nd,opt_md,opt_cr,opt_mb,opt_cht;
 static char *mess[]={"NUL","ADR","PWD","FILE","OK","EOB","GOT",
@@ -74,34 +73,6 @@ static int msgr(char *buf)
 	}
 	if(c<0&&c!=OK&&c!=TIMEOUT)return c;
 	return((d==1)?BPM_DATA:((!d)?rc:BPM_NONE));
-}
-
-static void str_bin2hex(char *string,const unsigned char *binptr,int binlen)
-{
-	int i;
-	for(i=0;i<binlen;i++) {
-		*string++=hexdigits[(*binptr>>4)&0x0f];
-		*string++=hexdigits[(*binptr)&0x0f];
-		++binptr;
-	}
-	*string=0;
-}
-
-static int str_hex2bin(unsigned char *binptr,const char *string)
-{
-	int i,val,len=strlen(string);
-	unsigned char *dest=binptr;
-	const char *p;
-	for(i=0;2*i<len;i++) {
-		if((p=strchr(hexdigits,tolower(*(string++))))) {
-			val=(int)(p-hexdigits);
-			if((p=strchr(hexdigits,tolower(*(string++))))) {
-				val=val*16+(int)(p-hexdigits);
-				*dest++=(unsigned char)(val&0xff);
-			} else return 0;
-		} else return 0;
-	}
-	return(dest-binptr);
 }
 
 static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
@@ -195,7 +166,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			DEBUG(('B',3,"state: init (%d)",txstate));
 			if(!mode&&chal_len>0&&(opt_md&O_WANT)) {
 				char chall[128];
-				str_bin2hex(chall,chal,chal_len);
+				strbin2hex(chall,chal,chal_len);
 				msgs(BPM_NUL,"OPT CRAM-MD5-",chall);
 			}
 			msgs(BPM_NUL,"SYS ",cfgs(CFG_STATION));
@@ -246,7 +217,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					char dig_h[33];
 					unsigned char dig_b[16];
 					md5_cram_get((unsigned char*)p,chal,chal_len,dig_b);
-					str_bin2hex(dig_h,dig_b,16);
+					strbin2hex(dig_h,dig_b,16);
 					msgs(BPM_PWD,"CRAM-MD5-",dig_h);
 				} else msgs(BPM_PWD,p,NULL);
 			}
@@ -257,9 +228,9 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			rc=0;
 			DEBUG(('B',3,"state: auth (%d)",txstate));
 			title("%sbound session %s",mode?"Out":"In",ftnaddrtoa(&rnode->addrs->addr));
-			if(is_bso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
+			if(BSO)for(pp=rnode->addrs;pp;pp=pp->next)
 				rc+=bso_locknode(&pp->addr,LCK_s);
-			if(is_aso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
+			if(ASO)for(pp=rnode->addrs;pp;pp=pp->next)
 				rc+=aso_locknode(&pp->addr,LCK_s);
 			if(!rc) {
 				log_rinfo(rnode);
@@ -313,7 +284,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 						char dig_h[33];
 						unsigned char dig_b[16];
 						md5_cram_get((unsigned char*)p,chal,chal_len,dig_b);
-						str_bin2hex(dig_h,dig_b,16);
+						strbin2hex(dig_h,dig_b,16);
 						if(!strcasecmp(rnode->pwd+rc,dig_h))n=1;
 						restrcpy(&rnode->pwd,p);
 					}
@@ -409,7 +380,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 							if(strlen(p+9)>(2*sizeof(chal)))
 							    write_log("binkp got too long challenge string");
 							    else {
-								chal_len=str_hex2bin(chal,p+9);
+								chal_len=strhex2bin(chal,p+9);
 								if(chal_len>0)opt_md|=O_THEY;
 							}
 							if((opt_md&O_THEY)&&(opt_md&O_WANT))opt_md=O_YES;
@@ -509,8 +480,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
 	recvf.ttot=rnode->netmail+rnode->files;
 	effbaud=rnode->speed;lst=fl;
-	if(is_bso()==1)bso_getstatus(&rnode->addrs->addr,&sts);
-	    else if(is_aso()==1)aso_getstatus(&rnode->addrs->addr,&sts);
+	if(BSO)bso_getstatus(&rnode->addrs->addr,&sts);
+	    else if(ASO)aso_getstatus(&rnode->addrs->addr,&sts);
 	sline("BinkP session");
 	t1=t_set(BP_TIMEOUT);
 	mes=0;cls=0;

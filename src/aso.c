@@ -1,18 +1,11 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.8 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: aso.c,v 1.9 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-char *aso_tmp;
 static char *aso_base,*aso_base_sts;
 static int aso_base_len,aso_tmp_len,aso_base_len_sts;
-
-int is_aso()
-{
-	if(aso_tmp!=NULL)return 1;
-	    else return 0;
-}
 
 int aso_init(char *asopath, int def_zone)
 {

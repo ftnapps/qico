@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.7 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: call.c,v 1.8 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -137,8 +137,8 @@ int do_call(ftnaddr_t *fa,char *phone,char *port)
 		rc=session(1,SESSION_AUTO,fa,atoi(conn+strcspn(conn,"0123456789")));
 		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
 			write_log("creating poll for %s",ftnaddrtoa(fa));
-			if(is_bso()==1)bso_poll(fa,F_ERR);
-			    else if(is_aso()==1)aso_poll(fa,F_ERR);
+			if(BSO)bso_poll(fa,F_ERR);
+			    else if(ASO)aso_poll(fa,F_ERR);
 		}
 	} else rc=S_REDIAL;
 	title("Waiting...");

@@ -1,6 +1,6 @@
 /**********************************************************
  * nodelist compiler
- * $Id: qnlc.c,v 1.5 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: qnlc.c,v 1.6 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -53,7 +53,7 @@ int compile_nodelists()
 	snprintf(fn,MAX_PATH,"%s%s",ccs,NL_IDX);
 	if(!(idx=fopen(fn,"wb"))) {
 		write_log("can't open nodelist index %s for writing: %s",fn,strerror(errno));
-		snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
+		snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 		return 0;
 	}
 	fseek(idx,sizeof(idxh),SEEK_SET);
@@ -69,7 +69,7 @@ int compile_nodelists()
 			if(!(d=opendir(ccs))) {
 				write_log("can't open nodelist directory %s: %s",ccs,strerror(errno));
 				fclose(idx);
-				snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
+				snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 				return 0;
 			}
 			max=-1;
@@ -123,9 +123,9 @@ int compile_nodelists()
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
 				} else if(!gp) continue;
 				if(ie.addr.z<0||ie.addr.n<0||ie.addr.f<0||ie.addr.p<0) {
-					write_log("can not parse address in %s at line %d!",basename(fn),line);
+					write_log("can't parse address in %s at line %d!",basename(fn),line);
 					fclose(idx);
-					snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
+					snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 					return 0;
 				}
 				ie.offset=pos;ie.index=i;
@@ -140,7 +140,7 @@ int compile_nodelists()
 			printf("compiled %s: %d nodes\n",basename(fn),k);
 			i++;
 			if(i>MAX_NODELIST) {
-				write_log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");
+				write_log("too much lists - increase MAX_NODELIST in config.h and rebuild!");
 				break;
 			}
 		}
@@ -166,7 +166,7 @@ int compile_nodelists()
 			xfree(ies);
 			write_log("can't write to index: %s",strerror(errno));
 			fclose(idx);
-			snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
+			snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 			return 0;
 		}
 		xfree(ies);
@@ -175,6 +175,6 @@ int compile_nodelists()
 	fseek(idx,0,SEEK_SET);
 	if(fwrite(&idxh,sizeof(idxh),1,idx)!=1)write_log("can't write to index: %s",strerror(errno));
 	fclose(idx);
-	snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
+	snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 	return 1;
 }

@@ -1,11 +1,12 @@
 /**********************************************************
  * safety work with strings
- * $Id: xstr.c,v 1.3 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: xstr.c,v 1.4 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#include "xstr.h"
 
 #ifndef HAVE_STRLCPY
 char *xstrcpy(char *dst, char *src, size_t size)

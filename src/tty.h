@@ -1,4 +1,4 @@
-/* $Id: tty.h,v 1.4 2004/02/06 21:54:46 sisoft Exp $ */
+/* $Id: tty.h,v 1.5 2004/02/09 01:05:33 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #ifdef HAVE_TERMIOS_H
@@ -28,9 +28,6 @@
 #define MC_RING 5
 
 extern char *tty_errs[];
-extern char *tty_port;
-extern int tty_hangedup;
-extern int calling;
 extern RETSIGTYPE tty_sighup(int sig);
 extern int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to);
 extern int tty_isfree(char *port, char *nodial);

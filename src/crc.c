@@ -1,6 +1,6 @@
 /**********************************************************
  * CRC tables.
- * $Id: crc.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: crc.c,v 1.4 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include "types.h"
@@ -198,4 +198,27 @@ void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3])
 		update_keys(keys,*buf);
 		*buf++^=t;
 	}
+}
+
+static char b64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+int base64(char *data,int size,char *p)
+{
+	int i,c;
+	char *s=p;
+	unsigned char *q;
+	q=(unsigned char*)data;
+	for(i=0;i<size;) {
+		c=q[i++]*256;
+		if(i<size)c+=q[i];
+		i++;c*=256;
+		if(i<size)c+=q[i];
+		p[0]=b64[(c&0x00fc0000)>>18];
+		p[1]=b64[(c&0x0003f000)>>12];
+		p[2]=b64[(c&0x00000fc0)>>6];
+		p[3]=b64[(c&0x0000003f)];
+		if(++i>size)p[3]='=';
+		if(i>size+1)p[2]='=';
+		p+=4;
+	}
+	return(p-s);
 }

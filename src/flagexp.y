@@ -1,8 +1,12 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.7 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: flagexp.y,v 1.8 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
-%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR HOST
+%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
+%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS 
+%token DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE
+%token GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK
+%token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE
 %{
 #include "headers.h"
 #include <fnmatch.h>
@@ -22,6 +26,7 @@ int flxpres;
 static int logic(int e1, int op,int e2);
 static int checkconnstr(void);
 static int checkspeed(int op, int speed, int real);
+static int checksfree(int op,int sp);
 static int checkphone(void);
 static int checkport(void);
 static int checkcid(void);
@@ -50,6 +55,8 @@ elemexp		: flag
 			{$$ = checkspeed($2,$3,1);}
 		| SPEED AROP NUMBER
 			{$$ = checkspeed($2,$3,0);}
+		| SFREE IDENT AROP NUMBER
+			{$$ = checksfree($3,$4);}
 		| CONNSTR CONNSTR
 			{$$ = checkconnstr();}
 		| PHONE PHSTR
@@ -125,10 +132,10 @@ static int checkspeed(int op, int speed, int real)
 	DEBUG(('Y',2,"check%sspeed: %d (%d,%s) %d",real?"real":"",real?rnode->realspeed:rnode->speed,op,
 		(EQ==op?"==":
 		(NE==op?"!=":
-        (GT==op?">":
-        (GE==op?">=":
-        (LT==op?"<":
-        (LE==op?"<=":"???"
+	        (GT==op?">":
+	        (GE==op?">=":
+	        (LT==op?"<":
+	        (LE==op?"<=":"???"
 		)))))),speed));
 	switch (op)
 	{
@@ -138,6 +145,22 @@ static int checkspeed(int op, int speed, int real)
 	case GE:	return(real?rnode->realspeed:rnode->speed >= speed);
 	case LT:	return(real?rnode->realspeed:rnode->speed <  speed);
 	case LE:	return(real?rnode->realspeed:rnode->speed <= speed);
+	default:
+		DEBUG(('Y',1,"Logic: invalid comparsion operator %d",op));
+		return 0;
+	}
+}
+
+static int checksfree(int op,int sf)
+{
+	const char *path=yytext;
+	DEBUG(('Y',2,"checksfree: \"%s\"",yytext));
+	switch (op)
+	{
+	case GT:	return(getfreespace(path) >  (size_t)(sf)*1024);
+	case GE:	return(getfreespace(path) >= (size_t)(sf)*1024);
+	case LT:	return(getfreespace(path) <  (size_t)(sf)*1024);
+	case LE:	return(getfreespace(path) <= (size_t)(sf)*1024);
 	default:
 		DEBUG(('Y',1,"Logic: invalid comparsion operator %d",op));
 		return 0;

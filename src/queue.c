@@ -1,11 +1,9 @@
 /**********************************************************
  * Queue operations
- * $Id: queue.c,v 1.10 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: queue.c,v 1.11 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
-
-qitem_t *q_queue=NULL;
 
 #define _Z(x) ((qitem_t *)x)
 int q_cmp(const void *q1,const void *q2)
@@ -195,8 +193,8 @@ int q_rescan(qitem_t **curr,int rslow)
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
 
-	if(is_bso()==1)rc=bso_rescan(q_each,rslow);
-	if(is_aso()==1)rc+=aso_rescan(q_each,rslow);
+	if(BSO)rc=bso_rescan(q_each,rslow);
+	if(ASO)rc+=aso_rescan(q_each,rslow);
 	if(!rc)return 0;
 	rescan_boxes(rslow);
 	p=&q_queue;
@@ -205,13 +203,13 @@ int q_rescan(qitem_t **curr,int rslow)
 		if(!q->touched) {
 			*p=q->next;if(q==*curr)*curr=*p;xfree(q);
 		} else {
-			if(is_bso()==1) {
+			if(BSO) {
 				bso_getstatus(&q->addr,&sts);
 				q->flv|=sts.flags;q->try=sts.try;
 				if(sts.htime>time(NULL))q->onhold=sts.htime;
 				    else q->flv&=~Q_ANYWAIT;
 				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
-			} else if(is_aso()==1) {
+			} else if(ASO) {
 				aso_getstatus(&q->addr,&sts);
 				q->flv|=sts.flags;q->try=sts.try;
 				if(sts.htime>time(NULL))q->onhold=sts.htime;

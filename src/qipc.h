@@ -1,4 +1,4 @@
-/* $Id: qipc.h,v 1.7 2004/02/06 21:54:46 sisoft Exp $ */
+/* $Id: qipc.h,v 1.8 2004/02/09 01:05:33 sisoft Exp $ */
 #ifndef __QIPC_H__
 #define __QIPC_H__
 
@@ -14,7 +14,6 @@ extern void qpproto(char type, pfile_t *pf);
 extern int qrecvpkt(char *str);
 extern void qpmydata();
 
-extern char *log_tty;
 #define QLNAME log_tty?(is_ip?ip_id:log_tty):"master"
 #define qpfsend()  qpproto(QC_SENDD, &sendf)
 #define qpfrecv()  qpproto(QC_RECVD, &recvf)

@@ -1,6 +1,6 @@
 /**********************************************************
  * operations with CRC
- * $Id: crc.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: crc.h,v 1.4 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #ifndef __CRC_H__
 #define __CRC_H__
@@ -45,5 +45,6 @@ extern int decrypt_byte(unsigned long keys[3]);
 extern void decrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 extern void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 
+extern int base64(char *data,int size,char *p);
 
 #endif

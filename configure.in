@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico], [0.51si-cvs], [sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.51si-cvs])
-AC_REVISION([$Id: configure.in,v 1.11 2004/02/05 19:51:15 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.12 2004/02/09 01:05:33 sisoft Exp $])
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
@@ -22,8 +22,8 @@ AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_TIME
 AC_HEADER_TIOCGWINSZ
-AC_CHECK_HEADERS([stddef.h arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h])
-AC_CHECK_HEADERS([sys/time.h syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h errno.h])
+AC_CHECK_HEADERS([stddef.h arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h])
+AC_CHECK_HEADERS([syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h errno.h sys/vfs.h sys/statfs.h sys/statvfs.h sys/mount.h])
 
 dnl whether syslog.h and sys/syslog.h may both be included
 AC_CHECK_HEADER([sys/syslog.h],[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,1,[Could <syslog.h> and <sys/syslog.h> be included in one file])],,[
@@ -76,8 +76,8 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_UTIME_NULL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([alarm bzero dup2 getcwd memchr memmove memset mkdir rmdir select setlocale strcasecmp strchr strcspn strdup strerror])
-AC_CHECK_FUNCS([strncasecmp strrchr strspn strstr strtol strtoul uname utime vsnprintf snprintf stat mktime gethostbyname inet_ntoa socket])
+AC_CHECK_FUNCS([alarm bzero dup2 getcwd memchr memmove memset mkdir rmdir select setlocale strcasecmp strchr strcspn strdup strerror strncasecmp])
+AC_CHECK_FUNCS([strrchr strspn strstr strtol strtoul uname utime vsnprintf snprintf stat mktime gethostbyname inet_ntoa socket rename statfs statvfs])
 AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
 
 dnl Checking for broken basename
@@ -174,18 +174,18 @@ case "$with_lock_style" in
 		;;
 esac
 
-dnl HYDRA8/16K support (disable by default)
-AC_MSG_CHECKING([for Hydra8k/16k support])
-AC_ARG_ENABLE(hydra8k,AC_HELP_STRING([--enable-hydra8k],[enable buggy Hydra8k/16k protocols support]),,enable_hydra8k=no)
+dnl HYDRA4/8/16K support (disable by default)
+AC_MSG_CHECKING([for Hydra4k/8k/16k support])
+AC_ARG_ENABLE(hydra8k,AC_HELP_STRING([--enable-hydra8k],[enable Hydra4k/8k/16k protocols support]),,enable_hydra8k=no)
 if test "${enable_hydra8k}x" != "nox"; then
 	AC_MSG_RESULT(yes)
-	AC_DEFINE(HYDRA8K16K,1,[Allow Hydra-8K and Hydra-16K protocols])
+	AC_DEFINE(HYDRA8K16K,1,[Allow Hydra-4K, Hydra-8K and Hydra-16K protocols])
 else
 	AC_MSG_RESULT(no)
 fi
 
 dnl qcc support
-AC_ARG_ENABLE(qcc,AC_HELP_STRING([--disable-qcc],[disable building of qcc and its support]),,enable_qcc=yes)
+AC_ARG_ENABLE(qcc,AC_HELP_STRING([--disable-qcc],[disable building of qcc]),,enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
 	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,1,[Define to 1 if system have ncurses])
 	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,1,[Define to 1 if system have curses])
@@ -261,11 +261,11 @@ int main(void) {
     f=fopen("ac_xtst/ac","w");
     if(!f) goto bad;
     fclose(f);
-    sleep(1);
+    usleep(250000L);
     if(!done) goto bad;
     done=0;
     unlink("ac_xtst/ac");
-    sleep(1);
+    usleep(250000L);
     if(done) rc=0;
 bad:close(fd);
     rmdir("ac_xtst");
