@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.2 2000/10/07 13:56:39 lev Exp $
+ * $Id: mailer.h,v 1.3 2000/10/07 14:27:26 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -159,5 +159,7 @@ extern byte txlastc;
 #define PUTBLK(bl, size) tty_put(bl,size)
 #define CANCEL() tty_put(canistr, strlen(canistr))
 
+extern int freq_ifextrp(slist_t *reqs);
+extern int freq_pktcount;
 
 #endif

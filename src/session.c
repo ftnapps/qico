@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.3 2000/10/07 13:44:53 lev Exp $
+ * $Id: session.c,v 1.4 2000/10/07 14:27:26 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -230,66 +230,23 @@ int receivecb(char *fn)
 	char *p=strrchr(fn,'.');
 	if(!p) return 0;
 	if(!strcasecmp(p,".req") && cfgs(CFG_EXTRP)) {
-		char s[MAX_PATH], priv;
-		FILE *f, *g;
-		ftnaddr_t *ma=akamatch(&rnode->addrs->addr, cfgal(CFG_ADDRESS));
-
-		priv='a';
-		if(rnode->options&O_LST) priv='l';
-		if(rnode->options&O_PWD) priv='p';
-
-		sprintf(s,"/tmp/qreq.%04x",getpid());
+		FILE *f;
+		char s[MAX_PATH];
+		slist_t *reqs=NULL;
+		
 		f=fopen(fn,"rt");
 		if(!f) {log("can't open '%s' for reading",s);return 0;}
-		g=fopen(s,"wt");
-		if(!g) {log("can't open '%s' for writing",s);return 1;}
 		while(fgets(s,MAX_PATH-1,f)) {
 			p=s+strlen(s)-1;
 			while(*p=='\r' || *p=='\n') *p--=0;
-#ifdef S_DEBUG
-			log("requested '%s'", s);
-#endif
-			fputs(s,g);fputc('\n',g);
+			slist_add(&reqs, s);
 		}
-		fclose(f);fclose(g);
-		sprintf(s, "%s -wazoo -%c -s%d %s /tmp/qreq.%04x /tmp/qfls.%04x /tmp/qrep.%04x",
-				cfgs(CFG_EXTRP), priv, rnode->realspeed,
-				ftnaddrtoa(&rnode->addrs->addr), getpid(),getpid(),getpid());
-		log("exec '%s' returned rc=%d", s,
-			execsh(s));
-		sprintf(s,"/tmp/qreq.%04x",getpid());lunlink(s);
-		sprintf(s,"/tmp/qfls.%04x",getpid());f=fopen(s,"rt");
-		if(!f) {log("can't open '%s' for reading",s);return 1;}
-		while(fgets(s,MAX_PATH-1,f)) {
-			p=s+strlen(s)-1;
-			while(*p=='\r' || *p=='\n') *p--=0;
-			p=strrchr(s,' ');
-			if(p) *p++=0;else p=s;
-#ifdef S_DEBUG
-			log("sending '%s' as '%s'", s, p);
-#endif
-			addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL);
-			got_req=1;
-		}
-		fclose(f);sprintf(s,"/tmp/qfls.%04x",getpid());lunlink(s);
-		sprintf(s,"/tmp/qrep.%04x",getpid());f=fopen(s,"rt");
-		if(!f) {log("can't open '%s' for reading",s);return 1;}
-		sprintf(s,"/tmp/qpkt.%04x",getpid());
-		g=openpktmsg(ma, &rnode->addrs->addr,
-					 rnode->sysop,cfgs(CFG_FREQFROM),
-					 cfgs(CFG_FREQSUBJ),rnode->pwd,s);
-		if(!g) {log("can't open '%s' for writing",s);return 1;}
-		while(fgets(s,MAX_PATH-1,f)) {
-			p=s+strlen(s)-1;
-			while(*p=='\r' || *p=='\n') *p--=0;
-			fputs(s,g);fputc('\r',g);
-		}
-		sprintf(s, "%s-%s/%s", progname, version, osname);
-		closepkt(g, ma, s, cfgs(CFG_STATION));
-		sprintf(s,"/tmp/qrep.%04x",getpid());lunlink(s);
-		sprintf(s,"/tmp/qpkt.%04x",getpid());p=strdup(s);
-		sprintf(s,"%08lx.pkt", sequencer());
-		addflist(&fl, p, strdup(s), '^',0,NULL);
+		fclose(f);
+
+		freq_ifextrp(reqs);
+		slist_kill(&reqs);
+		
+		got_req=1;
 		return 1;
 	}
 	return 0;

@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.6 2000/10/07 14:22:49 lev Exp $
+# $Id: Makefile,v 1.7 2000/10/07 14:28:57 lev Exp $
 #
 include	../CONFIG
 
@@ -34,7 +34,7 @@ QCLIBS  = -L/usr/local/lib -lncurses
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o zm.o zmr.o \
           zrecv.o zsend.o session.o call.o qnlc.o qipc.o qcconst.o tcp.o \
-          hydra.o janus.o flagexp.o execsh.o protfm.o
+          hydra.o janus.o flagexp.o execsh.o protfm.o freq.o
 
 QCCOBJS	= qcc.o ver.o qcconst.o crc.o
 
