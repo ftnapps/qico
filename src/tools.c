@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.16 2004/06/09 22:25:50 sisoft Exp $
+ * $Id: tools.c,v 1.17 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -107,60 +107,6 @@ char *qver(int w)
 		    if(cfgs(CFG_VERSION))return ccs;
 		return version;
 	} else return(cfgs(CFG_OSNAME)?ccs:osname);
-}
-
-slist_t *slist_add(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=xstrdup(s);
-	return *t;
-}
-
-slist_t *slist_addl(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=s;
-	return *t;
-}
-
-char *slist_dell(slist_t **l)
-{
-	char *p=NULL;
-	slist_t *t,*cc=NULL;
-	for(t=*l;t&&t->next;cc=t,p=t->next->str,t=t->next);
-	if(cc)xfree(cc->next);
-	    else {
-		xfree(t);
-		*l=NULL;
-	}
-	return p;
-}
-
-void slist_kill(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree((*l)->str);
-		xfree(*l);
-		*l=t;
-	}
-}
-
-void slist_killn(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree(*l);
-		*l=t;
-	}
 }
 
 void strbin2hex(char *s,const unsigned char *bptr,size_t blen)

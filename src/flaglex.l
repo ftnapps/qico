@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.22 2004/06/22 14:26:21 sisoft Exp $
+ * $Id: flaglex.l,v 1.23 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 %option noyywrap case-insensitive never-interactive
 %{
@@ -11,9 +11,9 @@
 
 #undef ECHO
 
+#define YY_NO_UNPUT
 #ifdef FLEX_SCANNER
 #undef YY_INPUT
-#define YY_NO_UNPUT
 #define YY_INPUT(buf,result,max_size) \
 	if ((yyPTR == NULL) || (*yyPTR == '\0')) \
 		result=YY_NULL; \

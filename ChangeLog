@@ -1,3 +1,12 @@
+2004-06-22 18:26  sisoft
+
+	* qico.conf.sample, src/config.c, src/flagexp.y, src/flaglex.l,
+	  src/perl.c, src/qconf.x, src/tools.h, src/x2c.awk, stuff/test.pl:
+
+	fix parse short time expressions, such as 'time 1-2'.
+	perl: add function qexpr(string) - test qico expression.
+	perl: speedup execute and support for END perl blocks.
+
 2004-06-22 12:28  sisoft
 
 	* src/: config.c, flagexp.y, perl.c, qconf.x, tty.c, tty.h:

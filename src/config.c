@@ -1,9 +1,10 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.24 2004/06/22 14:26:21 sisoft Exp $
+ * $Id: config.c,v 1.25 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
+static aslist_t *defs=NULL;
 static slist_t *condlist=NULL,*curcond;
 
 static int getstr(char **to,char *from)
@@ -144,6 +145,7 @@ int readconfig(char *cfgname)
 	cfgitem_t *ci;
 	curcond=NULL;
 	rc=parseconfig(cfgname);
+	aslist_kill(&defs);
 	if(curcond) {
 		write_log("%s: not all <if>-expressions closed",cfgname);
 		while(curcond)slist_dell(&curcond);
@@ -219,14 +221,14 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 int parseconfig(char *cfgname)
 {
 	FILE *f;
-	char s[MAX_STRING*2],*p,*t,*k;
+	char s[LARGE_STRING],*p,*t,*k;
 	int line=0,rc=1;
 	slist_t *cc;
 	if(!(f=fopen(cfgname,"rt"))) {
 		write_log("can't open config file '%s': %s",cfgname,strerror(errno));
 		return 0;
 	}
-	while(fgets(s,MAX_STRING*2,f)) {
+	while(fgets(s,LARGE_STRING,f)) {
 		line++;
 contl:		p=s;
 		strtr(p,'\t',' ');
@@ -236,22 +238,43 @@ contl:		p=s;
 			if(*t=='\\'&&t>p&&*(t-1)==' ') {
 				do {
 					line++;
-					if(!fgets(t,MAX_STRING*2-(t-p),f))*t=0;
+					if(!fgets(t,LARGE_STRING-(t-p),f))*t=0;
 				} while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
 				for(k=t;*k==' ';k++);
 				if(k>t)xstrcpy(t,k,strlen(k));
 				goto contl;
 			}
 			if(*p!='{') {
+				if(*p=='$'&&isgraph(p[1]))
+				    if((k=strchr(p,'=')))*k=' ';
 				t=strchr(p,' ');
 				if(!t)t=strchr(p,'\n');
 				if(!t)t=strchr(p,'\r');
 				if(!t)t=strchr(p,0);
 				*t++=0;
 			} else t=p+1;
-			while(*t==' ')t++;
+contd:			while(*t==' ')t++;
+			if((k=strchr(t,'$'))&&k[1]=='(') {
+				char *e=k+1;
+				aslist_t *as;
+				for(;isgraph(*e)&&*e!=')';e++);
+				if(*e==')') {
+					*e++=0;
+					if((as=aslist_find(defs,k+2))) {
+						e=xstrdup(e);
+						xstrcpy(k,as->arg,LARGE_STRING);
+						if(*e)xstrcat(k,e,LARGE_STRING);
+						xfree(e);
+					} else {
+						write_log("%s:%d: use of uninitialized constant '$%s'",cfgname,line,k+2);
+						rc=0;*k=0;
+					}
+					goto contd;
+				}
+			}
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
-			if(!strcasecmp(p,"include")) {
+			if(*p=='$'&&isgraph(p[1]))aslist_add(&defs,p+1,t);
+			else if(!strcasecmp(p,"include")) {
 				if(!strncmp(cfgname,t,MAX_STRING)) {
 					write_log("%s:%d: <include> including itself -> infinity loop",cfgname,line);
 					rc=0;
@@ -289,7 +312,7 @@ contl:		p=s;
 					rc=0;
 				} else {
 					k=slist_dell(&curcond);
-					snprintf(s,MAX_STRING*2,"not(%s)",k);
+					snprintf(s,LARGE_STRING,"not(%s)",k);
 					cc=slist_add(&condlist,s);
 					slist_addl(&curcond,cc->str);
 				}

@@ -1,11 +1,11 @@
-/* $Id: TodayFixes,v 1.92 2004/06/22 14:26:21 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.93 2004/06/23 17:59:35 sisoft Exp $ */
+---
+now show remote time in node info again (was buggy local).
+add support for defines in config (see conf.sample).
+.
+previous:
 ---
 fix parse short time expressions, such as 'time 1-2'.
 perl: add function qexpr(string) - test qico expression.
 perl: speedup execute and support for END perl blocks.
-.
-previous:
----
-check for some keywords not placed inside if-expressions.
-fix chat with modem.
 .

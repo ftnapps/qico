@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.8 2004/06/22 14:26:21 sisoft Exp $
+# $Id: test.pl,v 1.9 2004/06/23 17:59:35 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
@@ -11,7 +11,7 @@
 
 # called for initialization.
 # $conf: config file name.
-# %conf: hash of config values.
+# %conf: static hash of config values.
 # $daemon: 1 if script loaded into daemon, 0 else.
 # $init: 1 on init, and 0 after reload configs or daemon forking.
 # return: none.
@@ -73,7 +73,7 @@ sub on_call {
 sub on_session {
     wlog("on_session() time=$start, dir=$flags{out}, sec=$flags{secure}, lst=$flags{listed}, tcp=$flags{tcp}.");
     wlog(" $info{sysop}, sysop of <$info{station}>, using $info{mailer}");
-    wlog(" live in '$info{place}' and work in '$info{wtime}' (now time=$info{time})");
+    wlog(" live in '$info{place}' and work at '$info{wtime}' (now he time=$info{time})");
     wlog(" he akas: @akas, our akas: @addrs");
     wlog(" remote has flags '$info{flags}' and system flags '$flags'");
     wlog(" need to sent $queue{mail} bytes of mail and $queue{files} bytes of files ($queue{num} files)");

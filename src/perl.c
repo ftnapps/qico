@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.9 2004/06/22 14:26:21 sisoft Exp $
+ * $Id: perl.c,v 1.10 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -473,7 +473,7 @@ void perl_end_session(long sest,int result)
 
 int perl_on_recv()
 {
-    if(PerlHave(PERL_ON_RECV)) {
+	if(PerlHave(PERL_ON_RECV)) {
 		SV *sv,*svret;
 		HV *hv;
 		int rc=FOP_OK;
@@ -501,13 +501,13 @@ int perl_on_recv()
 		}
 		DEBUG(('P',5,"perl_on_recv() returns %d",rc));
 		return rc;
-    }
-    return FOP_OK;
+	}
+	return FOP_OK;
 }
 
 char *perl_end_recv(int state)
 {
-    if(PerlHave(PERL_END_RECV)) {
+	if(PerlHave(PERL_END_RECV)) {
 		SV *sv,*svret;
 		char *rc=NULL;
 		STRLEN len;
@@ -534,13 +534,13 @@ char *perl_end_recv(int state)
 		}
 		DEBUG(('P',5,"perl_end_recv() returns '%s'",rc));
 		return rc;
-    }
-    return NULL;
+	}
+	return NULL;
 }
 
 char *perl_on_send(char *tosend)
 {
-    if(PerlHave(PERL_ON_SEND)) {
+	if(PerlHave(PERL_ON_SEND)) {
 		SV *sv,*svret;
 		HV *hv;
 		char *rc=NULL;
@@ -573,13 +573,13 @@ char *perl_on_send(char *tosend)
 		}
 		DEBUG(('P',5,"perl_on_send() returns '%s'",rc));
 		return rc;
-    }
-    return NULL;
+	}
+	return NULL;
 }
 
 void perl_end_send(int state)
 {
-    if(PerlHave(PERL_END_SEND)) {
+	if(PerlHave(PERL_END_SEND)) {
 		SV *sv;
 		dSP;
 		DEBUG(('P',4,"perl_end_send(%d)",state));
@@ -594,7 +594,7 @@ void perl_end_send(int state)
 		FREETMPS;
 		LEAVE;
 		if(SvTRUE(ERRSV))sub_err(PERL_END_SEND);
-    }
+	}
 }
 
 #endif
