@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.7 2000/10/01 17:34:48 lev Exp $
+ * $Id: main.c,v 1.8 2000/10/07 14:43:13 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -206,6 +206,16 @@ void daemon_mode()
 						current->onhold=0;
 						f&=~Q_ANYWAIT;
 					}
+				if(f&Q_UNDIAL && cfgi(CFG_CLEARUNDIAL)!=0) {
+					bso_getstatus(&current->addr, &sts);
+					if (t_exp(sts.utime)) {
+						sts.flags&=~Q_UNDIAL;
+						sts.try=0;
+						sts.utime=0;
+						bso_setstatus(&current->addr, &sts);
+                                           f&=~Q_UNDIAL;
+					}
+				}
 				if(falist_find(cfgal(CFG_ADDRESS), &current->addr) ||
 				   f&Q_UNDIAL ||
 				   !(f&Q_NORM) ||
