@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.6 2000/11/26 12:36:08 lev Exp $
+# $Id: Makefile.in,v 1.7 2000/12/26 12:15:26 lev Exp $
 #
 
 prefix  = @prefix@
@@ -15,9 +15,12 @@ YACC    = @YACC@
 
 QCC     = @QCC@
 
+NEWZMODEM = @NEWZMODEM@
+
 #DEFS   += -DEMSI_LOG # log emsi in /tmp/emsi.log
 #DEFS   += -DH_DEBUG # Hydra
 #DEFS   += -DZ_DEBUG # ZModem
+#DEFS   += -DZ_DEBUG2 # VERY noisy debug for ZModem, only for new ZModem
 #DEFS   += -DJ_DEBUG # Janus
 #DEFS   += -DE_DEBUG # EMSI
 #DEFS   += -DS_DEBUG # Session flow
@@ -35,17 +38,24 @@ LIBS    += @LIBS@
 QCLIBS  = @QCCLIBS@
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
-          tty.o globals.o emsi.o crc.o zm.o zmr.o \
-          zrecv.o zsend.o session.o call.o qnlc.o qipc.o tcp.o \
+          tty.o globals.o emsi.o crc.o session.o call.o qnlc.o qipc.o tcp.o \
           hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o
+
 
 QCCOBJS	= qcc.o ver.o
 QCTLOBJS= qctl.o ver.o gmtoff.c
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
-          tty.c globals.c emsi.c crc.c zm.c zmr.c \
-          zrecv.c zsend.c session.c call.c qnlc.c qipc.c tcp.c \
+          tty.c globals.c emsi.c crc.c session.c call.c qnlc.c qipc.c tcp.c \
           hydra.c execsh.c protfm.c janus.c freq.c gmtoff.c
+
+ifeq (1,$(NEWZMODEM))
+OBJS    += ls_zmodem.o ls_zglue.o ls_zreceive.o ls_zsend.o
+SRCS    += ls_zmodem.c ls_zglue.c ls_zreceive.c ls_zsend.c
+else
+OBJS    += zm.o zmr.o zrecv.o zsend.o
+SRCS    += zm.c zmr.c zrecv.c zsend.c
+endif
 
 AUTOH = qconf.h 
 AUTOC = qconf.c flagexp.c flaglex.c
