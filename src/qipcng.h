@@ -2,7 +2,7 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.2 2001/05/21 20:03:09 lev Exp $
+ * $Id: qipcng.h,v 1.3 2001/06/08 15:43:20 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
@@ -13,7 +13,7 @@
 
 /* State of file transfer */
 typedef struct _TRANSFERSTATE {
-	char phase;				/* phase of process */
+	CHAR phase;				/* phase of process */
 #define TXRX_PHASE_BEGIN	'b'
 #define TXRX_PHASE_HSHAKE	'h'
 #define TXRX_PHASE_FINFO	'i'
@@ -31,29 +31,29 @@ typedef struct _TRANSFERSTATE {
 	UINT32 totalfiles;		/* number of files to transfer */
 	UINT32 filestarted;		/* UNIX time of file transfer start time */
 	UINT32 transferstarted;	/* UNIX time of transfer starts */
-	char *file;				/* Name of current file */
+	CHAR *file;				/* Name of current file */
 } txrxstate_t;
 
 /* Information about one line */
 typedef struct _LINESTATE {
-	char phase;				/* Phase of session */
+	CHAR phase;				/* Phase of session */
 #define SESS_PHASE_NOPROC		'n'
 #define SESS_PHASE_BEGIN		'b'
 #define SESS_PHASE_CONNECT		'c'
 #define SESS_PHASE_HSHAKEOUT	'o'
 #define SESS_PHASE_HSHAKEIN		'i'
 #define SESS_PHASE_INPROCESS	'p'
-	char mode;
+	CHAR mode;
 	UINT32 flags;			/* Different flags, see opts.h */
 	UINT32 type;			/* Type of session */
 	UINT32 proto;			/* Used protocol */
 	txrxstate_t send;
 	txrxstate_t recv;
 	ninfo_t remote;
-	char *tty;
-	char *connect;
-	char *cid;
-	char *log_buffer[LOG_BUFFER_SIZE];
+	CHAR *tty;
+	CHAR *connect;
+	CHAR *cid;
+	CHAR *log_buffer[LOG_BUFFER_SIZE];
 	/* Internal variables */
 	int log_head,log_tail;
 	pid_t pid;
@@ -71,6 +71,7 @@ typedef struct _EVTLAM {
 	CHAR password[8];			/* Password, zero-padded */
 	/* Retranslated data begins here */
 	UINT32 pid;					/* Line PID */
+	CHAR fixed;					/* 0 if it is IP line (dynamic), 1 if fixed (tty) one */
 	UINT8 type;					/* See EVTL2M_XXXX / EVTM2L_XXXX */
 	CHAR *data;					/* Data for event */
 } evtlam_t;
@@ -78,7 +79,6 @@ typedef struct _EVTLAM {
 /* Manager-to-UI and UI-to-manager event structure */
 typedef struct _EVTLAU {
 	UINT32 fulllength;			/* Full length, include type and fulllength fields */
-	/* Retranslated data begins here */
 	UINT8 type;					/* See EVTU2M_XXXX / EVTM2U_XXXX */
 	CHAR *data;					/* Data for event */
 } evtlau_t;
