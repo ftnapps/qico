@@ -60,3 +60,4 @@ dirperm,C_OCT,int,0,"755"
 progname,C_STR,char *,0,NULL
 version,C_STR,char *,0,NULL
 osname,C_STR,char *,0,NULL
+mincpsin,C_INT,int,0,"0"

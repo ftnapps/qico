@@ -2,9 +2,8 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.3 2000/08/06 21:05:34 lev Exp $
+ * $Id: zrecv.c,v 1.4 2000/10/07 13:56:39 lev Exp $
  **********************************************************/
-
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -223,8 +222,6 @@ int n;
 int rzfile(char *path)
 {
 	int c, n;
-	struct timeval tv, tv2;
-	int tim;
 #ifdef Z_DEBUG	
 	log("rzfile");
 #endif
@@ -297,13 +294,7 @@ nxthdr:
 				PUTSTR(Attn);  continue;
 			}
 		  moredata:
-			gettimeofday(&tv, NULL);
 			c = zrdata(rxbuf, ZMAXBLOCK);
-			gettimeofday(&tv2, NULL);
-			tim=(tv2.tv_usec-tv.tv_usec)/1000 + (tv2.tv_sec-tv.tv_sec) * 1000;
-			if(tim<=0) tim=1;
-			recvf.cps=Rxcount*1000/tim;
-			if(recvf.cps<=0) recvf.cps=1;
 			switch (c)
 			{
 			case ZCAN:
@@ -324,6 +315,7 @@ nxthdr:
 			if (putsec(rxbuf, Rxcount)==ERROR) return (ERROR);
 			rxpos += Rxcount;
 			recvf.foff=rxpos;
+			check_cps();
 			qpfrecv();
 			switch (c) {
 			case GOTCRCW:

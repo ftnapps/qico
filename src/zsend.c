@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.3 2000/08/06 20:41:36 lev Exp $
+ * $Id: zsend.c,v 1.4 2000/10/07 13:56:40 lev Exp $
  **********************************************************/
 
 #include <sys/stat.h>
@@ -204,9 +204,6 @@ int zsendfdata()
 	int newcnt;
 	long tcount = 0;
 	int junkcount;		/* Counts garbage chars received by TX */
-	struct timeval tv, tv2;
-	int tim;
-
 #ifdef Z_DEBUG	
 	log("zsendfdata");
 #endif
@@ -256,15 +253,9 @@ int zsendfdata()
 		} else
 			e = ZCRCG;
 
-		gettimeofday(&tv, NULL);
 		zsdata(txbuf, n, e);
-		gettimeofday(&tv2, NULL);
-		tim=(tv2.tv_usec-tv.tv_usec)/1000 + (tv2.tv_sec-tv.tv_sec) * 1000;
-		if(tim<=0) tim=1;
-		sendf.cps=n*1000/tim;
-		if(sendf.cps<=0) sendf.cps=10;
-		sendf.foff=txpos;
 		qpfsend();
+		check_cps();
 
 		bytcnt = txpos += n;
 		if (e == ZCRCW)

@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: mailer.h,v 1.2 2000/10/07 13:56:39 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -111,6 +111,7 @@ extern int rxclose(FILE **f, int what);
 extern FILE *txopen(char *tosend, char *sendas);
 extern int txclose(FILE **f, int what);
 extern void log_rinfo(ninfo_t *e);
+extern void check_cps();
 
 #undef word
 #undef byte

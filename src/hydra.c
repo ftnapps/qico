@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.2 2000/07/18 12:56:16 lev Exp $
+ * $Id: hydra.c,v 1.3 2000/10/07 13:56:39 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -641,6 +641,7 @@ static int rxpkt (void)
 /*---------------------------------------------------------------------------*/
 static void hydra_status (boolean xmit)
 {
+	check_cps();
 	if(xmit) {
 		sendf.foff=txpos;
 		qpfsend();
@@ -715,8 +716,6 @@ int hydra_file(char *txpathname, char *txalias)
 	int   pkttype;
 	char *p, *q;
 	int   i, count;
-	struct timeval tv, tv2, tv3;
-	unsigned long int tim;
 	time_t rxftime;
 	size_t rxfsize;
 	unsigned long hydra_txwindow=0,hydra_rxwindow=0;
@@ -851,14 +850,7 @@ int hydra_file(char *txpathname, char *txalias)
 			if (i > 0) {
 				txpos += i;
 			
-				gettimeofday(&tv, NULL);
 				txpkt(((int) sizeof (long)) + i, HPKT_DATA);
-				gettimeofday(&tv2, NULL);
-				tim=(tv2.tv_usec-tv.tv_usec)/1000+(tv2.tv_sec-tv.tv_sec)*1000;
-				if(tim<=0) tim=1000;
-				sendf.cps=(i+4)*1000/tim;
-				if(sendf.cps<=0) sendf.cps=1;
-/* 				tv.tv_sec=tv2.tv_sec;tv.tv_usec=tv2.tv_usec; */
 
 				if (txblklen < txmaxblklen &&
 					(txgoodbytes += i) >= txgoodneeded) {
@@ -1240,13 +1232,7 @@ int hydra_file(char *txpathname, char *txalias)
 						rxretries = 0;
 						rxtimer = h_timer_reset();
 						rxlastsync = rxpos;
-						gettimeofday(&tv2, NULL);
-						tim=(tv2.tv_usec-tv3.tv_usec)/1000+(tv2.tv_sec-tv3.tv_sec)*1000;
-						if(tim<=0) tim=1000;
-						recvf.cps=rxpktlen*1000/tim;
-						if(recvf.cps<=0) recvf.cps=1;
-						rxpos += rxpktlen;
-						tv3.tv_sec=tv2.tv_sec;tv3.tv_usec=tv2.tv_usec;
+ 						rxpos += rxpktlen; 
 						if (rxwindow) {
 							h_long1(txbufin) = intell(rxpos);
 							txpkt((int) sizeof(long),HPKT_DATAACK);
