@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.70 2003/03/12 17:59:38 cyrilm Exp $
+ * $Id: main.c,v 1.71 2003/05/17 19:01:21 raorn Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -71,7 +71,9 @@ void sigerr(int sig)
 #if IP_D	
 	if(is_ip) qlerase();
 #endif
-	if(getpid()==islocked(cfgs(CFG_PIDFILE))) lunlink(ccs);
+	if(cfgs(CFG_PIDFILE)) {
+		if(getpid()==islocked(ccs)) lunlink(ccs);
+	}
 	log_done();
 	tty_close();
 	qqreset();sline("");title("");
