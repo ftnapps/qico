@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.25 2001/04/14 12:44:54 lev Exp $
+ * $Id: ftn.h,v 1.26 2001/05/22 18:55:40 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -282,7 +282,12 @@ extern void write_log(char *fmt, ...);
 extern int facilities_levels[256];
 extern void parse_log_levels();
 extern void write_debug_log(unsigned char facility, int level, char *fmt, ...);
-#	define DEBUG(all)	write_debug_log all
+#	ifdef __GNUC__
+#		define DEBUG(all)	 __DEBUG all
+#		define __DEBUG(F,L,A...)	do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
+#	else
+#		define DEBUG(all)	 write_debug_log all
+#	endif
 #else
 #	define DEBUG(all)
 #endif
