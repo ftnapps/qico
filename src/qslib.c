@@ -1,6 +1,6 @@
 /**********************************************************
  * functions for all qico related programs
- * $Id: qslib.c,v 1.1 2004/06/01 01:14:12 sisoft Exp $
+ * $Id: qslib.c,v 1.2 2004/06/03 02:01:49 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/utsname.h>
@@ -12,26 +12,26 @@ char version[]=PACKAGE_VERSION;
 
 void *xmalloc(size_t size)
 {
-	void *p = malloc(size);
-	if(p) return p;
+	void *p=malloc(size);
+	if(p)return p;
 	write_log("!!! xmalloc(): could not allocate %d bytes of memory",size);
 	abort();
 	return NULL;
 }
 
-void *xcalloc(size_t number, size_t size)
+void *xcalloc(size_t number,size_t size)
 {
-	void *p = calloc(number,size);
-	if(p) return p;
+	void *p=calloc(number,size);
+	if(p)return p;
 	write_log("!!! xcalloc(): could not allocate %dx%d bytes of memory",number,size);
 	abort();
 	return NULL;
 }
 
-void *xrealloc(void *ptr, size_t size)
+void *xrealloc(void *ptr,size_t size)
 {
-	void *p = realloc(ptr,size);
-	if(p) return p;
+	void *p=realloc(ptr,size);
+	if(p)return p;
 	write_log("!!! xrealloc(): could not allocate %d bytes of memory",size);
 	abort();
 	return NULL;
@@ -53,11 +53,11 @@ char *restrcpy(char **dst, char *src)
 	return *dst=xstrdup(SS(src));
 }
 
-char *restrcat(char **dst, char *src)
+char *restrcat(char **dst,char *src)
 {
-	if(!src) return *dst;
-	if(!*dst) return *dst=xstrdup(src);
-	*dst = xrealloc(*dst, strlen(*dst) + strlen(src) + 1);
+	if(!src)return *dst;
+	if(!*dst)return *dst=xstrdup(src);
+	*dst=xrealloc(*dst,strlen(*dst)+strlen(src)+1);
 	return strcat(*dst,src);
 }
 
@@ -86,38 +86,38 @@ void chop(char *s,int n)
 }
 
 #ifndef HAVE_STRLCPY
-char *xstrcpy(char *dst, char *src, size_t size)
+char *xstrcpy(char *dst,char *src,size_t size)
 {
 	char *d;
 	int n;
-	if(!src) return dst;
-	if(!dst) return NULL;
+	if(!src)return dst;
+	if(!dst)return NULL;
 	if(size) {
-		d = dst;
-		n = size - 1;
-		while(n-- && *src) *d++ = *src++;
-		n += 2;
-		while(n--) *d++ = 0;
+		d=dst;
+		n=size-1;
+		while(n--&&*src)*d++=*src++;
+		n+=2;
+		while(n--)*d++=0;
 	}
 	return dst;
 }
 #endif
 
 #ifndef HAVE_STRLCAT
-char *xstrcat(char *dst, char *src, size_t size)
+char *xstrcat(char *dst,char *src,size_t size)
 {
 	char *d;
 	int n;
-	if(!src) return dst;
-	if(!dst) return NULL;
+	if(!src)return dst;
+	if(!dst)return NULL;
 	if(size) {
-		d = dst;
-		n = size - 1;
-		while(n-- && *d) d++;
+		d=dst;
+		n=size-1;
+		while(n--&&*d)d++;
 		n++;
-		if(n) while(n-- && *src) *d++ = *src++;
+		if(n)while(n--&&*src)*d++=*src++;
 		n++;
-		while(n--) *d++ = 0;
+		while(n--)*d++=0;
 	}
 	return dst;
 }
@@ -132,8 +132,8 @@ time_t gmtoff(time_t tt,int mode)
 	lt=*localtime(&tt);
 	gt=*gmtime(&tt);
 	offset=gt.tm_yday-lt.tm_yday;
-	if (offset > 1) offset=-24;
-	else if (offset < -1) offset=24;
+	if(offset>1)offset=-24;
+	else if(offset<-1)offset=24;
 	else offset*=24;
 	offset+=gt.tm_hour-lt.tm_hour;
 	if(lt.tm_isdst>0&&mode)offset++;

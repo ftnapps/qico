@@ -1,3 +1,11 @@
+2004-06-02 17:20  sisoft
+
+	* Changes, cvs_com, qico.conf.sample, debian/qcc.8, debian/qctl.8,
+	  src/config.c, src/daemon.c, src/modem.c:
+
+	fix multiline defines in config.
+	add support for change if--endif to {--} blocks (see conf.sample).
+
 2004-06-01 05:14  sisoft
 
 	* src/: qslib.c, qslib.h:
