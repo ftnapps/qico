@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: zm.c,v 1.2 2000/07/29 14:48:51 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -413,6 +413,7 @@ int zgethdr(char *hdr)
 		goto again;
 	case RCDO:
 	case TIMEOUT:
+	case ERROR:
 		goto fifi;
 	case CAN:
 	  gotcan:
@@ -432,6 +433,7 @@ int zgethdr(char *hdr)
 			  goto agn2;
 		  }
 	  case RCDO:
+	  case ERROR:
 		  goto fifi;
 	  default:
 		  break;
@@ -458,6 +460,7 @@ int zgethdr(char *hdr)
 		goto splat;
 	case RCDO:
 	case TIMEOUT:
+	case ERROR:
 		goto fifi;
 	default:
 		goto agn2;
@@ -491,6 +494,7 @@ int zgethdr(char *hdr)
 		Crc32r = 2;  c = zrbhd32(hdr); break;
 	case RCDO:
 	case TIMEOUT:
+	case ERROR:
 		goto fifi;
 	case ZVBIN:
 		if ((Rxhlen = c = zdlread()) < 0)
