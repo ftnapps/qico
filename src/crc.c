@@ -2,7 +2,7 @@
  * File: crc.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: crc.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: crc.c,v 1.2 2001/03/25 10:26:58 lev Exp $
  **********************************************************/
 unsigned long crc32tab[] =	/* CRC polynomial 0xedb88320 */
 {
@@ -118,7 +118,7 @@ unsigned long crc32s(char *str)
   unsigned long crc;
 
   for (crc = 0L; *str; str++) 
-    crc = crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff);
+    crc = (crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff)) & 0xffffffffl;
 
   return crc;
 }
@@ -128,7 +128,7 @@ unsigned long crc32(char *str, int l)
   unsigned long crc;
 
   for (crc = 0L; l--; str++) 
-    crc = crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff);
+    crc = (crc32tab[((int) crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffff)) & 0xffffffffl;
 
   return crc;
 }
@@ -178,7 +178,7 @@ unsigned long crc32cc(char *str, int l)
   unsigned long crc;
 
   for (crc = 0xffffffffL; l--; str++)
-    crc = crc32tab[( crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL);
+    crc = (crc32tab[( crc ^ (*str)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL)) & 0xffffffffl;
 
   return crc;
 }
