@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.23 2001/03/25 15:38:21 lev Exp $
+ * $Id: ftn.h,v 1.24 2001/03/25 20:30:12 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -310,5 +310,8 @@ extern int isdos83name(char *fn);
 
 /* gmtoff.c */
 extern time_t gmtoff(time_t tt);
+
+/* main.c */
+extern void to_dev_null();
 
 #endif

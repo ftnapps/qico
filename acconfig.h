@@ -38,3 +38,6 @@
 
 #undef NEED_DEBUG
 
+#undef HAVE_TIOCSCTTY
+
+#undef HAVE_STDXXX_FILENO
