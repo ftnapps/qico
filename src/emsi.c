@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.4 2001/02/08 19:44:44 lev Exp $
+ * $Id: emsi.c,v 1.5.2.5 2001/02/21 22:26:35 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -321,7 +321,7 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 			if(!got && ch=='*') got=1;
 			if(got && (ch=='\r' || ch=='\n' || (emsidatgot==emsidatlen))) {
 #ifdef E_DEBUG
-				write_log("Got %d bytes of %d of EMSI_DAT",emsidatgot,emsidatlen);
+				log("Got %d bytes of %d of EMSI_DAT",emsidatgot,emsidatlen);
 #endif
 				*p=0;p=str;got=0;
 				emsidatgot=-1; emsidatlen=0;
@@ -360,7 +360,7 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 				sscanf(emsidathdr+10,"%04X",&emsidatlen);
 				emsidatgot = 0;
 #ifdef E_DEBUG
-				write_log("Got start of EMSI_DAT, length is %d (%d with CRC)",emsidatlen,emsidatlen+4);
+				log("Got start of EMSI_DAT, length is %d (%d with CRC)",emsidatlen,emsidatlen+4);
 #endif
 				emsidatlen += 4; /* CRC on the ned of EMSI_DAT is 4 bytes long */
 			}
