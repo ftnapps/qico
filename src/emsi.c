@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.3 2000/07/18 12:58:57 lev Exp $
+ * $Id: emsi.c,v 1.4 2000/07/24 09:44:26 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -19,8 +19,8 @@
 #define sline log
 #undef PUTSTR
 #undef PUTCHAR
-#define PUTSTR(x) {m_puts(x);log("putstr %d %x", strlen(x), strlen(x));}
-#define PUTCHAR(x) {m_putc(x);log("putchar %x '%c'", x, (x>=32)?x:'.');}
+#define PUTSTR(x) {tty_puts(x);log("putstr %d %x", strlen(x), strlen(x));}
+#define PUTCHAR(x) {tty_putc(x);log("putchar %x '%c'", x, (x>=32)?x:'.');}
 #endif
 
 #define EMSI_BUF 65536
