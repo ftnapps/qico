@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.16 2001/06/09 21:15:47 aaz Exp $
+ * $Id: qcc.c,v 1.17 2003/01/08 00:37:54 raorn Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -231,7 +231,7 @@ void bar(int o, int t, int l)
 	int i, k, x;
 	k=t/l;x=0;
 	for(i=0;i<l;i++) {
-		waddch(wmain, (x<o)?ACS_BLOCK:ACS_CKBOARD);
+		waddch(wmain, (k<o-x+1)?ACS_BLOCK:ACS_CKBOARD);
 		x+=k;
 	}
 }
@@ -392,6 +392,7 @@ void freshall()
 	else
 		freshqueue();
 	wnoutrefresh(wmain);
+	touchwin((currslot<0)?wlog:slots[currslot]->wlog);
 	wnoutrefresh((currslot<0)?wlog:slots[currslot]->wlog);
 	doupdate();
 }
