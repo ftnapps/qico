@@ -1,6 +1,7 @@
 qico (0.53si-1) stable; urgency=low
 
   * new upstream release.
+  * fix build
 
  -- Stepan A. Pologov <sisoft@bk.ru>  Mon,  8 Mar 2004 22:27:54 +0300
 

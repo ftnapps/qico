@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.23 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: daemon.c,v 1.24 2004/05/21 14:15:38 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -430,8 +430,8 @@ skiprq:				p+=l+1;
 					);
 				nlkill(&rnode);
 			} else {
-				sendrpkt(1,chld,"%s not found in nodelist!",ftnaddrtoa(&fa));
-				write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
+				sendrpkt(1,chld,"%s not found in nodelist",ftnaddrtoa(&fa));
+				write_log("%s not found in nodelist",ftnaddrtoa(&fa));
 			}
 			break;
 		    case 1:
@@ -447,8 +447,8 @@ skiprq:				p+=l+1;
 			write_log("index is older than the list, need recompile");
 			break;
 		    default:
-			sendrpkt(1,chld,"nodelist query error!");
-			write_log("nodelist query error!");
+			sendrpkt(1,chld,"nodelist query error");
+			write_log("nodelist query error");
 			break;
 		}
 		break;
@@ -826,7 +826,10 @@ nlkil:				is_ip=0;bink=0;
 			}
 			tv.tv_sec=0;tv.tv_usec=500000;
 			rc=select(rc+1,&rfds,NULL,NULL,&tv);
-			if(rc<0&&errno!=EINTR)DEBUG(('I',1,"select: error: %s",strerror(errno)));
+			if(rc<0&&errno!=EINTR) {
+				DEBUG(('I',1,"select: error: %s",strerror(errno)));
+				usleep(1);
+			}
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
 				  socklen_t salen=sizeof(sa);
@@ -879,7 +882,7 @@ nlkil:				is_ip=0;bink=0;
 				while(uis) {
 					if(FD_ISSET(uis->sock,&rfds)) {
 						rc=xrecv(uis->sock,buf,MSG_BUFFER-1,1);
-						if(!rc) {
+						if(!rc||(rc<0&&errno==ECONNRESET)) {
 							cls_cl_t *uitt=uis;
 							DEBUG(('I',1,"client %d: removed",uis->id));
 							cls_close(uis->sock);

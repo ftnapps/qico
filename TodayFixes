@@ -1,12 +1,11 @@
-/* $Id: TodayFixes,v 1.63 2004/05/19 09:52:12 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.64 2004/05/21 14:15:37 sisoft Exp $ */
+---
+fix several bugs in qctl.
+try to fix daemon hung under *BSD.
+.
+previous:
 ---
 next try to fix configure error (without --with-config).
 now C++ style comments are allowed in config (//).
 fix crash if z[tr]xwin keywords used.
-.
-previous:
----
-remove -cvs suffix from version.
-fix charset recoding.
-now qcc and qctl may connect on any host (option '-a').
 .
