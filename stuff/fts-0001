@@ -1,9 +1,0 @@
-#!/bin/sh
-# inbound FTS-0001 emulator ;)
-if [ "$1" = "tsync" ]; then
-	SEQ=`date +%s`
-	rx -qa `printf "/var/spool/ftn/inb/%08lx.pkt" ${SEQ}`
-	echo -ne '\025\025\025\030\030\030\030' 
-else
-	/usr/local/bin/qico -a $1
-fi

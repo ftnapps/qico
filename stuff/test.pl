@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.9 2004/06/23 17:59:35 sisoft Exp $
+# $Id: test.pl,v 1.10 2004/06/25 09:46:42 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
@@ -18,9 +18,11 @@
 sub on_init {
     my $re=$init?"":"re";
     wlog("normally ${re}loaded, daemon=$daemon, ver=$version");
-    wlog("from $conf:");
-    wlog(0," main addr: $conf{address}[0], sysop: $conf{sysop}");
-    wlog(1,"first password line: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
+    if($daemon) {
+        wlog("from $conf:");
+        wlog(0," main addr: $conf{address}[0], sysop: $conf{sysop}");
+        wlog(1,"first password line: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
+    }
 }
 
 # called before exit, for deinitialization.

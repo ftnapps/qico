@@ -1,3 +1,10 @@
+2004-06-24 13:53  sisoft
+
+	* src/: flaglex.l, session.c, slists.c, slists.h:
+
+	add lost files slists.[ch].
+	remove unused /tmp/qpkt*.pkt's.
+
 2004-06-23 21:59  sisoft
 
 	* Changes, qico.conf.sample, debian/control, src/Makefile.am,
