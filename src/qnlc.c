@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qnlc.c,v 1.2 2000/07/21 20:49:29 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +52,7 @@ int compile_nodelists()
 		return 0;		
 	}
 	fseek(idx, sizeof(idxh), SEEK_SET);
-	log("compiling nodelists...");
+	printf("compiling nodelists...\n");
 	for(n=cfgsl(CFG_NODELIST);n;n=n->next) {
 		strcpy(s, n->str);*fn=0;
 		if((p=strchr(s, ' '))) {
@@ -130,14 +130,14 @@ int compile_nodelists()
 				}
 			}
 			fclose(f);total+=k;
-			log("compiled %s: %d nodes", basename(fn), k);
+			printf("compiled %s: %d nodes\n", basename(fn), k);
 			i++;if(i>MAX_NODELIST) {
 				log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");
 				break;
 			}
 		}
 	}
-	log("total %d lists, %d nodes", i, total);
+	printf("total %d lists, %d nodes\n", i, total);
 	fseek(idx, 0, SEEK_SET);
 	if(fwrite(&idxh, sizeof(idxh), 1, idx)!=1) 
 		log("can't write to index!");
