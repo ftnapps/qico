@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.12 2001/03/20 19:53:14 lev Exp $
+ * $Id: ls_zglue.c,v 1.13 2001/03/23 20:46:25 lev Exp $
  **********************************************************/
 /*
 
@@ -94,7 +94,7 @@ int zmodem_receive(char *c, int canzap) {
 	ZFILEINFO f;
 	int rc;
 	int frame = ZRINIT;
-	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD|LSZ_OPTZEDZAP;
+	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD;
 
 	DEBUG(('Z',1,"zmodem_receive"));
 	switch(canzap & 0x00FF) {
@@ -102,6 +102,8 @@ int zmodem_receive(char *c, int canzap) {
 		opts |= LSZ_OPTDIRZAP;
 		/* Fall through */
 	case 1:
+		opts |= LSZ_OPTZEDZAP;
+		/* Fall through */
 	case 0:
 		break;
 	default:
@@ -126,7 +128,7 @@ int zmodem_receive(char *c, int canzap) {
 	}
 	write_log("zmodem link options: %d/%d, %s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
 				(ls_Protocol&LSZ_OPTCRC32)?"CRC32":"CRC16",
-				(ls_rxCould&LSZ_RXCANDUPLEX)?",DUPLEX":"",
+				",DUPLEX",
 				(ls_Protocol&LSZ_OPTVHDR)?",VHEADER":"",
 				(ls_Protocol&LSZ_OPTESCAPEALL)?",ESCALL":"");
 	while(1) {
@@ -188,7 +190,7 @@ int zmodem_receive(char *c, int canzap) {
 			ls_zdonereceiver();
 			return LSZ_ERROR;
 		}
-		rc=ls_zrecvfinfo(&f,frame,0);
+		rc=ls_zrecvfinfo(&f,frame,1);
 	}
 	return LSZ_OK;
 }

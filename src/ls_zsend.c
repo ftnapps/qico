@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.16 2001/03/20 19:53:14 lev Exp $
+ * $Id: ls_zsend.c,v 1.17 2001/03/23 20:46:26 lev Exp $
  **********************************************************/
 /*
 
@@ -106,12 +106,12 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	ls_MaxBlockSize = ls_Protocol&LSZ_OPTZEDZAP?8192:1024;
 
 	/* Calculate timeouts */
-	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 5 seconds */
+	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 10 seconds */
 	ls_HeaderTimeout = (LSZ_MAXHLEN * 30) / baud;
-	ls_HeaderTimeout = ls_HeaderTimeout>5?ls_HeaderTimeout:5;
-	/* Timeout for data packet (3*TransferTime or 30 seconds) */
+	ls_HeaderTimeout = ls_HeaderTimeout>10?ls_HeaderTimeout:10;
+	/* Timeout for data packet (3*TransferTime or 60 seconds) */
 	ls_DataTimeout = (ls_MaxBlockSize * 30) / baud;
-	ls_DataTimeout = ls_DataTimeout>30?ls_DataTimeout:30;
+	ls_DataTimeout = ls_DataTimeout>60?ls_DataTimeout:60;
 
 	ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
 	ls_SerialNum = 1;
