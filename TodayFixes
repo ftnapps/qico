@@ -1,9 +1,9 @@
-/* $Id: TodayFixes,v 1.68 2004/05/28 04:15:31 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.69 2004/05/29 11:54:16 sisoft Exp $ */
 ---
-add mistaked modem.c.
+add FreeBSD port (stuff/freebsd) from Andrey Slusar.
+add RedHat spec file.
 .
 previous:
 ---
-fix end 'qico -c' calls.
-move modem functions to modem.c, calls to call.c.
+add mistaked modem.c.
 .

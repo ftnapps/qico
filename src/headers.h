@@ -1,6 +1,6 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.8 2004/03/20 16:04:16 sisoft Exp $
+ * $Id: headers.h,v 1.9 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #include <config.h>
 
@@ -52,20 +52,6 @@
 #endif
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
-#endif
-
-#ifndef HAVE_STDXXX_FILENO
-#define STDIN_FILENO	0
-#define STDOUT_FILENO	1
-#define STDERR_FILENO	2
-#endif
-
-#ifndef HAVE_EIDRM
-#define EIDRM EINVAL
-#endif
-
-#ifndef WEXITSTATUS
-#define WEXITSTATUS(stat_val) ((unsigned)(stat_val)>>8)
 #endif
 
 #include "replace.h"

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.40 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: qcc.c,v 1.41 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -197,7 +197,7 @@ static int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0,MH=MAXMH;
 static char *m_header=NULL,*m_status=NULL;
 static WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 static int sock=-1,hstlast=0;
-static char *hst[HSTMAX+1],*myaddr;
+static char *hst[HSTMAX+1],*myaddr=NULL;
 static char qflgs[Q_MAXBIT]=Q_CHARS;
 static int qclrs[Q_MAXBIT]=Q_COLORS;
 
@@ -859,16 +859,16 @@ static char *getnode(char *name)
 	int i,flv;
 	char buf[MAX_STRING],*nm;
 	static char ou[64];
-	unsigned long zone,net,node,n,point=0L;
-	if(!myaddr)myaddr=xstrdup("0:0/0");
+	unsigned long zone,net,node,n,point=0;
+	if(!myaddr)myaddr="0:0/0";
 rei:	zone=strtoul(myaddr,&nm,10);
 	net=strtoul(nm+1,&nm,10);
 	node=strtoul(nm+1,&nm,10);
 	if(*nm=='.')point=strtoul(nm+1,NULL,10);
 	inputstr(buf,name,1);
-	*(long*)ou=0L;flv='n';
+	*(long*)ou=0;flv='n';
 	if(*buf>32) {
-		for(i=0,n=0L;i<strlen(buf)&&flv!='e';i++) {
+		for(i=0,n=0;i<strlen(buf)&&flv!='e';i++) {
 			if(buf[i]>='0'&&buf[i]<='9'){n=n*10+buf[i]-'0';if(n>32767){beep();goto rei;}}
 			  else if(buf[i]==':'){zone=n?n:zone;n=0;}
 			    else if(buf[i]=='/'){net=n?n:net;n=0;}
@@ -1188,11 +1188,11 @@ int main(int argc,char **argv)
 {
 	int len,ch,rc;
 	struct tm *tt;
-	struct timeval tv;
 	char buf[4096],*bf,c,*port=NULL,*addr=NULL,*pwd=NULL;
 	unsigned char digest[16]={0};
 	fd_set rfds;
 	time_t tim;
+	struct timeval tv;
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif

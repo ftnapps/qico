@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.10 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: call.c,v 1.11 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -17,25 +17,23 @@ int do_call(ftnaddr_t *fa,char *site,char *port)
 	if(port) {
 		rc=mdm_dial(site,port);
 		switch(rc) {
-			case MC_OK:
-				rc=-1;
-				break;
-			case MC_RING:
-			case MC_BUSY:
-				rc=S_BUSY;
-				break;
-			case MC_ERROR:
-				rc=S_REDIAL|S_ADDTRY;
-				break;
-			case MC_NODIAL:
-				rc=S_NODIAL;
-				break;
-			case MC_FAIL:
-				rc=S_REDIAL|S_ADDTRY;
-				break;
-			case MC_BAD:
-				rc=S_OK;
-				break;
+		    case MC_OK:
+			rc=-1;
+			break;
+		    case MC_RING:
+		    case MC_BUSY:
+			rc=S_BUSY;
+			break;
+		    case MC_ERROR:
+		    case MC_FAIL:
+			rc=S_REDIAL|S_ADDTRY;
+			break;
+		    case MC_NODIAL:
+			rc=S_NODIAL;
+			break;
+		    case MC_BAD:
+			rc=S_OK;
+			break;
 		}
 	} else {
 		fd=tcp_dial(fa,site);

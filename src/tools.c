@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.12 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: tools.c,v 1.13 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -384,3 +384,44 @@ void setproctitle(char *str)
 	while(p<cmdstrend)*p++=' ';
 }
 #endif
+
+int execsh(char *cmd)
+{
+	int pid,status,rc;
+
+	if ((pid=fork()) == 0) {
+		to_dev_null();
+		rc=execl(SHELL,"sh","-c",cmd,NULL);
+		exit(-1);
+	}
+	if(pid<0) {
+		write_log("can't fork(): %s",strerror(errno));
+		return -1;
+	}
+	do {
+		rc=waitpid(pid, &status, 0);
+	} while ((rc == -1) && (errno == EINTR));
+	if(rc<0) {
+		write_log("error in waitpid(): %s",strerror(errno));
+		return -1;
+	}
+	return WEXITSTATUS(status);
+}
+
+int execnowait(char *cmd,char *p1,char *p2,char *p3)
+{
+	int pid,rc;
+
+	if ((pid=fork()) == 0) {
+		to_dev_null();
+		setsid();
+		rc=execl(cmd,cmd,p1,p2,p3,NULL);
+		if(rc<0) write_log("can't exec %s: %s", cmd, strerror(errno));
+		exit(-1);
+	}
+	if(pid<0) {
+		write_log("can't fork(): %s",strerror(errno));
+		return -1;
+	}
+	return 0;
+}

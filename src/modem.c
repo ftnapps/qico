@@ -1,6 +1,6 @@
 /**********************************************************
  * work with modem
- * $Id: modem.c,v 1.1 2004/05/28 04:15:34 sisoft Exp $
+ * $Id: modem.c,v 1.2 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -225,7 +225,7 @@ static int reset()
 
 int mdm_dial(char *phone,char *port)
 {
-	int rc,ringm=0;
+	int rc;
 	char s[MAX_STRING],conn[MAX_STRING];
 	if((rc=tty_openport(port))) {
 		write_log("can't open port: %s",tty_errs[rc]);
@@ -244,15 +244,13 @@ int mdm_dial(char *phone,char *port)
 	xfree(connstr);connstr=xstrdup(conn);
 	if(rc!=MC_OK) {
 		write_log("got %s",conn);
-		if(rc==MC_RING)ringm=1;
 		if(rc==MC_FAIL)hangup();
-		if(!ringm)sline("Call failed");
-		    else sline("RING found..");
 		tty_close();
-		if(ringm) {
+		if(rc==MC_RING) {
+			sline("RING found..");
 			sleep(2);
 			execsh("killall -USR1 mgetty vgetty >/dev/null 2>&1");
-		}
+		} else sline("Call failed");
 		return rc;
 	}
 	write_log("*** %s",conn);

@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.13 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: mailer.h,v 1.14 2004/05/29 11:54:16 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -66,9 +66,6 @@ extern int zmodem_sendfile(char *tosend, char *sendas,
 			unsigned long *totalleft, unsigned long	*filesleft);
 extern int zmodem_sendinit(int canzap);
 extern int zmodem_senddone();
-/* execsh.c */
-extern int execsh(char *cmd);
-extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
 /* emsi.c */
 extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			unsigned long files, int lopt, char *protos,

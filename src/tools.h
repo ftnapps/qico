@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.9 2004/05/27 18:50:03 sisoft Exp $ */
+/* $Id: tools.h,v 1.10 2004/05/29 11:54:16 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -32,6 +32,9 @@ typedef struct {
 	char *def_val;
 } cfgstr_t;
 
+#ifndef WEXITSTATUS
+#define WEXITSTATUS(stat_val) ((unsigned)(stat_val)>>8)
+#endif
 #ifndef MAX
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #endif
@@ -69,6 +72,8 @@ extern int istic(char *fn);
 extern void setargspace(int argc,char **argv,char **envp);
 extern void setproctitle(char *str);
 #endif
+extern int execsh(char *cmd);
+extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
 /* config.c */
 extern int cfgi(int i);
 extern char *cfgs(int i);
