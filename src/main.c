@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.74 2003/05/29 07:44:47 cyrilm Exp $
+ * $Id: main.c,v 1.75 2003/07/12 14:55:59 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -353,6 +353,59 @@ void daemon_mode()
 
 					if(chld==0) {
 						setsid();
+						if(!bso_locknode(&current->addr)) exit(S_BUSY);
+						if(!aso_locknode(&current->addr)) exit(S_BUSY);
+						log_done();
+						if(cfgi(CFG_TRANSLATESUBST) == 1) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {   
+							fprintf(stderr, "can't init log %s!",ccs);   
+							exit(S_BUSY);   
+						} 
+						if(rnode->hidnum) {   
+							title("Calling %s #%d, %s",   
+									rnode->name, rnode->hidnum,   
+									ftnaddrtoa(&current->addr));   
+							write_log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,   
+									ftnaddrtoa(&current->addr),   
+									rnode->phone);   
+						} else {   
+							title("Calling %s, %s",   
+									rnode->name, ftnaddrtoa(&current->addr));   
+							write_log("calling %s, %s (%s)", rnode->name,   
+									ftnaddrtoa(&current->addr),   
+									rnode->phone);   
+						}   
+						rc=do_call(&current->addr, rnode->phone,   
+								port);   
+						log_done();   
+
+						if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {   
+							fprintf(stderr, "can't init log %s.%s!",   
+									ccs, port);   
+						} 
+						hld=0;   
+						if(rc&S_ANYHOLD) {   
+							bso_getstatus(&current->addr, &sts);   
+							if(rc&S_HOLDA) sts.flags|=Q_WAITA;   
+							if(rc&S_HOLDR) sts.flags|=Q_WAITR;   
+							if(rc&S_HOLDX) sts.flags|=Q_WAITX;   
+							hld=cfgi(CFG_WAITHRQ);   
+							write_log("BSO calls to %s delayed for %d min %s",   
+									ftnaddrtoa(&current->addr), hld, sts_str(sts.flags));   
+							sts.htime=t_set(hld*60);   
+							bso_setstatus(&current->addr, &sts);   
+							
+							aso_getstatus(&current->addr, &sts);   
+							if(rc&S_HOLDA) sts.flags|=Q_WAITA;   
+							if(rc&S_HOLDR) sts.flags|=Q_WAITR;   
+							if(rc&S_HOLDX) sts.flags|=Q_WAITX;   
+							hld=cfgi(CFG_WAITHRQ);   
+							write_log("ASO calls to %s delayed for %d min %s",   
+									ftnaddrtoa(&current->addr), hld, sts_str(sts.flags));   
+							sts.htime=t_set(hld*60);   
+							aso_setstatus(&current->addr, &sts);   
+						} 
+
 						if(rc!=S_BUSY) t_rescan=cfgi(CFG_RESCANPERIOD)-1;
 						switch(rc&S_MASK) {
 							case S_BUSY: break;
