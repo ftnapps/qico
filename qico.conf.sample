@@ -106,7 +106,7 @@ domain		fidonet.org
 ;password	111:222/13		SOMEPWD
 
 # You'r could include passwords file
-;include		/etc/ftn/qico.passwd
+;include		/etc/ftn/passwd
 
 
 ###############################################################################
@@ -160,7 +160,7 @@ log		/var/log/ftn/qico.log
 #  X -- Sent debug log to qcc					      (NEW!!!)
 #  B -- BinkP							      (NEW!!!)
 #
-;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0
+loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0
 
 # Write to log estimated transfer time before each file transfer
 estimatedtime no
@@ -169,26 +169,26 @@ estimatedtime no
 nlpath 		/var/spool/ftn/nl
 
 # node- and pointlists (zone can be specified, if omitted in list) (required)
-nodelist 	NET5030.999 2
-nodelist 	PNT5030.999
+;nodelist 	NET5030.999 2
+;nodelist 	PNT5030.999
 nodelist 	nodelist.999
 
 # Check for `listed' all addresses of peer or only one (any).
 needalllisted no
 
 # ASO and(or) BSO outbound path (required)
-;asooutbound 	/var/spool/ftn/outb
-bsooutbound 	/var/spool/ftn/outb
+asooutbound 	/var/spool/ftn/outb
+;bsooutbound 	/var/spool/ftn/outb
 
 # status outbound (path to .qst files). default, same as `outbound'    (NEW!!!)
-;qstoutbound	/var/spool/ftn/qstoutb
+qstoutbound	/var/spool/ftn/qstoutb
 
 # unprotected inbound (required)
-inbound         /var/spool/ftn/inb
+inbound         /var/spool/ftn/unp
 
 # protected inbound (you can add also listed, personal and other inbounds)
 if protected | outbound
-    inbound       /var/spool/ftn/inp
+    inbound       /var/spool/ftn/inb
 endif
 
 # if file <nodial>.<portname> exists, we won't dial on this device
@@ -525,6 +525,9 @@ realmincps	yes
 # Kill partially received *.pkt's.				       (NEW!!!)
 ;killbadpkt	yes
 
+# Remove empty fileboxes.					       (NEW!!!)
+rmboxes		no
+
 # show information about .pkt file after receive. (from & to names)    (NEW!!!)
 ;showpkt	no
 
@@ -627,14 +630,14 @@ mapin	lk
 ;translatesubst	yes
 
 # You could include subst file.
-;include /etc/ftn/substs
+;include	/etc/ftn/substs
 
 ###############################################################################
 ### external processes ########################################################
 ###############################################################################
 # calling format: <progname> <address> <I|O> <0|1>
 # executed after session (sample in ./stuff)
-aftersession	/usr/local/bin/tossing
+;aftersession	/usr/local/bin/tossing
 # executed after session with received files
 ;aftermail	/usr/local/bin/up
 #
@@ -678,5 +681,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.15 2003/10/13 23:04:07 sisoft Exp $
+# $Id: qico.conf.sample,v 1.16 2004/01/10 09:24:39 sisoft Exp $
 ###############################################################################

@@ -1,6 +1,6 @@
 /**********************************************************
  * SysV ipc transfer for work qcc
- * $Id: qipc.c,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: qipc.c,v 1.4 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -21,13 +21,11 @@ int qipc_init()
 	return 1;
 }
 
-
 void qipc_done()
 {
 	log_callback=NULL;
 /* 	msgctl(qipc_msg,IPC_RMID,0); */
 }
-
 
 void qsendpkt(char what,char *line,char *buff,int len)
 {
@@ -93,7 +91,12 @@ void vlog(char *str,...)
 	char lin[MAX_STRING];
 	
 	va_start(args, str);
+#ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
+	vsprintf(lin,str,args);
+#endif
 	va_end(args);
 	qsendpkt(QC_LOGIT,QLNAME,lin,strlen(lin)+1);
 }
@@ -104,7 +107,12 @@ void sline(char *str,...)
 	char lin[MAX_STRING];
 	
 	va_start(args,str);
+#ifdef HAVE_VSNPRINTF
+	vsnprintf(lin,MAX_STRING-1,str,args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(lin,str,args);
+#endif
 	va_end(args);
 	qsendpkt(QC_SLINE,QLNAME,lin,strlen(lin)+1);
 }
@@ -183,7 +191,12 @@ void title(char *str,...)
 	va_list args;
 	char lin[MAX_STRING];
 	va_start(args,str);
+#ifdef HAVE_VSNPRINTF
+	vsnprintf(lin,MAX_STRING-1,str,args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(lin,str,args);
+#endif
 	va_end(args);
 	qsendpkt(QC_TITLE,QLNAME,lin,strlen(lin)+1);
 	if(cfgi(CFG_USEPROCTITLE)) {

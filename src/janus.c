@@ -1,10 +1,8 @@
 /******************************************************************
- * File: janus.c
- * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.20 2003/02/25 21:23:03 cyrilm Exp $
+ * $Id: janus.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -15,15 +13,20 @@
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
-#include "qipc.h"
 #include "janus.h"
 #include "byteop.h"
 
-long   brain_dead;       /* Time at which to give up on other computer     */
-slist_t *reqs=NULL;
-unsigned int caps=0;
+static long   brain_dead;       /* Time at which to give up on other computer     */
+static slist_t *reqs=NULL;
+static unsigned int caps=0;
 
-void preparereqs(flist_t *l);
+static void preparereqs(flist_t *l);
+static void sendpkt(byte *buf, int len, int type);
+static void sendpkt32(byte *buf, int len, int type);
+static byte rcvpkt();
+static void endbatch();
+static void txbyte(int c);
+static void getfname(flist_t **l);
 
 /*****************************************************************************/
 /* Super-duper neato-whizbang full-duplex streaming ACKless batch file       */
@@ -202,7 +205,7 @@ int janus()
 						brain_dead=t_set(120);
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
-                        rxblklen -= 4;
+                    				rxblklen -= 4;
 						if(fwrite(rxbuf+4, rxblklen, 1, rxfd)<0) {
 							write_log("write error on %s", recvf.fname);
 							goto giveup;
@@ -242,9 +245,9 @@ int janus()
 				if(rxstate==RRCVFNAME) {
 					if(!rxbuf[0]) {
 						if(reqs && (caps&JCAP_FREQ)) {
-							snprintf((char *)txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
+							snprintf((char*)txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
 							write_log("sent janus freq: %s", txbuf);
-							sendpkt((byte *)txbuf,strlen((char *)txbuf)+2,FREQPKT);
+							sendpkt((byte*)txbuf,strlen((char*)txbuf)+2,FREQPKT);
 							reqs=reqs->next;
 							break;
 						} else {
@@ -335,7 +338,7 @@ int janus()
 					xmit_retry = 0L;
 					write_log("recd janus freq: %s", rxbuf);
 					/* TODO FREQS */
-					if(cfgs(CFG_EXTRP)) {
+					if(cfgs(CFG_EXTRP)||cfgs(CFG_SRIFRP)) {
 						slist_t req;
 						req.str=(char *)rxbuf;
 						req.next=NULL;
@@ -450,7 +453,7 @@ int janus()
 /* CRC is computed from contents and packet_type only; if PKTSTRT or PKTEND  */
 /* get munged we'll never even find the CRC.                                 */
 /*****************************************************************************/
-void sendpkt(byte *buf, int len, int type)
+static void sendpkt(byte *buf, int len, int type)
 {
 	word crc;
 
@@ -484,7 +487,7 @@ void sendpkt(byte *buf, int len, int type)
 	BUFFLUSH();
 }
 
-void sendpkt32(byte * buf, register int len, int type)
+static void sendpkt32(byte * buf, register int len, int type)
 {
 	unsigned long crc32;
 
@@ -520,7 +523,7 @@ void sendpkt32(byte * buf, register int len, int type)
 /* DLE, XON, and XOFF using DLE prefix byte and ^ 0x40. Also escape          */
 /* CR-after-'@' to avoid Telenet/PC-Pursuit problems.                        */
 /*****************************************************************************/
-void txbyte(int c)
+static void txbyte(int c)
 {
 
 	if((txlastc='@' && c==CR)||c==DLE||c==XON||c==XOFF) {
@@ -531,7 +534,7 @@ void txbyte(int c)
 	txlastc=c;
 }
 
-int rcvbyte(int to)
+static int rcvbyte(int to)
 {
 	int c;
 	if ((c = GETCHAR(to)) == DLE) {
@@ -563,7 +566,7 @@ int rcvbyte(int to)
 /* rxbuf must not be modified between calls to rcvpkt() if NOPKT is returned.*/
 /* Returns type of packet received, NOPKT, or BADPKT.  Sets rxblklen.        */
 /*****************************************************************************/
-byte rcvpkt()
+static byte rcvpkt()
 {
 	static int is32;
 	byte *p;
@@ -659,7 +662,7 @@ byte rcvpkt()
 /*****************************************************************************/
 /* Try REAL HARD to disengage batch session cleanly                          */
 /*****************************************************************************/
-void endbatch()
+static void endbatch()
 {
 	int done, timeouts;
 	long timeval, brain_dead;
@@ -710,7 +713,7 @@ void endbatch()
 
 }
 
-slist_t *readreq(slist_t *l, char *fname)
+static slist_t *readreq(slist_t *l, char *fname)
 {
 	FILE *f;
 	char s[MAX_PATH], *p;
@@ -731,7 +734,7 @@ slist_t *readreq(slist_t *l, char *fname)
 	return l;
 }
 
-void getfname(flist_t **l)
+static void getfname(flist_t **l)
 {
 	while(*l) {
 		if(!(*l)->sendas || !(txfd=txopen((*l)->tosend, (*l)->sendas))) {
@@ -745,7 +748,7 @@ void getfname(flist_t **l)
 	else snprintf((char *)txbuf,1024,"%c%c%c",0,0,OUR_JCAPS);
 }
 
-void preparereqs(flist_t *l)
+static void preparereqs(flist_t *l)
 {
 	while(l) {
 		if(l->sendas && l->type==IS_REQ) {

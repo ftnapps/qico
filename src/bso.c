@@ -1,13 +1,13 @@
 /**********************************************************
  * bso management
- * $Id: bso.c,v 1.4 2003/09/08 21:17:23 sisoft Exp $
+ * $Id: bso.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-char *bso_base,*bso_tmp,*bso_base_sts;
+char *bso_tmp;
+static char *bso_base,*bso_base_sts,*p_domain;
 static int bso_base_len,bso_tmp_len,bso_base_len_sts;
-int bso_defzone=2;
-char *p_domain;
+static int bso_defzone=2;
 
 int is_bso() {
 	if(bso_tmp!=NULL)return 1;
@@ -65,7 +65,6 @@ int bso_rescan(void (*each)(char *,ftnaddr_t *,int,int,int),int rslow)
 	int flv;
 	ftnaddr_t a;
 	DIR *dz,*dn,*dp;
-
 	if(!(dz=opendir(bso_base)))return 0;
 	while((dez=readdir(dz))) {
 		if(!strncmp(dez->d_name,p_domain,strlen(p_domain))) {
@@ -116,15 +115,11 @@ int bso_rescan(void (*each)(char *,ftnaddr_t *,int,int,int),int rslow)
 
 int bso_unlocknode(ftnaddr_t *adr,int l)
 {
-	char *q;
 	if(l==LCK_t)return 1;
 	lunlink(bso_bsyn(adr,'b'));
 	lunlink(bso_bsyn(adr,'c'));
 	if(adr->z!=bso_defzone)rmdirs(bso_tmp);
-	    else {
-		q=strrchr(bso_tmp,'/');
-		if(q&&q!=bso_tmp){*q=0;rmdir(bso_tmp);}
-	}
+	    else if(adr->p)rmdir(bso_tmp);
 	return 1;
 }
 
@@ -137,16 +132,15 @@ int bso_unlocknode(ftnaddr_t *adr,int l)
 
 int bso_flavor(char fl)
 {
-	fl=toupper(fl);
-	switch(fl) {
-		case 'H': return F_HOLD;
-		case 'F':
-		case 'N':
-		case 'O': return F_NORM;
-		case 'D': return F_DIR;
-		case 'C': return F_CRSH;
-		case 'I': return F_IMM;
-		case 'R': return F_REQ;
+	switch(toupper(fl)) {
+	    case 'H': return F_HOLD;
+	    case 'F':
+	    case 'N':
+	    case 'O': return F_NORM;
+	    case 'D': return F_DIR;
+	    case 'C': return F_CRSH;
+	    case 'I': return F_IMM;
+	    case 'R': return F_REQ;
 	}
 	return F_ERR;
 }
@@ -155,22 +149,22 @@ char *bso_pktn(ftnaddr_t *fa,int fl)
 {
 	bso_name(fa);
 	switch(fl) {
-		case F_NORM:
-		case F_REQ:
-			xstrcat(bso_tmp,"out",bso_tmp_len);
-			break;
-		case F_DIR:
-			xstrcat(bso_tmp,"dut",bso_tmp_len);
-			break;
-		case F_CRSH:
-			xstrcat(bso_tmp,"cut",bso_tmp_len);
-			break;
-		case F_HOLD:
-			xstrcat(bso_tmp,"hut",bso_tmp_len);
-			break;
-		case F_IMM:
-			xstrcat(bso_tmp,"iut",bso_tmp_len);
-			break;
+	    case F_NORM:
+	    case F_REQ:
+		xstrcat(bso_tmp,"out",bso_tmp_len);
+		break;
+	    case F_DIR:
+		xstrcat(bso_tmp,"dut",bso_tmp_len);
+		break;
+	    case F_CRSH:
+		xstrcat(bso_tmp,"cut",bso_tmp_len);
+		break;
+	    case F_HOLD:
+		xstrcat(bso_tmp,"hut",bso_tmp_len);
+		break;
+	    case F_IMM:
+		xstrcat(bso_tmp,"iut",bso_tmp_len);
+		break;
 	}
 	return bso_tmp;
 }
@@ -179,22 +173,22 @@ char *bso_flon(ftnaddr_t *fa,int fl)
 {
 	bso_name(fa);
 	switch(fl) {
-		case F_NORM:
-		case F_REQ:
-			xstrcat(bso_tmp,"flo",bso_tmp_len);
-			break;
-		case F_DIR:
-			xstrcat(bso_tmp,"dlo",bso_tmp_len);
-			break;
-		case F_CRSH:
-			xstrcat(bso_tmp,"clo",bso_tmp_len);
-			break;
-		case F_HOLD:
-			xstrcat(bso_tmp,"hlo",bso_tmp_len);
-			break;
-		case F_IMM:
-			xstrcat(bso_tmp,"ilo",bso_tmp_len);
-			break;
+	    case F_NORM:
+	    case F_REQ:
+		xstrcat(bso_tmp,"flo",bso_tmp_len);
+		break;
+	    case F_DIR:
+		xstrcat(bso_tmp,"dlo",bso_tmp_len);
+		break;
+	    case F_CRSH:
+		xstrcat(bso_tmp,"clo",bso_tmp_len);
+		break;
+	    case F_HOLD:
+		xstrcat(bso_tmp,"hlo",bso_tmp_len);
+		break;
+	    case F_IMM:
+		xstrcat(bso_tmp,"ilo",bso_tmp_len);
+		break;
 	}
 	return bso_tmp;
 }
@@ -257,24 +251,34 @@ int bso_request(ftnaddr_t *adr,slist_t *files)
 	return 0;
 }
 
-int bso_setstatus(ftnaddr_t *fa,sts_t *st)
+int bso_setstatus(ftnaddr_t *fa, sts_t *st)
 {
 	FILE *f;
-	if((f=mdfopen(bso_stsn(fa),"wt"))!=NULL) {
+	f=mdfopen(bso_stsn(fa), "wt");
+	if(f) {
 		fprintf(f,"%d %d %lu %lu",st->try,st->flags,st->htime,st->utime);
+		if(st->bp.name&&st->bp.flags)fprintf(f," %d %d %lu %s",st->bp.flags,st->bp.size,st->bp.time,st->bp.name);
 		fclose(f);
 		return 1;
 	}
 	return 0;
 }
 
-int bso_getstatus(ftnaddr_t *fa,sts_t *st)
+int bso_getstatus(ftnaddr_t *fa, sts_t *st)
 {
+	int rc;
 	FILE *f;
-	if((f=fopen(bso_stsn(fa),"rt"))!=NULL) {
-		fscanf(f,"%d %d %lu %lu",&st->try,&st->flags,&st->htime,&st->utime);
+	char buf[MAX_PATH];
+	f=fopen(bso_stsn(fa),"rt");
+	if(f) {
+		rc=fscanf(f,"%d %d %lu %lu %d %d %lu %s",
+		    &st->try,&st->flags,&st->htime,&st->utime,
+			&st->bp.flags,&st->bp.size,&st->bp.time,buf);
 		fclose(f);
-		return 1;
+		if(rc<8)memset(&st->bp,0,sizeof(st->bp));
+		    else if(*buf)st->bp.name=xstrdup(buf);
+		if(rc==4||rc==8)return 1;
+		write_log("status file %s corrupted",bso_tmp);
 	}
 	memset(st,0,sizeof(sts_t));
 	return 0;

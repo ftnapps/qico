@@ -1,0 +1,9 @@
+qico (0.50si-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Wed, 29 Oct 2003 16:56:49 +0300
+
+Local variables:
+mode: debian-changelog
+End:

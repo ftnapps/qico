@@ -1,10 +1,11 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.5 2003/09/08 21:17:23 sisoft Exp $
+ * $Id: aso.c,v 1.6 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-char *aso_base,*aso_tmp,*aso_base_sts;
+char *aso_tmp;
+static char *aso_base,*aso_base_sts;
 static int aso_base_len,aso_tmp_len,aso_base_len_sts;
 
 int is_aso()
@@ -87,16 +88,15 @@ int aso_rmstatus(ftnaddr_t *adr)
 
 int aso_flavor(char fl)
 {
-	fl=toupper(fl);
-	switch(fl) {
-	case 'H': return F_HOLD;
-	case 'F':
-	case 'N':
-	case 'O': return F_NORM;
-	case 'D': return F_DIR;
-	case 'C': return F_CRSH;
-	case 'I': return F_IMM;
-	case 'R': return F_REQ;
+	switch(toupper(fl)) {
+	    case 'H': return F_HOLD;
+	    case 'F':
+	    case 'N':
+	    case 'O': return F_NORM;
+	    case 'D': return F_DIR;
+	    case 'C': return F_CRSH;
+	    case 'I': return F_IMM;
+	    case 'R': return F_REQ;
 	}
 	return F_ERR;
 }
@@ -105,20 +105,20 @@ char *aso_pktn(ftnaddr_t *fa, int fl)
 {
 	aso_name(fa);
 	switch(fl) {
-	case F_NORM:
-	case F_REQ:
+	    case F_NORM:
+	    case F_REQ:
 		xstrcat(aso_tmp, "out", aso_tmp_len);
 		break;
-	case F_DIR:
+	    case F_DIR:
 		xstrcat(aso_tmp, "dut", aso_tmp_len);
 		break;
-	case F_CRSH:
+	    case F_CRSH:
 		xstrcat(aso_tmp, "cut", aso_tmp_len);
 		break;
-	case F_HOLD:
+	    case F_HOLD:
 		xstrcat(aso_tmp, "hut", aso_tmp_len);
 		break;
-	case F_IMM:
+	    case F_IMM:
 		xstrcat(aso_tmp, "iut", aso_tmp_len);
 		break;
 	}
@@ -129,20 +129,20 @@ char *aso_flon(ftnaddr_t *fa, int fl)
 {
 	aso_name(fa);
 	switch(fl) {
-	case F_NORM:
-	case F_REQ:
+	    case F_NORM:
+	    case F_REQ:
 		xstrcat(aso_tmp, "flo", aso_tmp_len);
 		break;
-	case F_DIR:
+	    case F_DIR:
 		xstrcat(aso_tmp, "dlo", aso_tmp_len);
 		break;
-	case F_CRSH:
+	    case F_CRSH:
 		xstrcat(aso_tmp, "clo", aso_tmp_len);
 		break;
-	case F_HOLD:
+	    case F_HOLD:
 		xstrcat(aso_tmp, "hlo", aso_tmp_len);
 		break;
-	case F_IMM:
+	    case F_IMM:
 		xstrcat(aso_tmp, "ilo", aso_tmp_len);
 		break;
 	}
@@ -216,8 +216,8 @@ int aso_setstatus(ftnaddr_t *fa, sts_t *st)
 	FILE *f;
 	f=mdfopen(aso_stsn(fa), "wt");
 	if(f) {
-		fprintf(f, "%d %d %lu %lu", st->try, st->flags, st->htime,
-				st->utime);
+		fprintf(f,"%d %d %lu %lu",st->try,st->flags,st->htime,st->utime);
+		if(st->bp.name&&st->bp.flags)fprintf(f," %d %d %lu %s",st->bp.flags,st->bp.size,st->bp.time,st->bp.name);
 		fclose(f);
 		return 1;
 	}
@@ -226,14 +226,21 @@ int aso_setstatus(ftnaddr_t *fa, sts_t *st)
 
 int aso_getstatus(ftnaddr_t *fa, sts_t *st)
 {
+	int rc;
 	FILE *f;
-	f=fopen(aso_stsn(fa), "rt");
+	char buf[MAX_PATH];
+	f=fopen(aso_stsn(fa),"rt");
 	if(f) {
-		fscanf(f, "%d %d %lu %lu", &st->try, &st->flags,
-			   &st->htime, &st->utime);fclose(f);
-		return 1;
+		rc=fscanf(f,"%d %d %lu %lu %d %d %lu %s",
+		    &st->try,&st->flags,&st->htime,&st->utime,
+			&st->bp.flags,&st->bp.size,&st->bp.time,buf);
+		fclose(f);
+		if(rc<8)memset(&st->bp,0,sizeof(st->bp));
+		    else if(*buf)st->bp.name=xstrdup(buf);
+		if(rc==4||rc==8)return 1;
+		write_log("status file %s corrupted",aso_tmp);
 	}
-	memset(st, 0, sizeof(sts_t));
+	memset(st,0,sizeof(sts_t));
 	return 0;
 }
 

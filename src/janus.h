@@ -1,8 +1,6 @@
 /******************************************************************
- * File: janus.c
- * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol defines
- * $Id: janus.h,v 1.3 2000/10/22 18:55:03 lev Exp $
+ * $Id: janus.h,v 1.3 2004/01/10 09:24:40 sisoft Exp $
  ******************************************************************/
 #ifndef __JANUS_H__
 #define __JANUS_H__
@@ -58,13 +56,6 @@
 #define JCAP_CLEAR8     0x20
 #define OUR_JCAPS       (JCAP_FREQ|JCAP_CRC32)
 
-
-extern void sendpkt(byte *buf, int len, int type);
-extern void sendpkt32(byte *buf, int len, int type);
-extern byte rcvpkt();
-extern void endbatch();
-extern void txbyte(int c);
-void getfname(flist_t **l);
 extern int janus();
 
 #endif

@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.13 2003/10/08 01:26:48 sisoft Exp $
+ * $Id: binkp.c,v 1.14 2004/01/10 09:24:40 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -46,13 +46,13 @@ static int msgr(char *buf)
 		if(c&0x80)d=0; else d=1;
 		c&=0x7f;len=c<<8;
 		t1=t_set(60);
-		while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getipcm();
+		while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getevt();
 		if(c<0||t_exp(t1))return c;
 		if(opt_cr==O_YES)update_keys(key_in,c^=decrypt_byte(key_in));
 		len+=c&0xff;
 		for(i=0;i<len;i++) {
 			t1=t_set(50);
-			while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getipcm();
+			while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getevt();
 			if(c<0||t_exp(t1))return c;
 			if(opt_cr==O_YES)update_keys(key_in,c^=decrypt_byte(key_in));
 			rxbuf[i]=c;
@@ -122,10 +122,10 @@ static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
 
 int binkpsession(int mode,ftnaddr_t *remaddr)
 {
-	char tmp[1024],*p,*fname;
+	char tmp[BUFS],*p,*fname;
 	int sent_eob=0,recv_eob=0;
-	int send_file=0,recv_file=0,cls;
-	int rc,n=0,chal_len=0,mes;
+	int send_file=0,recv_file=0;
+	int rc,n=0,chal_len=0,mes,cls;
 	int nofiles=0,wait_got=0,bp_ver=10;
 	size_t fsize,foffs;
 	falist_t *pp=NULL;
@@ -134,6 +134,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	unsigned char chal[64];
 	ftnaddr_t *ba=NULL,fa;
 	struct tm *tt;
+	sts_t sts;
 	time_t ti,t1,ftime;
 	totaln=0;totalf=0;totalm=0;got_req=0;
 	rxstate=1;receive_callback=receivecb;
@@ -141,11 +142,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	for(p=cfgs(CFG_BINKPOPT);*p;p++)switch(tolower(*p)) {
 	    case 'm': opt_md|=O_WANT; break;
 	    case 'c': opt_cr|=O_WE; break;
-	    case 'd': opt_nd|=0/*mode*/?O_THEY:O_NO;
+	    case 'd': opt_nd|=O_NO;/*mode?O_THEY:O_NO;*/
 	    case 'r': opt_nr|=mode?O_WANT:O_NO; break;
 	    case 'b': opt_mb|=O_WANT; break;
 	    case 'p': opt_md|=O_NEED|O_WANT; break;
-	    default: write_log("unknown binkp option: %c",*p);
+	    default: write_log("unknown binkp option: '%c'",*p);
 	}
 	write_log("starting %sbound BinkP session",mode?"out":"in");
 	txbuf=(byte*)xcalloc(BP_BUFFER,1);
@@ -204,15 +205,15 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			pp=cfgal(CFG_ADDRESS);
 			if(mode) {
 				ba=akamatch(remaddr,pp);
-				xstrcpy(tmp,ftnaddrtoda(ba),1023);
+				xstrcpy(tmp,ftnaddrtoda(ba),BUFS);
 			    } else {
-				xstrcpy(tmp,ftnaddrtoda(&pp->addr),1023);
+				xstrcpy(tmp,ftnaddrtoda(&pp->addr),BUFS);
 				pp=pp->next;ba=NULL;
 			}
 			for(;pp;pp=pp->next)
 			    if(&pp->addr!=ba) {
-				xstrcat(tmp," ",1023);
-				xstrcat(tmp,ftnaddrtoda(&pp->addr),1023);
+				xstrcat(tmp," ",BUFS);
+				xstrcat(tmp,ftnaddrtoda(&pp->addr),BUFS);
 			}
 			msgs(BPM_ADR,tmp,NULL);
 			txstate=(txstate==BPO_Init)?BPO_WaitNul:BPI_WaitAdr;
@@ -341,7 +342,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			break;
 		}
 		if(rxstate) {
-			getipcm();
+			getevt();
 			rc=msgr(tmp);
 			if(rc==RCDO||tty_hangedup) {
 				flkill(&fl,0);
@@ -494,6 +495,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
 	recvf.ttot=rnode->netmail+rnode->files;
 	effbaud=rnode->speed;lst=fl;
+	if(is_bso()==1)bso_getstatus(&rnode->addrs->addr,&sts);
+	    else if(is_aso()==1)aso_getstatus(&rnode->addrs->addr,&sts);
 	sline("BinkP session");
 	t1=t_set(BP_TIMEOUT);
 	mes=0;cls=0;
@@ -523,7 +526,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				txclose(&txfd,FOP_ERROR);
 				send_file=0;
 			} else {
-				DEBUG(('B',2,"readed %d bytes of %d (D)",n,BP_BLKSIZE));
+				DEBUG(('B',2,"readed %d bytes of %d (d)",n,BP_BLKSIZE));
 				if(n) {
 					*txbuf=((n>>8)&0x7f);txbuf[1]=n&0xff;
 					datas(txbuf,(word)(n+2));
@@ -543,7 +546,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			sent_eob=1;
 			if(opt_mb!=O_YES)sent_eob++;
 		}
-		getipcm();
+		getevt();
 		rc=msgr(tmp);
 		if(rc==RCDO||tty_hangedup) {
 			DEBUG(('B',1,"msgr: connect aborted"));
@@ -654,7 +657,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			break;
 		    case BPM_EOB:
 			DEBUG(('B',3,"got: M_%s",mess[rc]));
-			DEBUG(('B',3,"mes=%d, sent_eob=%d, recv_eob=%d",mes,sent_eob,recv_eob));
+			DEBUG(('B',4,"mes=%d, sent_eob=%d, recv_eob=%d",mes,sent_eob,recv_eob));
 			t1=t_set(BP_TIMEOUT);
 			if(recv_file) {
 				rxclose(&rxfd,FOP_OK);
@@ -673,7 +676,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				msgs(BPM_EOB,NULL,NULL);
 				sent_eob=2;
 			}
-			DEBUG(('B',3,"cls=%d, sent_eob=%d, recv_eob=%d",cls,sent_eob,recv_eob));
+			DEBUG(('B',4,"cls=%d, sent_eob=%d, recv_eob=%d",cls,sent_eob,recv_eob));
 			mes=0;
 			break;
 		    case BPM_GOT:

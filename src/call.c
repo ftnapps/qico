@@ -1,11 +1,11 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.4 2003/10/08 10:07:50 sisoft Exp $
+ * $Id: call.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
 
-char *mcs[]={"ok","fail","error","busy","no dialtone","ring"};
+static char *mcs[]={"ok","fail","error","busy","no dialtone","ring"};
 
 int alive()
 {
@@ -36,7 +36,6 @@ int hangup()
 		if(rc!=MC_OK)sleep(1);
 		tty_purge();
 		rc=alive();
-// ???		if(rc!=MC_OK)sleep(1);
 		tty_purge();
 	}
 	if(rc!=MC_OK)DEBUG(('M',3,"hangup: failed, rc=%d",rc));

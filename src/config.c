@@ -1,16 +1,13 @@
 /**********************************************************
- * File: config.c
- * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: config.c,v 1.9 2003/02/07 16:05:52 cyrilm Exp $
+ * work with config
+ * $Id: config.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
 extern int flagexp(char *);
 
-extern ftnaddr_t DEFADDR;
-slist_t *condlist=NULL;
-char *curcond=NULL;
+static slist_t *condlist=NULL;
+static char *curcond=NULL;
 
 int cci;
 char *ccs;
@@ -18,13 +15,13 @@ slist_t *ccsl;
 faslist_t *ccfasl;
 falist_t *ccal;
 
-int getstr(char **to, char *from)
+static int getstr(char **to, char *from)
 {
 	*to=xstrdup(from);
 	return 1;
 }
 
-int getpath(char **to, char *from)
+static int getpath(char **to, char *from)
 {
 	if(strcspn(from, "*[]?<>|")!=strlen(from)) return 0;
 	if(from[strlen(from)-1]=='/') chop(from,1);
@@ -32,19 +29,19 @@ int getpath(char **to, char *from)
 	return 1;
 }
 
-int getlong(int *to, char *from)
+static int getlong(int *to, char *from)
 {
 	if(strspn(from, "0123456789 \t")!=strlen(from)) return 0;
 	*to=atol(from);return 1;
 }
 
-int getoct(int *to, char *from)
+static int getoct(int *to, char *from)
 {
 	if(strspn(from, "01234567 \t")!=strlen(from)) return 0;
 	*to=strtol(from, (char **)NULL, 8);return 1;
 }	 
 
-int getaddrl(falist_t **to, char *from)
+static int getaddrl(falist_t **to, char *from)
 {
 	ftnaddr_t ta;
 	if(!parseftnaddr(from, &ta, &DEFADDR, 0)) return 0;
@@ -55,7 +52,7 @@ int getaddrl(falist_t **to, char *from)
 	return 1;
 }
 
-int getfasl(faslist_t **to, char *from)
+static int getfasl(faslist_t **to, char *from)
 {
 	ftnaddr_t ta;char *p;
 	if(!parseftnaddr(from, &ta, &DEFADDR, 0)) return 0;
@@ -68,20 +65,20 @@ int getfasl(faslist_t **to, char *from)
 	return 1;
 }
 
-int getyesno(int *to, char *from)
+static int getyesno(int *to, char *from)
 {
 	if(tolower(*from)=='y' || *from=='1' || *from=='t') *to=1;
 	else *to=0;
 	return 1;
 }
 
-int getstrl(slist_t **to, char *from)
+static int getstrl(slist_t **to, char *from)
 {
 	slist_add(to, from);
 	return 1;
 }
 
-int setvalue(cfgitem_t *ci, char *t, int type)
+static int setvalue(cfgitem_t *ci, char *t, int type)
 {
 	switch(type) {
 	case C_STR:     return getstr(&ci->value.v_char, t);
@@ -95,24 +92,6 @@ int setvalue(cfgitem_t *ci, char *t, int type)
 	}
 	return 0;
 }
-
-
-
-/*  #define CFGFUNC(x,y) { \ */
-/*  	cfgitem_t *ci, *cn=NULL; \ */
-/*  	for(ci=configtab[i].items;ci;ci=ci->next) { \ */
-/*  		if(ci->condition && flagexp(ci->condition)==1)  \ */
-/*  			return y=ci->value.x; \ */
-/*  		if(!ci->condition) cn=ci; \ */
-/*  	} \ */
-/*  	return y=cn->value.x; \ */
-/*  }  */
-
-/*  int cfgi(int i) CFGFUNC(v_int,cci) */
-/*  char *cfgs(int i) CFGFUNC(v_char,ccs) */
-/*  slist_t *cfgsl(int i) CFGFUNC(v_sl, ccsl)  */
-/*  faslist_t *cfgfasl(int i) CFGFUNC(v_fasl, ccfasl)  */
-/*  falist_t *cfgal(int i) CFGFUNC(v_al, ccal)  */
 
 int cfgi(int i)
 {

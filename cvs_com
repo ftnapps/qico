@@ -1,8 +1,8 @@
 #!/usr/bin/perl
-# $Id: cvs_com,v 1.4 2003/10/05 19:37:31 sisoft Exp $
+# $Id: cvs_com,v 1.5 2004/01/10 09:24:39 sisoft Exp $
 if(!-e "ChangeLog"){goto chng}
-system("mcedit +666 x");
-open(X,"x")||die("can't open 'x'-changes\n");
+system("mcedit +666 new");
+open(X,"new")||die("can't open 'new'\n");
 open(F,"TodayFixes")||die("can't open TodayFixes\n");
 while(<F>) {
     if(/^\/\*/){$id=$_;next};
@@ -25,6 +25,6 @@ chng:
 system("cvs2cl -F trunk -I ChangeLog -I TodayFixes -I cvsdate.h --no-wrap -S");
 unlink("ChangeLog.bak");
 system('date +\'char cvsdate[]="%Y-%m-%d %H:%M";\' >src/cvsdate.h');
-system("cvs com -F x");
+system("cvs com -F new");
 if($?>>8){exit}
-truncate("x",0);
+truncate("new",0);

@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zmodem.c,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+   $Id: ls_zmodem.c,v 1.4 2004/01/10 09:24:40 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
@@ -381,12 +381,12 @@ int ls_zsenddata(byte *data, int len, int frame)
 		}
 		BUFCHAR(ZDLE); BUFCHAR(frame);
 		crc = LSZ_UPDATE_CRC32(frame,crc);
-//chat
+/*chat*/
 		if(rnode->opt&MO_CHAT) {
 			if(frame==ZCRCG||frame==ZCRCW)z_devsend_c(1);
 			BUFCHAR(0);
 		}
-//
+
 		crc = LSZ_FINISH_CRC32(crc);
 		crc = LTOI(crc);
 		DEBUG(('Z',2,"ls_zsenddata: CRC32 is %08x",crc));
@@ -402,12 +402,12 @@ int ls_zsenddata(byte *data, int len, int frame)
 		}
 		BUFCHAR(ZDLE); BUFCHAR(frame);
 		crc = LSZ_UPDATE_CRC16(frame,crc);
-//chat
+/*chat*/
 		if(rnode->opt&MO_CHAT) {
 			if(frame==ZCRCG||frame==ZCRCW)z_devsend_c(1);
 			BUFCHAR(0);
 		}
-//
+
 		crc = LSZ_FINISH_CRC16(crc);
 		crc = STOI(crc & 0xffff);
 		DEBUG(('Z',2,"ls_zsenddata: CRC16 is %04x",crc));
@@ -662,7 +662,7 @@ int ls_readzdle(int *timeout)
 			r=LSZ_CRCQ;
 			break;
 	}																	
-//chat
+/*chat*/
 	if(rnode->opt&MO_CHAT&&r) {
 		do {
 			rr=ls_readcanned(timeout);
@@ -670,7 +670,7 @@ int ls_readzdle(int *timeout)
 		} while(rr);
 		z_devsend_c(0);
 	}
-//
+
 	if(r)return r;
 	switch(c) {
 		case ZRUB0:
@@ -728,7 +728,7 @@ void ls_zabort()
 	BUFFLUSH();
 }
 
-// chat routines
+/* chat routines */
 int z_devfree()
 {
 	if(chattxstate||!(rnode->opt&MO_CHAT))return 0;
@@ -749,7 +749,6 @@ void z_devsend_c(int buffr)
 	unsigned char *p;
 	if(chattxstate==CHAT_DATA) {
 		p=chattxbuf;
-//		write_log("ss: %s",p);
 		strtr((char*)p,ZPAD,(unsigned char)248);
 		while(*p++)if(buffr)BUFCHAR(*p);
 		    else ls_sendchar(*p);
@@ -759,7 +758,6 @@ void z_devsend_c(int buffr)
 
 void z_devrecv_c(unsigned char c,int flushed)
 {
-//	write_log("rr: %c",c);
 	inchatbuf[inchatfill++]=c;
 	if(c) {
 		if(inchatfill>255||flushed) {

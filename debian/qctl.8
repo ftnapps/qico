@@ -1,0 +1,88 @@
+.TH QCTL 8 "19 Oct 2003"
+.SH NAME
+qctl \- control tool for qico ftn mailer.
+.SH SYNOPSIS
+.B qctl
+.RB [ \-qQRKfoprskxhv ]
+.RB [
+.I node
+]
+.RB [
+.I files
+]
+.SH DESCRIPTION
+.B qctl
+is a control tool for qico ftn mailer.
+.SH OPTIONS
+.TP
+.BI \-q
+Stop
+.B qico
+daemon.
+.TP
+.BI \-Q
+Queue rescan.
+.TP
+.BI \-R
+Reread config.
+.TP
+.BI \-K
+Kill outbound for
+.I node.
+.TP
+.BI \-f
+Query info about
+.I node.
+.TP
+.BI \-o
+Query queue.
+.TP
+.BI \-p
+Poll
+.I node.
+.TP
+.BI \-r
+Request files
+.I files
+from
+.I node.
+.TP
+.BI \-s
+Send
+.I files
+to
+.I node.
+.TP
+.BI \-k
+Kill attached files after transmission (for
+.I \-s
+).
+.TP
+.BI \-x status
+Set or reset node status, where
+.I status
+is:
+.B U
+(undialable),
+.B W
+(wait), or
+.B I
+(immediate). Capital letter for set flag, or small for unset.
+.TP
+.BI \-h
+Print help message.
+.TP
+.BI \-v
+Print version message.
+.SH SEE ALSO
+qico(8), qcc(8)
+
+qico homepage,
+http://qico.sourceforge.net/
+.SH AUTHORS
+Stepan Pologov <sisoft@bk.ru>, and others:
+ Cyril Margorin <cyrilm@tower.pp.ru> (official branch),
+ Lev Serebryakov <lev@serebryakov.spb.ru> (up to 0.49.9),
+ Pavel Kurnosoff <pqr@yasp.com> (up to 0.45pl3.1).
+.SH "REPORTING BUGS"
+Report bugs to <sisoft@bk.ru>

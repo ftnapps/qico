@@ -1,0 +1,15 @@
+#!/bin/bash
+# script for tossing mail by sisoft\trg'2002
+# $Id: tossing,v 1.2 2004/01/10 09:24:40 sisoft Exp $
+
+# netmail
+find /var/spool/ftn/inb/*.[pP][kK][tT] >/dev/null 2>&1 &&
+	/usr/bin/ftrack -c/etc/ftn/ftrack.conf
+
+# fileecho
+find /var/spool/ftn/inb/*.[tT][iI][cC] >/dev/null 2>&1 &&
+	/usr/bin/htick toss
+
+# echomail
+find var/spool/ftn/inb/*.[sSmMtTwWfF][aAuUoOeEhHrR][0-z] >/dev/null 2>&1 &&
+	/usr/bin/hpt toss scan

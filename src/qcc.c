@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.8 2003/10/08 01:26:48 sisoft Exp $
+ * $Id: qcc.c,v 1.9 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -17,6 +17,7 @@
 #include <time.h>
 #include <signal.h>
 #include <ctype.h>
+#include <locale.h>
 #ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -31,19 +32,19 @@
 #include "ver.h"
 #include "byteop.h"
 
-// number of lines for queue. (up window of screen)
+/* number of lines for queue. (up window of screen) */
 #define MH 10     
-// max line height (for chat)
+/* max line height (for chat) */
 #define CHH 160
-// max number of slots
+/* max number of slots */
 #define MAX_SLOTS 9
-// max scroll lines for log
+/* max scroll lines for log */
 #define LGMAX 255
-// max input line history
+/* max input line history */
 #define HSTMAX 48
-// max shown loglines 
+/* max shown loglines */
 #define LOGSIZE (LINES-MH-4)
-// max shown columns
+/* max shown columns */
 #define COL (COLS-2)
 
 #define SAFE(s) s?s:nothing
@@ -182,7 +183,7 @@ int  qclrs[Q_MAXBIT]=Q_COLORS;
 void usage(char *ex)
 {
 	printf("usage: %s [options]\n"
-	       "-n           disable sound (noise)\n"
+	       "-n           disable sound (silent)\n"
 #ifdef NEED_DEBUG
 	       "-f           force (don't check IPC's queue)\n"
 #endif
@@ -413,7 +414,12 @@ void mylog(char *str,...)
 	tim=time(NULL);
 	tt=localtime(&tim);
 	va_start(args,str);
+#ifdef HAVE_VSNPRINTF
+	vsnprintf(s,MAX_STRING,str,args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(s,str,args);
+#endif
 	va_end(args);
 	getyx(wlog,y,x);
 	wattron(wlog,A_BOLD);
@@ -472,7 +478,7 @@ qslot_t *addqueue(qslot_t **l)
 	qslot_t **t,*p=NULL;
 	for(t=l;*t;t=&((*t)->next))p=*t;
 	*t=(qslot_t*)malloc(sizeof(qslot_t));
-	bzero(*t,sizeof(qslot_t));
+	memset(*t,0,sizeof(qslot_t));
 	(*t)->prev=p;
 	(*t)->n=p?p->n+1:1;
 	return *t;
@@ -563,9 +569,8 @@ int findslot(char *slt)
 
 int createslot(char *slt,char d)
 {
-	flash(); // ;))
 	slots[allslots]=malloc(sizeof(slot_t));
-	bzero(slots[allslots],sizeof(slot_t));
+	memset(slots[allslots],0,sizeof(slot_t));
 	strcpy(slots[allslots]->tty,slt);
 	if(!memcmp(slt,"CHT",3)) {
 		slots[allslots]->chat=1;
@@ -599,7 +604,7 @@ int inputstr(char *str,char *name,int mode)
 	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms;
 	struct tm *tt;time_t tim;
 	struct timeval tv;fd_set rfds;
-	bzero(str,MAX_STRING);
+	memset(str,0,MAX_STRING);
 	edm=1;freshhelp();wnoutrefresh(whelp);
 	ms=mode?(mode==1?40:5):(MAX_STRING-2);
 	if(ms<strlen(name))ms=strlen(name)+1;
@@ -832,7 +837,7 @@ rei:	zone=strtoul(myaddr,&nm,10);
 		if(flv=='e') {
 			mylog("Error: input: '%s', treat as '%s', but ignore",buf,ou);
 			*(int*)ou=0;
-		}// else mylog("Input: '%s', treat as '%s'",buf,ou);
+		}
 	}
 	return ou;
 }
@@ -899,7 +904,7 @@ int getmessages()
 	static int lastfirst=1,lastpos=1;
 	char buf[MSG_BUFFER];
 	unsigned char *data,*p;
-	bzero(buf,MSG_BUFFER);
+	memset(buf,0,MSG_BUFFER);
 	rc=msgrcv(qipc_msg,buf,MSG_BUFFER-1,1,IPC_NOWAIT);
 	if(rc>=13) {
 		len=FETCH32(buf+4);
@@ -964,8 +969,8 @@ int getmessages()
 			if(type==QC_LIDLE) {
 				if(&slots[rc]->session) {
 					slots[rc]->session=0;
-					bzero(&slots[rc]->r,sizeof(pfile_t));
-					bzero(&slots[rc]->s,sizeof(pfile_t));
+					memset(&slots[rc]->r,0,sizeof(pfile_t));
+					memset(&slots[rc]->s,0,sizeof(pfile_t));
 					if(currslot==rc) {
 						freshslot();wrefresh(wmain);
 					}
@@ -977,7 +982,7 @@ int getmessages()
 			}
 			if(type==QC_SENDD) {
 				if(!len) {
-					bzero(&slots[rc]->s,sizeof(pfile_t));
+					memset(&slots[rc]->s,0,sizeof(pfile_t));
 				} else {
 					p=data;
 					slots[rc]->session=1;
@@ -1001,7 +1006,7 @@ int getmessages()
 				}
 			}
 			if(type==QC_RECVD) {
-				if(!len)bzero(&slots[rc]->r,sizeof(pfile_t));
+				if(!len)memset(&slots[rc]->r,0,sizeof(pfile_t));
 				    else {
 					p=data;
 					slots[rc]->session=1;
@@ -1132,7 +1137,7 @@ int main(int argc,char **argv)
 				usage(argv[0]);
 		}
 	} 
-		
+
 	if((qipc_keyqq=ftok(QIPC_KEY,QR_MSGQ))<0) {
 		fprintf(stderr,"can't get key\n");
 		return 1;
@@ -1156,13 +1161,14 @@ int main(int argc,char **argv)
 	signal(SIGKILL,sighup);
 	signal(SIGSEGV,sighup);
 
+ 	setlocale(LC_ALL, "");
 /*rus*/	printf("\033(K");fflush(stdout);
 
 	initscreen();
 	currslot=-1;
 	allslots=0;
 	freshhdr();wrefresh(whdr);
-	bzero(&slots,sizeof(slots));
+	memset(&slots,0,sizeof(slots));
 	for(ch=0;ch<=HSTMAX;ch++)hst[ch]=NULL;
 	hstlast=0;
 	freshall();

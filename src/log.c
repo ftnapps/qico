@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.4 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: log.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -16,65 +16,65 @@ typedef struct _slncode {
 } SLNCODE;
 
 #ifndef HAVE_SYSLOG_FAC_NAMES
-SLNCODE facilitynames[] =
-	{
-		{"auth",LOG_AUTH},
-	        {"cron",LOG_CRON},
-	        {"daemon",LOG_DAEMON},
-	        {"kern",LOG_KERN},
-	        {"lpr",LOG_LPR},
-	        {"mail",LOG_MAIL},
-	        {"news",LOG_NEWS},
-	        {"syslog",LOG_SYSLOG},
-	        {"user",LOG_USER},
-	        {"uucp",LOG_UUCP},
-	        {"local0",LOG_LOCAL0},
-	        {"local1",LOG_LOCAL1},
-	        {"local2",LOG_LOCAL2},
-	        {"local3",LOG_LOCAL3},
-	        {"local4",LOG_LOCAL4},
-	        {"local5",LOG_LOCAL5},
-	        {"local6",LOG_LOCAL6},
-	        {"local7",LOG_LOCAL7},
-	        {NULL,-1}
-	};
+static SLNCODE facilitynames[] =
+{
+	{"auth",LOG_AUTH},
+        {"cron",LOG_CRON},
+        {"daemon",LOG_DAEMON},
+        {"kern",LOG_KERN},
+        {"lpr",LOG_LPR},
+        {"mail",LOG_MAIL},
+        {"news",LOG_NEWS},
+        {"syslog",LOG_SYSLOG},
+        {"user",LOG_USER},
+        {"uucp",LOG_UUCP},
+        {"local0",LOG_LOCAL0},
+        {"local1",LOG_LOCAL1},
+        {"local2",LOG_LOCAL2},
+        {"local3",LOG_LOCAL3},
+        {"local4",LOG_LOCAL4},
+        {"local5",LOG_LOCAL5},
+        {"local6",LOG_LOCAL6},
+        {"local7",LOG_LOCAL7},
+        {NULL,-1}
+};
 #endif
 #ifndef HAVE_SYSLOG_PRI_NAMES
-SLNCODE prioritynames[] =
-	{
-		{"alert",LOG_ALERT,},
-		{"crit",LOG_CRIT,},
-		{"debug",LOG_DEBUG,},
-		{"emerg",LOG_EMERG,},
-		{"err",LOG_ERR,},
-		{"error",LOG_ERR,},	/* DEPRECATED */
-		{"info",LOG_INFO,},                      
-		{"notice",LOG_NOTICE,},
-		{"panic",LOG_EMERG,},	/* DEPRECATED */
-		{"warn",LOG_WARNING,},	/* DEPRECATED */
-		{"warning",LOG_WARNING,},
-		{NULL,-1,}
-	};
+static SLNCODE prioritynames[] =
+{
+	{"alert",LOG_ALERT,},
+	{"crit",LOG_CRIT,},
+	{"debug",LOG_DEBUG,},
+	{"emerg",LOG_EMERG,},
+	{"err",LOG_ERR,},
+	{"error",LOG_ERR,},	/* DEPRECATED */
+	{"info",LOG_INFO,},                      
+	{"notice",LOG_NOTICE,},
+	{"panic",LOG_EMERG,},	/* DEPRECATED */
+	{"warn",LOG_WARNING,},	/* DEPRECATED */
+	{"warning",LOG_WARNING,},
+	{NULL,-1,}
+};
 #endif
 
-int log_type=0,mcpos,rcpos;
-int syslog_priority=LOG_INFO;
+static int log_type=0,mcpos,rcpos;
+static int syslog_priority=LOG_INFO;
 char *log_name=NULL;
 char *log_tty=NULL;
 void (*log_callback)(char *str)=NULL;
-ftnaddr_t *adr;
-char pktname[MAX_PATH]={0};
-FILE *cpkt=NULL;
-FILE *lemail=NULL;
-char mchat[4096]={0};
-char rchat[4096]={0};
+static ftnaddr_t *adr;
+static char pktname[MAX_PATH]={0};
+static FILE *cpkt=NULL;
+static FILE *lemail=NULL;
+static char mchat[4096]={0};
+static char rchat[4096]={0};
 extern int runtoss;
 
 #ifdef NEED_DEBUG
 int facilities_levels[256];
 #endif
 
-int parsefacorprio(char *f,SLNCODE *names)
+static int parsefacorprio(char *f,SLNCODE *names)
 {
 	int i=0;
 	while(names[i].c_name) {
@@ -96,7 +96,6 @@ void parse_log_levels()
 	xfree(levels);
 }
 #endif
-
 
 int log_init(char *ln, char *tn)
 {

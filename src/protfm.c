@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.4 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: protfm.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -26,18 +26,18 @@ word    txmaxblklen;
 word    timeout;
 byte    txlastc;
 
-unsigned char qrcv_buf[MSG_BUFFER]={0};
-unsigned char qsnd_buf[16384]={0};
-unsigned char ubuf[16384];
-char hellostr[MAX_STRING];
-unsigned short qsndbuflen=0;
+static unsigned char qrcv_buf[MSG_BUFFER]={0};
+static unsigned char qsnd_buf[16384]={0};
+static unsigned char ubuf[16384];
+static char hellostr[MAX_STRING];
+static unsigned short qsndbuflen=0;
 int chatprot,chatlg=0,rxstatus=0,skipiftic=0;
 long chattimer;
 
-char weskipstr[]="recd: %s, 0 bytes, 0 cps [%sskipped]";
-char wesusstr[]="recd: %s, 0 bytes, 0 cps [%ssuspended]";
+static char weskipstr[]="recd: %s, 0 bytes, 0 cps [%sskipped]";
+static char wesusstr[]="recd: %s, 0 bytes, 0 cps [%ssuspended]";
 
-int sifname(char *s)
+static int sifname(char *s)
 {	
 	static char ALLOWED_CHARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
 	static int CHARS = sizeof(ALLOWED_CHARS) / sizeof(char);
@@ -369,7 +369,7 @@ void c_devrecv(unsigned char *data,unsigned len)
 	qchat((char*)data);
 }
 
-void getipcm()
+void getevt()
 {
 	int i;
 	while(qrecvpkt((char*)qrcv_buf)) {
@@ -422,5 +422,5 @@ void check_cps()
 		write_log("mincpsin=%d reached, aborting session",r?cci:cci*ncps);
 		tty_hangedup=1;
 	}
-	getipcm();
+	getevt();
 }

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.4 2003/09/14 16:45:20 sisoft Exp $
+ * $Id: tty.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -8,24 +8,22 @@
 #include "defs.h"
 #include "tty.h"
 
-//#define DEBUG_SLEEP
+#define DEBUG_SLEEP 0
 
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
 			"read error", "write error", "timeout", "close error",
 				"can't lock port", "can't set/get flags"};
-struct termios savetios;
+static struct termios savetios;
 char *tty_port=NULL;
 int tty_hangedup=0,calling=0;
 
 #define IN_MAXBUF       16384
-unsigned char in_buffer[IN_MAXBUF];
-int in_bufpos=0, in_bufmax=0;
+static unsigned char in_buffer[IN_MAXBUF];
+static int in_bufpos=0, in_bufmax=0;
 
 #define OUT_MAXBUF       16384
-unsigned char out_buffer[OUT_MAXBUF];
-int out_bufpos=0;
-
-char ipcbuf[MSG_BUFFER];
+static unsigned char out_buffer[OUT_MAXBUF];
+static int out_bufpos=0;
 
 void tty_sighup(int sig)
 {
@@ -40,15 +38,15 @@ int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to)
 {
 	int sec=to->tv_sec,rc;
 	do {
-		if(calling)if(qrecvpkt(ipcbuf)&&ipcbuf[8]==QR_HANGUP) {
-			tty_hangedup=1;
-			return -1;
+		if(calling) {
+			getevt();
+			if(tty_hangedup)return -1;
 		}
 		to->tv_sec=sec?1:0;
 		rc=select(n,rfs,wfs,efs,to);
 	} while(sec--&&rc<0);
 	to->tv_sec=sec;
-#ifdef DEBUG_SLEEP
+#if DEBUG_SLEEP==1
 	if(is_ip)usleep(300);
 #endif
 	return rc;
@@ -344,7 +342,7 @@ int tty_cooked()
 	return rc;
 }
 
-int tty_setdtr(int dtr)
+static int tty_setdtr(int dtr)
 {
 	int status,rc;
 	rc=ioctl(STDIN_FILENO, TIOCMGET, &status);
@@ -422,7 +420,7 @@ int tty_put(byte *buf, int size)
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return ERROR;
 	}		
-#ifdef DEBUG_SLEEP
+#if DEBUG_SLEEP==1
 	if(is_ip)usleep(300);
 #endif
 #ifdef NEED_DEBUG
@@ -458,7 +456,7 @@ int tty_get(byte *buf, int size, int *timeout)
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return (errno!=EAGAIN && errno!=EINTR)?ERROR:TIMEOUT;
 	}
-#ifdef DEBUG_SLEEP
+#if DEBUG_SLEEP==1
 	if(is_ip)usleep(300);
 #endif
 #ifdef NEED_DEBUG
@@ -673,7 +671,7 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist_t *bys
 	rc=OK;
 	t1=t_set(timeout);
 	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
-		if(qrecvpkt(ipcbuf)&&ipcbuf[8]==QR_HANGUP)tty_hangedup=1;
+		getevt();
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
 		if(rc==RCDO) {
 			if(rest)xstrcpy(rest,"HANGUP",restlen);

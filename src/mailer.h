@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.5 2003/10/08 01:26:48 sisoft Exp $
+ * $Id: mailer.h,v 1.6 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -79,17 +79,9 @@ int execnowait(char *cmd,char *p1,char *p2,char *p3);
 
 /* emsi.c */
 extern int (*receive_callback)(char *fn);
-extern char *emsireq;
-extern char *emsiack;
-extern char *emsiinq;
-extern char *emsinak;
-extern char *emsidat;
 extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 						  unsigned long files, int lopt, char *protos,
 						  falist_t *adrs, int showpwd);
-extern char *emsi_tok(char **b, char *kc);
-extern int hexdcd(char c, char d);
-extern void emsi_dcds(char *s);
 extern int emsi_parsedat(char *str, ninfo_t *dat);
 extern void emsi_log(ninfo_t *e);
 extern int emsi_send(int mode, unsigned char *dat);
@@ -172,12 +164,10 @@ extern int freq_pktcount;
 /* for chat */
 extern void chatinit(int prot);
 extern void c_devrecv(unsigned char *str,unsigned len);
-extern void getipcm();
 extern int rxstatus,chatlg;
-extern unsigned short qsndbuflen;
 extern long chattimer;
-extern unsigned char qsnd_buf[16384];
-extern unsigned char qrcv_buf[MSG_BUFFER];
+
+extern void getevt();
 
 /* md5.c */
 void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
