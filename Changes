@@ -2,6 +2,9 @@ Version 0.49.2
 ~~~~~~~~~~~~~~
 - Новая возможность: dialdelta, случайное изменение dialdelay
   (Patch from Sir Raorn <raorn@binec.ru>)
+- Новый параметр у configure: --with-tcp-speed=XXX, 115200 по умолчанию.
+- Новый параметр у configure: --with-default-speed=XXX, 9600 по умолчанию.
+- bugifx: Часть `:speed' в описании порта теперь действительно optional
 - bugfix: С AMIGA4D теперь собираемся.
 - bugifx: Учитываются subst'ы при звонке по `-c'
 - bugifx: Исправлен баг в Hydra по рецепту Игоря Ванина и GPMail'а

@@ -44,6 +44,20 @@ AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
 CONFIG=$with_config
 AC_MSG_RESULT($CONFIG)
 
+dnl TCP Speed
+AC_MSG_CHECKING([for TCP connection speed])
+AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ], , with_tcp_speed=115200)
+AC_DEFINE_UNQUOTED(TCP_SPEED, $with_tcp_speed)
+TCP_SPEED=$with_tcp_speed
+AC_MSG_RESULT($TCP_SPEED)
+
+dnl Default Speed
+AC_MSG_CHECKING([for default port locking speed])
+AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ], , with_default_speed=9600)
+AC_DEFINE_UNQUOTED(DEFAULT_SPEED, $with_default_speed)
+DEFAULT_SPEED=$with_default_speed
+AC_MSG_RESULT($DEFAULT_SPEED)
+
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
 AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
@@ -85,5 +99,7 @@ AC_SUBST(VERSION)
 AC_SUBST(QCCLIBS)
 AC_SUBST(QCC)
 AC_SUBST(CONFIG)
+AC_SUBST(TCP_SPEED)
+AC_SUBST(DEFAULT_SPEED)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)

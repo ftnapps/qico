@@ -6,8 +6,6 @@
 
 #undef CURS_HAVE_MVVLINE
 
-#define TCP_SPEED 115200 
-
 #define MAX_PATH 256
 
 #define MAX_NODELIST 32
@@ -20,5 +18,6 @@
 
 #undef CONFIG
 
+#undef TCP_SPEED
 
-
+#undef DEFAULT_SPEED
