@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.3 2001/03/20 13:43:01 lev Exp $
+ * $Id: xmem.c,v 1.4 2001/03/20 15:00:16 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -86,6 +86,6 @@ char *restrcat(char **dst, char *src)
 {
 	if (!src) return *dst;
 	if (!*dst) return *dst=xstrdup(src?src:"");
-	*dst = xrealloc(strlen(*dst) + strlen(src) + 1);
+	*dst = xrealloc(*dst, strlen(*dst) + strlen(src) + 1);
 	return strcat(*dst,src);
 }
