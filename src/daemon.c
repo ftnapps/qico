@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.17 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: daemon.c,v 1.18 2004/03/09 23:11:57 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -660,6 +660,10 @@ void daemon_mode()
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
+						if(cfgs(CFG_RUNONCALL)) {
+							snprintf(buf,MSG_BUFFER,"%s %s %s",ccs,ftnaddrtoa(&current->addr),is_ip?rnode->host:rnode->phone);
+							if((rc=execsh(buf)))write_log("exec '%s' returned rc=%d",buf,rc);
+						}
 						if(is_ip)rc=tcp_call(rnode->host,&current->addr);
 						    else {
 							if(rnode->hidnum) {

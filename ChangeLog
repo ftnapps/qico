@@ -1,3 +1,9 @@
+2004-03-09 01:41  sisoft
+
+	* Changes, README, configure.in, debian/changelog:
+
+	0.53si-cvs.
+	
 2004-03-09 01:02  sisoft
 
 	* configure.in, src/basename.c, src/malloc.c, src/memcmp.c,
