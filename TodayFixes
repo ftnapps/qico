@@ -1,14 +1,12 @@
-/* $Id: TodayFixes,v 1.79 2004/06/07 18:50:51 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.80 2004/06/08 11:11:44 sisoft Exp $ */
+---
+fix receiving files from last position after abort, not from begin.
+.
+previous:
 ---
 change version to 0.55si.
 release 0.54si (cvs tag - stbl54).
 add 'make deb' target for make debian packages.
 begin write perl support code.
 add configure option --enable-perl and keyword 'perlfile'.
-.
-previous:
----
-fix sending *.req if ASO used.
-add if-expressions 'mailer' and 'exec'.
-other small changes.
 .
