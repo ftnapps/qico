@@ -1,9 +1,9 @@
-/* $Id: TodayFixes,v 1.69 2004/05/29 11:54:16 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.70 2004/05/29 11:56:32 sisoft Exp $ */
 ---
-add FreeBSD port (stuff/freebsd) from Andrey Slusar.
-add RedHat spec file.
+remove src/execsh.c.
 .
 previous:
 ---
-add mistaked modem.c.
+add FreeBSD port (stuff/freebsd) from Andrey Slusar.
+add RedHat spec file.
 .
