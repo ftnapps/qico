@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.69 2003/03/10 15:58:11 cyrilm Exp $
+ * $Id: main.c,v 1.70 2003/03/12 17:59:38 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -195,6 +195,7 @@ void daemon_mode()
 	ftnaddr_t fa;
 	slist_t *sl;
 	int mailonly, hld;
+	int rescanperiod;
 
 
 	/* Change our root, if we are asked for */ 
@@ -251,8 +252,9 @@ void daemon_mode()
 	srand(time(NULL));
 	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 	while(1) {
-		title("Queue manager [%d]", cfgi(CFG_RESCANPERIOD)-t_rescan);
-		if(t_rescan>=cci || do_rescan) {
+		rescanperiod = cfgi(CFG_RESCANPERIOD);
+		title("Queue manager [%d]", rescanperiod-t_rescan);
+		if(t_rescan>=rescanperiod || do_rescan) {
 			do_rescan=0;
 			sline("Rescanning outbound...");
 			if(!q_rescan(&current)) 
