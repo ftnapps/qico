@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.21 2003/03/12 19:00:52 cyrilm Exp $
+ * $Id: qcc.c,v 1.22 2003/03/13 20:30:56 cyrilm Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -454,7 +454,8 @@ int main(int argc, char **argv)
 	int quitflag=0, len, ch, rc, type, pid;
 	fd_set rfds;
 	struct timeval tv;
-	char buf[MSG_BUFFER], *data, c, *p;
+	char buf[MSG_BUFFER], c;
+	unsigned char *p,*data;
 	time_t tim;
 	struct tm *tt;
 	key_t qipc_key;
@@ -519,7 +520,7 @@ int main(int argc, char **argv)
 			len=FETCH32(buf+4);
 			pid=FETCH32(buf+8);
 			type=buf[12];
-			data=strchr(buf+13,0)+1;
+			data=(unsigned char*)(strchr(buf+13,0)+1);
 			data[len]=0;
 			if(strcmp(buf+13, "master")) {
 				rc=findslot(buf+13);
@@ -538,17 +539,17 @@ int main(int argc, char **argv)
 					freshhdr();wrefresh(whdr);
 				}
 				if(type==QC_SLINE) {
-					strefresh(&slots[rc]->status, data);
+					strefresh(&slots[rc]->status, (char *)data);
 					freshstatus();wrefresh(wstat);
 				}
 				if(type==QC_LOGIT) {
-					logit(data, slots[rc]->wlog);
+					logit((char*)data, slots[rc]->wlog);
 					if(currslot==rc) {
 						wrefresh(slots[rc]->wlog);
 					}
 				}
 				if(type==QC_TITLE) {
-					strefresh(&slots[rc]->header, data);
+					strefresh(&slots[rc]->header, (char*)data);
 					if(currslot==rc) {
 						freshhdr();wrefresh(whdr);
 					}
@@ -567,12 +568,12 @@ int main(int argc, char **argv)
 						slots[rc]->speed=FETCH16(p);INC16(p);
 						slots[rc]->options=FETCH32(p);INC32(p);
 						slots[rc]->start=FETCH32(p);INC32(p);
-						strefresh(&slots[rc]->name, p);p+=strlen(p)+1;
-						strefresh(&slots[rc]->sysop, p);p+=strlen(p)+1;
-						strefresh(&slots[rc]->city, p);p+=strlen(p)+1;
-						strefresh(&slots[rc]->flags, p);p+=strlen(p)+1;
-						strefresh(&slots[rc]->phone, p);p+=strlen(p)+1;
-						strefresh(&slots[rc]->addrs, p);
+						strefresh(&slots[rc]->name, (char *)p);p+=strlen((char *)p)+1;
+						strefresh(&slots[rc]->sysop, (char *)p);p+=strlen((char *)p)+1;
+						strefresh(&slots[rc]->city, (char *)p);p+=strlen((char *)p)+1;
+						strefresh(&slots[rc]->flags, (char *)p);p+=strlen((char *)p)+1;
+						strefresh(&slots[rc]->phone, (char *)p);p+=strlen((char *)p)+1;
+						strefresh(&slots[rc]->addrs, (char *)p);
 						slots[rc]->session=1;
 					}
 					if(currslot==rc) {								
@@ -593,7 +594,7 @@ int main(int argc, char **argv)
 					if(!len) {
 						bzero(&slots[rc]->s, sizeof(pfile_t));
 					} else {
-						char *p=data;
+						p=data;
 						
 						slots[rc]->session=1;
 						xfree(slots[rc]->s.fname);
@@ -610,7 +611,7 @@ int main(int argc, char **argv)
 						slots[rc]->s.start=FETCH32(p);INC32(p);
 						slots[rc]->s.mtime=FETCH32(p);INC32(p);
 						
-						slots[rc]->s.fname=strdup(p);
+						slots[rc]->s.fname=strdup((char *)p);
 					}
 					if(currslot==rc) {								
 						freshslot();wrefresh(wmain);
@@ -620,7 +621,7 @@ int main(int argc, char **argv)
 					if(!len) {
 						bzero(&slots[rc]->r, sizeof(pfile_t));
 					} else {
-						char *p=data;
+						p=data;
 						
 						slots[rc]->session=1;
 						xfree(slots[rc]->r.fname);
@@ -637,7 +638,7 @@ int main(int argc, char **argv)
 						slots[rc]->r.start=FETCH32(p);INC32(p);
 						slots[rc]->r.mtime=FETCH32(p);INC32(p);
 						
-						slots[rc]->r.fname=strdup(p);
+						slots[rc]->r.fname=strdup((char *)p);
 					}
 					if(currslot==rc) {								
 						freshslot();wrefresh(wmain);
@@ -646,19 +647,19 @@ int main(int argc, char **argv)
 						
 			} else {
 				if(type==QC_SLINE) {
-					strefresh(&m_status, data);
+					strefresh(&m_status, (char *)data);
 					if(currslot<0) {
 						freshstatus();wrefresh(wstat);
 					}
 				}
 				if(type==QC_TITLE) {
-					strefresh(&m_header, data);
+					strefresh(&m_header, (char *)data);
 					if(currslot<0) {
 						freshhdr();wrefresh(whdr);
 					}
 				}
 				if(type==QC_LOGIT) {
-					logit(data, wlog);
+					logit((char *)data, wlog);
 					if(currslot<0) {
 						wrefresh(wlog);
 					}
@@ -672,15 +673,15 @@ int main(int argc, char **argv)
 						q_first=1;
 						q_pos=1;
 					} else {
-						char *p=data;
 						qslot_t *q=addqueue(&queue);
+						p = data;
 						q_max=q->n;
 						
 						q->mail=FETCH32(p);INC32(p);
 						q->files=FETCH32(p);INC32(p);
 						q->flags=FETCH32(p);INC32(p);
 						q->try=FETCH16(p);INC16(p);
-						q->addr=strdup(p);
+						q->addr=strdup((char *)p);
 
 						if(lastfirst>=q->n) q_first=q->n;
 						if(lastpos>=q->n) q_pos=q->n;
