@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.19 2003/01/20 08:35:05 cyrilm Exp $
+ * $Id: qcc.c,v 1.19.4.1 2003/01/29 07:42:17 cyrilm Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -19,11 +19,14 @@
 #include <time.h>
 #include <signal.h>
 #ifdef HAVE_NCURSES_H
-#include <ncurses.h>
+# include <ncurses.h>
 #else
-#ifdef HAVE_CURSES_H
-#include <curses.h>
+# ifdef HAVE_CURSES_H
+#  include <curses.h>
+# endif
 #endif
+#ifndef GWINSZ_IN_SYS_IOCTL
+# include <termios.h>
 #endif
 #include "qcconst.h"
 #include "ver.h"

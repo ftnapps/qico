@@ -20,6 +20,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
+AC_HEADER_TIOCGWINSZ
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h errno.h])
 dnl FreeBSD 3.x have setproctitle(2) in libutil.h
 dnl FreeBSD 4.x have basename(2) in libgen.h
