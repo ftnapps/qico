@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.13 2001/03/20 15:02:34 lev Exp $
+# $Id: Makefile.in,v 1.14 2001/03/20 19:51:00 lev Exp $
 #
 
 prefix  = @prefix@
@@ -32,11 +32,12 @@ QCLIBS  = @QCCLIBS@
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o session.o call.o qnlc.o qipc.o tcp.o \
-          hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o xmem.o $(LIBOBJS)
+          hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o \
+          xmem.o xstr.o $(LIBOBJS)
 
 
 QCCOBJS	= qcc.o ver.o
-QCTLOBJS= qctl.o ver.o gmtoff.o $(LIBOBJS)
+QCTLOBJS= qctl.o ver.o gmtoff.o xstr.o $(LIBOBJS)
 
 LIBSRCS=$(LIBOBJS:.o=.c)
 
