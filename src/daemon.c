@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.9 2004/01/23 12:44:09 sisoft Exp $
+ * $Id: daemon.c,v 1.10 2004/01/26 21:24:46 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_FNOTIFY
@@ -637,6 +637,7 @@ void daemon_mode()
 				}
 				if(!(rnode->opt&(MO_BINKP|MO_IFC)))xfree(rnode->host);
 				DEBUG(('Q',1,"ndl: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
+				if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 				if(checktimegaps(cfgs(CFG_CANCALL))&&find_dialable_subst(rnode,havestatus(f,CFG_IMMONFLAVORS),psubsts)) {
 					xfree(rnode->tty);
 					if(rnode->host) {
@@ -652,7 +653,6 @@ void daemon_mode()
 						port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
 						if(!port){DEBUG(('Q',3,"nottyport"));goto nlkil;}
 						rnode->tty=xstrdup(baseport(port));
-						if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 					}
 					dable=1;current->flv|=Q_DIAL;
 					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
@@ -664,7 +664,7 @@ void daemon_mode()
 #endif						
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
-						if(cfgi(CFG_TRANSLATESUBST)==1&&!is_ip)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
+						if(!is_ip&&cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 						log_done();ssock=uis_sock=lins_sock=-1;
 						log_callback=NULL;xsend_cb=NULL;
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
