@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.14 2001/03/17 19:42:22 lev Exp $
+ * $Id: ls_zsend.c,v 1.15 2001/03/20 16:54:41 lev Exp $
  **********************************************************/
 /*
 
@@ -229,7 +229,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 	strcpy(txbuf,f->name);
 	p = txbuf + strlen(f->name);
 	*p = '\x00'; p++;
-	sprintf(p,"%ld %lo %o %o %ld %ld",f->size,f->mtime,(int)0,(int)sernum,f->filesleft,f->bytesleft);
+	snprintf(p,1024-(p-(char*)txbuf+1),"%ld %lo %o %o %ld %ld",f->size,f->mtime,(int)0,(int)sernum,f->filesleft,f->bytesleft);
 	finfolen = strlen(txbuf) + strlen(p) + 2;
 
 	do {

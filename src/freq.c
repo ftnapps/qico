@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.10 2001/03/20 15:02:35 lev Exp $
+ * $Id: freq.c,v 1.11 2001/03/20 16:54:40 lev Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -20,7 +20,7 @@ int freq_ifextrp(slist_t *reqs)
 	if(rnode->options&O_LST) priv='l';
 	if(rnode->options&O_PWD) priv='p';
 	
-	sprintf(fn,"/tmp/qreq.%04lx",(long)getpid());
+	snprintf(fn,MAX_PATH,"/tmp/qreq.%04lx",(long)getpid());
 	f=fopen(fn,"wt");
 	if(!f) {
 		write_log("can't open '%s' for writing",fn);return got;
@@ -32,19 +32,19 @@ int freq_ifextrp(slist_t *reqs)
 	}
 	fclose(f);
 	
-	sprintf(s, "%s -wazoo -%c -s%d %s /tmp/qreq.%04lx /tmp/qfls.%04lx /tmp/qrep.%04lx",
+	snprintf(s, MAX_PATH, "%s -wazoo -%c -s%d %s /tmp/qreq.%04lx /tmp/qfls.%04lx /tmp/qrep.%04lx",
 			cfgs(CFG_EXTRP), priv, rnode->realspeed,
 			ftnaddrtoa(&rnode->addrs->addr), (long)getpid(),(long)getpid(),(long)getpid());
 	write_log("exec '%s' returned rc=%d", s,
 		execsh(s));
 	lunlink(fn);
 	
-	sprintf(fn,"/tmp/qfls.%04lx",(long)getpid());
+	snprintf(fn, MAX_PATH, "/tmp/qfls.%04lx",(long)getpid());
 	f=fopen(fn,"rt");
 	if(!f) {
-		sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
+		snprintf(fn, MAX_PATH, "/tmp/qrep.%04lx", (long)getpid());
 		lunlink(fn);
-		sprintf(fn,"/tmp/qfls.%04lx",(long)getpid());
+		snprintf(fn, MAX_PATH, "/tmp/qfls.%04lx", (long)getpid());
 		lunlink(fn);
 		write_log("can't open '%s' for reading",fn);return got;
 	}
@@ -59,11 +59,11 @@ int freq_ifextrp(slist_t *reqs)
 	}
 	fclose(f);lunlink(fn);
 	
-	sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
+	snprintf(fn, MAX_PATH, "/tmp/qrep.%04lx", (long)getpid());
 	f=fopen(fn,"rt");
 	if(!f) write_log("can't open '%s' for reading",fn);
 	
-	sprintf(fn,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
+	snprintf(fn, MAX_PATH, "/tmp/qpkt.%04lx%02x", (long)getpid(), freq_pktcount);
 	g=openpktmsg(ma, &rnode->addrs->addr,
 				 rnode->sysop,cfgs(CFG_FREQFROM),
 				 cfgs(CFG_FREQSUBJ),rnode->pwd,fn);
@@ -78,17 +78,17 @@ int freq_ifextrp(slist_t *reqs)
 			fputs(s,g);fputc('\r',g);
 		}
 		fclose(f);
-		sprintf(s, "%s-%s/%s",
+		snprintf(s,  MAX_PATH, "%s-%s/%s",
 			cfgs(CFG_PROGNAME) == NULL ? progname :	cfgs(CFG_PROGNAME),
 			cfgs(CFG_VERSION)  == NULL ? version  :	cfgs(CFG_VERSION),
 			cfgs(CFG_OSNAME)   == NULL ? osname   : cfgs(CFG_OSNAME));
 		closepkt(g, ma, s, cfgs(CFG_STATION));
-		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);p=xstrdup(s);
-		sprintf(s,"%08lx.pkt", sequencer());
+		snprintf(s, MAX_PATH, "/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);p=xstrdup(s);
+		snprintf(s, MAX_PATH, "%08lx.pkt", sequencer());
 		addflist(&fl, p, xstrdup(s), '^',0,NULL,0);
 		freq_pktcount++;
 	}
-	sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());
+	snprintf(fn, MAX_PATH, "/tmp/qrep.%04lx",(long)getpid());
 	lunlink(fn);
 	
 	return got;

@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.7 2000/11/26 13:17:34 lev Exp $
+ * $Id: qnlc.c,v 1.8 2001/03/20 16:54:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -33,13 +33,13 @@ int compile_nodelists()
 	ie.addr.f=0;ie.addr.p=0;
 
 	setbuf(stdout, NULL);
-	sprintf(fn,"%s/%s.lock", cfgs(CFG_NLPATH), NL_IDX);
+	snprintf(fn,MAX_PATH,"%s/%s.lock", cfgs(CFG_NLPATH), NL_IDX);
 	lockpid(fn);
-	sprintf(fn,"%s/%s", ccs, NL_IDX);
+	snprintf(fn,MAX_PATH,"%s/%s", ccs, NL_IDX);
 	idx=fopen(fn, "wb");
 	if(!idx) {
 		write_log("can't open nodelist index %s for writing!",fn);
-		sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+		snprintf(fn,MAX_PATH,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 		return 0;		
 	}
 	fseek(idx, sizeof(idxh), SEEK_SET);
@@ -56,7 +56,7 @@ int compile_nodelists()
 			if(!d) {
 				write_log("can't open nodelist directory %s!",ccs);
 				fclose(idx);
-				sprintf(fn,"%s/%s.lock",ccs, NL_IDX);unlink(fn);
+				snprintf(fn,MAX_PATH,"%s/%s.lock",ccs, NL_IDX);unlink(fn);
 				return 0;
 			}
 			max=-1;
@@ -73,12 +73,12 @@ int compile_nodelists()
 			if(max<0) 
 				write_log("no lists matching %s.[0-9]", s);
 			else {
-				sprintf(idxh.nlname[i], "%s.%03d", s, max);
-				sprintf(fn, "%s/%s.%03d", ccs, s, max);
+				snprintf(idxh.nlname[i],20,"%s.%03d", s, max);
+				snprintf(fn,MAX_PATH,"%s/%s.%03d", ccs, s, max);
 			}
 		} else {
 			strcpy(idxh.nlname[i], s);
-			sprintf(fn, "%s/%s", ccs, s);
+			snprintf(fn, MAX_PATH, "%s/%s", ccs, s);
 		}
 		if(!*fn) continue;
 		if(!stat(fn,&sb)) idxh.nltime[i]=sb.st_mtime;
@@ -115,7 +115,7 @@ int compile_nodelists()
 				if(ie.addr.z < 0 || ie.addr.n < 0 || ie.addr.f < 0 || ie.addr.p < 0) {
 					write_log("can not parse address in %s at line %d!",basename(fn),line);
 					fclose(idx);
-					sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+					snprintf(fn, MAX_PATH,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 					return 0;
 				}
 				ie.offset=pos;ie.index=i;
@@ -123,7 +123,7 @@ int compile_nodelists()
 				if(fwrite(&ie, sizeof(ie), 1, idx)!=1) {
 					write_log("can't write to index!");
 					fclose(idx);
-					sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+					snprintf(fn, MAX_PATH, "%s/%s.lock", ccs, NL_IDX);unlink(fn);
 					return 0;
 				}
 			}
@@ -140,6 +140,6 @@ int compile_nodelists()
 	if(fwrite(&idxh, sizeof(idxh), 1, idx)!=1) 
 		write_log("can't write to index!");
 	fclose(idx);
-	sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+	snprintf(fn, MAX_PATH, "%s/%s.lock", ccs, NL_IDX);unlink(fn);
 	return 1;
 }

@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.8 2001/03/20 15:02:37 lev Exp $
+ * $Id: queue.c,v 1.9 2001/03/20 16:54:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -100,6 +100,7 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 	DIR *d;struct dirent *de;struct stat sb;
 	char *p;
 	off_t total=0;
+	int len;
 	
 	if(!stat(name, &sb)) {
 		if(sb.st_mtime!=*mtime) {
@@ -107,8 +108,9 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 			d=opendir(name);
 			if(d) {
 				while((de=readdir(d))) {
-					p=xmalloc(strlen(name)+2+strlen(de->d_name));
-					sprintf(p,"%s/%s", name, de->d_name);
+					len=strlen(name)+2+strlen(de->d_name);
+					p=xmalloc(len);
+					snprintf(p,len,"%s/%s", name, de->d_name);
 					if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) 
 						total+=sb.st_size;
 					xfree(p);
@@ -129,6 +131,7 @@ void rescan_boxes()
 	qitem_t *q;
 	DIR *d;struct dirent *de;
 	ftnaddr_t a;char *p;
+	int len;
 
 	for(i=cfgfasl(CFG_FILEBOX);i;i=i->next) {
 		q=q_add(&i->addr);
@@ -146,8 +149,9 @@ void rescan_boxes()
 			while((de=readdir(d))) 
 				if(sscanf(de->d_name, "%hd.%hd.%hd.%hd",
 						  &a.z, &a.n, &a.f, &a.p)==4) {
-					p=xmalloc(strlen(ccs)+2+strlen(de->d_name));
-					sprintf(p,"%s/%s", ccs, de->d_name);
+					len=strlen(ccs)+2+strlen(de->d_name);
+					p=xmalloc(len);
+					snprintf(p,len,"%s/%s", ccs, de->d_name);
 					q=q_add(&a);
 					q_recountbox(p, &q->sizes[5], &q->times[5]); 
 					if(q->sizes[4]!=0) {

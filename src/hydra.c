@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.14 2001/03/20 15:02:35 lev Exp $
+ * $Id: hydra.c,v 1.15 2001/03/20 16:54:40 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -775,14 +775,14 @@ int hydra_file(char *txpathname, char *txalias)
 			/*---------------------------------------------------------*/
 		case HTX_INIT:
 			p = (char *) txbufin;
-			sprintf(p,"%08lx%s,%s %s",
+			snprintf(p,1024-(p-(char*)txbufin),"%08lx%s,%s %s",
 					H_REVSTAMP, progname, version, osname);
 			p += ((int) strlen(p)) + 1;/* our app info & HYDRA rev. */
 			put_flags(p,h_flags,HCAN_OPTIONS);    /* what we CAN  */
 			p += ((int) strlen(p)) + 1;
 			put_flags(p,h_flags,options);         /* what we WANT */
 			p += ((int) strlen(p)) + 1;
-			sprintf(p,"%08lx%08lx",               /* TxRx windows */
+			snprintf(p,1024-(p-(char*)txbufin),"%08lx%08lx",               /* TxRx windows */
 					hydra_txwindow,hydra_rxwindow);
 			p += ((int) strlen(p)) + 1;
 			strcpy(p,pktprefix);     /* pkt prefix string we want */
@@ -798,7 +798,7 @@ int hydra_file(char *txpathname, char *txalias)
 			/*---------------------------------------------------------*/
 		case HTX_FINFO:
 			if (txfd) {
-				sprintf((char *) txbufin,"%08lx%08x%08lx%08lx%08x%s",
+				snprintf((char *) txbufin, 1024, "%08lx%08x%08lx%08lx%08x%s",
 						sendf.mtime, sendf.ftot, 0L, 0L,
 						(sendf.nf==1)?sendf.allf:sendf.nf,
 						fnc(sendf.fname));
@@ -1191,7 +1191,7 @@ int hydra_file(char *txpathname, char *txalias)
 						braindead = h_timer_set(H_BRAINDEAD);
 						rxpktlen -= 4;
 						rxblklen = rxpktlen;
-						sprintf(tmp, "%s/tmp/%s", ccs, recvf.fname);
+						snprintf(tmp, 255, "%s/tmp/%s", ccs, recvf.fname);
 						if (stat(tmp, &statf) && errno == ENOENT)
 						{
 						 rxclose(&rxfd, FOP_SKIP);

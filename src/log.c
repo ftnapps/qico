@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.12 2001/03/20 15:02:35 lev Exp $
+ * $Id: log.c,v 1.13 2001/03/20 16:54:41 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -113,7 +113,7 @@ void vwrite_log(char *fmt, char *prefix, va_list args)
 	tt=time(NULL);t=localtime(&tt);
 	strftime(str, 20, "%d %b %y %H:%M:%S", t);
 
-	sprintf(str+18, " %s[%ld]: ", log_tty?log_tty:"", (long)getpid());
+	snprintf(str+18, MAX_STRING*16 - 18, " %s[%ld]: ", log_tty?log_tty:"", (long)getpid());
 	p=str+strlen(str);
 	if(prefix && *prefix) {
 		strcpy(p,prefix);
