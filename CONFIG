@@ -22,7 +22,7 @@ BPERM   = 06755
 MORDA	 = 1
 
 # Please, set it under FreeBSD
-FREE_BSD=1
+#FREE_BSD=1
 
 # communication socket
 DEFS    += -DQIPC_SOCKET=\"/tmp/qlog\"
@@ -66,5 +66,5 @@ YACC    = yacc
 #LIBS=-lutil
 
 #
-# $Id: CONFIG,v 1.11 2000/10/12 19:13:16 lev Exp $
+# $Id: CONFIG,v 1.12 2000/10/12 19:13:39 lev Exp $
 #
