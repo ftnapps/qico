@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.27 2001/03/23 20:46:55 lev Exp $
+ * $Id: emsi.c,v 1.28 2001/03/25 15:38:21 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -85,7 +85,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	xstrcat(dat, tmp, EMSI_BUF);
 	snprintf(tmp, 1024, "%04X", strlen(dat)-14);
 	memcpy(dat+10,tmp,4);
-	snprintf(tmp, 1024, "%04X",crc16s(dat+2));
+	snprintf(tmp, 1024, "%04X",crc16usds(dat+2));
 	xstrcat(dat, tmp, EMSI_BUF);
 	return dat;
 }
@@ -150,7 +150,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	sscanf(str+10, "%04X", &l);
 	if(l!=strlen(str)-18) return 0;
 	sscanf(str+strlen(str)-4, "%04X", &l);
-	if(l!=crc16(str+2, strlen(str)-6)) return 0;
+	if(l!=crc16usd(str+2, strlen(str)-6)) return 0;
 	if(strncmp(str+14, "{EMSI}",6)) return 0;
 	t=str+20;
 	str[0]=1;

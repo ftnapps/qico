@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.15 2001/03/20 16:54:40 lev Exp $
+ * $Id: janus.c,v 1.16 2001/03/25 15:38:21 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -459,21 +459,21 @@ void sendpkt(byte *buf, int len, int type)
 		return;
 	}
 
-	DEBUG(('J',1,"sendpkt %d bytes, type:%c", len ,type));
+	DEBUG(('J',1,"sendpkt %d bytes, type:%c", len, type));
 
 	BUFCLEAR();
 	
 	BUFCHAR(DLE);
 	BUFCHAR(PKTSTRTCHR^0x40);
 
-	crc=0;
+	crc=CRC16USD_INIT;
 	while(--len>=0) {
 		txbyte(*buf);
-		crc = xcrc(crc, *buf++);
+		crc = CRC16USD_UPDATE(*buf++,crc);
 	}
 
 	BUFCHAR(type);
-	crc=xcrc(crc,type);
+	crc=CRC16USD_FINISH(CRC16USD_UPDATE(type,crc));
 
 	BUFCHAR(DLE);
 	BUFCHAR(PKTENDCHR^0x40);
@@ -491,16 +491,17 @@ void sendpkt32(byte * buf, register int len, int type)
 	BUFCHAR (DLE);
 	BUFCHAR (PKTSTRTCHR32 ^ 0x40);
 
-	crc32 = 0xFFFFFFFF;
+	DEBUG(('J',1,"sendpkt32 %d bytes, type:%c", len, type));
+
+	crc32 = CRC32_INIT;
 	while (--len >= 0)
 	{
 		txbyte(*buf);
-		crc32=xcrc32(crc32,*buf);
-		++buf;
+		crc32=CRC32_UPDATE(*buf++,crc32);
 	}
 
 	BUFCHAR ((byte) type);
-	crc32 = xcrc32(crc32,type);
+	crc32 = CRC32_UPDATE(type,crc32);
 
 	BUFCHAR (DLE);
 	BUFCHAR (PKTENDCHR ^ 0x40);
@@ -568,6 +569,7 @@ byte rcvpkt()
 	byte *p;
 	int c, i;
 	unsigned int pktcrc;
+	unsigned int clccrc;
 
 	/*-------------------------------------------------------------------------*/
 	/* If not accumulating packet yet, find start of next packet               */
@@ -609,8 +611,9 @@ byte rcvpkt()
 			if ((c=rcvbyte(timeout)) < 0) break;
 			pktcrc=(pktcrc<<8)|c;
 		}                                                               
-		
-		if(!i && pktcrc==(is32?crc32cc(rxbuf, p-rxbuf):crc16(rxbuf, p-rxbuf))) {
+		clccrc=(is32?crc32(rxbuf, p-rxbuf):crc16usd(rxbuf, p-rxbuf));
+		DEBUG(('J',1,"recvpkt: CRC%d is %08x, got %08x",is32?32:16,clccrc,pktcrc));
+		if(!i && pktcrc==clccrc) {
 			/*---------------------------------------------------------------*/
 			/* Good packet verified; compute packet data length and return   */
 			/* packet type                                                   */
