@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.1 2001/02/15 20:32:34 lev Exp $
+ * $Id: xmem.c,v 1.2 2001/02/17 13:43:57 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -11,7 +11,7 @@ void *xmalloc(size_t size)
 	void *p = malloc(size);
 	if (p) return p;
 	write_log("!!! xmalloc(): could not allocate %d bytes of memory",size);
-	exit(255);
+	abort();
 	return NULL;
 }
 
@@ -20,7 +20,7 @@ void *xcalloc(size_t number, size_t size)
 	void *p = calloc(number,size);
 	if (p) return p;
 	write_log("!!! xcalloc(): could not allocate %dx%d bytes of memory",number,size);
-	exit(255);
+	abort();
 	return NULL;
 }
 
@@ -29,7 +29,7 @@ void *xrealloc(void *ptr, size_t size)
 	void *p = realloc(ptr,size);
 	if (p) return p;
 	write_log("!!! xrelloc(): could not allocate %d bytes of memory",size);
-	exit(255);
+	abort();
 	return NULL;
 }
 
@@ -39,7 +39,7 @@ char *xstrdup(char *str)
 	char *s = strdup(str);
 	if (s) return s;
 	write_log("!!! xstrdup(): could not duplicate string");
-	exit(255);
+	abort();
 	return NULL;
 }
 
