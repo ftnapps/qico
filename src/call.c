@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.7 2003/01/22 07:50:11 cyrilm Exp $
+ * $Id: call.c,v 1.8 2003/01/25 18:18:33 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -10,10 +10,25 @@
 
 char *mcs[]={"ok", "fail", "error", "busy"};
 
+int alive()
+{
+	char *ac;
+	int rc=MC_OK;
+
+	ac=cfgs(CFG_MODEMALIVE);
+	DEBUG(('M',4,"alive: checking modem..."));
+	rc=modem_chat(ac, cfgsl(CFG_MODEMOK),
+			  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
+			  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
+			  2, NULL, 0);
+	if (rc!=MC_OK) DEBUG(('M',3,"alive: failed, rc=%d",rc));
+	return rc;
+}
+
 int hangup()
 {
 	slist_t *hc;
-	int rc=MC_FAILURE;
+	int rc=MC_FAIL;
 	int to=cfgi(CFG_WAITRESET);
 	int t1;
 
@@ -65,21 +80,6 @@ int stat_collect()
 			cur_stat=p;
 			}
 		}
-	return rc;
-}
-
-int alive()
-{
-	char *ac;
-	int rc=MC_OK;
-
-	ac=cfgs(CFG_MODEMALIVE);
-	DEBUG(('M',4,"alive: checking modem..."));
-	rc=modem_chat(ac, cfgsl(CFG_MODEMOK),
-			  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
-			  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
-			  2, NULL, 0);
-	if (rc!=MC_OK) DEBUG(('M',3,"alive: failed, rc=%d",rc));
 	return rc;
 }
 
