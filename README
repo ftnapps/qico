@@ -1,6 +1,6 @@
 ,sS$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ss,
 $$$$'                    qico, an ftn compatible mailer                    `$$$$
-$$$$.                          * version 0.53si *                          ,$$$$
+$$$$.                          * version 0.55si *                          ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
 Features
@@ -144,14 +144,14 @@ Notes
 Download
 ~~~~~~~~
 current:
- web: http://www.sf.net/projects/qico -> files -> qico-0.53si.tar.bz2
- cvs: cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico login
-      cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico co qicosi
+ web: http://www.sf.net/projects/qico -> files -> qico-0.55si.tar.bz2
+ cvs: cvs -d:pserver:anonymous@cvs.sf.net:/cvsroot/qico login
+      cvs -d:pserver:anonymous@cvs.sf.net:/cvsroot/qico co qicosi
 
 stable:
- web: http://www.sf.net/projects/qico -> files -> qico-0.52si.tar.bz2
- cvs: cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico login
-      cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico co -r stbl52 qicosi
+ web: http://www.sf.net/projects/qico -> files -> qico-0.54si.tar.bz2
+ cvs: cvs -d:pserver:anonymous@cvs.sf.net:/cvsroot/qico login
+      cvs -d:pserver:anonymous@cvs.sf.net:/cvsroot/qico co -r stbl54 qicosi
 
 Authors
 ~~~~~~~
@@ -160,4 +160,4 @@ Lev Serebryakov, 2:5030/661, lev@serebryakov.spb.ru, icq 3670018 (up to 0.49.9)
 Cyril Margorin, 2:5020/2999.18, cyrilm@tower.pp.ru (official branch)
 Stepan Pologov, 2:467/126.125, sisoft@bk.ru (current)
 
-/* $Id: README,v 1.21 2004/05/24 03:21:35 sisoft Exp $ */
+/* $Id: README,v 1.22 2004/06/07 18:50:51 sisoft Exp $ */

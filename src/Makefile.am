@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.17 2004/05/31 13:19:59 sisoft Exp $
+# $Id: Makefile.am,v 1.18 2004/06/07 18:51:07 sisoft Exp $
 sbin_PROGRAMS = qico
 bin_PROGRAMS = qctl @QCC@
 EXTRA_PROGRAMS = qcc
@@ -8,7 +8,7 @@ noinst_HEADERS = binkp.h charset.h clserv.h crc.h cvsdate.h defs.h \
 		 mailer.h qcconst.h replace.h tty.h types.h \
 		 qconf.x qconf.h qipc.h qslib.h tools.h
 
-EXTRA_DIST = x2c.awk
+EXTRA_DIST = x2c.awk perl.c
 
 BUILT_SOURCES = qconf.c qconf.h
 qico_SOURCES = aso.c binkp.c call.c clserv.c config.c crc.c daemon.c \
@@ -18,12 +18,16 @@ qico_SOURCES = aso.c binkp.c call.c clserv.c config.c crc.c daemon.c \
 	       qslib.c session.c tcp.c tools.c tty.c flagexp.y flaglex.l
 qctl_SOURCES = qctl.c clserv.c md5.c qslib.c
 qcc_SOURCES = qcc.c clserv.c md5.c qslib.c
-qico_LDADD = @LIBOBJS@
+qico_LDADD = @LIBOBJS@ perl.o
+qico_LDFLAGS = @PERLLDFLAGS@
 qctl_LDADD = @LIBOBJS@
 qcc_LDADD = @LIBOBJS@
 qcc_LDFLAGS = @QCCLIBS@
 
 AM_YFLAGS = -d
+
+perl.o: perl.c headers.h
+	${COMPILE} @PERLCFLAGS@ -c -o perl.o perl.c
 
 qconf.h qconf.c: qconf.x x2c.awk
 	${AWK} -F, -f x2c.awk qconf.x
