@@ -2,7 +2,7 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.4 2001/07/05 19:56:59 lev Exp $
+ * $Id: qipcng.h,v 1.5 2001/09/17 18:56:48 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
@@ -16,13 +16,7 @@ typedef struct _SESSENCCONTEXT {
 	descontext_t cx;
 } sessenccontext_t;
 
-/* Universal list descriptor -- for generic procedures */
-typedef struct _ANYLIST {
-	struct _ANYLIST *next;
-	CHAR data[];
-} anylist_t;
-
-/* One UI client -- socket (and it is unique ID), encryption context, next one */
+/* One UI client -- next one, socket (and it is unique ID), encryption context */
 typedef struct _UICLIENT {
 	struct _UICLIENT *next;
 	int socket;
@@ -30,11 +24,11 @@ typedef struct _UICLIENT {
 } uiclient_t;
 
 /* One UI <-mask-> Line relation */
-typedef struct _UI2LINE {
-	struct _UI2LINE *next;
+typedef struct _LINE2UI {
+	struct _LINE2UI *next;
 	uiclient_t *client;
 	UINT32 mask;
-} ui2line_t;
+} line2ui_t;
 
 /* State of file transfer */
 typedef struct _TRANSFERSTATE {
@@ -77,15 +71,16 @@ typedef struct _LINESTATE {
 	txrxstate_t recv;
 	ninfo_t remote;
 	CHAR *tty;
+	UINT32 speed;
 	CHAR *connect;
 	CHAR *cid;
 	CHAR *log_buffer[LOG_BUFFER_SIZE];
 	/* Internal variables */
 	int log_head,log_tail;
 	pid_t pid;
-	int socket;
+	struct sockaddr_in from;
 	time_t lastevent;
-	ui2line_t **clients;		/* Head of registered for this line clients */
+	anylist_t *clients;		/* Head of registered for this line clients */
 } linestate_t;
 
 /* Generic event structure -- for typecasting */
@@ -100,26 +95,25 @@ typedef struct _EVTLAM {
 	CHAR password[8];			/* Password, zero-padded */
 	/* Retranslated data begins here */
 	UINT32 pid;					/* Line PID */
-	CHAR fixed;					/* 0 if it is IP line (dynamic), 1 if fixed (tty) one */
+	CHAR tty[16];				/* '' if it is IP line (dynamic), name of tty if fixed (tty) one */
 	UINT8 type;					/* See EVTL2M_XXXX / EVTM2L_XXXX */
 	CHAR data[];				/* Data for event */
 } evtlam_t;
 
 /* Manager-to-UI and UI-to-manager event structure */
-typedef struct _EVTLAU {
+typedef struct _EVTUAM {
 	UINT32 fulllength;			/* Full length of following data  */
 	UINT8 type;					/* See EVTU2M_XXXX / EVTM2U_XXXX */
 	CHAR data[];				/* Data for event */
 } evtlau_t;
 
 
-
 typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 
 /* Events from lines to manager */
 #define EVTL2M_GROUP_GLOBAL		0x10	/* Very global event */
-#define EVTL2M_REGISTER			0x11	/* Register new line, set tty and mode -- answer or call */
-/* Signature: "sc" -- TTY,ANSWER. */
+#define EVTL2M_REGISTER			0x11	/* Register new line, set mode -- answer or call */
+/* Signature: "c" -- [A]NSWER/[C]ALL. */
 #define EVTL2M_CLOSE			0x12	/* Unregister line and delete it */
 /* Signature: "" */
 
@@ -170,7 +164,7 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 #define EVTL2M_LOG				0x62	/* Log string */
 /* Signature: "s" -- LINE */
 
-/* Events from line to manager */
+/* Events from manager to line */
 #define EVTM2L_HANGUP			0		/* Hang up now */
 /* Signature: "" */
 #define EVTM2L_SKIP				1		/* Skip current file */

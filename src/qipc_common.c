@@ -2,11 +2,47 @@
  * File: qipc_common.c
  * Created at Mon May 7 23:07:41 2001  by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_common.c,v 1.5 2001/07/24 14:11:26 lev Exp $
+ * $Id: qipc_common.c,v 1.6 2001/09/17 18:56:48 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
 #include "byteop.h"
+
+/* Allocate and receive IPC packet via UDP -- should be freed with xfree() */
+evtany_t *receive_ipc_packet_udp(int s, struct sockaddr_in *sa)
+{
+	BYTE bf[4];
+	UINT32 l;
+    evtany_t *pkt;
+
+	if(recvfrom(s,bf,4,MSG_PEEK,sa,sizeof(*sa))!=4) return NULL;
+	l = FETCH32(bf);
+	if(!(pkt = xmalloc(l))) return NULL;
+	if(recvfrom(s,pkt,l,MSG_WAITALL,sa,sizeof(*sa))!=l) {
+		xfree(pkt);
+		return NULL;
+	}
+	pkt->fulllength = l;
+	return pkt;
+}
+
+/* Allocate and receive IPC packet via TCP -- should be freed with xfree() */
+evtany_t *receive_ipc_packet_tcp(int s)
+{
+	BYTE bf[4];
+	UINT32 l;
+    evtany_t *pkt;
+
+	if(recv(s,bf,4,MSG_PEEK)!=4) return NULL;
+	l = FETCH32(bf);
+	if(!(pkt = xmalloc(l))) return NULL;
+	if(recv(s,pkt,l,MSG_WAITALL)!=l) {
+		xfree(pkt);
+		return NULL;
+	}
+	pkt->fulllength = l;
+	return pkt;
+}
 
 /* Decode packet by signature */
 int unpack_ipc_packet(CHAR *data, int *len, char *sig, ...)
