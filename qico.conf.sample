@@ -1,7 +1,7 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.53si $Id: qico.conf.sample,v 1.35 2004/05/24 03:21:35 sisoft Exp $
+#for 0.53si $Id: qico.conf.sample,v 1.36 2004/06/02 13:20:06 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
@@ -37,7 +37,9 @@
 #   endif
 # inline use:
 #   if <conditions> : <keyword> <value>
-#
+# if-endif blocks may be recursive.
+# also 'if' and 'endif' commands may be replaced to '{' and '}' accordingly.
+# 
 # *last* matching condition will be used!!!
 # where <conditions> is expression with syntax similar to ifcico's one.
 # you can use round brackets, '|' 'or', '&' 'and', '^' 'xor'
@@ -681,11 +683,11 @@ mapin	lkr
 if addr 1:2345/678 : showintro no
 
 # security violation
-if bad
+{bad
  flags	***BAD PASSWORD!***
  sysop	Check your security settings!
  phone	Contact to sysop!
-endif
+}
 
 # Binkp without session timeout
 ;if binkp: maxsession 0

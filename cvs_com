@@ -1,30 +1,25 @@
 #!/usr/bin/perl
-# $Id: cvs_com,v 1.7 2004/02/06 21:52:58 sisoft Exp $
-if(!-e "ChangeLog"){goto chng}
-#system("mcedit +666 new");
-open(X,"new")||die("can't open 'new'\n");
-open(F,"TodayFixes")||die("can't open TodayFixes\n");
-while(<F>) {
-    if(/^\/\*/){$id=$_;next};
-    if(/^---/){$fixes=$fixes?3:1;next}
-    if(/^\./){$fixes=($fixes==1)?2:0;next}
-    if($fixes==1){push(@fix,$_)}
-    if($fixes==3){next}
-    if(!$fixes){push(@txt,$_)}
+# $Id: cvs_com,v 1.8 2004/06/02 13:20:06 sisoft Exp $
+if(-e "ChangeLog") {
+    open(X,"new")||die("can't open 'new'\n");
+    open(F,"TodayFixes")||die("can't open TodayFixes\n");
+    while(<F>) {
+	$id=$_ if /^\/\*/;
+	$fixes++ if /^(\.|---)/;
+	push(@fix,$_) if($fixes==1);
+	push(@txt,$_) if($fixes==4);
+    }
+    open(F,">TodayFixes")||die("can't create TodayFixes\n");
+    print F "$id---\n";
+    print F <X>;
+    print F ".\nprevious:\n";
+    print F @fix;
+    print F @txt;
+    close(X,F);
+    unlink("ChangeLog");
 }
-open(F,">TodayFixes")||die("can't create TodayFixes\n");
-print F "$id---\n";
-while(<X>){print F $_} 
-print F ".\nprevious:\n---\n";
-foreach(@fix){print F $_}
-print F ".\n";
-foreach(@txt){print F $_}
-close(X,F);
-unlink("ChangeLog");
-chng:
 system("cvs2cl -F trunk -I ChangeLog -I TodayFixes -I cvsdate.h --no-wrap -S");
 unlink("ChangeLog.bak");
 system('date +\'char cvsdate[]="%Y-%m-%d %H:%M";\' >src/cvsdate.h');
 system("cvs com -F new");
-if($?>>8){exit}
-truncate("new",0);
+unless($?>>8){truncate("new",0);}
