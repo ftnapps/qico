@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.14 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: main.c,v 1.15 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <locale.h>
@@ -95,7 +95,7 @@ static void answer_mode(int type)
 	if(cfgs(CFG_ROOTDIR)&&ccs[0])chdir(ccs);
 	rnode=xcalloc(1,sizeof(ninfo_t));
 	is_ip=!isatty(0);
-	xstrcpy(ip_id,bink?"binkp":"ifcico",10);
+	xstrcpy(ip_id,"ipline",10);
 	rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
@@ -340,7 +340,7 @@ int main(int argc,char *argv[],char *envp[])
 	if(hostname) {
 		is_ip=1;
 		rnode=xcalloc(1,sizeof(ninfo_t));
-		xstrcpy(ip_id, bink?"binkp":"ifcico",10);
+		xstrcpy(ip_id,"ipline",10);
 		rnode->tty=bink?"binkp":"tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 			write_log("can't open log %s!",ccs);

@@ -1,4 +1,4 @@
-/* $Id: clserv.h,v 1.3 2004/01/18 15:58:58 sisoft Exp $ */
+/* $Id: clserv.h,v 1.4 2004/01/19 20:21:32 sisoft Exp $ */
 #ifndef __CLSERV_H__
 #define __CLSERV_H__
 
@@ -19,11 +19,18 @@ typedef struct _cls_cl_t {
 	char type;
 } cls_cl_t;
 
+typedef struct _cls_ln_t {
+	struct _cls_ln_t *next;
+	unsigned short id;
+	struct sockaddr *addr;
+} cls_ln_t;
+
 extern int (*xsend_cb)(int sock,char *buf,int len);
 
 extern int cls_conn(int type,char *port);
 extern void cls_close(int sock);
 extern void cls_shutd(int sock);
+extern int xsendto(int sock,char *buf,int len,struct sockaddr *to);
 extern int xsend(int sock,char *buf,int len);
 extern int xrecv(int sock,char *buf,int len,int wait);
 

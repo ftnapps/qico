@@ -1,20 +1,16 @@
-/* $Id: TodayFixes,v 1.16 2004/01/18 21:13:42 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.17 2004/01/19 20:21:31 sisoft Exp $ */
 ---
 in qcc: fix ESC key.
 perfect daemon latency.
+fix skip/suspend/chat/hup functions.
+in qcc: fix for support multiple ip lines.
+send cmd for remove old ip windows.
+fix binkp.
 .
 previous:
 ---
-fix work without daemon.
-in qcc&qctl: quit, if connection to server broken.
-set default port to service 'qicoui' or 60178.
-fix some memory leak.
-add autorescan if system GNU-compatible, have F_NOTIFY and ASO used.
-added option '--disable-notify' to configure for disable autorescan.
-add if-expression 'host'.
-fix 'connstr' if-expression.
-more portable ip exchange.
-change loglevel 'X' - max dubug level, for send to clients.
+in qcc: fix ESC key.
+perfect daemon latency.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.6 2004/01/18 21:13:42 sisoft Exp $
+ * $Id: daemon.c,v 1.7 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_FNOTIFY
@@ -12,12 +12,15 @@
 #include "headers.h"
 #include <stdarg.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "byteop.h"
 #include "tty.h"
 #include "clserv.h"
 
 static short tosend=0;
 static cls_cl_t *cl=NULL;
+static cls_ln_t *ln=NULL;
 static int t_dial=0,c_delay,rnum;
 #ifdef HAVE_FNOTIFY
 static int fnot;
@@ -53,7 +56,7 @@ static void sighup(int sig)
 static void sigrt(int sig)
 {
 	signal(sig,sigrt);
-	DEBUG(('Q',2,"got SIGRT"));
+	DEBUG(('Q',3,"got SIGRT"));
 	do_rescan=2;rnum=0;
 }
 #endif
@@ -125,6 +128,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	ftnaddr_t fa;
 	slist_t *sl;
 	cls_cl_t *uis;
+	cls_ln_t *lins;
 	if(!mode) {
 		daemon_xsend(chld,buf,rc);
 		return;
@@ -157,7 +161,10 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	}
 	if(FETCH16(buf)) {
 		DEBUG(('I',2,"client %d: msg for pid %d",uis->id,FETCH16(buf)));
-		if(xsend(lins_sock,buf,rc)<0)DEBUG(('I',1,"can't send to lines: %s",strerror(errno)));
+		for(lins=ln;lins&&lins->id!=FETCH16(buf);lins=lins->next);
+		if(lins) {
+			if(xsendto(lins_sock,buf,rc,lins->addr)<0)DEBUG(('I',1,"can't send to line %d: %s",lins->id,strerror(errno)));
+		} else DEBUG(('I',2,"line not found"));
 		return;
 	}
 	if(buf[2]==QR_POLL||buf[2]==QR_REQ||buf[2]==QR_INFO||
@@ -218,11 +225,16 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		t_dial=0;
 		break;
 	    case QR_HANGUP: {
-//		char ccmd[MAX_STRING];
+		FILE *f;int pid;
+		char fname[MAX_PATH];
 		DEBUG(('I',2,"client %d: request hangup line '%s'",uis->id,buf+3));
 		sendrpkt(0,chld,"");
-//		sprintf(ccmd,"/bin/kill -HUP `cat '%s/LCK..%s'`",cfgs(CFG_LOCKDIR),buf+3);
-//		execnowait("/bin/sh","-c",ccmd,NULL);
+		snprintf(fname,MAX_PATH,"%s/LCK..%s",cfgs(CFG_LOCKDIR),buf+3);
+		if((f=fopen(fname,"r"))) {
+			fscanf(f,"%d",&pid);
+			fclose(f);
+			if(kill(pid,SIGHUP)<0&&errno==ESRCH)unlink(fname);
+		}
 		} break;
 	    case QR_POLL: {
 		int locked=0;
@@ -474,8 +486,10 @@ void daemon_mode()
 	qitem_t *uncurr=q_queue;
 	time_t t;
 	fd_set rfds;
-	cls_cl_t *uis=NULL,*uit;
+	cls_cl_t *uis,*uit;
+	cls_ln_t *lins,*lnt;
 	struct timeval tv;
+	struct sockaddr sa;
 	if(cfgs(CFG_ROOTDIR)&&*ccs)chdir(ccs);
 	if(getppid()!=1) {
 		signal(SIGTTOU,SIG_IGN);
@@ -618,7 +632,7 @@ void daemon_mode()
 						if(!stat(lckname,&s))goto nlkil;
 						is_ip=1;
 						if(rnode->opt&MO_BINKP)bink=1;
-						xstrcpy(ip_id,bink?"binkp":"ifcico",10);
+						xstrcpy(ip_id,"ipline",10);
 						rnode->tty=xstrdup(bink?"binkp":"tcpip");
 					} else {
 						port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
@@ -812,10 +826,48 @@ nlkil:				is_ip=0;bink=0;
 			if(rc<0&&errno!=EINTR)DEBUG(('I',1,"select: error: %s",strerror(errno)));
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
+				  socklen_t salen=sizeof(sa);
+				  if(recvfrom(lins_sock,buf,2,MSG_PEEK,&sa,&salen)<2)DEBUG(('I',1,"recvfrom: %s",strerror(errno)));
+				    else {
 					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);
 					if(rc<0)DEBUG(('I',3,"xrecv_l: %s",strerror(errno)));
-					if(rc>0)DEBUG(('I',6,"lines_cl: recv %d bytes",rc));
+					if(rc>0) {
+						sa.sa_family=AF_INET;
+						for(lins=ln,lnt=NULL;lins&&(memcmp(lins->addr,&sa,salen)||FETCH16(buf)!=lins->id);lnt=lins,lins=lins->next);
+						if(!lins) {
+							cls_ln_t *lt=NULL;lins=ln;
+							while(lins) {
+								if(kill(lins->id,0)<0) {
+									char bf[MAX_STRING];
+									cls_ln_t *lntt=lins;
+									DEBUG(('I',2,"remove dead line %d",lins->id));
+									STORE16(bf,lins->id);
+									bf[2]=QC_ERASE;
+									xstrcpy(bf+3,"ipline",8);
+									daemon_xsend(ssock,bf,10);
+									lins=lins->next;
+									if(lt)lt->next=lins;
+									if(lntt==ln)ln=lins;
+									xfree(lntt->addr);
+									xfree(lntt);
+									continue;
+								}
+								lt=lins;
+								lins=lins->next;
+							}
+							DEBUG(('I',2,"new line: pid=%d",FETCH16(buf)));
+							lins=xmalloc(sizeof(cls_ln_t));
+							lins->id=FETCH16(buf);
+							lins->addr=xmalloc(salen);
+							memcpy(lins->addr,&sa,salen);
+							lins->next=NULL;
+							if(ln)lnt->next=lins;
+							    else ln=lins;
+						}
+						DEBUG(('I',6,"lines_cl: recv %d bytes from %d",rc,lins->id));
+					}
 					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
+				    }
 				}
 				uis=cl;uit=NULL;
 				while(uis) {

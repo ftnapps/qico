@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: qipc.c,v 1.9 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -25,8 +25,8 @@ void qsendpkt(char what,char *line,char *buff,int len)
 	if(buf[2]==QC_CERASE)buf[2]=QC_ERASE;
 	xstrcpy(buf+3,line,8);
 	if(what==QC_CHAT||what==QC_CERASE){buf[3]='C';buf[4]='H';buf[5]='T';}
-	memcpy(buf+3+strlen(line)+1,buff,len);
-	if(xsend_cb(ssock,buf,3+strlen(line)+1+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
+	memcpy(buf+4+strlen(line),buff,len);
+	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
 }	
 
 int qrecvpkt(char *str)
