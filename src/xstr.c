@@ -1,12 +1,32 @@
 /**********************************************************
- * safety work with strings
- * $Id: xstr.c,v 1.4 2004/02/09 01:05:33 sisoft Exp $
+ * work with strings
+ * $Id: xstr.c,v 1.5 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
-#include <config.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#include "xstr.h"
+#include "headers.h"
+
+void strlwr(char *s)
+{
+	while(s&&*s){*s=tolower(*s);s++;}
+}
+
+void strupr(char *s)
+{
+	while(s&&*s){*s=toupper(*s);s++;}
+}
+
+void strtr(char *s,char a,char b)
+{
+	while(s&&*s) {
+		if(*s==a)*s=b;
+		s++;
+	}
+}
+
+void chop(char *s,int n)
+{
+	char *p=strchr(s,0);
+	while(p&&n--)*--p=0;
+}
 
 #ifndef HAVE_STRLCPY
 char *xstrcpy(char *dst, char *src, size_t size)

@@ -1,8 +1,13 @@
-/* $Id: xstr.h,v 1.5 2004/03/27 21:38:41 sisoft Exp $ */
+/* $Id: xstr.h,v 1.6 2004/05/24 03:21:36 sisoft Exp $ */
 #ifndef __XSTR_H__
 #define __XSTR_H__
 
 #define SS(str) ((str)?(str):"")
+
+extern void strlwr(char *s);
+extern void strupr(char *s);
+extern void strtr(char *s, char a, char b);
+extern void chop(char *s, int n);
 
 #ifndef HAVE_STRLCPY
 extern char *xstrcpy(char *dst, char *src, size_t size);

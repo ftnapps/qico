@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.17 2004/04/13 17:37:05 sisoft Exp $
+#* $Id: qconf.x,v 1.18 2004/05/24 03:21:36 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -109,6 +109,7 @@ runonchat,C_STR,char *,0,NULL
 runonemsi,C_STR,char *,0,NULL
 sendonly,C_YESNO,int,0,"no"
 server,C_STR,char *,0,NULL
+serverpwd,C_STR,char *,0,NULL
 showintro,C_YESNO,int,0,"yes"
 showpkt,C_YESNO,int,0,"no"
 socks,C_STR,char *,0,NULL

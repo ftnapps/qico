@@ -1,11 +1,11 @@
-/* $Id: TodayFixes,v 1.64 2004/05/21 14:15:37 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.65 2004/05/24 03:21:35 sisoft Exp $ */
 ---
-fix several bugs in qctl.
-try to fix daemon hung under *BSD.
+some small fixes and changes.
+add keyword 'serverpwd' - password for clients auth (optional).
+also added option '-w' to qcc and qctl for set password.
 .
 previous:
 ---
-next try to fix configure error (without --with-config).
-now C++ style comments are allowed in config (//).
-fix crash if z[tr]xwin keywords used.
+fix several bugs in qctl.
+try to fix daemon hung under *BSD.
 .

@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.15 2004/02/26 23:55:17 sisoft Exp $ */
+/* $Id: ftn.h,v 1.16 2004/05/24 03:21:36 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -177,6 +177,7 @@ extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
 extern int xfnmatch(char *pattern,char *name,int flags);
 extern char *findpwd(ftnaddr_t *a);
+
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
@@ -239,14 +240,6 @@ extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
-extern int fexist(char *s);
-extern char *fnc(char *s);
-extern int whattype(char *fn);
-extern int lunlink(char *s);
-extern char *mapname(char *fn, char *map, size_t size);
-extern int isdos83name(char *fn);
-extern char *qver(int what);
-extern int istic(char *fn);
 /* call.c */
 extern int hangup();
 extern int stat_collect();

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.37 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: qcc.c,v 1.38 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -58,6 +58,7 @@
 #include "byteop.h"
 #include "qcconst.h"
 #include "xstr.h"
+#include "xmem.h"
 #include "clserv.h"
 #include "ver.h"
 
@@ -80,7 +81,6 @@
 
 #define SIZEC(x) (((x)<1024)?'b':'k')
 #define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define xfree(p) do{if(p)free(p);(p)=NULL;}while(0)
 #define xbeep() if(!beepdisable){beep();}
 
 typedef struct {
@@ -118,8 +118,9 @@ typedef struct _qslot_t {
 	struct _qslot_t *next,*prev;
 } qslot_t;
 
-static RETSIGTYPE sigwinch(int sig);
 extern time_t gmtoff(time_t tt,int mode);
+extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,int challenge_length,unsigned char *digest);
+static RETSIGTYPE sigwinch(int sig);
 static int getmessages(char *bbx);
 
 static char *hm[]={
@@ -205,6 +206,7 @@ static void usage(char *ex)
 	printf("usage: %s [options]\n"
                "-P port      connect to <port> (default: qicoui or %u)\n"
 	       "-a host      connect to <host> (default: localhost)\n"
+	       "-w password  set <password> for connect\n"
 	       "-n           disable sound (silent)\n"
 	       "-h           this help screen\n"
                "-v           show version\n"
@@ -433,7 +435,7 @@ static char *sscat(char *s,int size)
 	return s;
 }
 
-static void mylog(char *str,...)
+void write_log(char *str,...)
 {
 	int y,x;
 	struct tm *tt;
@@ -475,7 +477,7 @@ static void logit(char *str,WINDOW *w,int s)
 		scrollok(w,TRUE);
 	}
 	if(s<0)return;
-	slots[s]->lb[slots[s]->lm]=(char*)malloc(len+2);
+	slots[s]->lb[slots[s]->lm]=(char*)xmalloc(len+2);
 	if(slots[s]->lb[slots[s]->lm]) {
 		xstrcpy(slots[s]->lb[slots[s]->lm],bbf,len+1);
 		slots[s]->lm++;
@@ -504,7 +506,7 @@ static qslot_t *addqueue(qslot_t **l)
 {
 	qslot_t **t,*p=NULL;
 	for(t=l;*t;t=&((*t)->next))p=*t;
-	*t=(qslot_t*)malloc(sizeof(qslot_t));
+	*t=(qslot_t*)xmalloc(sizeof(qslot_t));
 	memset(*t,0,sizeof(qslot_t));
 	(*t)->prev=p;
 	(*t)->n=p?p->n+1:1;
@@ -579,14 +581,6 @@ static RETSIGTYPE sighup(int sig)
 	signal(sig,sighup);
 }
 
-static char *strefresh(char **what,char *to)
-{
-	if(*what!=NULL)free(*what);
-	*what=malloc(strlen(to)+1);
-	if(*what)strcpy(*what,to);
-	return *what;
-}
-
 static int findslot(char *slt)
 {
 	int i;
@@ -596,13 +590,13 @@ static int findslot(char *slt)
 
 static int createslot(char *slt,char d)
 {
-	slots[allslots]=malloc(sizeof(slot_t));
+	slots[allslots]=xmalloc(sizeof(slot_t));
 	memset(slots[allslots],0,sizeof(slot_t));
 	xstrcpy(slots[allslots]->tty,slt,8);
 	if(!memcmp(slt,"CHT",3)||!memcmp(slt,"IP",2)) {
 		slots[allslots]->chat=1;
-		slots[allslots]->cl=(char*)calloc(MH+1,CHH+1);
-		strefresh(&slots[allslots]->header,"Chat");
+		slots[allslots]->cl=(char*)xcalloc(MH+1,CHH+1);
+		restrcpy(&slots[allslots]->header,"Chat");
 		if(d)beep();
 	}
 	slots[allslots]->wlog=newwin(LOGSIZE,COL,MH+2,1);
@@ -691,19 +685,23 @@ static int inputstr(char *str,char *name,int mode)
 				if(sl&&sp) {
 					sl--;sp--;
 					if(sp==sl) {
-						if(bp) /*{
-							if(sl<vl) {
-								if(cp>=bp)cp-=bp;
-								bp=0;
-							} else*/ bp--;
-						/*}*/ else if(cp)cp--;
+						if(bp) {
+							if(cp>2)cp--;
+							    else {
+								tmp=bp;
+								if(bp>(vl/3*2))bp-=vl/3*2;
+								    else bp=0;
+								cp+=tmp-bp-1;
+							}
+						} else if(cp)cp--;
 					    } else {
 						strncpy(str+sp,str+sp+1,sl-sp);
 						if(cp)cp--;
-						if(cp<2&&bp) {
-							if(bp>8) {
-								bp-=8;
-								cp+=8;
+						if(cp<3&&bp) {
+							tmp=vl/3*2;
+							if(bp>tmp) {
+								bp-=tmp;
+								cp+=tmp;
 							    } else {
 								cp+=bp;
 								bp=0;
@@ -745,7 +743,7 @@ static int inputstr(char *str,char *name,int mode)
 			case KEY_UP:
 				if(hstlast&&hstcurr) {
 					if(!hst[HSTMAX]) {
-						hst[HSTMAX]=malloc(strlen(str)+2);
+						hst[HSTMAX]=xmalloc(strlen(str)+2);
 						strcpy(hst[HSTMAX]+1,str);
 						*hst[HSTMAX]=mode+1;
 					}
@@ -804,7 +802,7 @@ static int inputstr(char *str,char *name,int mode)
 				tmp=hstlast?(hstlast-1):0;
 				while(tmp&&(*hst[tmp]!=mode+1))tmp--;
 				if(*str&&strlen(str)>1&&(!hst[tmp]||strcmp(str,hst[tmp]+1))) {
-					hst[hstlast]=(char*)malloc(strlen(str)+2);
+					hst[hstlast]=(char*)xmalloc(strlen(str)+2);
 					if(hst[hstlast]) {
 						strcpy(hst[hstlast]+1,str);
 						*hst[hstlast]=mode+1;
@@ -862,7 +860,7 @@ static char *getnode(char *name)
 	char buf[MAX_STRING],*nm;
 	static char ou[64];
 	unsigned long zone,net,node,n,point=0L;
-	if(!myaddr)myaddr=strdup("0:0/0");
+	if(!myaddr)myaddr=xstrdup("0:0/0");
 rei:	zone=strtoul(myaddr,&nm,10);
 	net=strtoul(nm+1,&nm,10);
 	node=strtoul(nm+1,&nm,10);
@@ -883,11 +881,11 @@ rei:	zone=strtoul(myaddr,&nm,10);
 		sprintf(ou,"%c%lu:%lu/%lu",flv,zone,net,node);
 		if(point)sprintf(ou+strlen(ou),".%lu",point);
 		if(flv=='e') {
-			mylog("Err: in: '%s', ident as '%s', ignored",buf,ou);
+			write_log("err: in: '%s', ident as '%s', ignored",buf,ou);
 			*(int*)ou=0;
 		}
 #if QDEBUG==1
-		else mylog("in: '%s', ident as '%s'",buf,ou);
+		else write_log("in: '%s', ident as '%s'",buf,ou);
 #endif
 	}
 	return ou;
@@ -898,9 +896,9 @@ static void xcmd(char *buf,int cmd,int len)
 	STORE16(buf,0);
 	buf[2]=cmd;
 #if QDEBUG==1
-	mylog("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
+	write_log("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
 #endif
-	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
+	if(xsend(sock,buf,len)<0)write_log("can't send to server: %s",strerror(errno));
 }
 
 static void xcmdslot(char *buf,int cmd,int len)
@@ -908,9 +906,9 @@ static void xcmdslot(char *buf,int cmd,int len)
 	STORE16(buf,slots[currslot]->id);
 	buf[2]=cmd;
 #if QDEBUG==1
-	mylog("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
+	write_log("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));
 #endif
-	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
+	if(xsend(sock,buf,len)<0)write_log("can't send to server: %s",strerror(errno));
 }
 
 static void printinfo(char *addr,int what,char *buf)
@@ -926,15 +924,15 @@ static void printinfo(char *addr,int what,char *buf)
 	while(getmessages(buf)>0);rc=buf[2];
 	if(rc)return;
 	for(p=buf+3;strlen(p);rc++) {
-		mylog("%s: %s",infostrs[rc],p);
+		write_log("%s: %s",infostrs[rc],p);
 		u=p;p+=strlen(p)+1;
 		if(rc==5)while((t=strsep(&u,","))) {
 			if(!strcmp(t,"CM")) {
-			    mylog(" WkTime: 00:00-24:00");
+			    write_log(" WkTime: 00:00-24:00");
 			    break;
 			}
 			if(*t=='T'&&t[3]==0) {
-			    mylog(" WkTime: %02ld:%02d-%02ld:%02d",
+			    write_log(" WkTime: %02ld:%02d-%02ld:%02d",
 				(toupper(t[1])-'A'+tz)%24,islower((int)t[1])?30:0,
 				(toupper(t[2])-'A'+tz)%24,islower((int)t[2])?30:0);
 			    break;
@@ -950,12 +948,12 @@ static int getmessages(char *bbx)
 	static int lastfirst=1,lastpos=1;
 	char buf[MSG_BUFFER];
 	unsigned char *data,*p;
-	memset(buf,0,MSG_BUFFER);
+	/*memset(buf,0,MSG_BUFFER);*/
 	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
 	if(!rc)return -1;
 	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
 #if QDEBUG==1
-	if(rc>0)mylog("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));
+	if(rc>0)write_log("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));
 #endif
 	if(bbx&&rc>=3&&buf[2]<8) {
 		memcpy(bbx,buf,rc);
@@ -997,7 +995,7 @@ static int getmessages(char *bbx)
 			if(rc>=0)slots[rc]->id=id;
 			    else type=-1;
 			if(type==QC_SLINE) {
-				strefresh(&slots[rc]->status,(char*)data);
+				restrcpy(&slots[rc]->status,(char*)data);
 				freshstatus();wrefresh(wstat);
 			}
 			if(type==QC_LOGIT) {
@@ -1005,7 +1003,7 @@ static int getmessages(char *bbx)
 				if(currslot==rc&&!edm)wrefresh(slots[rc]->wlog);
 			}
 			if(type==QC_TITLE) {
-				strefresh(&slots[rc]->header,(char*)data);
+				restrcpy(&slots[rc]->header,(char*)data);
 				if(currslot==rc) {
 					freshhdr();wrefresh(whdr);
 				}
@@ -1025,12 +1023,12 @@ static int getmessages(char *bbx)
 					slots[rc]->opt=FETCH16(p);INC16(p);
 					slots[rc]->options=FETCH32(p);INC32(p);
 					slots[rc]->start=FETCH32(p);INC32(p);
-					strefresh(&slots[rc]->name,(char*)p);p+=strlen((char*)p)+1;
-					strefresh(&slots[rc]->sysop,(char*)p);p+=strlen((char*)p)+1;
-					strefresh(&slots[rc]->city,(char*)p);p+=strlen((char*)p)+1;
-					strefresh(&slots[rc]->flags,(char*)p);p+=strlen((char*)p)+1;
-					strefresh(&slots[rc]->phone,(char*)p);p+=strlen((char*)p)+1;
-					strefresh(&slots[rc]->addrs,(char*)p);
+					restrcpy(&slots[rc]->name,(char*)p);p+=strlen((char*)p)+1;
+					restrcpy(&slots[rc]->sysop,(char*)p);p+=strlen((char*)p)+1;
+					restrcpy(&slots[rc]->city,(char*)p);p+=strlen((char*)p)+1;
+					restrcpy(&slots[rc]->flags,(char*)p);p+=strlen((char*)p)+1;
+					restrcpy(&slots[rc]->phone,(char*)p);p+=strlen((char*)p)+1;
+					restrcpy(&slots[rc]->addrs,(char*)p);
 					slots[rc]->session=1;
 				}
 				if(currslot==rc) {
@@ -1075,7 +1073,7 @@ static int getmessages(char *bbx)
 					slots[rc]->s.stot=FETCH32(p);INC32(p);
 					slots[rc]->s.start=FETCH32(p);INC32(p);
 					slots[rc]->s.mtime=FETCH32(p);INC32(p);
-					slots[rc]->s.fname=strdup((char*)p);
+					slots[rc]->s.fname=xstrdup((char*)p);
 					freshhelp();wnoutrefresh(whelp);
 				}
 				if(currslot==rc) {
@@ -1099,7 +1097,7 @@ static int getmessages(char *bbx)
 					slots[rc]->r.stot=FETCH32(p);INC32(p);
 					slots[rc]->r.start=FETCH32(p);INC32(p);
 					slots[rc]->r.mtime=FETCH32(p);INC32(p);
-					slots[rc]->r.fname=strdup((char*)p);
+					slots[rc]->r.fname=xstrdup((char*)p);
 					freshhelp();wnoutrefresh(whelp);
 				}
 				if(currslot==rc) {
@@ -1138,13 +1136,13 @@ static int getmessages(char *bbx)
 			}
 		} else {
 			if(type==QC_SLINE) {
-				strefresh(&m_status,(char*)data);
+				restrcpy(&m_status,(char*)data);
 				if(currslot<0) {
 					freshstatus();wrefresh(wstat);
 				}
 			}
 			if(type==QC_TITLE) {
-				strefresh(&m_header,(char*)data);
+				restrcpy(&m_header,(char*)data);
 				if(currslot<0) {
 					freshhdr();wrefresh(whdr);
 				}
@@ -1154,7 +1152,7 @@ static int getmessages(char *bbx)
 				if(currslot<0&&!edm)wrefresh(wlog);
 			}
 			if(type==QC_MYDATA) {
-				strefresh(&myaddr,(char*)data);
+				restrcpy(&myaddr,(char*)data);
 			}
 			if(type==QC_QUEUE) {
 				if(!len) {
@@ -1172,7 +1170,7 @@ static int getmessages(char *bbx)
 					q->files=FETCH32(p);INC32(p);
 					q->flags=FETCH32(p);INC32(p);
 					q->try=FETCH16(p);INC16(p);
-					q->addr=strdup((char*)p);
+					q->addr=xstrdup((char*)p);
 					if(lastfirst>=q->n)q_first=q->n;
 					if(lastpos>=q->n)q_pos=q->n;
 				}
@@ -1191,19 +1189,23 @@ int main(int argc,char **argv)
 	int len,ch,rc;
 	struct tm *tt;
 	struct timeval tv;
-	char buf[4096],*bf,c,*port=NULL,*addr=NULL;
+	char buf[4096],*bf,c,*port=NULL,*addr=NULL,*pwd=NULL;
+	unsigned char digest[16]={0};
 	fd_set rfds;
 	time_t tim;
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif
- 	while((c=getopt(argc,argv,"hnvP:a:"))!=-1) {
+ 	while((c=getopt(argc,argv,"hnvP:a:w:"))!=-1) {
 		switch(c) {
 			case 'P':
-				if(optarg&&*optarg)port=strdup(optarg);
+				if(optarg&&*optarg)port=xstrdup(optarg);
 				break;
 			case 'a':
-				if(optarg&&*optarg)addr=strdup(optarg);
+				if(optarg&&*optarg)addr=xstrdup(optarg);
+				break;
+			case 'w':
+				if(optarg&&*optarg)pwd=xstrdup(optarg);
 				break;
 			case 'n':
 				beepdisable=1;
@@ -1214,7 +1216,10 @@ int main(int argc,char **argv)
 				usage(argv[0]);
 		}
 	}
-
+	signal(SIGPIPE,SIG_IGN);
+	signal(SIGHUP,sighup);
+	signal(SIGTERM,sighup);
+	signal(SIGSEGV,sighup);
 	sock=cls_conn(CLS_UI,port,addr);
 	if(sock<0) {
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
@@ -1224,16 +1229,35 @@ int main(int argc,char **argv)
 	setlocale(LC_ALL, "");
 #endif
 /*cyr*/	printf("\033(K");fflush(stdout);
-	signal(SIGHUP,sighup);
-	signal(SIGTERM,sighup);
-	signal(SIGSEGV,sighup);
-	signal(SIGPIPE,SIG_IGN);
-	snprintf(buf+3,MSG_BUFFER-4,"eqcc-%s",version);
-	xcmd(buf,QR_STYPE,strlen(buf+3)+4);
+
+	signal(SIGALRM, sighup);
+	alarm(6);
+	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+	if(!rc||quitflag) {
+		fprintf(stderr,"connection timeout.\n");
+		return 1;
+	}
+	alarm(0);
+	signal(SIGALRM, SIG_IGN);
+	if(strcmp(buf,"qs-noauth")) {
+		if(!pwd) {
+			fprintf(stderr,"can't connect: password required.\n");
+			cls_close(sock);
+			return 1;
+		}
+		md5_cram_get((unsigned char*)pwd,(unsigned char*)buf,10,digest);
+	}
+	STORE16(buf,0);
+	buf[2]=QR_STYPE;
+	buf[3]='e';/*events*/
+	memcpy(buf+4,digest,16);
+	snprintf(buf+20,MSG_BUFFER-21,"qcc-%s",version);
+	xcmd(buf,QR_STYPE,strlen(buf+3)+20);
 	tim=time(NULL)+6;buf[2]=1;
 	while(getmessages(buf)>0&&time(NULL)<tim);
 	if(buf[2]||time(NULL)>=tim) {
-		fprintf(stderr,"bad server\n");
+		fprintf(stderr,"can't connect: %s\n",buf+3);
+		cls_close(sock);
 		return 1;
 	}
 	signal(SIGINT,sighup);
@@ -1246,7 +1270,7 @@ int main(int argc,char **argv)
 	for(ch=0;ch<=HSTMAX;ch++)hst[ch]=NULL;
 	hstlast=0;
 	freshall();
-	mylog("I'm, qcc-%s, successfully started! ;)",version);
+	write_log("I'm, qcc-%s, successfully started! ;)",version);
 	while(!quitflag) {
 #ifdef CURS_HAVE_RESIZETERM
 		if (sizechanged) {
@@ -1278,7 +1302,7 @@ int main(int argc,char **argv)
 		tv.tv_sec=1;
 		tv.tv_usec=0;
 		rc=select(sock+1,&rfds,NULL,NULL,&tv);
-		if(rc<0&&errno!=EINTR)mylog("err in select: %s",strerror(errno));
+		if(rc<0&&errno!=EINTR)write_log("err in select: %s",strerror(errno));
 		if(rc>0&&FD_ISSET(sock,&rfds))do {
 			ch=getmessages(NULL);
 			if(ch<0)quitflag=1;
@@ -1305,7 +1329,7 @@ int main(int argc,char **argv)
 				freshall();
 			}
 		} else if(ch==KEY_F(10))quitflag=1;
-		    else if(ch==KEY_F(1)){for(ch=0;help[ch];ch++)mylog(help[ch],version);}
+		    else if(ch==KEY_F(1)){for(ch=0;help[ch];ch++)write_log(help[ch],version);}
 			else if(ch>0&&(unsigned char)ch<255&&currslot>0&&slots[currslot]->chat) {
 				if(ch!=KEY_F(2)) {
 					if(ch==KEY_BACKSPACE||ch==127)ch='\b';
@@ -1452,7 +1476,7 @@ int main(int argc,char **argv)
 				bf=buf+len+4;
 				*bf++=(ch=='S')?'N':ch;*bf++=0;
 				if(inputstr(bf,"Full file name: ",0)) {
-					if(access(bf,R_OK)==-1)mylog("Warn: can't access file '%s'!",bf);
+					if(access(bf,R_OK)==-1)write_log("warn: can't access file '%s'!",bf);
 					while(*bf++)if(*bf==' ')*bf='?';
 					xcmd(buf,QR_SEND,7+len+strlen(buf+len+6));
 				}

@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.11 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: tools.c,v 1.12 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -19,24 +19,6 @@
 
 static unsigned long seq=0xFFFFFFFF;
 static char *hexdigits="0123456789abcdef";
-
-void strlwr(char *s)
-{
-	while(s&&*s){*s=tolower(*s);s++;}
-}
-
-void strupr(char *s)
-{
-	while(s&&*s){*s=toupper(*s);s++;}
-}
-
-void strtr(char *s,char a,char b)
-{
-	while(s&&*s) {
-		if(*s==a)*s=b;
-		s++;
-	}
-}
 
 static int initcharset(char *name,unsigned char *tab)
 {
@@ -100,12 +82,6 @@ void recode_to_local(char *s)
 	}
 }
 
-void chop(char *s,int n)
-{
-	char *p=strchr(s,0);
-	while(p&&n--)*--p=0;
-}
-
 int hexdcd(char h,char l)
 {
 	l=tolower(l);h=tolower(h);
@@ -114,6 +90,19 @@ int hexdcd(char h,char l)
 	if(h>='a'&&h<='f')h-=('a'-10);
 	    else h-='0';
 	return(h*16+l);
+}
+
+char *qver(int w)
+{
+	cfgs(CFG_PROGNAME);
+	if(!w) {
+		if(ccs)if(strncasecmp(ccs,progname,4))return ccs;
+		return progname;
+	} else if(w==1) {
+		if(ccs)if(strncasecmp(ccs,progname,4))
+		    if(cfgs(CFG_VERSION))return ccs;
+		return version;
+	} else return(cfgs(CFG_OSNAME)?ccs:osname);
 }
 
 void strbin2hex(char *s,const unsigned char *bptr,size_t blen)

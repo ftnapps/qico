@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.11 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: clserv.c,v 1.12 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -78,8 +78,7 @@ int xsendto(int sock,char *buf,size_t len,struct sockaddr *to)
 	unsigned short l=H2I16(len);
 	if(sock<0){errno=EBADF;return -1;}
 	if(!len)return 0;
-	b=malloc(len+2);
-	if(!b){errno=ENOMEM;return -1;}
+	b=xmalloc(len+2);
 	STORE16(b,l);
 	memcpy(b+2,buf,len);
 	rc=sendto(sock,b,len+2,0,to,sizeof(struct sockaddr));

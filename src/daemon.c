@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.24 2004/05/21 14:15:38 sisoft Exp $
+ * $Id: daemon.c,v 1.25 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -85,7 +85,7 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 	va_start(args,fmt);
 	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
 	va_end(args);
-	if(xsend(sock,buf,rc+3)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
+	if(xsend(sock,buf,rc+4)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
 
 int daemon_xsend(int sock,char *buf,size_t len)
@@ -131,11 +131,21 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	}
 	if(rc>0)buf[rc]=0;
 	if(buf[2]==QR_STYPE) {
-		DEBUG(('I',1,"client %d: type '%c' (%s)",uis->id,buf[3],buf+4));
+		DEBUG(('I',1,"client %d: type '%c' (%s)",uis->id,buf[3],buf+20));
 		if(!strchr("euic",buf[3])) {
 			DEBUG(('I',1,"is unknown type"));
 			sendrpkt(1,chld,"unknown client type '%c'",buf[3]);
 			return;
+		}
+		if(uis->auth&&cfgs(CFG_SERVERPWD)) {
+			unsigned char digest[16];
+			md5_cram_get((unsigned char*)ccs,uis->auth,10,digest);
+			if(memcmp(buf+4,digest,16)) {
+				DEBUG(('I',1,"client %d: auth failed",uis->id));
+				sendrpkt(1,chld,"authentication failed");
+				return;
+			}
+			xfree(uis->auth);
 		}
 		uis->type=buf[3];
 		sendrpkt(0,chld,"");
@@ -833,7 +843,7 @@ nlkil:				is_ip=0;bink=0;
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
 				  socklen_t salen=sizeof(sa);
-				  if(recvfrom(lins_sock,buf,2,MSG_PEEK,&sa,&salen)<2)DEBUG(('I',1,"recvfrom: error: %s",strerror(errno)));
+/* nmap -sU >>> */		  if(recvfrom(lins_sock,buf,2,MSG_PEEK,&sa,&salen)<2)DEBUG(('I',1,"recvfrom: error: %s",strerror(errno)));
 				    else {
 					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);
 					if(rc<0)DEBUG(('I',3,"xrecv_l: %s",strerror(errno)));
@@ -887,6 +897,7 @@ nlkil:				is_ip=0;bink=0;
 							DEBUG(('I',1,"client %d: removed",uis->id));
 							cls_close(uis->sock);
 							if(uis->id+1==curr_id)curr_id--;
+							xfree(uis->auth);
 							uis=uis->next;
 							if(uit)uit->next=uis;
 							if(uitt==cl)cl=uis;
@@ -913,9 +924,19 @@ nlkil:				is_ip=0;bink=0;
 						uit->next=NULL;
 						uit->id=curr_id++;
 						uit->type='u';
+						uit->auth=NULL;
 						if(cl)uis->next=uit;
 						    else cl=uit;
 						DEBUG(('I',1,"new client %d: accepted (fd=%d)",uit->id,uit->sock));
+						if(cfgs(CFG_SERVERPWD)) {
+							long rnd=(long)random(),utm=time(NULL);
+							int pid=((int)getpid())^((int)random());
+							uit->auth=(unsigned char*)malloc(10);
+							STORE32(uit->auth,rnd);
+							STORE16(uit->auth+4,pid)
+							STORE32(uit->auth+6,utm);
+							xsend(uit->sock,(char*)uit->auth,10);
+						} else xsend(uit->sock,"qs-noauth",10);
 					}
 				}
 			}

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.11 2004/04/09 09:51:33 sisoft Exp $
+# $Id: Makefile.am,v 1.12 2004/05/24 03:21:36 sisoft Exp $
 sbin_PROGRAMS = qico
 bin_PROGRAMS = qctl @QCC@
 EXTRA_PROGRAMS = qcc
@@ -16,8 +16,8 @@ qico_SOURCES = aso.c bso.c call.c config.c crc.c emsi.c execsh.c binkp.c md5.c \
 	       ls_zmodem.c ls_zreceive.c ls_zsend.c main.c daemon.c nodelist.c \
 	       protfm.c qconf.c clserv.c qnlc.c queue.c session.c tcp.c tty.c \
 	       tools.c qipc.c ver.c xmem.c xstr.c flagexp.y flaglex.l
-qctl_SOURCES = gmtoff.c qctl.c ver.c xstr.c clserv.c
-qcc_SOURCES = qcc.c gmtoff.c ver.c xstr.c clserv.c
+qctl_SOURCES = gmtoff.c qctl.c ver.c xstr.c xmem.c clserv.c md5.c
+qcc_SOURCES = qcc.c gmtoff.c ver.c xstr.c xmem.c clserv.c md5.c
 qico_LDADD = @LIBOBJS@
 qctl_LDADD = @LIBOBJS@
 qcc_LDADD = @LIBOBJS@

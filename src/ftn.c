@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.22 2004/05/19 09:52:13 sisoft Exp $
+ * $Id: ftn.c,v 1.23 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -222,7 +222,7 @@ char *strip8(char *s)
 			buf[i++]=t/16+((t/16)>9?'a'-10:'0');
 			buf[i]=t%16+((t%16)>9?'a'-10:'0');
 		} else buf[i]=t;
-		if(buf[i]=='}'||buf[i]==']')buf[i]=')';
+		if(!bink&&(buf[i]=='}'||buf[i]==']'))buf[i]=')';
 		i++;s++;
 	}
 	buf[i]=0;
@@ -339,19 +339,6 @@ void closepkt(FILE *f,ftnaddr_t *fa,char *tear,char *orig)
 	if(cfgi(CFG_RECODEPKTS))recode_to_remote(orig);
 	fprintf(f,"--- %s\r * Origin: %s (%s)\r%c%c%c",tear,orig,ftnaddrtoa(fa),0,0,0);
 	fclose(f);
-}
-
-char *qver(int w)
-{
-	cfgs(CFG_PROGNAME);
-	if(!w) {
-		if(ccs)if(strncasecmp(ccs,progname,4))return ccs;
-		return progname;
-	} else if(w==1) {
-		if(ccs)if(strncasecmp(ccs,progname,4))
-		    if(cfgs(CFG_VERSION))return ccs;
-		return version;
-	} else return(cfgs(CFG_OSNAME)?ccs:osname);
 }
 
 void closeqpkt(FILE *f,ftnaddr_t *fa)

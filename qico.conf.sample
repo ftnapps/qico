@@ -1,7 +1,7 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.53si $Id: qico.conf.sample,v 1.34 2004/05/19 09:52:12 sisoft Exp $
+#for 0.53si $Id: qico.conf.sample,v 1.35 2004/05/24 03:21:35 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
@@ -388,6 +388,9 @@ flags		Linux, qico-si team
 # client/server port. default is 60178.
 # may use number or service from /etc/services.
 ;server		qicoui
+
+# password for clients auth.
+;serverpwd	coolpwd
 
 # Send **EMSI_INQC816 twice, as required by standard (FSC-0056.TXT).
 standardemsi yes

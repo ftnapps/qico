@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.20 2004/04/14 22:21:26 sisoft Exp $
+ * $Id: tcp.c,v 1.21 2004/05/24 03:21:36 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_SOCKET_H
@@ -96,7 +96,7 @@ static int socks_conn(char *name)
 			buf[1]=rc;
 		}
 		if(rc<0||tty_hangedup) {
-			write_log("connection lost %d,%d",rc,errno);
+			write_log("connection lost %d,%d (%s)",rc,errno,strerror(errno));
 			return 1;
 		}
 		if(buf[1]&&buf[1]!=1&&buf[1]!=2) {
@@ -126,7 +126,7 @@ static int socks_conn(char *name)
 				buf[1]=rc;
 			}
 			if(rc<0||tty_hangedup) {
-				write_log("connection lost %d,%d",rc,errno);
+				write_log("connection lost %d,%d (%s)",rc,errno,strerror(errno));
 				return 1;
 			}
 			if(buf[1]) {
@@ -177,7 +177,7 @@ static int socks_conn(char *name)
 				return 1;
 			}
 			if(buf[1]!=90) {
-				write_log("cannection reject by socks4 server (%d)",(unsigned char)buf[1]);
+				write_log("connection reject by socks4 server (%d)",(unsigned char)buf[1]);
 				return 1;
 			}
 			xfree(auth);
@@ -263,7 +263,7 @@ int opentcp(char *name,char *prx,int sp)
 	}
 	write_log("TCP/IP connection with %s%s:%d",prx?(sp?"socks ":"proxy "):"",inet_ntoa(server.sin_addr),(int)ntohs(server.sin_port));
 	if(prx) {
-		sline("%s-server found.. waiting for reply...",sp?"Socks":"Proxy");
+		sline("%s server found. waiting for reply...",sp?"Socks":"Proxy");
 		if(!sp) {
 		    if(proxy_conn(name)) {
 			close(fd);
@@ -274,7 +274,7 @@ int opentcp(char *name,char *prx,int sp)
 			return -1;
 		}
 	}
-	sline("Fido-server found... Waiting for reply...");
+	sline("FTN server found. waiting for reply...");
 	return fd;
 }
 
