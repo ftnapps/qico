@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.7 2000/11/16 18:42:41 lev Exp $
+ * $Id: janus.c,v 1.8 2000/11/25 19:25:47 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -433,7 +433,7 @@ int janus()
   breakout:
 	endbatch();
 	while(l) {
-		if(l->sendas) flexecute(l);
+		if(!l->sendas) flexecute(l);
 		l=l->next;
 	}
 	free(txbuf);
