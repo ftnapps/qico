@@ -1,3 +1,12 @@
+2003-10-05 19:01  sisoft
+
+	* ChangeLog, TodayFixes, qico.conf.sample, src/binkp.c,
+	src/binkp.h, src/session.c:
+
+	apply new exchange-flags algo.
+	add support for CRYPT mode.
+	partially support for NDA (ND-async) mode.
+	
 2003-10-03 04:11  sisoft
 
 	* .cvsignore, ChangeLog, TodayFixes, cvs_com, src/binkp.c,

@@ -1,4 +1,17 @@
+/* $Id: ver.c.in,v 1.3 2003/10/05 17:48:57 sisoft Exp $ */
+#include <stdio.h>
+#include <sys/utsname.h>
 #include "ver.h"
+#include "cvsdate.h"
 
 char progname[]="@PACKAGE_NAME@";
 char version[]="@PACKAGE_VERSION@";
+
+void u_vers(char *progn)
+{
+	struct utsname uts;
+	printf("%s-%s %s",progn,version,cvsdate);
+	if(!uname(&uts))printf(" on %s-%s (%s)",uts.sysname,uts.release,uts.machine);
+	printf("\ncompiled: " __DATE__ " " __TIME__ ", cc: " __VERSION__ "\n");
+	exit(0);
+}
