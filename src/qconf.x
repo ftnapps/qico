@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.18 2004/05/24 03:21:36 sisoft Exp $
+#* $Id: qconf.x,v 1.19 2004/06/07 18:51:14 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -88,6 +88,7 @@ nodelist,C_STRL,slist_t *,1,NULL
 nodial,C_PATH,char *,0,NULL
 osname,C_STR,char *,0,NULL
 password,C_ADRSTRL,faslist_t *,0,NULL
+perlfile,C_PATH,char *,0,NULL
 phone,C_STR,char *,0,""
 phonetr,C_STRL,slist_t *,0,NULL
 pidfile,C_PATH,char *,1,NULL
