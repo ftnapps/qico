@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.7 2000/12/26 12:15:26 lev Exp $
+# $Id: Makefile.in,v 1.8 2001/01/08 16:09:03 lev Exp $
 #
 
 prefix  = @prefix@
@@ -43,7 +43,7 @@ OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
 
 
 QCCOBJS	= qcc.o ver.o
-QCTLOBJS= qctl.o ver.o gmtoff.c
+QCTLOBJS= qctl.o ver.o gmtoff.o
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c session.c call.c qnlc.c qipc.c tcp.c \
@@ -94,9 +94,18 @@ flagexp.c: flagexp.y flaglex.c
 	$(YACC) flagexp.y
 	mv -f y.tab.c flagexp.c
 
+Makefile: ../configure Makefile.in
+	@echo "+=======================================================+"
+	@echo "|  ../configure or Makefile.in is newer, than Makefile  |"
+	@echo "|    Please, run ../configure with needed parameters    |"
+	@echo "+=======================================================+"
+	@exit 1
+
 *.c:	../config.h
 
 $(SRCS): $(AUTOH)
+
+$(OBJS) $(QCCOBJS) $(QCTLOBJS): Makefile ../config.h
 
 ifeq (1,$(QCC))
 install: install-qico install-qcc install-qctl

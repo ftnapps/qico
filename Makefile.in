@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.7 2001/01/07 11:24:18 lev Exp $
+# $Id: Makefile.in,v 1.8 2001/01/08 16:09:03 lev Exp $
 #
 
 prefix  = @prefix@
@@ -25,7 +25,7 @@ DOCS = Changes FAQ LICENSE README stuff qico.conf.sample
 AUTOFILES = Makefile config.h configure qico.spec config.cache config.h.in config.log config.status
 
 ###############################################################################
-all:
+all: autogenerate
 	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
 
 clean:
@@ -36,14 +36,14 @@ full-clean: clean
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
 	rm -f $(AUTOFILES)
 
-install:  install-bin
+install: install-bin
 install-strip: install-bin-strip
 
-install-bin: 
+install-bin: autogenerate
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
 	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install) || exit; done;
-install-bin-strip: install-docs
+install-bin-strip: autogenerate install-docs
 	./mkinstalldirs $(BINDIR)
 	./mkinstalldirs $(SBINDIR)
 	for d in ${DIRS}; do (cd $$d && ${MAKE} prefix=$(prefix) install-strip) || exit; done;
@@ -55,9 +55,31 @@ install-docs:
 	./mkinstalldirs $(prefix)/doc/qico-$(VERSION)
 	cp -Rf $(DOCS) $(prefix)/doc/qico-$(VERSION)
 
-dist: clean
-	autoheader
+autogenerate: configure config.h.in Makefile config.h
+
+configure: configure.in
+	@rm -rf configure
 	autoconf
+
+config.h.in: acconfig.h
+	@rm -rf config.h.in
+	autoheader
+
+Makefile: configure Makefile.in
+	@echo "+====================================================+"
+	@echo "|  configure or Makefile.in is newer, than Makefile  |"
+	@echo "|   Please, run ./configure with needed parameters   |"
+	@echo "+====================================================+"
+	@exit 1
+
+config.h: config.h.in
+	@echo "+================================================+"
+	@echo "|      config.h.in is newer, than config.h       |"
+	@echo "| Please, run ./configure with needed parameters |"
+	@echo "+================================================+"
+	@exit 1
+
+dist: clean config.h.in configure 
 	mkdir qico-$(VERSION)
 	for i in $(DIST_DIRS); do mkdir qico-$(VERSION)/$$i; done
 	for i in $(DIST_FILES); do cp -f $$i qico-$(VERSION)/$$i; done
