@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.3 2000/07/18 12:56:16 lev Exp $
+ * $Id: ftn.h,v 1.4 2000/10/07 13:37:44 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -180,7 +180,7 @@ typedef struct {
 
 typedef struct {
 	int try, flags;
-	time_t htime;
+	time_t htime, utime;
 } sts_t;
 
 /* ftn.c */
@@ -291,12 +291,6 @@ extern off_t q_sum(qitem_t *q);
 
 #define MAX(a,b) ((a>b)?a:b)
 #define MIN(a,b) ((a<b)?a:b)
-
-#ifndef DONT_RM_DIRS
-#define rdunlink(fn) {lunlink(fn);rmdirs(fn);}
-#else
-#define rdunlink(fn) {lunlink(fn);}
-#endif
 
 #define C0(c) ((c>=32)?c:'.')
 

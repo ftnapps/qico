@@ -2,13 +2,15 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.2 2000/07/18 12:56:15 lev Exp $
+ * $Id: bso.c,v 1.3 2000/10/07 13:37:44 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define STS_EXT "qst"
 
 char *bso_base, *bso_tmp;
 #ifndef AMIGA4D
@@ -111,6 +113,21 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 }
 
 
+int bso_unlocknode(ftnaddr_t *adr)
+{
+	lunlink(bso_bsyn(adr));
+	rmdirs(bso_tmp);
+	return 1;
+}
+
+int bso_rmstatus(ftnaddr_t *adr)
+{
+	lunlink(bso_stsn(adr));
+	rmdirs(bso_tmp);
+	return 1;
+}
+
+
 #else
 
 int bso_init(char *bsopath, int def_zone)
@@ -159,6 +176,18 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 	}	
 		
 	closedir(dz);
+	return 1;
+}
+
+int bso_unlocknode(ftnaddr_t *adr)
+{
+	lunlink(bso_bsyn(adr));
+	return 1;
+}
+
+int bso_rmstatus(ftnaddr_t *adr)
+{
+	lunlink(bso_stsn(adr))
 	return 1;
 }
 
@@ -246,12 +275,6 @@ int bso_locknode(ftnaddr_t *adr)
 	return lockpid(bso_tmp);
 }
 
-int bso_unlocknode(ftnaddr_t *adr)
-{
-	rdunlink(bso_bsyn(adr));
-	return 1;
-}
-
 int bso_attach(ftnaddr_t *adr, int flv, slist_t *files)
 {
 	slist_t *fl;
@@ -280,18 +303,14 @@ int bso_request(ftnaddr_t *adr, slist_t *files)
 	return 0;
 }
 
-int bso_rmstatus(ftnaddr_t *adr)
-{
-	rdunlink(bso_stsn(adr))
-	return 1;
-}
-
 int bso_setstatus(ftnaddr_t *fa, sts_t *st)
 {
 	FILE *f;
 	f=mdfopen(bso_stsn(fa), "wt");
 	if(f) {
-		fprintf(f, "%d %d %lu", st->try, st->flags, st->htime);fclose(f);
+		fprintf(f, "%d %d %lu %lu", st->try, st->flags, st->htime,
+				st->utime);
+		fclose(f);
 		return 1;
 	}
 	return 0;
@@ -302,10 +321,12 @@ int bso_getstatus(ftnaddr_t *fa, sts_t *st)
 	FILE *f;
 	f=fopen(bso_stsn(fa), "rt");
 	if(f) {
-		fscanf(f, "%d %d %lu", &st->try, &st->flags, &st->htime);fclose(f);
+		fscanf(f, "%d %d %lu %lu", &st->try, &st->flags,
+			   &st->htime, &st->utime);fclose(f);
 		return 1;
 	}
 	bzero(st, sizeof(sts_t));
 	return 0;
 }
+
 
