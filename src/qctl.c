@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.9 2001/01/18 18:55:12 lev Exp $
+ * $Id: qctl.c,v 1.10 2001/01/21 18:11:33 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -142,14 +142,14 @@ int getqueueinfo()
 		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
 		alarm(0);
 		if(rc<4) return 1;
-
 		if(buf[4]) {
 			fprintf(stderr, "%s\n", buf+5);
 		} else if(buf[5]) {
-			a = buf + 6; p = a + strlen(a) + 1;
-			m = p; p = m + strlen(m) + 1;
-			f = p; p = f + strlen(f) + 1;
-			t = p; p = t + strlen(t) + 1;
+			a = buf + 6;
+			m = a + strlen(a) + 1;
+			f = m + strlen(m) + 1;
+			t = f + strlen(f) + 1;
+			p = t + strlen(t) + 1;
 			sscanf(p,"%ld",&flags);
 			for(k=0;k<Q_MAXBIT;k++) cflags[k] = (flags&(1<<k))?qflgs[k]:'.';
 			cflags[Q_MAXBIT] = '\x00';
