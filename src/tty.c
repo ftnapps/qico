@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.3.2.1 2000/10/26 18:25:43 lev Exp $
+ * $Id: tty.c,v 1.3.2.2 2000/10/26 18:30:21 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -83,7 +83,7 @@ int tty_openport(char *port)
 	int speed = 0;
 	if(*port!='/') strcat(str, port);else strcpy(str, port);
 	p=strchr(str, ':');
-	if (*p) {
+	if (p) {
 		*p++=0;
 		speed = atoi(p);
 	}
