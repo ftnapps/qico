@@ -29,7 +29,7 @@ Building & Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
    Проверено на рабочесть под:
      - Linux 2.2.11-4bc i586 (glibc-2.1, ncurses-4.2)
-     - FreeBSD 2.2.6-4.0
+     - FreeBSD 2.2.6-4.x
        (Note: для сборки на 2.2.x-3.x qcc должна стоять ncurses из портов!)
 
    На других OS не пробовал, но очень хочу узнать, что получится ;)
@@ -39,8 +39,8 @@ Building & Installation
 
    $ configure --help
    $ configure [нужные опции]
-   $ gmake
-   $ gmake install или gamek install-strip
+   $ make
+   $ make install или make install-strip
    
    Положить конфиг в нужное место, подправить его под свои нужды.
   
@@ -137,4 +137,4 @@ Download
   Fido: 2:5030/529 (alias QICO)
   Fido: 2:5030/661 (alias QICO)
 
-$Id: README,v 1.5 2000/11/13 21:19:22 lev Exp $
+$Id: README,v 1.6 2003/02/07 08:29:52 cyrilm Exp $
