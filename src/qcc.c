@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.8 2001/01/09 20:27:04 aaz Exp $
+ * $Id: qcc.c,v 1.9 2001/01/09 21:34:51 aaz Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -138,7 +138,7 @@ void draw_screen() {
 	wmain=newwin(MH, COLS-2, 1, 1);
 	wbkgd(wmain, COLOR_PAIR(6)|' ');
 	
-	wlog=newwin(LINES-MH-4, COLS-2, MH+2, 1);
+/* 	wlog=newwin(LINES-MH-4, COLS-2, MH+2, 1); */
 /*	wbkgd(wlog, COLOR_PAIR(7)|' ');*/
 	scrollok(wlog, TRUE);	
 
@@ -151,7 +151,7 @@ void draw_screen() {
 	wrefresh(wmain);
 	wrefresh(wstat);
 	wrefresh(whdr);
-	wrefresh(wlog);
+/* 	wrefresh(wlog); */
 }	
 
 void initscreen()
@@ -245,7 +245,7 @@ void freshpfile(int b, int e, pfile_t *s, int act)
 	if(s->cps<1) return;
 	wattrset(wmain, (act?COLOR_PAIR(4):COLOR_PAIR(2))|A_BOLD);
 	mvwprintw(wmain, 4, b, "%s file %d of %d",
-			  act?"Sending":"Receiveing",s->nf, s->allf);
+			  act?"Sending":"Receiving",s->nf, s->allf);
 	wattrset(wmain, COLOR_PAIR(6)|A_BOLD);
 	mvwaddnstr(wmain, 5, b, s->fname, e-b);
 	wattrset(wmain, COLOR_PAIR(7)|A_BOLD);
@@ -485,8 +485,10 @@ int main(int argc, char **argv)
 	while(!quitflag) {
  		if (sizechanged) {
 			if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) {
+				int i;
 				resizeterm(size.ws_row, size.ws_col);
 				draw_screen();
+				for(i=0;i<allslots;i++)	wresize(slots[i]->wlog,LINES-MH-4, COLS-2);
 				freshall();
 			}
 			sizechanged=0;
