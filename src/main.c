@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.72 2003/05/17 19:03:28 raorn Exp $
+ * $Id: main.c,v 1.73 2003/05/17 19:06:34 raorn Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -935,6 +935,7 @@ int main(int argc, char *argv[], char *envp[])
 	if(hostname || daemon==12) {
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
 			write_log("%s: can't parse address '%s'!", argv[0], argv[optind]);
+			qipc_done();
 			exit(1);
 		}
 		optind++;
@@ -951,6 +952,7 @@ int main(int argc, char *argv[], char *envp[])
 		rnode->tty="tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 			write_log("can't open log %s!", ccs);
+			qipc_done();
 			exit(1);
 		}
 		signal(SIGINT, sigerr);
@@ -970,6 +972,7 @@ int main(int argc, char *argv[], char *envp[])
 		if(optind<argc) {
 			if(1!=sscanf(argv[optind],"%d",&line)) {
 				write_log("%s: can't parse line number '%s'!\n", argv[0], argv[optind]);
+				qipc_done();
 				exit(1);
 			}
 		} else {
@@ -977,6 +980,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
 			write_log("%s: can't init bso!", argv[0]);
+			qipc_done();
 			exit(1);
 		}
 		if (bso_locknode(&fa)) {
@@ -998,6 +1002,8 @@ int main(int argc, char *argv[], char *envp[])
 	case 2:
 		compile_nodelists();break;
 	}
+
+	qipc_done();
 	
 	return 0;
 }
