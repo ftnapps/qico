@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.54 2001/05/29 19:13:33 lev Exp $
+ * $Id: main.c,v 1.55 2001/06/12 19:22:14 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -881,12 +881,12 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 #ifdef NEED_DEBUG
-	if (facilities_levels['C'] > 0) dumpconfig();
+	parse_log_levels();
+	if (facilities_levels['C'] >= 1) dumpconfig();
 #endif	
     psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
-	parse_log_levels();
-	if (facilities_levels['C'] > 0) {
+	if (facilities_levels['C'] >= 1) {
 		subst_t *s;
 		dialine_t *l;
 		for(s=psubsts;s;s=s->next) {
