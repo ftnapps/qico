@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.35 2001/09/30 15:15:47 lev Exp $
+ * $Id: ftn.c,v 1.36 2001/10/04 20:46:52 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -437,7 +437,7 @@ static char *cmdstrend=NULL;
 
 void setargspace(int argc, char **argv, char **envp)
 {
-	int i = 0
+	int i = 0;
 
 	cmdstr=argv[0];
 
