@@ -1,8 +1,9 @@
-/* $Id: TodayFixes,v 1.90 2004/06/20 21:30:21 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.91 2004/06/22 08:28:30 sisoft Exp $ */
 ---
-fix pasring solid expressions.
+check for some keywords not placed inside if-expressions.
+fix chat with modem.
 .
 previous:
 ---
-perl: fix error, if 'perlfile' undefined or not exist.
+fix pasring solid expressions.
 .

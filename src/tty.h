@@ -1,4 +1,4 @@
-/* $Id: tty.h,v 1.11 2004/06/19 22:31:57 sisoft Exp $ */
+/* $Id: tty.h,v 1.12 2004/06/22 08:28:30 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #ifdef HAVE_TERMIOS_H
@@ -72,7 +72,6 @@
 
 extern char *tty_errs[];
 extern RETSIGTYPE tty_sighup(int sig);
-extern int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to);
 extern int tty_isfree(char *port, char *nodial);
 extern char *tty_findport(slist_t *ports, char *nodial);
 extern int tty_openport(char *port);

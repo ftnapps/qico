@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.15 2004/06/19 22:31:57 sisoft Exp $
+ * $Id: tty.c,v 1.16 2004/06/22 08:28:30 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -28,19 +28,23 @@ RETSIGTYPE tty_sighup(int sig)
 	return;
 }
 
-int selectmy(int n,fd_set *rfs,fd_set *wfs,fd_set *efs,struct timeval *to)
+static int selectmy(int n,fd_set *rfs,fd_set *efs,struct timeval *to)
 {
+	fd_set r,e;
 	int sec=to->tv_sec,rc;
 	do {
+		if(rfs)r=*rfs; else FD_ZERO(&r);
+		if(efs)e=*efs; else FD_ZERO(&e);
 		if(calling) {
 			getevt();
 			if(tty_hangedup)return -1;
 		}
 		if(sec)to->tv_sec=1,sec--;
 		    else to->tv_sec=0;
-		rc=select(n,rfs,wfs,efs,to);
+		rc=select(n,&r,NULL,&e,to);
 	} while(sec&&!rc);
 	to->tv_sec=sec;
+	*rfs=r;*efs=e;
 #if DEBUG_SLEEP==1
 	if(is_ip)usleep(1000);
 #endif
@@ -383,7 +387,7 @@ int tty_get(byte *buf,size_t size,int *timeout)
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
 	t=time(NULL);
-	rc=selectmy(1,&rfds,NULL,&efds,&tv);
+	rc=selectmy(STDIN_FILENO+1,&rfds,&efds,&tv);
 	if(rc<0) {
 		if(tty_hangedup)return RCDO;
 		else return ERROR;
@@ -457,7 +461,7 @@ int tty_hasdata(int sec,int usec)
 	FD_SET(STDIN_FILENO,&efds);
 	tv.tv_sec=sec;
 	tv.tv_usec=usec;
-	rc=selectmy(1,&rfds,NULL,&efds,&tv);
+	rc=selectmy(STDIN_FILENO+1,&rfds,&efds,&tv);
 	if(rc<0) {
 		if(tty_hangedup)return RCDO;
 		    else return ERROR;
@@ -481,7 +485,7 @@ int tty_hasdata_timed(int *timeout)
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
 	t=time(NULL);
-	rc=selectmy(1,&rfds,NULL,&efds,&tv);
+	rc=selectmy(STDIN_FILENO+1,&rfds,&efds,&tv);
 	if(rc<0) {
 		if(tty_hangedup)return RCDO;
 		    else return ERROR;
