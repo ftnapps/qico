@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.13 2002/05/29 21:18:06 lev Exp $
+ * $Id: qnlc.c,v 1.14 2002/06/03 20:39:14 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -32,7 +32,7 @@ int nl_ext(char *s)
 int compile_nodelists()
 {
 	slist_t *n;
-	char fn[MAX_PATH], *p, s[MAX_STRING];
+	char fn[MAX_PATH], nlmax[MAX_PATH], *p, s[MAX_STRING];
 	FILE *idx, *f;
 	DIR *d;struct dirent *de;
 	int num, max, i=0, gp=0, rc, k, total=0, line=0;
@@ -82,15 +82,19 @@ int compile_nodelists()
 					if ((*p == '.') && (strlen(p) == 4) &&
 						(strspn(p+1,"0123456789") == 3)) {
 						num=atoi(p+1);
-						if(num>max) max=num;
+						if(num>max) { 
+							xstrcpy(nlmax, de->d_name, MAX_PATH);
+							max=num;
+						}
 					}
 				}
 			closedir(d);
 			if(max<0) 
 				write_log("no lists matching %s.[0-9]", s);
 			else {
-				snprintf(idxh.nlname[i],sizeof(idxh.nlname[0]),"%s.%03d", s, max);
-				snprintf(fn,MAX_PATH,"%s/%s.%03d", ccs, s, max);
+				xstrcpy(s, nlmax, MAX_STRING);
+				xstrcpy(idxh.nlname[i], s, sizeof(idxh.nlname[0]));
+				snprintf(fn,MAX_PATH,"%s/%s", ccs, s);
 			}
 		} else {
 			xstrcpy(idxh.nlname[i], s, sizeof(idxh.nlname[0]));
