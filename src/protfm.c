@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.12 2001/01/12 12:52:01 lev Exp $
+ * $Id: protfm.c,v 1.13 2001/01/13 12:01:47 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -49,6 +49,7 @@ char *estimatedtime(size_t size, int cps, unsigned long baud)
 	h = s / 3600; s %= 3600;
 	m = s / 60;   s %= 60;
 	snprintf(et,16,"%02d:%02d:%02d",h,m,s);
+	et[16] = '\x00';
 	return et;
 }
 
@@ -57,6 +58,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	struct stat sb;
 	slist_t *i;
 	char p[MAX_PATH], *bn=mapname(basename(name), cfgs(CFG_MAPIN));
+	int prevcps = (recvf.start&&(time(NULL)-recvf.start>2))?recvf.cps:effbaud/10;
 
  	recvf.start=time(NULL);
  	if(recvf.fname) free(recvf.fname);
@@ -96,7 +98,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 			recvf.foff=recvf.soff=ftell(*f);
 			if(cfgi(CFG_ESTIMATEDTIME)) {
 				write_log("start recv: %s, %d bytes (from %d), estimated time %s",
-					recvf.fname, rsize, recvf.soff, estimatedtime(rsize,recvf.cps,effbaud));
+					recvf.fname, rsize, recvf.soff, estimatedtime(rsize-recvf.soff,prevcps,effbaud));
 			}
 			return FOP_CONT;
 		}
@@ -111,7 +113,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	recvf.foff=recvf.soff=0;
 	if(cfgi(CFG_ESTIMATEDTIME)) {
 		write_log("start recv: %s, %d bytes, estimated time %s",
-			recvf.fname, rsize, estimatedtime(rsize,recvf.cps,effbaud));
+			recvf.fname, rsize, estimatedtime(rsize,prevcps,effbaud));
 	}
 	return FOP_OK;
 }
@@ -184,6 +186,7 @@ FILE *txopen(char *tosend, char *sendas)
 {
 	FILE *f;
 	struct stat sb;
+	int prevcps = (sendf.start&&(time(NULL)-sendf.start>2))?sendf.cps:effbaud/10;
 	
 	if(stat(tosend, &sb)) {
 		write_log("can't find file %s!", tosend);
@@ -202,7 +205,7 @@ FILE *txopen(char *tosend, char *sendas)
 	}
 	if(cfgi(CFG_ESTIMATEDTIME)) {
 		write_log("start send: %s, %d bytes, estimated time %s",
-			recvf.fname, sb.st_size, estimatedtime(sb.st_size,sendf.cps,effbaud));
+			sendf.fname, sendf.ftot, estimatedtime(sendf.ftot,prevcps,effbaud));
 	}
 	return f;
 }
