@@ -31,9 +31,18 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-#include <string.h>
-#include <stdio.h>
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#if HAVE_SYS_CDEFS_H
+# include <sys/cdefs.h>
+#endif
+#if HAVE_STRING_H
+# include <string.h>
+#endif
+#if HAVE_STDIO_H
+# include <stdio.h>
+#endif
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)strsep.c	8.1 (Berkeley) 6/4/93";

@@ -1,6 +1,6 @@
 /*	$OpenBSD: basename.c,v 1.4 1999/05/30 17:10:30 espie Exp $	*/
 /*	$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2001/07/23 10:13:04 dd Exp $	*/
-/*	$Id: basename.c,v 1.2.4.1 2003/01/24 08:59:21 cyrilm Exp $ */
+/*	$Id: basename.c,v 1.2.4.2 2003/01/25 21:14:35 cyrilm Exp $ */
 
 /*
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -36,6 +36,9 @@ static char freebsd_rcsid[] = "$FreeBSD: src/lib/libc/gen/basename.c,v 1.1.2.2 2
 static char qico_rcsid[] = "$Id";
 #endif /* not lint */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #if HAVE_ERRNO_H
 # include <errno.h>
 #endif

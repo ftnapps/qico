@@ -20,7 +20,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h termios.h unistd.h utime.h libutil.h libgen.h sys/param.h errno.h])
 dnl FreeBSD 3.x have setproctitle(2) in libutil.h
 dnl FreeBSD 4.x have basename(2) in libgen.h
 
@@ -80,7 +80,7 @@ static char *fl = "/usr/local/bin/some.file";
 int main(int argc, char **argv) {
 	char *b = basename(fl); return ((*b != '/')?0:1);
 }
-],[ac_cv_func_basename_nonbroken=yes], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
+],[ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
 if test $ac_cv_func_basename_nonbroken = yes; then
 	AC_DEFINE([HAVE_BASENAME],1,[Define to 1 if basename() is nonbroken])
 else
@@ -241,7 +241,6 @@ dnl My defines -- from acconfig.h, hack for new autoconf
 AC_DEFINE_UNQUOTED(MAX_PATH,256,[Maximum length of file path])
 AC_DEFINE_UNQUOTED(MAX_STRING,256,[Maximum length of string on stack for log and some other places])
 AC_DEFINE_UNQUOTED(MAX_NODELIST,32,[Maximum number of compiled nodelists])
-AC_DEFINE([QIPC_KEY],"$sbindir/qico",["QICO IPC Key"])
 
 dnl My substs
 AC_SUBST(QCCLIBS)
@@ -254,7 +253,6 @@ dnl calculate real config -- prefix already known, so we could eval config
 with_config=`eval echo $with_config`
 AC_DEFINE_UNQUOTED(CONFIG,"$with_config",[Default path to config])
 CONFIG=$with_config
-
 AC_SUBST(CONFIG)
 
 AC_CONFIG_FILES([src/ver.c qico.spec Makefile src/Makefile stuff/Makefile ])

@@ -15,12 +15,15 @@ BUILT_SOURCES = qconf.c qconf.h
 qico_SOURCES = bso.c call.c config.c crc.c emsi.c execsh.c \
 		freq.c ftn.c globals.c gmtoff.c hydra.c janus.c log.c ls_zglue.c \
 		ls_zmodem.c ls_zreceive.c ls_zsend.c main.c nodelist.c protfm.c \
-		flagexp.y flaglex.l \
-		qconf.c qipc.c qnlc.c queue.c session.c tcp.c tty.c ver.c xmem.c xstr.c
-
+		qconf.c qipc.c qnlc.c queue.c session.c tcp.c tty.c ver.c xmem.c xstr.c \
+		flagexp.y flaglex.l 
 qctl_SOURCES = gmtoff.c qctl.c ver.c xstr.c
 qcc_SOURCES = qcc.c ver.c
+qico_LDADD = @LIBOBJS@
+qctl_LDADD = @LIBOBJS@
+qcc_LDADD = @LIBOBJS@
 qcc_LDFLAGS = @QCCLIBS@
+DEFS = -DQIPC_KEY=\"$(sbindir)/qico\" @DEFS@
 
 .x.h:
 	${AWK} -F, -f $(X2H) $< > $@

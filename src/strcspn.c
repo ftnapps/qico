@@ -42,8 +42,15 @@ static const char rcsid[] =
   "$FreeBSD: src/lib/libc/string/strcspn.c,v 1.1.1.1.14.1 2001/07/09 23:30:06 obrien Exp $";
 #endif
 
-#include <sys/cdefs.h>
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#if HAVE_SYS_CDEFS_H
+# include <sys/cdefs.h>
+#endif
+#if HAVE_STRING_H
+# include <string.h>
+#endif
 
 /*
  * Span the complement of string s2.

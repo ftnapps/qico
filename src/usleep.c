@@ -39,8 +39,15 @@ static char rcsid[] =
   "$FreeBSD: src/lib/libc/gen/usleep.c,v 1.25 2000/01/27 23:06:22 jasone Exp $";
 #endif /* LIBC_SCCS and not lint */
 
-#include <time.h>
-#include <unistd.h>
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#if HAVE_TIME_H
+# include <time.h>
+#endif
+#if HAVE_TIME_H
+# include <unistd.h>
+#endif
 
 int
 usleep(useconds)

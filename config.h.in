@@ -58,6 +58,9 @@
 /* Define to 1 if system defines 'EIDRM' errno value */
 #undef HAVE_EIDRM
 
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -335,9 +338,6 @@
 
 /* Build qcc (interface program) */
 #undef QCC
-
-/* "QICO IPC Key" */
-#undef QIPC_KEY
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
