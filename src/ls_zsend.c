@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.9 2001/01/07 14:08:27 lev Exp $
+ * $Id: ls_zsend.c,v 1.10 2001/01/21 18:12:39 lev Exp $
  **********************************************************/
 /*
 
@@ -550,7 +550,10 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 				if(rc < 0) return rc;
 				break;
 			}
-		} while((ls_txWinSize && txpos > ls_txLastACK + ls_txWinSize) && ++trys < 10);
+		} while(
+			((ls_txWinSize && txpos > ls_txLastACK + ls_txWinSize)	/* Here is window, and we send more than window without ACK*/
+			|| ((ZCRCW == frame) && txpos > ls_txLastACK)) 			/* Frame was ZCRCW and here is no ACK for it */
+			&& ++trys < 10);										/* trys less than 10 */
 		if(trys >= 10) {
 #ifdef Z_DEBUG
 			write_log("ls_zsendfile: Trys when waiting for ACK/RPOS exceed");
