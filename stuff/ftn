@@ -14,23 +14,21 @@ case "$1" in
         echo $PATH
 	echo -n "Starting FTN services: "
 	export LANG=ru # dirty hack for russian in log 
-	daemon qico -d
-
-	echo
+	su news -c 'qico -d'
+	echo qico
 	touch /var/lock/subsys/fido
 	;;
   stop)
 	echo -n "Stopping FTN services: "
-	killproc qico
-
-	echo
+	qctl -q
+	echo qico
 	rm -f /var/lock/subsys/fido
 	;;
   status)
 	status qico
 	;;
   restart|reload)
-	qico -R
+	qctl -R
 	;;
   *)
 	echo "Usage: ftn {start|stop|status|restart|reload}"
