@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.2.2.3 2000/11/10 20:32:45 lev Exp $
+ * $Id: bso.c,v 1.2.2.4 2001/02/18 11:06:03 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -55,6 +55,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 {
 	struct dirent *dez, *den, *dep;
 	char fn[MAX_PATH], *p;
+	int flv;
 	ftnaddr_t a;
 	DIR *dz,*dn,*dp;
 
@@ -83,10 +84,10 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 									*p=0;sscanf(dep->d_name+4, "%04hx", &a.p);*p='.';
 									sprintf(fn, "%s/%s/%s/%s", bso_base, dez->d_name,
 											den->d_name, dep->d_name);
-									if(!strcasecmp(p+2, "lo"))
-										each(fn, &a, T_ARCMAIL, bso_flavor(p[1]));	
-									if(!strcasecmp(p+2, "ut"))
-										each(fn, &a, T_NETMAIL, bso_flavor(p[1]));	
+									if(!strcasecmp(p+2, "lo") && F_ERR != (flv = bso_flavor(p[1])))
+										each(fn, &a, T_ARCMAIL, flv);	
+									if(!strcasecmp(p+2, "ut") && F_ERR != (flv = bso_flavor(p[1])))
+										each(fn, &a, T_NETMAIL, flv);	
 									if(!strcasecmp(p+1, "req"))
 										each(fn, &a, T_REQ, F_NORM);	
 								}
