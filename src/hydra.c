@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.18 2001/03/25 15:38:21 lev Exp $
+ * $Id: hydra.c,v 1.19 2001/05/25 18:30:43 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -19,8 +19,8 @@
 #include "hydra.h"
 #include "byteop.h"
 
-#define SLONG 4 //sizeof(long)
-#define SWORD 2 //sizeof(long)
+#define SLONG 4 /* sizeof(long) */
+#define SWORD 2 /* sizeof(long) */
 
 #ifdef NEED_DEBUG
 
