@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.7 2001/03/04 10:17:29 lev Exp $
+ * $Id: emsi.c,v 1.5.2.8 2001/03/08 12:22:07 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -394,10 +394,10 @@ int emsi_init(int mode)
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
 #ifdef E_DEBUG	
-			log("getchar '%c' %d", C0(ch), ch);
+			og("getchar '%c' %d (%d, %d)", C0(ch), ch, t_rest(t1), t_rest(t2));
 #endif
 			if(NOTTO(ch)) return ch;
-	 		if(t_exp(t1)) return TIMEOUT;
+	 		if(!t_rest(t1)) return TIMEOUT;
 			if(!got) got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
 				*p=0;p=str;got=0;
@@ -417,7 +417,7 @@ int emsi_init(int mode)
 			if((p-str)>=EMSI_BUF) {
 				got=0;p=str;
 			}
-			if(t_exp(t2)) {
+			if(!t_rest(t2)) {
 				t2=t_set(5);
 				tries++;
 				if(tries > 10) return TIMEOUT;
