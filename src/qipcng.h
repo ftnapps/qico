@@ -2,7 +2,7 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.6 2001/09/27 14:19:46 lev Exp $
+ * $Id: qipcng.h,v 1.7 2001/09/27 16:20:26 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
@@ -32,22 +32,25 @@ typedef struct _LINE2UI {
 
 /* State of file transfer */
 typedef struct _TRANSFERSTATE {
-	CHAR phase;				/* phase of process */
-#define TXRX_PHASE_BEGIN	'b'
-#define TXRX_PHASE_HSHAKE	'h'
-#define TXRX_PHASE_FINFO	'i'
-#define TXRX_PHASE_TRANSFER	't'
-#define TXRX_PHASE_FINISH	'f'
-#define TXRX_PHASE_EOT		'e'
+	CHAR phase;				/* Phase of process */
+#define TXRX_PHASE_HSHAKE	'h'		/* Handhaske in progress */
+#define TXRX_PHASE_LOOP		'l'		/* File loop */
+#define TXRX_PHASE_FINISH	'f'		/* Finishing */
+#define TXRX_PHASE_EOB		'-'		/* Batch was finished or not started yet */
+	CHAR filephase;			/* Phase of LOOP */
+#define TXRX_FILE_HSHAKE	'h'		/* File handshake in progress */
+#define TXRX_FILE_DATA		'd'		/* Data sending/receiving */
+#define TXRX_FILE_FINISH	'f'		/* End-of-file process */
+#define TXRX_FILE_EOF		'-'		/* No files in processing */
 	UINT32 maxblock;		/* Maximum block size */
 	UINT32 curblock;		/* Current block size */
 	UINT32 crcsize;			/* Size of CRC control sum in bits */
-	UINT32 filesize;		/* current file size */
-	UINT32 totalsize;		/* total transfer size */
-	UINT32 filepos;			/* current file pos (bytes have been sent) */
-	UINT32 totalpos;		/* total stream pos (bytes have been sent) */
-	UINT32 filenum;			/* number of current file, from 1 */
-	UINT32 totalfiles;		/* number of files to transfer */
+	UINT32 filesize;		/* Current file size */
+	UINT32 totalsize;		/* Total transfer size */
+	UINT32 filepos;			/* Current file pos (bytes have been sent) */
+	UINT32 totalpos;		/* Total stream pos (bytes have been sent) */
+	UINT32 filenum;			/* Number of current file, from 1 */
+	UINT32 totalfiles;		/* Number of files to transfer */
 	UINT32 filestarted;		/* UNIX time of file transfer start time */
 	UINT32 transferstarted;	/* UNIX time of transfer starts */
 	CHAR *file;				/* Name of current file */
@@ -130,23 +133,31 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 /* Signature: "dd" -- PROTOCOL,FINAL OPTIONS*/
 
 #define EVTL2M_GROUP_BATCH		0x30	/* Batch related events */
-#define EVTL2M_BATCH_STARTED	0x31	/* Batch started */
+#define EVTL2M_BATCH_START		0x31	/* Batch starts */
 /* Signature: "c" -- DIRECTION */
-#define EVTL2M_BATCH_ENDED		0x32	/* Batch finished */
+#define EVTL2M_BATCH_HSHAKED	0x32	/* Batch handshaked */
 /* Signature: "c" -- DIRECTION */
-#define EVTL2M_BATCH_INFO		0x33	/* Batch info */
+#define EVTL2M_BATCH_CLOSE		0x33	/* Batch finishing */
+/* Signature: "c" -- DIRECTION */
+#define EVTL2M_BATCH_CLOSED		0x34	/* Batch finished */
+/* Signature: "c" -- DIRECTION */
+#define EVTL2M_BATCH_INFO		0x35	/* Batch info -- async */
 /* Signature: "cdddd" -- DIRECTION,MAX BLOCK,CRC,FILES,TOTAL SIZE */
 
 #define EVTL2M_GROUP_RECVSEND	0x40	/* File send/receive related events */
 #define EVTL2M_FILE_START		0x41	/* Start new file */
 /* Signature: "c" -- DIRECTION  */
-#define EVTL2M_FILE_INFO		0x42	/* Info about new file sending/received */
-/* Signature: "csdd" -- DIRECTION,CRC,NAME,SIZE,TIME  */
-#define EVTL2M_FILE_BLOCK		0x43	/* Block sended/received */
+#define EVTL2M_FILE_INFO		0x42	/* Info about new file sending/received -- async */
+/* Signature: "csddd" -- DIRECTION,NAME,CRC,SIZE,TIME  */
+#define EVTL2M_FILE_DATA		0x43	/* Info was ACKed and we wait for data exchange */
+/* Signature: "c" -- DIRECTION  */
+#define EVTL2M_FILE_BLOCK		0x44	/* Block sended/received */
 /* Signature: "cd" -- DIRECTION,SIZE  */
-#define EVTL2M_FILE_REPOS		0x44	/* Repos */
+#define EVTL2M_FILE_REPOS		0x45	/* Repos */
 /* Signature: "cd" -- DIRECTION,POS  */
-#define EVTL2M_FILE_END			0x45	/* End */
+#define EVTL2M_FILE_END			0x46	/* Data got, start to finish file */
+/* Signature: "c" -- DIRECTION */
+#define EVTL2M_FILE_ENDED		0x47	/* File finished */
 /* Signature: "cc" -- DIRECTION,REASON  */
 
 
