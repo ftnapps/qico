@@ -1,171 +1,237 @@
+2003-09-16 15:05  sisoft
+
+	* .cvs2cl (1.2), Changes (1.12), README (1.8), configure.in (1.5):
+	release 0.49.12si stable version.  current version 0.50si
+
+2003-09-16 15:04  sisoft
+
+	* .cvs2cl, ChangeLog, src/binkp.c, src/binkp.h, src/md5.c
+	(stbl12.[1,2,1,1,1]): remove not needed files.
+
+2003-09-16 15:01  sisoft
+
+	* .cvsignore, ChangeLog, Changes, FAQ, README, configure.in,
+	qico.conf.sample, src/Makefile.am, src/flaglex.l, src/globals.c,
+	src/globals.h, src/mailer.h, src/main.c, src/qconf.x,
+	src/session.c, src/tcp.c
+	(stbl12.[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]): remove binkp.  release
+	stable version 0.49.12si.
+
+2003-09-16 14:05  sisoft
+
+	* src/: binkp.c (1.6), queue.c (1.7): add flavor N to defbsoflv.
+
+2003-09-14 20:45  sisoft
+
+	* ChangeLog (1.7), Changes (1.11), qico.conf.sample (1.9),
+	src/binkp.c (1.5), src/qconf.x (1.7), src/queue.c (1.6),
+	src/session.c (1.10), src/tty.c (1.4): add keyword 'defboxflv' -
+	default longbox flavor.  small change in binkp.  more accurate
+	loglevel M9.
+
 2003-09-13 19:31  sisoft
 
-	* ChangeLog, qico.conf.sample, src/binkp.c, src/ftn.c: fix binkp.
+	* ChangeLog (1.6), qico.conf.sample (1.8), src/binkp.c (1.4),
+	src/ftn.c (1.6): fix binkp.
 
 2003-09-12 23:16  sisoft
 
-	* src/: binkp.c, session.c: fix ASO. tnx for Michael Kulinich for
-	patch.
+	* src/: binkp.c (1.3), session.c (1.9): fix ASO. tnx for Michael
+	Kulinich for patch.
 
 2003-09-12 22:24  sisoft
 
-	* src/binkp.c: some fixes in binkp.
+	* src/binkp.c (1.2): some fixes in binkp.
 
 2003-09-09 01:17  sisoft
 
-	* src/: aso.c, bso.c, queue.c: fix ASO and BSO scan in one
-	directory. add fool-shield.
+	* src/: aso.c (1.5), bso.c (1.4), queue.c (1.5): fix ASO and BSO
+	scan in one directory. add fool-shield.
 
 2003-09-08 00:27  sisoft
 
-	* ChangeLog, Changes, FAQ, README, qico.conf.sample, src/qconf.x:
-	fix descriptions in config sample. add Q in faq. add keyword
-	`binkpopt`.
+	* ChangeLog (1.5), Changes (1.10), FAQ (1.4), README (1.7),
+	qico.conf.sample (1.7), src/qconf.x (1.6): fix descriptions in
+	config sample. add Q in faq. add keyword `binkpopt`.
 
 2003-09-07 13:34  sisoft
 
-	* src/: aso.c, emsi.c, ftn.h, queue.c: fix ASO rescan. fix
-	something in emsi.
+	* src/: aso.c (1.4), emsi.c (1.5), ftn.h (1.6), queue.c (1.4): fix
+	ASO rescan. fix something in emsi.
 
 2003-09-03 01:00  sisoft
 
-	* ChangeLog, Changes, src/emsi.c: fix in emsi.
+	* ChangeLog (1.4), Changes (1.9), src/emsi.c (1.4): fix in emsi.
 
 2003-09-01 23:12  sisoft
 
-	* Changes, README, src/queue.c, src/session.c: add work with
-	longbox in zone.net.node.point.flavour format.
+	* Changes (1.8), README (1.6), src/queue.c (1.3), src/session.c
+	(1.8): add work with longbox in zone.net.node.point.flavour format.
 
 2003-08-28 17:42  sisoft
 
-	* src/: binkp.c, binkp.h, md5.c: really add binkp files.
+	* src/: binkp.c (1.1), binkp.h (1.1), md5.c (1.1): really add binkp
+	files.
 
 2003-08-25 21:28  sisoft
 
-	* ChangeLog, README, configure.in: correct my email address.
+	* ChangeLog (1.3), README (1.5), configure.in (1.4): correct my
+	email address.
 
 2003-08-25 19:27  sisoft
 
-	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,
-	configure.in, qico.conf.sample, src/Makefile.am, src/crc.c,
-	src/crc.h, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
-	src/globals.c, src/globals.h, src/mailer.h, src/main.c,
-	src/protfm.c, src/qcc.c, src/qconf.x, src/session.c, src/tcp.c,
-	src/tty.c, src/types.h: write my emsi, if loglevel E greather 1. 
-	add keyword 'sendonly': HAT in emsi if enabled.  fix set node to
-	hold HRQ after failure session.  fix reset wait call timer.  fix
-	LST flag on outbound calls.  fix in emsi: send \r until receive
-	anything.  more informative loglevel M.  remove CR's from crc.h and
-	types.h.  add files: binkp.c, binkp.h, md5.c.  correct other files
-	for support binkp protocol.  describe more info about 'qctl -f'. 
-	added binkp protocol. be happy, but worry. ;) warn: binkp for test
-	mode only, use on your risk.  add -b opt for qico: binkp if
-	enabled, else ifcico.  add keyword 'domain': domain name for binkp.
-	 add if-expression 'binkp': true, if binkp session established. 
-	add debug level 'B' - binkp.  qcc: print 'empty queue' string, if
-	queue really empty.  fix 'holdout' keyword.  todo:qcc: add ctrl+l
-	combination for refresh screen.  don't send and recv mail-poll's
-	(pkt's with 60 bytes).
+	* .cvsignore (1.3), ChangeLog (1.2), Changes (1.7), FAQ (1.3),
+	Makefile.am (1.3), README (1.4), TODO (1.4), configure.in (1.3),
+	qico.conf.sample (1.6), src/Makefile.am (1.3), src/crc.c (1.3),
+	src/crc.h (1.3), src/emsi.c (1.3), src/flaglex.l (1.3), src/ftn.c
+	(1.5), src/ftn.h (1.5), src/globals.c (1.3), src/globals.h (1.3),
+	src/mailer.h (1.3), src/main.c (1.5), src/protfm.c (1.4), src/qcc.c
+	(1.4), src/qconf.x (1.5), src/session.c (1.7), src/tcp.c (1.3),
+	src/tty.c (1.3), src/types.h (1.3): write my emsi, if loglevel E
+	greather 1.  add keyword 'sendonly': HAT in emsi if enabled.  fix
+	set node to hold HRQ after failure session.  fix reset wait call
+	timer.	fix LST flag on outbound calls.  fix in emsi: send \r until
+	receive anything.  more informative loglevel M.  remove CR's from
+	crc.h and types.h.  add files: binkp.c, binkp.h, md5.c.  correct
+	other files for support binkp protocol.  describe more info about
+	'qctl -f'.  added binkp protocol. be happy, but worry. ;) warn:
+	binkp for test mode only, use on your risk.  add -b opt for qico:
+	binkp if enabled, else ifcico.	add keyword 'domain': domain name
+	for binkp.  add if-expression 'binkp': true, if binkp session
+	established.  add debug level 'B' - binkp.  qcc: print 'empty
+	queue' string, if queue really empty.  fix 'holdout' keyword. 
+	todo:qcc: add ctrl+l combination for refresh screen.  don't send
+	and recv mail-poll's (pkt's with 60 bytes).
 
 2003-07-25 01:50  sisoft
 
-	* Changes, README, src/aso.c, src/bso.c, src/ftn.h, src/main.c,
-	src/session.c: add work with .csy busy flags, change work with .bsy
-	flags.
+	* Changes (1.6), README (1.3), src/aso.c (1.3), src/bso.c (1.3),
+	src/ftn.h (1.4), src/main.c (1.4), src/session.c (1.6): add work
+	with .csy busy flags, change work with .bsy flags.
 
 2003-07-24 20:48  sisoft
 
-	* ChangeLog: add ChangeLog.
+	* ChangeLog (1.1): add ChangeLog.
 
 2003-07-24 20:46  sisoft
 
-	* .cvs2cl, .cvsignore: foo
+	* .cvs2cl (1.1), .cvsignore (1.2): foo
 
 2003-07-24 15:53  sisoft
 
-	* Changes, qico.conf.sample, src/ftn.c, src/log.c: fix %F macro. 
-	add loglevels X: sent debug log to qcc.
+	* Changes (1.5), qico.conf.sample (1.5), src/ftn.c (1.4), src/log.c
+	(1.3): fix %F macro.  add loglevels X: sent debug log to qcc.
 
 2003-07-24 15:30  sisoft
 
-	* src/session.c: fix 'holdout' func.
+	* src/session.c (1.5): fix 'holdout' func.
 
 2003-07-24 00:33  sisoft
 
-	* Changes, qico.conf.sample, src/qconf.x, src/session.c: add
-	keyword 'holdout': hold files with 'hold' status on outgoing calls.
+	* Changes (1.4), qico.conf.sample (1.4), src/qconf.x (1.4),
+	src/session.c (1.4): add keyword 'holdout': hold files with 'hold'
+	status on outgoing calls.
 
 2003-07-23 14:45  sisoft
 
-	* Changes, TODO, qico.conf.sample, src/aso.c, src/ftn.c, src/ftn.h,
-	src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/session.c:
-	add func 'sent file' to qcc.  add keyword 'autohold <files>':
-	automatically hold these files.  add macro '%F', '%N', '%E' in
-	,atch filename's and char '!' as NOT expr.  fix rename files with
-	'b' map*.  add keyword 'killbadpkt': kill partially received
-	packets.
+	* Changes (1.3), TODO (1.3), qico.conf.sample (1.3), src/aso.c
+	(1.2), src/ftn.c (1.3), src/ftn.h (1.3), src/main.c (1.3),
+	src/protfm.c (1.3), src/qcc.c (1.3), src/qconf.x (1.3),
+	src/session.c (1.3): add func 'sent file' to qcc.  add keyword
+	'autohold <files>': automatically hold these files.  add macro
+	'%F', '%N', '%E' in ,atch filename's and char '!' as NOT expr.	fix
+	rename files with 'b' map*.  add keyword 'killbadpkt': kill
+	partially received packets.
 
 2003-07-14 21:54  sisoft
 
-	* Changes, FAQ, Makefile.am, README, TODO, configure.in,
-	qico.conf.sample, src/Makefile.am, src/aso.c, src/basename.c,
-	src/bso.c, src/byteop.h, src/call.c, src/charset.h, src/config.c,
-	src/crc.c, src/crc.h, src/defs.h, src/emsi.c, src/execsh.c,
-	src/flagexp.y, src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h,
-	src/getsid.c, src/globals.c, src/globals.h, src/gmtoff.c,
-	src/headers.h, src/hydra.c, src/hydra.h, src/janus.c, src/janus.h,
-	src/log.c, src/ls_zglue.c, src/ls_zmodem.c, src/ls_zmodem.h,
-	src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h, src/main.c,
-	src/malloc.c, src/nodelist.c, src/opts.h, src/protfm.c, src/qcc.c,
-	src/qcconst.h, src/qconf.x, src/qctl.c, src/qipc.c, src/qipc.h,
-	src/qnlc.c, src/queue.c, src/replace.h, src/session.c, src/tcp.c,
-	src/tty.c, src/tty.h, src/types.h, src/ver.c.in, src/ver.h,
-	src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
-	src/xstr.h: tipa new version. ;)
+	* Changes (1.2), FAQ (1.2), Makefile.am (1.2), README (1.2), TODO
+	(1.2), configure.in (1.2), qico.conf.sample (1.2), src/Makefile.am
+	(1.2), src/aso.c (1.1), src/basename.c (1.2), src/bso.c (1.2),
+	src/byteop.h (1.2), src/call.c (1.2), src/charset.h (1.2),
+	src/config.c (1.2), src/crc.c (1.2), src/crc.h (1.2), src/defs.h
+	(1.2), src/emsi.c (1.2), src/execsh.c (1.2), src/flagexp.y (1.2),
+	src/flaglex.l (1.2), src/freq.c (1.2), src/ftn.c (1.2), src/ftn.h
+	(1.2), src/getsid.c (1.2), src/globals.c (1.2), src/globals.h
+	(1.2), src/gmtoff.c (1.2), src/headers.h (1.2), src/hydra.c (1.2),
+	src/hydra.h (1.2), src/janus.c (1.2), src/janus.h (1.2), src/log.c
+	(1.2), src/ls_zglue.c (1.2), src/ls_zmodem.c (1.2), src/ls_zmodem.h
+	(1.2), src/ls_zreceive.c (1.2), src/ls_zsend.c (1.2), src/mailer.h
+	(1.2), src/main.c (1.2), src/malloc.c (1.2), src/nodelist.c (1.2),
+	src/opts.h (1.2), src/protfm.c (1.2), src/qcc.c (1.2),
+	src/qcconst.h (1.2), src/qconf.x (1.2), src/qctl.c (1.2),
+	src/qipc.c (1.2), src/qipc.h (1.2), src/qnlc.c (1.2), src/queue.c
+	(1.2), src/replace.h (1.2), src/session.c (1.2), src/tcp.c (1.2),
+	src/tty.c (1.2), src/tty.h (1.2), src/types.h (1.2), src/ver.c.in
+	(1.2), src/ver.h (1.2), src/x2c.awk (1.2), src/x2h.awk (1.2),
+	src/xmem.c (1.2), src/xmem.h (1.2), src/xstr.c (1.2), src/xstr.h
+	(1.2): tipa new version. ;)
 
 2003-07-13 01:26  sisoft
 
-	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
-	compile, configure.in, qico.conf.sample, stamp-h.in,
-	src/.cvsignore, src/Makefile.am, src/basename.c, src/bso.c,
-	src/byteop.h, src/call.c, src/charset.h, src/config.c, src/crc.c,
-	src/crc.h, src/defs.h, src/emsi.c, src/execsh.c, src/flagexp.y,
-	src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h, src/getsid.c,
-	src/globals.c, src/globals.h, src/gmtoff.c, src/headers.h,
-	src/hydra.c, src/hydra.h, src/janus.c, src/janus.h, src/log.c,
-	src/ls_zglue.c, src/ls_zmodem.c, src/ls_zmodem.h,
-	src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h, src/main.c,
-	src/malloc.c, src/memcmp.c, src/nodelist.c, src/opts.h,
-	src/protfm.c, src/qcc.c, src/qcconst.h, src/qconf.x, src/qctl.c,
-	src/qipc.c, src/qipc.h, src/qnlc.c, src/queue.c, src/replace.h,
-	src/session.c, src/strcspn.c, src/strsep.c, src/tcp.c, src/tty.c,
-	src/tty.h, src/types.h, src/usleep.c, src/ver.c.in, src/ver.h,
-	src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
-	src/xstr.h, stuff/.cvsignore, stuff/Makefile.am, stuff/ftn,
-	stuff/fts-0001, stuff/onchat, stuff/qico.stat, stuff/qico.xpm,
-	stuff/qst_hist.lnk, stuff/qst_hist.ses, stuff/sfreq,
-	stuff/synctime, stuff/tossing: Initial revision
+	* .cvsignore (1.1), Changes (1.1), FAQ (1.1), Makefile.am (1.1),
+	README (1.1), TODO (1.1), autogen.sh (1.1), compile (1.1),
+	configure.in (1.1), qico.conf.sample (1.1), stamp-h.in (1.1),
+	src/.cvsignore (1.1), src/Makefile.am (1.1), src/basename.c (1.1),
+	src/bso.c (1.1), src/byteop.h (1.1), src/call.c (1.1),
+	src/charset.h (1.1), src/config.c (1.1), src/crc.c (1.1), src/crc.h
+	(1.1), src/defs.h (1.1), src/emsi.c (1.1), src/execsh.c (1.1),
+	src/flagexp.y (1.1), src/flaglex.l (1.1), src/freq.c (1.1),
+	src/ftn.c (1.1), src/ftn.h (1.1), src/getsid.c (1.1), src/globals.c
+	(1.1), src/globals.h (1.1), src/gmtoff.c (1.1), src/headers.h
+	(1.1), src/hydra.c (1.1), src/hydra.h (1.1), src/janus.c (1.1),
+	src/janus.h (1.1), src/log.c (1.1), src/ls_zglue.c (1.1),
+	src/ls_zmodem.c (1.1), src/ls_zmodem.h (1.1), src/ls_zreceive.c
+	(1.1), src/ls_zsend.c (1.1), src/mailer.h (1.1), src/main.c (1.1),
+	src/malloc.c (1.1), src/memcmp.c (1.1), src/nodelist.c (1.1),
+	src/opts.h (1.1), src/protfm.c (1.1), src/qcc.c (1.1),
+	src/qcconst.h (1.1), src/qconf.x (1.1), src/qctl.c (1.1),
+	src/qipc.c (1.1), src/qipc.h (1.1), src/qnlc.c (1.1), src/queue.c
+	(1.1), src/replace.h (1.1), src/session.c (1.1), src/strcspn.c
+	(1.1), src/strsep.c (1.1), src/tcp.c (1.1), src/tty.c (1.1),
+	src/tty.h (1.1), src/types.h (1.1), src/usleep.c (1.1),
+	src/ver.c.in (1.1), src/ver.h (1.1), src/x2c.awk (1.1), src/x2h.awk
+	(1.1), src/xmem.c (1.1), src/xmem.h (1.1), src/xstr.c (1.1),
+	src/xstr.h (1.1), stuff/.cvsignore (1.1), stuff/Makefile.am (1.1),
+	stuff/ftn (1.1), stuff/fts-0001 (1.1), stuff/onchat (1.1),
+	stuff/qico.stat (1.1), stuff/qico.xpm (1.1), stuff/qst_hist.lnk
+	(1.1), stuff/qst_hist.ses (1.1), stuff/sfreq (1.1), stuff/synctime
+	(1.1), stuff/tossing (1.1): Initial revision
 
 2003-07-13 01:26  sisoft
 
-	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
-	compile, configure.in, qico.conf.sample, stamp-h.in,
-	src/.cvsignore, src/Makefile.am, src/basename.c, src/bso.c,
-	src/byteop.h, src/call.c, src/charset.h, src/config.c, src/crc.c,
-	src/crc.h, src/defs.h, src/emsi.c, src/execsh.c, src/flagexp.y,
-	src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h, src/getsid.c,
-	src/globals.c, src/globals.h, src/gmtoff.c, src/headers.h,
-	src/hydra.c, src/hydra.h, src/janus.c, src/janus.h, src/log.c,
-	src/ls_zglue.c, src/ls_zmodem.c, src/ls_zmodem.h,
-	src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h, src/main.c,
-	src/malloc.c, src/memcmp.c, src/nodelist.c, src/opts.h,
-	src/protfm.c, src/qcc.c, src/qcconst.h, src/qconf.x, src/qctl.c,
-	src/qipc.c, src/qipc.h, src/qnlc.c, src/queue.c, src/replace.h,
-	src/session.c, src/strcspn.c, src/strsep.c, src/tcp.c, src/tty.c,
-	src/tty.h, src/types.h, src/usleep.c, src/ver.c.in, src/ver.h,
-	src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
-	src/xstr.h, stuff/.cvsignore, stuff/Makefile.am, stuff/ftn,
-	stuff/fts-0001, stuff/onchat, stuff/qico.stat, stuff/qico.xpm,
-	stuff/qst_hist.lnk, stuff/qst_hist.ses, stuff/sfreq,
-	stuff/synctime, stuff/tossing: Initial cvs
+	* .cvsignore (1.1.1.1), Changes (1.1.1.1), FAQ (1.1.1.1),
+	Makefile.am (1.1.1.1), README (1.1.1.1), TODO (1.1.1.1), autogen.sh
+	(1.1.1.1), compile (1.1.1.1), configure.in (1.1.1.1),
+	qico.conf.sample (1.1.1.1), stamp-h.in (1.1.1.1), src/.cvsignore
+	(1.1.1.1), src/Makefile.am (1.1.1.1), src/basename.c (1.1.1.1),
+	src/bso.c (1.1.1.1), src/byteop.h (1.1.1.1), src/call.c (1.1.1.1),
+	src/charset.h (1.1.1.1), src/config.c (1.1.1.1), src/crc.c
+	(1.1.1.1), src/crc.h (1.1.1.1), src/defs.h (1.1.1.1), src/emsi.c
+	(1.1.1.1), src/execsh.c (1.1.1.1), src/flagexp.y (1.1.1.1),
+	src/flaglex.l (1.1.1.1), src/freq.c (1.1.1.1), src/ftn.c (1.1.1.1),
+	src/ftn.h (1.1.1.1), src/getsid.c (1.1.1.1), src/globals.c
+	(1.1.1.1), src/globals.h (1.1.1.1), src/gmtoff.c (1.1.1.1),
+	src/headers.h (1.1.1.1), src/hydra.c (1.1.1.1), src/hydra.h
+	(1.1.1.1), src/janus.c (1.1.1.1), src/janus.h (1.1.1.1), src/log.c
+	(1.1.1.1), src/ls_zglue.c (1.1.1.1), src/ls_zmodem.c (1.1.1.1),
+	src/ls_zmodem.h (1.1.1.1), src/ls_zreceive.c (1.1.1.1),
+	src/ls_zsend.c (1.1.1.1), src/mailer.h (1.1.1.1), src/main.c
+	(1.1.1.1), src/malloc.c (1.1.1.1), src/memcmp.c (1.1.1.1),
+	src/nodelist.c (1.1.1.1), src/opts.h (1.1.1.1), src/protfm.c
+	(1.1.1.1), src/qcc.c (1.1.1.1), src/qcconst.h (1.1.1.1),
+	src/qconf.x (1.1.1.1), src/qctl.c (1.1.1.1), src/qipc.c (1.1.1.1),
+	src/qipc.h (1.1.1.1), src/qnlc.c (1.1.1.1), src/queue.c (1.1.1.1),
+	src/replace.h (1.1.1.1), src/session.c (1.1.1.1), src/strcspn.c
+	(1.1.1.1), src/strsep.c (1.1.1.1), src/tcp.c (1.1.1.1), src/tty.c
+	(1.1.1.1), src/tty.h (1.1.1.1), src/types.h (1.1.1.1), src/usleep.c
+	(1.1.1.1), src/ver.c.in (1.1.1.1), src/ver.h (1.1.1.1), src/x2c.awk
+	(1.1.1.1), src/x2h.awk (1.1.1.1), src/xmem.c (1.1.1.1), src/xmem.h
+	(1.1.1.1), src/xstr.c (1.1.1.1), src/xstr.h (1.1.1.1),
+	stuff/.cvsignore (1.1.1.1), stuff/Makefile.am (1.1.1.1), stuff/ftn
+	(1.1.1.1), stuff/fts-0001 (1.1.1.1), stuff/onchat (1.1.1.1),
+	stuff/qico.stat (1.1.1.1), stuff/qico.xpm (1.1.1.1),
+	stuff/qst_hist.lnk (1.1.1.1), stuff/qst_hist.ses (1.1.1.1),
+	stuff/sfreq (1.1.1.1), stuff/synctime (1.1.1.1), stuff/tossing
+	(1.1.1.1) (utags: start): Initial cvs
 
