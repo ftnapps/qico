@@ -5,7 +5,7 @@ EXTRA_PROGRAMS = qcc
 noinst_HEADERS = byteop.h crc.h defs.h ftn.h globals.h headers.h hydra.h \
 		janus.h ls_zmodem.h mailer.h opts.h qcconst.h qipc.h qipcng.h \
 		replace.h tty.h types.h vartree.h ver.h xmem.h xstr.h \
-		qconf.x flagexp.h
+		qconf.x qconf.h
 
 X2C = x2c.awk
 X2H = x2h.awk
@@ -24,6 +24,7 @@ qctl_LDADD = @LIBOBJS@
 qcc_LDADD = @LIBOBJS@
 qcc_LDFLAGS = @QCCLIBS@
 DEFS = -DQIPC_KEY=\"$(sbindir)/qico\" @DEFS@
+AM_YFLAGS = -d
 
 .x.h:
 	${AWK} -F, -f $(X2H) $< > $@
