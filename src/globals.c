@@ -1,6 +1,6 @@
 /**********************************************************
  * global variables
- * $Id: globals.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: globals.c,v 1.4 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -11,8 +11,9 @@ pfile_t sendf,recvf;
 char ip_id[10];
 ninfo_t *rnode=NULL;
 
-ftnaddr_t DEFADDR={0,0,0,0};
+ftnaddr_t DEFADDR={0,0,0,0,NULL};
 
 unsigned long int totalf,totalm,totaln;
 int was_req,got_req;
 flist_t *fl=NULL;
+char *connstr=NULL;

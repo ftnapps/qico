@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: flaglex.l,v 1.4 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -50,15 +50,16 @@ int yylval;
 %}
 
 Blank		[ \t\n]+
-Speed	[Ss][Pp][Ee][Ee][Dd]
-Phone	[Pp][Hh][Oo][Nn][Ee]
-Time	[Tt][Ii][Mm][Ee]
-iTime	[Ii][Tt][Ii][Mm][Ee]
-Address	[Aa][Dd][Dd][Rr][Ee][Ss][Ss]
-Port    [Pp][Oo][Rr][Tt]
-Date    [Dd][Aa][Tt][Ee]
-Connect [Cc][Oo][Nn][Nn][Ee][Cc][Tt]
-Cid     [Cc][Ii][Dd]
+ConnStr		[Cc][Oo][Nn][Nn][Ss][Tt][Rr]
+Speed		[Ss][Pp][Ee][Ee][Dd]
+Phone		[Pp][Hh][Oo][Nn][Ee]
+Time		[Tt][Ii][Mm][Ee]
+iTime		[Ii][Tt][Ii][Mm][Ee]
+Address		[Aa][Dd][Dd][Rr][Ee][Ss][Ss]
+Port    	[Pp][Oo][Rr][Tt]
+Date    	[Dd][Aa][Tt][Ee]
+Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
+Cid     	[Cc][Ii][Dd]
 Sun		[Ss][Uu][Nn]
 Mon		[Mm][Oo][Nn]
 Tue		[Tt][Uu][Ee]
@@ -81,7 +82,7 @@ Sep             [Se][Ee][Pp]
 Oct             [Oo][Cc][Tt]
 Nov             [Nn][Oo][Vv]
 Dec             [Dd][Ee][Cc]
-File			[Ff][Ii][Ll][Ee]
+File		[Ff][Ii][Ll][Ee]
 Eq		=(=)?
 Ne		!=
 Gt		\>
@@ -107,8 +108,8 @@ Phstr		[0-9-]+
 Ident		[A-Za-z][A-Za-z0-9]*
 Pathstr		\/([^\/]+\/)*[^\/]+
 Timestr		{Dow}({iHour}{Minute}\-{iHour}{Minute})?
-Hour        (([0-1]?[0-9])|(2[0-3]))
-Gapstr      (([0-7].)?{Hour}:{Minute}\-{Hour}:{Minute}|(([0-7].)?{Hour}\-{Hour})|([0-7].{Hour}:{Minute}\-[0-7].{Hour}:{Minute})|([0-7].{Hour}\-[0-7].{Hour})|CM|T[a-xA-X][a-xA-X])
+Hour        	(([0-1]?[0-9])|(2[0-3]))
+Gapstr      	(([0-7].)?{Hour}:{Minute}\-{Hour}:{Minute}|(([0-7].)?{Hour}\-{Hour})|([0-7].{Hour}:{Minute}\-[0-7].{Hour}:{Minute})|([0-7].{Hour}\-[0-7].{Hour})|CM|T[a-xA-X][a-xA-X])
 Addrstr		(({Decimal}|\*):)?(({Decimal}|\*)\/)?({Numeric}|\*)(.({Numeric}|\*))?(@({Ident}|\*))?
 Datestr         {Month}({Day}-{Day})?
 %%
@@ -133,6 +134,7 @@ Datestr         {Month}({Day}-{Day})?
 {Comma}		{yylval=COMMA;return(COMMA);}
 {Asterisk}	{yylval=ASTERISK;return(ASTERISK);}
 {Connect}	{yylval=CONNECT;return(CONNECT);}
+{ConnStr}	{yylval=CONNSTR;return(CONNSTR);}
 {Speed}		{yylval=SPEED;return(SPEED);}
 {File}		{yylval=FLFILE;return(FLFILE);}
 {Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
@@ -180,7 +182,7 @@ int flagfor(char *str)
 		return rnode->options&O_BAD;
 	}
 	if(rnode->flags) {
-		q=strdup(rnode->flags);p=strtok(q,",");
+		q=xstrdup(rnode->flags);p=strtok(q,",");
 		while(p) {
 			if(!strcasecmp(str,p)) {
 				free(q);
@@ -288,7 +290,7 @@ int chktime(char *str)
 	cur=now->tm_hour*60+now->tm_min;
 	beg=h1*60+m1;
 	end=h2*60+m2;
-    if (end > beg) r = ((cur >= beg) && (cur <= end));
+	if (end > beg) r = ((cur >= beg) && (cur <= end));
 	else r = ((cur >= beg) || (cur <= end));
 
 	DEBUG(('Y',2,"chktime: %02d:%02d <= %02d:%02d <= %02d:%02d: %d",h1,m1,now->tm_hour,now->tm_min,h2,m2,r));

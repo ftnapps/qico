@@ -1,10 +1,13 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.6 2003/09/13 15:31:49 sisoft Exp $
+ * $Id: ftn.c,v 1.7 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
 #include <fnmatch.h>
+
+// domain name for translate ftn addr to inet addr.
+#define DOMAIN ".fidonet.net"
 
 unsigned long seq=0xFFFFFFFF;
 
@@ -15,8 +18,8 @@ int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 
 	if(!s || !*s) return 0;
 	
-	if(b) {	a->z=b->z;a->n=b->n;a->f=b->f;a->p=(wc?-1:0); }
-	else { a->z=a->n=a->f=a->p=(wc?-1:0); }
+	if(b) {	a->z=b->z;a->n=b->n;a->f=b->f;a->p=(wc?-1:0);a->d=b->d?xstrdup(b->d):NULL; }
+	else { a->z=a->n=a->f=a->p=(wc?-1:0);a->d=NULL; }
 	pn=p;
 	while(*p && pq) {
 		if(isdigit((int)*p))
@@ -43,12 +46,13 @@ int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 				if(!wn) return 0;
 				wn=0;
 				break;
+			case '@':
+				if(p[1])a->d=xstrdup(p+1);
 			case '\n':
 			case '\r':
 			case '\0':	
 			case ' ':
 			case '\t':
-			case '@':
 				pq=0;
 				break; 
 			default:
@@ -57,19 +61,19 @@ int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 		p++;
 	}
 	switch(n) {
-	case 2:
+	    case 2:
 		if(!wn) return 0;
 		a->f=(wn<2)?atoi(pn):-1;
 		break;
-	case 3:
+	    case 3:
 		if(!wn) return 0;
 		a->p=(wn<2)?atoi(pn):-1;
 		break;
-	case -1:
+	    case -1:
 		if(!wn) return 0;
 		a->f=(wn<2)?atoi(pn):-1;
 		break;
-	default:
+	    default:
 		return 0;
 	} 
 	return 1;
@@ -102,20 +106,27 @@ ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas)
 char *ftnaddrtoa(ftnaddr_t *a)
 {
 	static char s[50];
-	if(a->p)
-		snprintf(s, 50, "%d:%d/%d.%d", a->z, a->n, a->f, a->p);
-	else
-		snprintf(s, 50, "%d:%d/%d", a->z, a->n, a->f);
+	if(a->p)snprintf(s, 50, "%d:%d/%d.%d", a->z, a->n, a->f, a->p);
+	    else snprintf(s, 50, "%d:%d/%d", a->z, a->n, a->f);
+	return s;
+}
+
+char *ftnaddrtoda(ftnaddr_t *a)
+{
+	char *d=cfgs(CFG_DOMAIN);
+	static char s[60];
+	if(*d=='@')d++;
+	if(!*d)d="fidonet.org";
+	if(a->p)snprintf(s, 60, "%d:%d/%d.%d@%s", a->z, a->n, a->f, a->p,a->d?a->d:d);
+	else snprintf(s, 60, "%d:%d/%d@%s", a->z, a->n, a->f,a->d?a->d:d);
 	return s;
 }
 
 char *ftnaddrtoia(ftnaddr_t *a)
 {
-	static char s[50];
-	if(a->p)
-		snprintf(s, 50, "p%d.f%d.n%d.z%d@fidonet.net",a->p,a->f,a->n,a->z);
-	else
-		snprintf(s, 50, "f%d.n%d.z%d@fidonet.net",a->f,a->n,a->z);
+	static char s[60];
+	if(a->p)snprintf(s, 60, "p%d.f%d.n%d.z%d" DOMAIN,a->p,a->f,a->n,a->z);
+	    else snprintf(s, 60, "f%d.n%d.z%d" DOMAIN,a->f,a->n,a->z);
 	return s;
 }
 
@@ -465,7 +476,7 @@ char *qver(int w)
 void closeqpkt(FILE *f,ftnaddr_t *fa)
 {
 	char str[MAX_STRING];
-	snprintf(str,MAX_STRING*4,"%s-%s/%s",strdup(qver(0)),strdup(qver(1)),strdup(qver(2)));
+	snprintf(str,MAX_STRING*4,"%s-%s/%s",xstrdup(qver(0)),xstrdup(qver(1)),xstrdup(qver(2)));
 	closepkt(f,fa,str,cfgs(CFG_STATION));
 }
 

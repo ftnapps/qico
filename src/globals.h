@@ -1,4 +1,4 @@
-/* $Id: globals.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $ */
+/* $Id: globals.h,v 1.4 2003/09/23 12:55:54 sisoft Exp $ */
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
@@ -17,5 +17,6 @@ extern ftnaddr_t DEFADDR;
 extern unsigned long int totalf, totalm, totaln;
 extern int was_req, got_req;
 extern flist_t *fl;
+extern char *connstr;
 
 #endif

@@ -68,6 +68,9 @@
 #                              <date> is <mon>[dd-dd], where <mon> is
 #                              Jan-Dec, Any
 #                              ex.: 'date Any10-13, Feb, Mar1-30
+# + file <full-path>         - file <full-path> present
+#                              ex. 'file /fido/flags/flag'
+# + connstr <substring>      - connect string includes <substring>     (NEW!!!)
 # + <flag>                   - where flag can be:
 #                                - 'list[ed]' (without '')
 #                                - 'prot[ected]'
@@ -77,8 +80,10 @@
 #                                - 'binkp' - identifies BinkP session  (NEW!!!)
 #                                - nodelist flag 
 #                              ex. 'in & (!listed | !V34)'
-# + file <full-path>         - file <full-path> present
-#                              ex. 'file /fido/flags/flag'
+#
+### TODO: #####################################################################
+# + host <host_mask>         - where <host_mask> is remote's host or 
+#                              ip-address mask
 #
 # almost every keyword can be changed at runtime, but some changes won't make 
 # any effect ;)  (may try 'qctl -R' for funny ;)) ).
@@ -89,16 +94,12 @@
 ### addresses and passwords ###################################################
 ###############################################################################
 # your addresses, first will be used as primary and its zone and net will be
-# used as default (required)
+# used as default (required). domain part used only for binkp.
 address		1:2345/7845
-address 	111:222/44
+address 	111:222/44@leftnet
 
-# domain name for BinkP	(required)				       (NEW!!!)
+# default domain name						       (NEW!!!)
 domain		fidonet.org
-
-;if address 111:*/*
-;    domain	leftnet
-;endif
 
 # passwords for nodes
 ;password	2:2345/1234		COOLPASS
@@ -419,7 +420,7 @@ protorder	HJDZ1C
 # R - NonReliable mode (currently not supported)
 # D - NonDupes mode (currently not supported)
 # B - MultiBatch mode (currently not supported)
-# P - Disable plain authentication (currently not supported)
+# P - Disable plain authentication
 binkpopt	MRDB
 
 # Ignore NRQ flag in EMSI. .req file sending force, if enabled and     (NEW!!!)
@@ -579,15 +580,26 @@ mapout 	bSc
 mapin	lk
 
 ###############################################################################
-### substs ####################################################################
+### substs #######################################################(changed!!!)#
 ###############################################################################
-# substs in format: subst <addr> <phone> <wtime> 
+# substs in format: subst <addr> <phone|host> [<wtime> [<flag>]]
 # each field can be replaced with '-' (keep unchanged)
+# supported flags:  (may be only one flag for each subst!)
+#	binkp - BinkP calls to node,
+#	ifc - ifcico calls to node.
+# on ip calls field <phone> must contain ip addr. or host of node, or
+# '-' for translate ftn-addr to f.n.z.fidonet.net.
+#	
 # ex:
 #
-;subst	1:2345/123		-			23:30-8:00
-;subst	1:2345/546		123-4567	-
-;subst	1:2345/666		02			CM 		
+;subst	1:2345/123	-			23:30-8:00	ifc
+# addr: 1:2345/123, host: f123.n2345.z1.fidonet.net, prot: ifcico.
+;subst	1:2345/546	123-4567		-		-
+# addr: 1:2345/546, phone: 123-4567, prot: emsi via modem.
+;subst	1:2345/666	fido.foobar.com		CM 		binkp
+# addr: 1:2345/666, host: fido.foobar.com, prot: binkp; main line.
+;subst	1:2345/666	-			-
+# addr: 1:2345/666, phone: from nodelist, prot: emsi via modem; hidden line.
 #
 # Subst override nodelist, so for second (hidden) line you must specify
 # two (or more) `subst':
@@ -654,5 +666,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.9 2003/09/14 16:45:20 sisoft Exp $
+# $Id: qico.conf.sample,v 1.10 2003/09/23 12:55:53 sisoft Exp $
 ###############################################################################

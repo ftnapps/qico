@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.5 2003/09/07 09:34:21 sisoft Exp $
+ * $Id: emsi.c,v 1.6 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -65,14 +65,14 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 		}
 	}
 	if(!c)xstrcat(dat,",NCP",EMSI_BUF);
-    	snprintf(tmp,1024,"}{FE}{%s}{%s}{%s}",strdup(qver(0)),strdup(qver(1)),strdup(qver(2)));
+    	snprintf(tmp,1024,"}{FE}{%s}{%s}{%s}",xstrdup(qver(0)),xstrdup(qver(1)),xstrdup(qver(2)));
 	xstrcat(dat,tmp,EMSI_BUF);
 	snprintf(tmp,1024,"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s %s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
 			strip8(cfgs(CFG_STATION)),strip8(cfgs(CFG_PLACE)),
 			strip8(cfgs(CFG_SYSOP)),strip8(cfgs(CFG_PHONE)),
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
-			mail,files,strip8(cfgs(CFG_WORKTIME)?ccs:strdup("Never")),
-			strip8(cfgs(CFG_EMSIFREQTIME)?ccs:(cfgs(CFG_FREQTIME)?ccs:strdup("Never"))),
+			mail,files,strip8(cfgs(CFG_WORKTIME)?ccs:xstrdup("Never")),
+			strip8(cfgs(CFG_EMSIFREQTIME)?ccs:(cfgs(CFG_FREQTIME)?ccs:xstrdup("Never"))),
 			time(NULL)+gmtoff(tm,0),gmtoff(tm,0)/3600);
 	xstrcat(dat,tmp,EMSI_BUF);
 	snprintf(tmp,1024,"%04X",strlen(dat)-14);
@@ -191,8 +191,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	DEBUG(('E',1,"emsi codes %s/%s",lcod,ccod));
 
 	dat->options|=emsi_parsecod(lcod, ccod);
-	dat->chat=(chat_need==1&&chatmy!=0);
-
+	if(chat_need==1&&chatmy!=0)dat->opt|=MO_CHAT;
 	xfree(dat->wtime);
 	while((p=emsi_tok(&t,"{}"))) {
 		if(!strcmp(p, "IDENT")) {

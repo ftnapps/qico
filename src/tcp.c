@@ -1,6 +1,6 @@
 /**********************************************************
  * tcp open
- * $Id: tcp.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: tcp.c,v 1.4 2003/09/23 12:55:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -80,15 +80,17 @@ void closetcp(void)
 int tcp_call(char *host, ftnaddr_t *fa)
 {
 	int rc;
+	title("Calling to %s (%s)", ftnaddrtoa(fa), bink?"binkp":"ifcico");
 	write_log("connecting to %s at %s [%s]", ftnaddrtoa(fa), host,bink?"binkp":"ifcico");
 	rc=opentcp(host);
 	if(rc) {
 		rc=session(1,bink?SESSION_BINKP:SESSION_AUTO, fa, TCP_SPEED);
 		closetcp();
 		if((rc&S_MASK)==S_REDIAL) {
-			write_log("creating poll for %s", ftnaddrtoa(fa));
-			bso_poll(fa,F_ERR); 
-		} 
+			write_log("creating poll for %s",ftnaddrtoa(fa));
+			if(is_bso()==1)bso_poll(fa,F_ERR);
+			    else if(is_aso()==1)aso_poll(fa,F_ERR);
+		}
 	} else rc=S_REDIAL;
 	title("Waiting...");
 	vidle();
