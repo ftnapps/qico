@@ -1,6 +1,6 @@
 /***************************************************************************
  * File request support
- * $Id: freq.c,v 1.6 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: freq.c,v 1.7 2004/02/10 12:08:39 sisoft Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -70,10 +70,10 @@ int freq_ifextrp(slist_t *reqs)
 		    else if(*s=='+')ss++;
 		p=ss+strlen(ss)-1;
 		while(*p=='\r'||*p=='\n')*p--=0;
-		while(*ss==' ')ss++;
-		p=basename(ss);
+		p=strrchr(ss,' ');
+		if(p)*p++=0;else p=ss;
 		DEBUG(('R',1,"sending '%s' as '%s'%s",ss,p,kil?" and kill":""));
-		addflist(&fl,xstrdup(ss),xstrdup(p),kil?'^':' ',0,NULL,0);
+		addflist(&fl,xstrdup(ss),xstrdup((p!=s)?p:basename(s)),kil?'^':' ',0,NULL,0);
 	}
 	fclose(f);lunlink(fn);
 	snprintf(fn,MAX_PATH,"/tmp/qrep.%04lx",tpid);

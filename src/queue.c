@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations
- * $Id: queue.c,v 1.11 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: queue.c,v 1.12 2004/02/10 12:08:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -154,7 +154,7 @@ void rescan_boxes(int rslow)
 					if(n==4)snprintf(rev,27,"%hd.%hd.%hd.%hd",a.z,a.n,a.f,a.p);
 					    else snprintf(rev,27,"%hd.%hd.%hd.%hd.%c",a.z,a.n,a.f,a.p,flv);
 					if(!strcmp(de->d_name,rev)) {
-						len=strlen(ccs)+2+strlen(de->d_name);
+						len=strlen(cfgs(CFG_LONGBOXPATH))+2+strlen(de->d_name);
 						p=xmalloc(len);
 						snprintf(p,len,"%s/%s",ccs,de->d_name);
 						q=q_add(&a);
@@ -162,7 +162,8 @@ void rescan_boxes(int rslow)
 						if(q->sizes[5]!=0) {
 							q->touched=1;
 							q->what|=T_ARCMAIL;
-							if(n==4)flv=*cfgs(CFG_DEFBOXFLV);
+							cfgs(CFG_DEFBOXFLV);
+							if(n==4)flv=(ccs&&*ccs)?(*ccs):'h';
 							switch(tolower(flv)) {
 							    case 'h': q->flv|=Q_HOLD;break;
 							    case 'n':
@@ -175,7 +176,7 @@ void rescan_boxes(int rslow)
 						}
 						xfree(p);
 					} else DEBUG(('Q',1,"strange: find: '%s', calc: '%s'",de->d_name,rev));
-				} else DEBUG(('Q',2,"bad longbox name %s",de->d_name));
+				} else if(*de->d_name!='.')DEBUG(('Q',2,"bad longbox name %s",de->d_name));
 			}
 			closedir(d);
 		} else write_log("can't open %s: %s",ccs,strerror(errno));
