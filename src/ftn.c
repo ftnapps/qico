@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: ftn.c,v 1.4 2003/07/24 11:53:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -706,7 +706,7 @@ int xfnmatch(char *pat,char *name,int flags)
 	if(*pat=='%') {
 		switch(pat[1]) {
 		    case 'F':
-			if(type==IS_FILE||type==IS_REQ)q=1;
+			if(type==IS_FILE)q=1;
 			break;
 		    case 'N':
 			if(type==IS_PKT)q=1;
