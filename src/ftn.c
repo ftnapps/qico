@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.6 2000/07/22 16:04:35 lev Exp $
+ * $Id: ftn.c,v 1.7 2000/07/26 18:52:10 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -473,33 +473,44 @@ int fexist(char *s)
 }
 
 char dos_allowed[]="-!~$()_";
+
+int isfchar(char p) {
+    if((tolower(p)<='z' && tolower(p)>='a') ||
+	(p<='9' && p>='0') || strchr(dos_allowed, p))
+	    return 1;
+    else return 0;
+}
+
 char *fnc(char *s)
 {
 	static char s8[13];
-	char *p,*q, *t, i;
-	t=strdup(s);
-	s=strrchr(t, '.');if(!s) s=t+strlen(t);
-	for(p=t,q=t;p<s;p++) 
-		if((tolower(*p)<='z' && tolower(*p)>='a') ||
-		   (*p<='9' && *p>='0') || strchr(dos_allowed, *p)) 
-			*q++=tolower(*p);
-	*q=0;
-	if(strlen(t)<=8) strcpy(s8, t);else {
-		memcpy(s8, t, 4);memcpy(s8+4, q-4, 4);s8[8]=0;
+	char *p, *q;
+	unsigned int i=0;
+
+	if (!s) return NULL;
+
+	if (NULL == (p=strrchr(s,'/'))) p=s; else s=p;
+	while (*p && *p!='.' && i<8) {
+		if (isfchar(*p)) s8[i++]=tolower(*p);
+		p++;
 	}
-	s++;
-	if(*s) {
-		if(strstr(s,"tar.gz")) strcat(s8,".tgz");
-		else if(strstr(s,"tar.bz2")) strcat(s8,".tb2"); else {
-	    	strcat(s8,".");q=s8+strlen(s8);i=0;
-		    for(;*s && i<3;s++) 
-			    if((tolower(*s)<='z' && tolower(*s)>='a') ||
-		    	   (*s<='9' && *s>='0') || strchr(dos_allowed, *s)) 
-			    	q[i++]=tolower(*s);
-		    q[i]=0;
+	s8[i]='\0';
+
+	if (strstr(s,".tar.gz")) strcat (s8, ".tgz");
+	else if (strstr(s,".tar.bz2")) strcat (s8, ".tb2");
+	else {
+		p=strrchr(s, '.');
+		if (p) {
+			strcat(s8,".");
+			q=p+4;
+			i=strlen(s8);
+			while (*p && q>p) {
+				if(isfchar(*p)) s8[i++]=tolower(*p);
+				p++;
+			}
+			s8[i]='\0';
 		}
 	}
-	sfree(t);
 	return s8;
 }
 	
