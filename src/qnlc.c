@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.14 2002/06/03 20:39:14 lev Exp $
+ * $Id: qnlc.c,v 1.14.4.1 2003/01/24 08:59:22 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -133,7 +133,7 @@ int compile_nodelists()
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
 				}					
 				if(ie.addr.z < 0 || ie.addr.n < 0 || ie.addr.f < 0 || ie.addr.p < 0) {
-					write_log("can not parse address in %s at line %d!",q_basename(fn),line);
+					write_log("can not parse address in %s at line %d!",basename(fn),line);
 					fclose(idx);
 					snprintf(fn, MAX_PATH,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 					return 0;
@@ -147,7 +147,7 @@ int compile_nodelists()
  				k++;
 			}
  			fclose(f);
-			printf("compiled %s: %d nodes\n", q_basename(fn), k);
+			printf("compiled %s: %d nodes\n", basename(fn), k);
 			i++;
 			if(i>MAX_NODELIST) {
 				write_log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");

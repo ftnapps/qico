@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.13 2001/10/08 18:42:18 lev Exp $
+ * $Id: freq.c,v 1.13.4.1 2003/01/24 08:59:21 cyrilm Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -56,7 +56,7 @@ int freq_ifextrp(slist_t *reqs)
 		p=strrchr(s,' ');
 		if(p) *p++=0;else p=s;
 		DEBUG(('R',1,"sending '%s' as '%s'", s, p));
-		addflist(&fl, xstrdup(s), xstrdup((p!=s)?p:q_basename(s)), ' ',0,NULL,0);
+		addflist(&fl, xstrdup(s), xstrdup((p!=s)?p:basename(s)), ' ',0,NULL,0);
 		got=1;
 	}
 	fclose(f);lunlink(fn);

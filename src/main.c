@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.63 2003/01/22 07:50:11 cyrilm Exp $
+ * $Id: main.c,v 1.62.4.1 2003/01/24 08:59:22 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -19,7 +19,6 @@
 #define IP_D 0
 
 extern int hangup();
-extern int stat_collect();
 
 char *configname=CONFIG;
 subst_t *psubsts;
@@ -697,7 +696,7 @@ void answer_mode(int type)
 #else
 	xstrcpy(ip_id, "ipd", 10);
 #endif
-	rnode->tty=xstrdup(is_ip?"tcpip":q_basename(ttyname(0)));
+	rnode->tty=xstrdup(is_ip?"tcpip":basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
@@ -728,12 +727,7 @@ void answer_mode(int type)
 	tty_setattr(0);
 	tty_nolocal();
 	rc=session(0, type, NULL, spd);
-	tty_local();
-	if(!is_ip) 
-		{
-		hangup();
-		stat_collect();
-		}
+	if(!is_ip) hangup();
 	tty_cooked();
 
 	if ((S_OK == (rc&S_MASK)) && cfgi(CFG_HOLDONSUCCESS)) {
