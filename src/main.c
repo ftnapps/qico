@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.21 2000/11/09 13:42:16 lev Exp $
+ * $Id: main.c,v 1.22 2000/11/12 12:33:28 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -359,6 +359,7 @@ void daemon_mode()
 							bso_getstatus(&current->addr, &sts);
 							if(++sts.try>=cfgi(CFG_MAX_FAILS)) {
 								sts.flags|=Q_UNDIAL;
+								sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
 								write_log("maximum tries count reached, %s undialable",
 									ftnaddrtoa(&current->addr));
 							}
