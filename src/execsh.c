@@ -2,17 +2,9 @@
  * File: execsh.c
  * Created at Sun Nov 21 12:05:23 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from by Eugene Crosser's ifcico 
- * $Id: execsh.c,v 1.3 2000/11/01 10:29:23 lev Exp $
+ * $Id: execsh.c,v 1.4 2000/11/26 13:17:33 lev Exp $
  ******************************************************************/
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include "ftn.h"
+#include "headers.h"
 
 char devnull[]="/dev/null";
 

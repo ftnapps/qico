@@ -2,22 +2,14 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.3 2000/11/09 13:42:16 lev Exp $
+ * $Id: tcp.c,v 1.4 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
-#include <sys/types.h>
+#include "headers.h"
 #include <sys/socket.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
-#include <signal.h>
 #include <fcntl.h>
-#include <errno.h>
 #include "tty.h"
-#include "ftn.h"
 #include "qipc.h"
 
 int opentcp(char *name)

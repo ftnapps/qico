@@ -1,6 +1,5 @@
 BEGIN {
- print "#include \"ftn.h\""
- print "#include \"qconf.h\""
+ print "#include \"headers.h\""
  print
  print "cfgstr_t configtab[CFG_NNN+1]={" 
 }

@@ -2,33 +2,18 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.23 2000/11/16 18:46:22 lev Exp $
+ * $Id: main.c,v 1.24 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "headers.h"
 #include <stdarg.h>
 #include <locale.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <sys/utsname.h>
-#include <errno.h>
-#include <ctype.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <fcntl.h>
-#include "ftn.h"
-#include "ver.h"
-#include "qconf.h"
 #include "tty.h"
-#include "mailer.h"
 #include "qipc.h"
-#include "globals.h"
 
 #ifdef Q_DEBUG
 #define sline write_log

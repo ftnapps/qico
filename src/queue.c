@@ -2,18 +2,10 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.6 2000/11/09 12:49:04 lev Exp $
+ * $Id: queue.c,v 1.7 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include "ftn.h"
+#include "headers.h"
 #include "qipc.h"
-#include "qconf.h"
 
 qitem_t *q_queue=NULL;
 

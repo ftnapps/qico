@@ -2,13 +2,9 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.3 2000/11/01 10:29:23 lev Exp $
+ * $Id: config.c,v 1.4 2000/11/26 13:17:33 lev Exp $
  **********************************************************/
-#include "ftn.h"
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include "qconf.h"
+#include "headers.h"
 
 extern int flagexp(char *);
 

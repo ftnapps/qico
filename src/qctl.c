@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.7 2000/11/26 12:25:48 lev Exp $
+ * $Id: qctl.c,v 1.8 2000/11/26 13:17:34 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -17,6 +17,8 @@
 #include <config.h>
 #include "qcconst.h"
 #include "ver.h"
+
+extern time_t gmtoff(time_t tt);
 
 int qipc_msg;
 

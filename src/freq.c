@@ -2,18 +2,9 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.5 2000/11/01 10:29:23 lev Exp $
+ * $Id: freq.c,v 1.6 2000/11/26 13:17:33 lev Exp $
  ***************************************************************************/
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <time.h>
-#include <stdlib.h>
-#include "mailer.h"
-#include "globals.h"
-#include "qconf.h"
-#include "ver.h"
+#include "headers.h"
 
 int freq_pktcount=1;
 

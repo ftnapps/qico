@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.8 2000/11/10 12:37:21 lev Exp $
+ * $Id: hydra.c,v 1.9 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -12,19 +12,11 @@
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
 
  =============================================================================*/
-#include <sys/stat.h>
-#include <sys/time.h>
-#include "mailer.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include "headers.h"
 #include <stdarg.h>
-#include <errno.h>
-#include "hydra.h"
-#include "qipc.h"
-#include "globals.h"
-#include "ver.h"
 #include "defs.h"
+#include "qipc.h"
+#include "hydra.h"
 
 
 #ifdef H_DEBUG

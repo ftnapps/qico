@@ -1,5 +1,3 @@
-#include "qcconst.h"
-#include "mailer.h"
 /* globals.c */
 extern char *osname;
 extern int is_ip;

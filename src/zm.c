@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.6 2000/11/10 12:37:21 lev Exp $
+ * $Id: zm.c,v 1.7 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -23,7 +23,7 @@
  *	contract.
  * 
  */
-#include "mailer.h"
+#include "headers.h"
 #include "defs.h"
 #include "zmodem.h"
 #include "qipc.h"

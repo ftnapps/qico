@@ -2,18 +2,9 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.6 2000/11/07 16:09:26 lev Exp $
+ * $Id: qnlc.c,v 1.7 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <unistd.h>
-#include "ftn.h"
-#include "qconf.h"
-#include "mailer.h"
+#include "headers.h"
 
 int nl_ext(char *s)
 {

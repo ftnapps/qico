@@ -2,25 +2,13 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.7 2000/11/10 12:37:21 lev Exp $
+ * $Id: tty.c,v 1.8 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
+#include "headers.h"
 #include <sys/ioctl.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <fcntl.h>
 #include <termios.h>
-#include <time.h>
-#include "ftn.h"
-#include "tty.h"
 #include "defs.h"
-#include "qconf.h"
+#include "tty.h"
 
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
 				"read error", "write error", "timeout", "close error",

@@ -2,10 +2,10 @@
  * File: globals.c
  * Created at Thu Jul 15 16:11:48 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: globals.c,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: globals.c,v 1.2 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include "qcconst.h"
-#include "mailer.h"
+#include "headers.h"
+
 char *osname="Unix";
 int is_ip=0, do_rescan=0;
 pfile_t sendf, recvf;

@@ -2,22 +2,9 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.18 2000/11/26 12:36:08 lev Exp $
+ * $Id: ftn.c,v 1.19 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#include <signal.h>
-#include "ftn.h"
-#include "qconf.h"
-#include "qcconst.h"
+#include "headers.h"
 
 unsigned long seq=0xFFFFFFFF;
 

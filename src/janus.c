@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.8 2000/11/25 19:25:47 lev Exp $
+ * $Id: janus.c,v 1.9 2000/11/26 13:17:34 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -12,19 +12,11 @@
 /*                The Opus Computer-Based Conversation System                */
 /*           (c) Copyright 1987, Rick Huebner, All Rights Reserved           */
 /*---------------------------------------------------------------------------*/
-#include <sys/stat.h>
-#include <sys/time.h>
-#include "mailer.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
+#include "headers.h"
 #include <stdarg.h>
-#include "janus.h"
-#include "qipc.h"
-#include "globals.h"
-#include "ver.h"
 #include "defs.h"
-#include "qconf.h"
+#include "qipc.h"
+#include "janus.h"
 
 /* #define J_DEBUG */
 

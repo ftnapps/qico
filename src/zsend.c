@@ -2,20 +2,12 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.6 2000/11/10 12:37:22 lev Exp $
+ * $Id: zsend.c,v 1.7 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
-
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "mailer.h"
+#include "headers.h"
 #include "defs.h"
 #include "zmodem.h"
 #include "qipc.h"
-#include "globals.h"
 
 
 char Myattn[]={0};

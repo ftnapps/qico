@@ -2,14 +2,10 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.3 2000/11/09 13:42:16 lev Exp $
+ * $Id: call.c,v 1.4 2000/11/26 13:17:33 lev Exp $
  **********************************************************/
-#include "ftn.h"
-#include <stdlib.h>
-#include <string.h>
+#include "headers.h"
 #include "tty.h"
-#include "mailer.h"
-#include "qconf.h"
 #include "qipc.h"
 
 char *mcs[]={"ok", "fail", "error", "busy"};

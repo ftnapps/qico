@@ -2,28 +2,14 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.9 2000/11/08 20:31:45 lev Exp $
+ * $Id: session.c,v 1.10 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <time.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <dirent.h>
-#include <errno.h>
+#include "headers.h"
 #include "defs.h"
-#include "ftn.h"
-#include "zmodem.h"
-#include "mailer.h"
-#include "qconf.h"
 #include "qipc.h"
-#include "globals.h"
+#include "zmodem.h"
 #include "hydra.h"
 #include "janus.h"
-#include "ver.h"
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill,
 			   off_t off, FILE *lo, int sort)

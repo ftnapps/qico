@@ -2,11 +2,11 @@
  * File: zmr.c
  * Created at Fri Jul 16 17:22:42 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM RLE compression and decompression functions
- * $Id: zmr.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: zmr.c,v 1.2 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
-#include "mailer.h"
-#include "zmodem.h"
+#include "headers.h"
 #include "defs.h"
+#include "zmodem.h"
 #include "qipc.h"
 
 /* Send data subpacket RLE encoded with 32 bit FCS */

@@ -2,18 +2,12 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.4 2000/11/01 10:29:24 lev Exp $
+ * $Id: log.c,v 1.5 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include "ftn.h"
-#include <stdlib.h>
+#include "headers.h"
 #include <stdarg.h>
-#include <time.h>
-#include <string.h>
-#include <unistd.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
-#include "ver.h"
-#include "globals.h"
 
 int log_type=0;
 char *log_name=NULL;

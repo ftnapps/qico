@@ -2,15 +2,9 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.4 2000/11/01 10:29:24 lev Exp $
+ * $Id: nodelist.c,v 1.5 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include "ftn.h"
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/stat.h>
-#include "qconf.h"
+#include "headers.h"
 
 #define NL_RECS 1000
 

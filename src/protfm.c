@@ -2,20 +2,11 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.9 2000/11/10 12:37:21 lev Exp $
+ * $Id: protfm.c,v 1.10 2000/11/26 13:17:34 lev Exp $
  ******************************************************************/
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
+#include "headers.h"
 #include <utime.h>
 #include <fnmatch.h>
-#include "mailer.h"
-#include "qconf.h"
-#include "globals.h"
 
 /*  Common protocols' vars */
 FILE   *txfd=NULL,     *rxfd=NULL;

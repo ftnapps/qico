@@ -2,21 +2,12 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.5 2000/11/01 10:29:24 lev Exp $
+ * $Id: qipc.c,v 1.6 2000/11/26 13:17:34 lev Exp $
  **********************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include "headers.h"
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <stdarg.h>
-#include <errno.h>
-#include "ftn.h"
-#include "qipc.h"
-#include "mailer.h"
-#include "qcconst.h"
-#include "globals.h"
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif

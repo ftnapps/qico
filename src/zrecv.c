@@ -2,22 +2,13 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.6 2000/11/10 12:37:22 lev Exp $
+ * $Id: zrecv.c,v 1.7 2000/11/26 13:17:35 lev Exp $
  **********************************************************/
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/stat.h>
-#include <stdio.h>
+#include "headers.h"
 #include <utime.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include "mailer.h"
 #include "defs.h"
 #include "zmodem.h"
 #include "qipc.h"
-#include "globals.h"
 
 #define N_ZFINS 1
 

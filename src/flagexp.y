@@ -2,21 +2,12 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.5 2000/11/01 10:43:20 lev Exp $
+ * $Id: flagexp.y,v 1.6 2000/11/26 13:17:33 lev Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <fnmatch.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include "ftn.h"
-#include "mailer.h"	
-#include "qcconst.h"
-#include "globals.h"
+#include "headers.h"
 
 #define YY_NO_UNPUT
 #undef ECHO

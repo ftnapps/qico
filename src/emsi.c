@@ -2,18 +2,11 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.8 2000/11/26 12:25:47 lev Exp $
+ * $Id: emsi.c,v 1.9 2000/11/26 13:17:33 lev Exp $
  **********************************************************/
-#include "mailer.h"
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "qconf.h"
-#include "ver.h"
-#include "qipc.h"
-#include "globals.h"
+#include "headers.h"
 #include "defs.h"
+#include "qipc.h"
 
 #ifdef E_DEBUG
 #define sline write_log
@@ -89,7 +82,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
 			mail, files, cfgs(CFG_WORKTIME),
 			cfgs(CFG_FREQTIME)?" ":"",cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"",
-			time(NULL)+gmtoff(tm)/3600
+			time(NULL)+gmtoff(tm),gmtoff(tm)/3600
 		);
 	strcat(dat, tmp);
 	sprintf(tmp, "%04X", strlen(dat)-14);
