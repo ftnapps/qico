@@ -2,6 +2,7 @@
 ###################################
 ### The simplest freq processor ###
 ###################################
+#
 PUB=/var/spool/ifmail/freqs
 ALIASES=/var/spool/ifmail/freqs/magic
  
