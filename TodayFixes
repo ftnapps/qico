@@ -1,4 +1,10 @@
-/* $Id: TodayFixes,v 1.2 2003/10/03 00:11:35 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.3 2003/10/05 15:01:17 sisoft Exp $ */
+---
+apply new exchange-flags algo.
+add support for CRYPT mode.
+partially support for NDA (ND-async) mode.
+.
+previous:
 ---
 another fix of binkp opt.
 tested with binkd-0.9.6a and binkleyforce-0.22.8.kst7 - success.
@@ -6,17 +12,6 @@ fix work with multiple batches.
 fix set MD5-auth mode on incoming binkp calls.
 add freq support. work only with MB mode (binkp/1.1).
 change position of message TRF in handshake.
-.
-previous:
----
-change version to 0.50si-cvs.
-small change in configure.in.
-add support for NR and MB modes in binkp.
-fix binkp: change spaces to underlines in filenames.
-fix stupid error in parse M_GET.
-more correct set PWD flag on outbound binkp sess.
-fix 'binkpopt' keyword.
-added TodayFixes: changes in current commit.
 .
 
 ps: в связи с временным отсутствием фидошки,

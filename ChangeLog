@@ -1,3 +1,15 @@
+2003-10-03 04:11  sisoft
+
+	* .cvsignore, ChangeLog, TodayFixes, cvs_com, src/binkp.c,
+	src/binkp.h, src/freq.c:
+
+	another fix of binkp opt.
+	tested with binkd-0.9.6a and binkleyforce-0.22.8.kst7 - success.
+	fix work with multiple batches.
+	fix set MD5-auth mode on incoming binkp calls.
+	add freq support. work only with MB mode (binkp/1.1).
+	change position of message TRF in handshake.
+	
 2003-10-02 19:17  sisoft
 
 	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,

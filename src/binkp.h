@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol defines. by sisoft\\trg'2003.
- * $Id: binkp.h,v 1.4 2003/10/03 00:11:36 sisoft Exp $
+ * $Id: binkp.h,v 1.5 2003/10/05 15:01:19 sisoft Exp $
  ******************************************************************/
 #ifndef __BINKP_H__
 #define __BINKP_H__
@@ -11,17 +11,13 @@
 #define BP_BUFFER	32770  /* buffer size */
 
 /* options */
-#define BP_OPT_NR       0x01   /* Non-reliable mode */
-#define BP_OPT_MB       0x02   /* Multiple batch mode */
-#define BP_OPT_NOPLAIN  0x04   /* Disable plain auth */
-#define BP_OPT_MD5      0x08   /* CRAM-MD5 authentication */
-#define BP_OPT_SHA1     0x10   /* CRAM-SHA1 authentication */
-#define BP_OPT_DES      0x20   /* CRAM-DES authentication */
-#define BP_OPT_CRYPT	0x40   /* Crypt traffic */
-#define BP_OPT_ND       0x80   /* Non-dupes mode */
-
-/* supported extensions */
-#define BP_OPTIONS	BP_OPT_MD5|BP_OPT_NOPLAIN|BP_OPT_NR|BP_OPT_MB
+#define O_NO	0
+#define O_WANT	1
+#define O_WE	2
+#define O_THEY	4
+#define O_NEED	8
+#define O_EXT	16
+#define O_YES	32
 
 /* outbound state */
 #define BPO_Init	0
