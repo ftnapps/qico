@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.13 2001/01/08 19:37:06 lev Exp $
+ * $Id: session.c,v 1.14 2001/01/13 12:03:42 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -536,7 +536,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			if(!rc) rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 			if(got_req && !rc) rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 		} else {
-			rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
+			rc=wazoorecv(((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0))|0x0100);
 			if(rc) return S_REDIAL;
 			rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 			if(was_req) rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));

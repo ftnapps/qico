@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.5 2001/01/06 14:49:20 lev Exp $
+ * $Id: ls_zreceive.c,v 1.6 2001/01/13 12:03:42 lev Exp $
  **********************************************************/
 /*
 
@@ -46,7 +46,7 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 
 	if(NULL==(rxbuf=malloc((ls_MaxBlockSize+16)))) return LSZ_ERROR;
 
-	return ls_zrecvfinfo(f,ZRINIT,1);
+	return ls_zrecvfinfo(f,ZRINIT,(protocol&LSZ_OPTFIRSTBATCH)?0:1);
 }
 
 /* Internal function -- receive ZCRCW frame in 10 trys, send ZNAK/ZACK */

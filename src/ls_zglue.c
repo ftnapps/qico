@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.7 2001/01/09 16:38:38 lev Exp $
+ * $Id: ls_zglue.c,v 1.8 2001/01/13 12:03:42 lev Exp $
  **********************************************************/
 /*
 
@@ -109,7 +109,7 @@ int zmodem_receive(char *c, int canzap) {
 #ifdef Z_DEBUG
 	write_log("zmodem_receive");
 #endif
-	switch(canzap) {
+	switch(canzap & 0x00FF) {
 	case 2:
 		opts |= LSZ_OPTDIRZAP;
 		/* Fall through */
@@ -122,6 +122,7 @@ int zmodem_receive(char *c, int canzap) {
 #endif
 		break;
 	}
+	if(canzap & 0x0100) opts |=	LSZ_OPTFIRSTBATCH;
 
 	switch((rc=ls_zinitreceiver(opts,effbaud,cfgi(CFG_ZRXWIN),&f))) {
 	case ZFIN:
