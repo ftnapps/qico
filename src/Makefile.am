@@ -1,11 +1,12 @@
-# $Id: Makefile.am,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+# $Id: Makefile.am,v 1.4 2003/10/05 19:37:32 sisoft Exp $
 sbin_PROGRAMS = qico
 bin_PROGRAMS = qctl @QCC@
 EXTRA_PROGRAMS = qcc
 
-noinst_HEADERS = byteop.h crc.h defs.h ftn.h globals.h headers.h hydra.h binkp.h \
-		janus.h ls_zmodem.h mailer.h opts.h qcconst.h qipc.h replace.h \
-		tty.h types.h ver.h xmem.h xstr.h qconf.x qconf.h charset.h
+noinst_HEADERS = byteop.h crc.h defs.h ftn.h globals.h headers.h hydra.h \
+		binkp.h janus.h ls_zmodem.h mailer.h opts.h qcconst.h qipc.h \
+		replace.h tty.h types.h ver.h xmem.h xstr.h qconf.x qconf.h \
+		charset.h cvsdate.h
 
 X2C = x2c.awk
 X2H = x2h.awk
