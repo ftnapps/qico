@@ -300,6 +300,18 @@ if connect >= 28800
    protorder	68HJZ1
 endif
 
+# Send window for ZModem (in bytes). 0 --streamed mode.
+ztxwin          0
+# Receive window for ZModem (in bytes). 0 --streamed mode.
+# May be ignored by remote
+zrxwin          0
+
+# Send window for Hydra (in bytes). 0 --streamed mode.
+htxwin          0
+# Receive window for Hydra (in bytes). 0 --streamed mode.
+hrxwin          0
+
+
 # show intro (received before EMSI_REQ) lines in log
 showintro      	yes
 
@@ -439,4 +451,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.8 2000/11/16 18:44:08 lev Exp $
+# $Id: qico.conf.sample,v 1.9 2000/12/26 12:29:18 lev Exp $
