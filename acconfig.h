@@ -41,3 +41,5 @@
 #undef HAVE_TIOCSCTTY
 
 #undef HAVE_STDXXX_FILENO
+
+#undef HAVE_EIDRM
