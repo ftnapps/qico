@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.59 2001/09/28 10:36:36 lev Exp $
+ * $Id: main.c,v 1.60 2001/09/30 15:15:48 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -835,7 +835,7 @@ int main(int argc, char *argv[], char *envp[])
 	char *str=NULL;
 
 #ifndef HAVE_SETPROCTITLE
-	setargspace(argv,envp);
+	setargspace(argc,argv,envp);
 #endif
  	setlocale(LC_ALL, "");	 
 
