@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.3 2000/10/12 20:32:42 lev Exp $
+ * $Id: qipc.c,v 1.4 2000/10/17 16:58:26 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,14 +23,13 @@
 
 #ifdef QCC
 
-int qipc_msg;
-key_t qipc_key;
+int qipc_msg=-1;
+key_t qipc_key=0;
 
 int qipc_init()
 {
   	log_callback=vlogs;
 	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) return 0;
-	qipc_msg=msgget(qipc_key, 0666);
 	return 1;
 }
 
@@ -44,6 +43,7 @@ void qsendpkt(char what, char *line, char *buff, int len)
 {
 	int rc;
 	char buf[MSG_BUFFER];
+	if(!qipc_key) qipc_init();
 	if(qipc_msg<0) {
 		qipc_msg=msgget(qipc_key, 0666);
 		if(qipc_msg<0) return;
@@ -63,6 +63,7 @@ void qsendpkt(char what, char *line, char *buff, int len)
 	buf[12]=what;
 	strncpy(buf+13,line,8);
 	memcpy(buf+13+strlen(line)+1, buff, len);
+//	log("sendpkt %s %d", line, len);
 	rc=msgsnd(qipc_msg, buf, 13+strlen(line)+1+len, IPC_NOWAIT);
 	if(rc<0 && errno==EIDRM) {
 		qipc_msg=-1;
@@ -140,7 +141,7 @@ void qpproto(char type, pfile_t *pf)
 	char buf[MSG_BUFFER], *p=buf;
 	memcpy(p, pf, sizeof(pfile_t));
 	p+=sizeof(pfile_t);
-	strncpy(p, pf->fname, MSG_BUFFER-sizeof(pfile_t));
+	strncpy(p, pf->fname?pf->fname:"", MSG_BUFFER-sizeof(pfile_t));
 	p+=strlen(p)+1;
 	qsendpkt(type, QLNAME, buf, p-buf);
 }
