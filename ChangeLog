@@ -1,3 +1,12 @@
+2004-05-27 22:50  sisoft
+
+	* src/: Makefile.am, binkp.c, call.c, config.c, daemon.c, emsi.c,
+	  ftn.h, hydra.c, log.c, ls_zglue.c, mailer.h, main.c, nodelist.c,
+	  protfm.c, qcc.c, qnlc.c, session.c, tcp.c, tools.h, tty.c, tty.h:
+
+	fix end 'qico -c' calls.
+	move modem functions to modem.c, calls to call.c.
+
 2004-05-26 11:46  sisoft
 
 	* configure.in, src/binkp.c, src/crc.h, src/daemon.c, src/md5.c,
