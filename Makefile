@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.5 2000/08/13 21:16:31 lev Exp $
+# $Id: Makefile,v 1.6 2000/08/15 16:52:18 lev Exp $
 #
 include	CONFIG
 
@@ -22,7 +22,7 @@ clean:
 install:
 	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
 	cp qico.conf qico.conf.sample
-	$(INSTALL) -m $(PERM) -o $(OWNER) -g $(GROUP) qico.conf.sample $(CONF)
+	$(INSTALL) -m $(PERM) -o $(OWNER) -g $(GROUP) qico.conf.sample $(CONF).sample
 
 release: clean
 	mkdir qico-$(VERSION)
