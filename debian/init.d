@@ -10,18 +10,18 @@ test -f $DAEMON || exit 0
 
 case "$1" in
   start)
-    echo -n "Starting FTN services: "
+    echo -n "Starting FTN services: qico"
     start-stop-daemon --start --verbose --exec $DAEMON
-    echo "qico"
+    echo "."
     ;;
   stop)
-    echo -n "Stopping FTN services: "
+    echo -n "Stopping FTN services: qico"
     if [ -f $QCTL ]; then
 	$QCTL -q
     else
 	start-stop-daemon --stop --verbose --exec $DAEMON
     fi
-    echo "qico"
+    echo "."
     ;;
   reload)
     if [ -f $QCTL ]; then
@@ -31,7 +31,7 @@ case "$1" in
     fi
     ;;
   restart|force-reload)
-    echo -n "Restarting FTN services: "
+    echo -n "Restarting FTN services: qico"
     if [ -f $QCTL ]; then
 	$QCTL -q
     else
@@ -39,7 +39,7 @@ case "$1" in
     fi
     sleep 1
     start-stop-daemon --start --verbose --exec $DAEMON
-    echo "qico"
+    echo "."
     ;;
   *)
     echo "Usage: /etc/init.d/qico {start|stop|restart|force-reload}"

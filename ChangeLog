@@ -1,3 +1,9 @@
+2004-03-03 18:12  sisoft
+
+	* src/flaglex.l, src/qcc.c, stuff/ftn:
+
+	fix expressions binkp and tcp.
+	
 2004-02-27 02:55  sisoft
 
 	* configure.in, src/aso.c, src/binkp.c, src/bso.c, src/config.c,

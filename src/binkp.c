@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.27 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: binkp.c,v 1.28 2004/03/06 12:50:56 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -653,7 +653,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			}
 			recv_eob++;
 			if(!lst&&nofiles) {
-				lst=fl;while(lst&&!lst->sendas)lst=lst->next;
+				for(lst=fl;lst&&!lst->sendas;lst=lst->next);
 				if(lst){lst=fl;mes=0;nofiles=0;break;}
 			}
 			if(opt_mb!=O_YES||(opt_mb==O_YES&&!cls&&!mes&&sent_eob)) {

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.11 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: tty.c,v 1.12 2004/03/06 12:50:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -123,7 +123,6 @@ int tty_lock(char *port)
 	return -1;
 }
 
-
 int tty_open(char *port, int speed)
 {
 	int rc, fd;
@@ -178,7 +177,7 @@ int tty_setattr(int speed)
 
 	memcpy(&tios, &savetios, sizeof(tios));
 	tios.c_cflag &= ~(CSTOPB | PARENB | PARODD);
-	tios.c_cflag |= CS8 | CREAD | HUPCL | CLOCAL;
+	tios.c_cflag |= CS8 | CREAD | HUPCL | CLOCAL | HARDW_HS;
 	tios.c_iflag = 0;
 	tios.c_oflag = 0;
 	tios.c_lflag = 0;
@@ -228,6 +227,9 @@ speed_t tty_transpeed(int speed)
 #if defined(B600)
         case 600:       tspeed=B600; break;
 #endif
+#if defined(B900)
+        case 900:       tspeed=B900; break;
+#endif
 #if defined(B1200)
         case 1200:      tspeed=B1200; break;
 #endif
@@ -236,6 +238,9 @@ speed_t tty_transpeed(int speed)
 #endif
 #if defined(B2400)
         case 2400:      tspeed=B2400; break;
+#endif
+#if defined(B3600)
+        case 3600:      tspeed=B3600; break;
 #endif
 #if defined(B4800)
         case 4800:      tspeed=B4800; break;
@@ -267,6 +272,12 @@ speed_t tty_transpeed(int speed)
 #endif
 #if defined(B115200)
         case 115200:    tspeed=B115200; break;
+#endif
+#if defined(B230400)
+        case 230400:    tspeed=B230400; break;
+#endif
+#if defined(B460800)
+        case 460800:    tspeed=B460800; break;
 #endif
         default:        tspeed=0; break;
         }
@@ -463,7 +474,6 @@ int tty_get(byte *buf, size_t size, int *timeout)
 	return rc;
 }
 
-
 int tty_bufc(char ch)
 {
 	int rc = OK;
@@ -506,7 +516,6 @@ int tty_getc_timed(int *timeout)
  	return in_buffer[in_bufpos++];
 }
 
-
 int tty_hasdata(int sec, int usec)
 {
 	fd_set rfds, efds;
@@ -531,7 +540,6 @@ int tty_hasdata(int sec, int usec)
 	if(rc>0) if(FD_ISSET(STDIN_FILENO, &efds) || !FD_ISSET(STDIN_FILENO, &rfds)) return ERROR;
 	return OK;
 }
-
 
 int tty_hasdata_timed(int *timeout)
 {
@@ -560,7 +568,6 @@ int tty_hasdata_timed(int *timeout)
 	if(rc>0) if(FD_ISSET(STDIN_FILENO, &efds) || !FD_ISSET(STDIN_FILENO, &rfds)) return ERROR;
 	return OK;
 }
-
 
 void tty_purge() {
 	DEBUG(('M',3,"tty_purge"));
@@ -617,7 +624,6 @@ int tty_expect(char *what, int timeout)
 	return got?OK:TIMEOUT;
 }
 
-
 char *baseport(char *p)
 {
 	static char pn[20];
@@ -626,7 +632,6 @@ char *baseport(char *p)
 	if((q=strrchr(pn,':'))) *q=0;
 	return pn;
 }
-
 
 int modem_sendstr(char *cmd)
 {
