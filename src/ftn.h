@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.3 2003/07/23 10:45:27 sisoft Exp $ */
+/* $Id: ftn.h,v 1.4 2003/07/24 21:50:19 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -42,6 +42,11 @@
 #define IS_FILE        2
 #define IS_ARC         1
 #define IS_PKT         0
+
+#define LCK_x   0
+#define LCK_c	1
+#define LCK_t	2
+#define LCK_s   3
 
 typedef struct {
 	short int z,n,f,p;
@@ -266,11 +271,11 @@ extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
 extern int aso_flavor(char fl);
 extern char *aso_pktn(ftnaddr_t *fa, int fl);
 extern char *aso_flon(ftnaddr_t *fa, int fl);
-extern char *aso_bsyn(ftnaddr_t *fa);
+extern char *aso_bsyn(ftnaddr_t *fa,char b);
 extern char *aso_reqn(ftnaddr_t *fa);
 extern char *aso_stsn(ftnaddr_t *fa);
-extern int aso_locknode(ftnaddr_t *adr);
-extern int aso_unlocknode(ftnaddr_t *adr);
+extern int aso_locknode(ftnaddr_t *adr,int lev);
+extern int aso_unlocknode(ftnaddr_t *adr,int lev);
 extern int aso_attach(ftnaddr_t *adr, int flv, slist_t *files);
 extern int aso_request(ftnaddr_t *adr, slist_t *files);
 extern int aso_rmstatus(ftnaddr_t *adr);
@@ -287,11 +292,11 @@ extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int, int),int rslow
 extern int bso_flavor(char fl);
 extern char *bso_pktn(ftnaddr_t *fa, int fl);
 extern char *bso_flon(ftnaddr_t *fa, int fl);
-extern char *bso_bsyn(ftnaddr_t *fa);
+extern char *bso_bsyn(ftnaddr_t *fa,char b);
 extern char *bso_reqn(ftnaddr_t *fa);
 extern char *bso_stsn(ftnaddr_t *fa);
-extern int bso_locknode(ftnaddr_t *adr);
-extern int bso_unlocknode(ftnaddr_t *adr);
+extern int bso_locknode(ftnaddr_t *adr,int lev);
+extern int bso_unlocknode(ftnaddr_t *adr,int lev);
 extern int bso_attach(ftnaddr_t *adr, int flv, slist_t *files);
 extern int bso_request(ftnaddr_t *adr, slist_t *files);
 extern int bso_rmstatus(ftnaddr_t *adr);

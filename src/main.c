@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: main.c,v 1.4 2003/07/24 21:50:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -337,8 +337,8 @@ void daemon_mode()
 
 					if(chld==0) {
 						setsid();
-						if(is_bso()==1)if(!bso_locknode(&current->addr))exit(S_BUSY);
-						if(is_aso()==1)if(!aso_locknode(&current->addr))exit(S_BUSY);
+						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
+						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(cfgi(CFG_TRANSLATESUBST)==1)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 						log_done();
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
@@ -476,8 +476,8 @@ void daemon_mode()
 								}
 								break;
 						}
-						if(is_bso()==1)bso_unlocknode(&current->addr);
-						if(is_aso()==1)aso_unlocknode(&current->addr);
+						if(is_bso()==1)bso_unlocknode(&current->addr,LCK_x);
+						if(is_aso()==1)aso_unlocknode(&current->addr,LCK_x);
 						vidle();log_done();
 /* 						qipc_done(); */
 						exit(rc);
@@ -562,8 +562,8 @@ void daemon_mode()
         			case QR_POLL:
 				    {
 					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa);
-					if(is_aso()==1)locked|=aso_locknode(&fa);
+					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 					if(locked) {
 						p=buf+9+strlen(buf+9)+1;
 						if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
@@ -578,7 +578,7 @@ void daemon_mode()
 						sendrpkt(0,chld,"");
 						if(is_bso()==1) {
 							rc=bso_poll(&fa,rc);
-							bso_unlocknode(&fa);
+							bso_unlocknode(&fa,LCK_t);
 							bso_getstatus(&fa, &sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
@@ -588,7 +588,7 @@ void daemon_mode()
 						}
 						if(is_aso()==1) {
 							if(is_bso()!=1)rc=aso_poll(&fa,rc);
-							aso_unlocknode(&fa);
+							aso_unlocknode(&fa,LCK_t);
 							aso_getstatus(&fa, &sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
@@ -606,14 +606,14 @@ void daemon_mode()
 				case QR_KILL:
 				    {
 					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa);
-					if(is_aso()==1)locked|=aso_locknode(&fa);
+					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 					if(locked) {
 						write_log("kill %s", ftnaddrtoa(&fa));
 						sendrpkt(0,chld,"");
 						simulate_send(&fa);
-						if(is_bso()==1)bso_unlocknode(&fa);
-						if(is_aso()==1)aso_unlocknode(&fa);
+						if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
+						if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
 						do_rescan=1;
 					} else {
 						write_log("can't kill %s!",ftnaddrtoa(&fa));
@@ -668,8 +668,8 @@ void daemon_mode()
 				case QR_REQ:
 				    {
 					int locked=0;
-					if(is_bso()==1)locked|=bso_locknode(&fa);
-					if(is_aso()==1)locked|=aso_locknode(&fa);
+					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 					if(locked) {
 						sl=NULL;p=buf+9+strlen(buf+9)+1;
 						while(strlen(p)){
@@ -684,7 +684,7 @@ void daemon_mode()
 						else if(is_aso()==1)rc=aso_request(&fa, sl);
 						slist_kill(&sl);
 						if(is_bso()==1) {
-							bso_unlocknode(&fa);
+							bso_unlocknode(&fa,LCK_t);
 							bso_getstatus(&fa, &sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
@@ -693,7 +693,7 @@ void daemon_mode()
 							}
 						}
 						if(is_aso()==1) {
-							aso_unlocknode(&fa);
+							aso_unlocknode(&fa,LCK_t);
 							aso_getstatus(&fa, &sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
@@ -720,8 +720,8 @@ void daemon_mode()
 						break;
 					}
 					p+=strlen(p)+1;
-					if(is_bso()==1)locked|=bso_locknode(&fa);
-					if(is_aso()==1)locked|=aso_locknode(&fa);
+					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
+					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 					if(locked) {
 						sl=NULL;
 						while(strlen(p)){
@@ -734,8 +734,8 @@ void daemon_mode()
 						if(is_bso()==1)rc=bso_attach(&fa,rc,sl);
 						    else if(is_aso()==1)rc=aso_attach(&fa,rc,sl);
 						slist_kill(&sl);
-						if(is_bso()==1)bso_unlocknode(&fa);
-						if(is_aso()==1)aso_unlocknode(&fa);
+						if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
+						if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
 						sendrpkt(0,chld,"");
 						do_rescan=1;
 					} else {
@@ -1152,15 +1152,15 @@ int main(int argc, char *argv[], char *envp[])
 			qipc_done();
 			exit(1);
 		}
-		if(is_bso()==1)locked|=bso_locknode(&fa);
-		if(is_aso()==1)locked|=aso_locknode(&fa); 
+		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_c);
+		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_c);
 		if(locked) {
 			signal(SIGINT, sigerr);
 			signal(SIGTERM, sigerr);
 			signal(SIGSEGV, sigerr);
 			rc=force_call(&fa,line,call_flags);
-			if(is_bso()==1)bso_unlocknode(&fa);
-			if(is_aso()==1)aso_unlocknode(&fa);
+			if(is_bso()==1)bso_unlocknode(&fa,LCK_x);
+			if(is_aso()==1)aso_unlocknode(&fa,LCK_x);
 		} else rc=0;
 		if(rc&S_MASK) write_log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
 		if(is_bso()==1)bso_done();
