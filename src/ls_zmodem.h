@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.8 2001/01/06 14:46:43 lev Exp $
+ * $Id: ls_zmodem.h,v 1.9 2001/01/13 20:07:32 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -117,6 +117,7 @@
 #define LSZ_OPTRLE			0x00000020		/* We must send RLEd data (NOT SUPPORTED)! */
 #define LSZ_OPTESC8			0x00000040		/* We must escape all 8-bit data (NOT SUPPORTED!) */
 #define LSZ_OPTSKIPGUARD	0x00000080		/* We use double-skip guard */
+#define LSZ_OPTFIRSTBATCH	0x00000100		/* It is first batch -- trust in first ZFIN */
 
 /* Peer's capabilities from ZRINIT header */
 #define	LSZ_RXCANDUPLEX		0x0001		/* Receiver can send and receive true	FDX */
