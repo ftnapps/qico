@@ -2,7 +2,7 @@
  * File: gmtoff.c
  * Created at Sun Nov 26 15:34:28 MSK 2000 by lev // lev@serebryakov.spb.ru
  * Patch for systems without tm.tm_gmtoff
- * $Id: gmtoff.c,v 1.2 2001/01/07 11:25:27 lev Exp $
+ * $Id: gmtoff.c,v 1.3 2001/01/17 14:17:20 lev Exp $
  **********************************************************/
 #include "headers.h"
 
