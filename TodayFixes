@@ -1,14 +1,12 @@
-/* $Id: TodayFixes,v 1.6 2003/10/08 10:07:50 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.7 2003/10/08 16:45:11 sisoft Exp $ */
+---
+add http/https proxy support. yet not tested.
+.
+previous:
 ---
 add keyword 'failpolls yes/no' - create polls after failed session.
 add description for keyword 'killbadpkt' to sample config.
 .
-previous:
----
-fix configure.
-.
 
 ps: в связи с временным отсутствием фидошки,
 писать мне можно только на <sisoft#bk.ru>.
-буду благодарен, если кто-нибудь скинет на емыл
-наиболее информативные сообщения из ru.qico ;)

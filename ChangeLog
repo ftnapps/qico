@@ -1,3 +1,10 @@
+2003-10-08 14:07  sisoft
+
+	* qico.conf.sample, src/call.c, src/qconf.x, src/tcp.c:
+
+	add keyword 'failpolls yes/no' - create polls after failed session.
+	add description for keyword 'killbadpkt' to sample config.
+	
 2003-10-08 05:26  sisoft
 
 	* src/: binkp.c, mailer.h, qcc.c, qcconst.h, qconf.x, tcp.c:
