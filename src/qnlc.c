@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.5 2000/11/06 21:57:32 lev Exp $
+ * $Id: qnlc.c,v 1.6 2000/11/07 16:09:26 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,8 +111,8 @@ int compile_nodelists()
 					ie.addr.p=nl_ext(s);
 				if(!strncmp(s, "Zone,", 5)) {
 					gp=0;
-					ie.addr.z=nl_ext(s);
-					ie.addr.n=0;ie.addr.f=0;ie.addr.p=0;
+					ie.addr.z=ie.addr.n=nl_ext(s);
+					ie.addr.f=0;ie.addr.p=0;
 				} else if(!strncmp(s, "Host,", 5) ||
 						  !strncmp(s,"Region,", 7)) {
 					gp=0;
