@@ -2,7 +2,7 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.8 2001/07/12 21:40:24 lev Exp $
+ * $Id: flagexp.y,v 1.9 2002/08/09 17:10:21 lev Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -79,6 +79,7 @@ gapstring	: GAPSTR
 			{$$ = $1;}
 		| GAPSTR COMMA gapstring
 			{$$ = logic($1,OR,$3);}
+		;
 %%
 
 #include "flaglex.c"
