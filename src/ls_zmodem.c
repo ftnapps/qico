@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.12 2001/02/04 13:54:47 lev Exp $
+ * $Id: ls_zmodem.c,v 1.13 2001/02/04 14:33:22 lev Exp $
  **********************************************************/
 /*
 
@@ -423,7 +423,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	return rc;
 }
 
-/* Send data block, with CRC and framing */
+/* Send data block, with CRC16 and framing */
 int ls_zsenddata(char *data, int len, int frame)
 {
 	long crc;
@@ -460,7 +460,7 @@ int ls_zsenddata(char *data, int len, int frame)
 		crc = LSZ_FINISH_CRC16(crc);
 		crc = STOI(crc & 0xffff);
 #ifdef Z_DEBUG2
-		write_log("ls_zsenddata: CRC16 is %08x",crc);
+		write_log("ls_zsenddata: CRC16 is %04x",crc);
 #endif
 		ls_sendchar(crc >> 8);
 		ls_sendchar(crc & 0xff);
@@ -470,23 +470,32 @@ int ls_zsenddata(char *data, int len, int frame)
 	return BUFFLUSH();
 }
 
-/* Receive data subframe, return frame type or error (may be -- timeout) */
-int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
+/* Receive data subframe with CRC16, return frame type or error (may be -- timeout) */
+int ls_zrecvdata16(char *data, int *len, int timeout)
 {
 	int c;
 	int t = t_set(timeout);			/* Timer */
 	int got = 0;					/* Bytes total got */
-	long incrc = crc32?LSZ_INIT_CRC32:LSZ_INIT_CRC16;	/* Calculated CRC */
+	long incrc = LSZ_INIT_CRC16;	/* Calculated CRC */
 	long crc = 0;					/* Received CRC */
 	int frametype = LSZ_ERROR;		/* Type of frame - ZCRC(G|W|Q|E) */
 	int rcvdata = 1;				/* Data is being received NOW (not CRC) */
 
 #ifdef Z_DEBUG
-	write_log("ls_zrecvdata: timeout %d, CRC%d",timeout,crc32?32:16);
+	write_log("ls_zrecvdata16: timeout %d",timeout);
 #endif
 
 	while(rcvdata && ((c = ls_readzdle(t_rest0(t))) >= 0)) {
-		if(c & 0x0100) {
+		if(c < 256) {
+			*data++ = c & 0xff; got++;
+			incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc);
+			if(got > ls_MaxBlockSize) {
+#ifdef Z_DEBUG
+				write_log("ls_zrecvdata16: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
+#endif
+				return LSZ_BADCRC;
+			}
+		} else {
 			switch(c) {
 			case LSZ_CRCE:
 			case LSZ_CRCG:
@@ -495,22 +504,13 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 				rcvdata = 0;
 				frametype = c & 0xff;
 #ifdef Z_DEBUG2
-				write_log("ls_zrecvdata: frameend %c",(char)frametype);
+				write_log("ls_zrecvdata16: frameend %c",(char)frametype);
 #endif
-				incrc = crc32?LSZ_UPDATE_CRC32((unsigned char)c,incrc):LSZ_UPDATE_CRC16((unsigned char)c,incrc);
+				incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc);
 				break;
 			default:
-#ifdef Z_DEBUG1
-				write_log("ls_zrecvdata: bad frameend %d",c);
-#endif
-				return LSZ_BADCRC;
-			}
-		} else {
-			*data++ = c & 0xff; got++;
-			incrc = crc32?LSZ_UPDATE_CRC32((unsigned char)c,incrc):LSZ_UPDATE_CRC16((unsigned char)c,incrc);
-			if(got > ls_MaxBlockSize) {
 #ifdef Z_DEBUG
-				write_log("ls_zrecvdata: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
+				write_log("ls_zrecvdata16: bad frameend %d",c);
 #endif
 				return LSZ_BADCRC;
 			}
@@ -519,39 +519,103 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 	/* We finish loop by error in ls_readzdle() */
 	if(rcvdata) {
 #ifdef Z_DEBUG
-		write_log("ls_zrecvdata: timeout or something else: %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
+		write_log("ls_zrecvdata16: timeout or something else: %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
 #endif
 		return c;
 	}
 
 	/* Loops ar unrolled */
-	if(crc32) {
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc |= (unsigned long)c << 0x00;
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc |= (unsigned long)c << 0x08;
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc |= (unsigned long)c << 0x10;
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc |= (unsigned long)c << 0x18;
-		crc = LTOH(crc);
-		incrc = LSZ_FINISH_CRC32(incrc);
-	} else {
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc = (unsigned char)c;
-		if((c = ls_readzdle(t_rest0(t))) < 0) return c;
-		crc <<= 8; crc |= (unsigned char)c;
-		crc = STOH(crc);
-		incrc = LSZ_FINISH_CRC16(incrc);
-	}
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc = (unsigned char)c;
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc <<= 8; crc |= (unsigned char)c;
+	crc = STOH(crc);
+	incrc = LSZ_FINISH_CRC16(incrc);
 #ifdef Z_DEBUG2
-	write_log("ls_zrecvdata: CRC%d got %08x, claculated %08x",crc32?32:16,incrc,crc);
+	write_log("ls_zrecvdata16: CRC16 got %04x, claculated %04x",incrc,crc);
+#endif
+
+	if (incrc != crc) return LSZ_BADCRC;
+	*len = got;
+#ifdef Z_DEBUG
+	write_log("ls_zrecvdata16: OK");
+#endif
+	return frametype;
+}
+
+/* Receive data subframe with CRC32, return frame type or error (may be -- timeout) */
+int ls_zrecvdata32(char *data, int *len, int timeout)
+{
+	int c;
+	int t = t_set(timeout);			/* Timer */
+	int got = 0;					/* Bytes total got */
+	long incrc = LSZ_INIT_CRC32;	/* Calculated CRC */
+	long crc = 0;					/* Received CRC */
+	int frametype = LSZ_ERROR;		/* Type of frame - ZCRC(G|W|Q|E) */
+	int rcvdata = 1;				/* Data is being received NOW (not CRC) */
+
+#ifdef Z_DEBUG
+	write_log("ls_zrecvdata32: timeout %d",timeout);
+#endif
+
+	while(rcvdata && ((c = ls_readzdle(t_rest0(t))) >= 0)) {
+		if(c < 256) {
+			*data++ = c & 0xff; got++;
+			incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc);
+			if(got > ls_MaxBlockSize) {
+#ifdef Z_DEBUG
+				write_log("ls_zrecvdata32: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
+#endif
+				return LSZ_BADCRC;
+			}
+		} else {
+			switch(c) {
+			case LSZ_CRCE:
+			case LSZ_CRCG:
+			case LSZ_CRCQ:
+			case LSZ_CRCW:
+				rcvdata = 0;
+				frametype = c & 0xff;
+#ifdef Z_DEBUG2
+				write_log("ls_zrecvdata21: frameend %c",(char)frametype);
+#endif
+				incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc);
+				break;
+			default:
+#ifdef Z_DEBUG
+				write_log("ls_zrecvdata32: bad frameend %d",c);
+#endif
+				return LSZ_BADCRC;
+			}
+		}
+	}
+	/* We finish loop by error in ls_readzdle() */
+	if(rcvdata) {
+#ifdef Z_DEBUG
+		write_log("ls_zrecvdata32: timeout or something else: %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
+#endif
+		return c;
+	}
+
+	/* Loops ar unrolled */
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc |= (unsigned long)c << 0x00;
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc |= (unsigned long)c << 0x08;
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc |= (unsigned long)c << 0x10;
+	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	crc |= (unsigned long)c << 0x18;
+	crc = LTOH(crc);
+	incrc = LSZ_FINISH_CRC32(incrc);
+#ifdef Z_DEBUG2
+	write_log("ls_zrecvdata32: CRC32 got %08x, claculated %08x",incrc,crc);
 #endif
 
 	if (incrc != crc) return LSZ_BADCRC;
 	*len = got;
 #ifdef Z_DEBUG2
-	write_log("ls_zrecvdata: OK");
+	write_log("ls_zrecvdata32: OK");
 #endif
 	return frametype;
 }

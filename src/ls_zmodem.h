@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.10 2001/02/04 13:54:47 lev Exp $
+ * $Id: ls_zmodem.h,v 1.11 2001/02/04 14:33:22 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -207,7 +207,9 @@ int ls_zsendhhdr(int frametype, int len, char *hdr);
 int ls_zrecvhdr(char *hdr, int *hlen, int timeout);
 
 int ls_zsenddata(char *data, int len, int frame);
-int ls_zrecvdata(char *data, int *len, int timeout, int crc32);
+int ls_zrecvdata16(char *data, int *len, int timeout);
+int ls_zrecvdata32(char *data, int *len, int timeout);
+#define ls_zrecvdata(data,len,timeout,crc32) ((crc32)?ls_zrecvdata32(data,len,timeout):ls_zrecvdata16(data,len,timeout))
 
 void ls_sendchar(int c);
 void ls_sendhex(int i);
