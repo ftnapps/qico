@@ -1,11 +1,8 @@
-/* $Id: TodayFixes,v 1.52 2004/03/21 10:42:42 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.53 2004/03/21 10:43:51 sisoft Exp $ */
 ---
-fix vsnprintf() and tm.tm_gmtoff detection.
-add if-expression 'line' (was documented, but unreleased).
 .
 previous:
 ---
-try to fix compile under Solaris.
-fix [n]curses library detection.
-fix stat[v]fs struct detection.
+fix vsnprintf() and tm.tm_gmtoff detection.
+add if-expression 'line' (was documented, but unreleased).
 .

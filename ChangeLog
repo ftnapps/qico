@@ -1,3 +1,12 @@
+2004-03-21 13:42  sisoft
+
+	* Changes, configure.in, src/daemon.c, src/flagexp.y,
+	  src/flaglex.l, src/log.c, src/qcc.c, src/qipc.c, src/tty.h,
+	  src/xstr.h:
+
+	fix vsnprintf() and tm.tm_gmtoff detection.
+	add if-expression 'line' (was documented, but unreleased).
+
 2004-03-20 19:04  sisoft
 
 	* Changes, configure.in, debian/rules, src/basename.c,
