@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.16 2001/05/16 19:40:25 lev Exp $
+ * $Id: log.c,v 1.17 2001/05/22 18:55:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -194,7 +194,9 @@ void write_debug_log(unsigned char facility, int level, char *fmt, ...)
 	va_list args;
 	char prefix[16];
 
+#ifndef __GNUC__
 	if (facilities_levels[facility] < level) return;
+#endif
 	snprintf(prefix,16,"DBG_%c%02d: ",facility,level);
 	va_start(args, fmt);
 	vwrite_log(fmt,prefix,args);
