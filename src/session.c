@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.4 2000/10/07 14:27:26 lev Exp $
+ * $Id: session.c,v 1.5 2000/10/08 17:57:08 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -641,6 +641,17 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		execnowait(cfgs(CFG_AFTERSESSION),
 				   rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
 				   (rnode->options&O_INB)?"I":"O",((rc&S_MASK)==S_OK)?"1":"0");
+	}
+	if(cfgs(CFG_AFTERMAIL)){
+		if(recvf.toff-recvf.soff!=0){
+			log("starting %s %s %c %d",
+				cfgs(CFG_AFTERMAIL),
+				rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
+				(rnode->options&O_INB)?'I':'O',((rc&S_MASK)==S_OK)?1:0);
+			execnowait(cfgs(CFG_AFTERMAIL),
+				   	rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
+				   	(rnode->options&O_INB)?"I":"O",((rc&S_MASK)==S_OK)?"1":"0");
+		}
 	}
 	return rc;
 }
