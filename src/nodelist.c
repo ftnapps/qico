@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.16 2001/07/20 08:37:25 lev Exp $
+ * $Id: nodelist.c,v 1.17 2001/07/24 13:57:09 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -216,7 +216,7 @@ void phonetrans(char **pph, slist_t *phtr)
 			return;
 		}
 		if(s[0]=='=') {
-			if(p) strcpy(tmp, p);else *tmp=0;
+			if(p) xstrcpy(tmp, p, MAX_STRING);else *tmp=0;
 			xstrcat(tmp, ph, MAX_STRING);
 			len=strlen(tmp)+1;
 			xfree(ph); ph=xmalloc(len); *pph=ph;
