@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.9 2000/08/16 01:12:21 lev Exp $
+ * $Id: ftn.c,v 1.10 2000/10/12 18:19:29 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -583,9 +583,12 @@ char *mapname(char *fn, char *map)
 		if(istic(fn)) {
 			if(strchr(map,'t')) strlwr(fn);
 			else if(strchr(map,'T')) strupr(fn);
-		} else if(isdos83name(fn))
+		} else {
+			if(isdos83name(fn)) {
 					if(strchr(map,'o')) strlwr(fn);
 					else if(strchr(map,'O')) strupr(fn);
+			}
+		}
 		break;
 	default:
 		break;
@@ -608,9 +611,10 @@ int isdos83name(char *fn)
     	if('.'==*p) ec++;
     	else {
 			if(!ec) nl++; else el++;
-			if(isalpha(*p))
+			if(isalpha(*p)) {
 				if(isupper(*p)) uc++;
 				else lc++;
+			}
 		}
     	p++;
     }
