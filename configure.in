@@ -46,9 +46,14 @@ AC_CHECK_HEADERS(libutil.h)
 
 dnl Config file 
 AC_MSG_CHECKING([for config path])
-AC_ARG_WITH(config,[  --with-config           specifies config path (default is /etc/ftn/qico.conf) ], , with_config=/etc/ftn/qico.conf)
-AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
-CONFIG=$with_config
+AC_ARG_WITH(config,[  --with-config           specifies config path (default is \${prefix}/etc/qico.conf) ], , with_config=NONE)
+if test "x${with_config}" = "xNONE"; then
+	if test "x${prefix}" = "xNONE"; then
+		with_config="${ac_default_prefix}/etc/qico.conf"
+	else
+		with_config="${prefix}/etc/qico.conf"
+	fi
+fi
 AC_MSG_RESULT($with_config)
 
 dnl ZModem
@@ -135,10 +140,17 @@ else
 	QCC=0
 fi
 
+
 dnl My substs
 AC_SUBST(VERSION)
 AC_SUBST(QCCLIBS)
 AC_SUBST(QCC)
+
+dnl calculate real config -- prefix already known, so we could eval config
+with_config=`eval echo $with_config`
+AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
+CONFIG=$with_config
+
 AC_SUBST(CONFIG)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)

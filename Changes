@@ -1,5 +1,7 @@
 Version 0.49.7
 ~~~~~~~~~~~~~~
+- Теперь значение по-умолчанию для пути к конфигу (если не указан параметр
+  --with-config для configure) ${prefix}/etc/qico.conf, а не /etc/ftn/qico.conf
 
 Version 0.49.6
 ~~~~~~~~~~~~~~
