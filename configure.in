@@ -67,8 +67,8 @@ AC_MSG_RESULT($with_config)
 
 dnl ZModem
 AC_MSG_CHECKING([for zmodem implemetation])
-AC_ARG_WITH(new_zmodem,[  --with-new-zmodem       use new ZModem implementation ], , with_new_modem=no)
-if test x$with_new_modem != xno; then
+AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=yes)
+if test x$with_new_zmodem != xno; then
 	AC_MSG_RESULT(new ZModem)
 	AC_DEFINE(NEWZMODEM)
 	NEWZMODEM=1
