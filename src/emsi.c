@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5 2000/08/03 15:13:12 lev Exp $
+ * $Id: emsi.c,v 1.5.2.1 2001/01/21 18:16:44 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -404,6 +404,10 @@ int emsi_init(int mode)
 				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
 				PUTSTR(emsiinq);
 				PUTCHAR('\r');
+				if (cfgi(CFG_STANDARDEMSI)) {
+					PUTSTR(emsiinq);
+					PUTCHAR('\r');
+				}
 			}
 		}
 		return OK;
