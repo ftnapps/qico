@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.14 2004/03/06 12:50:56 sisoft Exp $
+ * $Id: flaglex.l,v 1.15 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -65,6 +65,8 @@ Port    	[Pp][Oo][Rr][Tt]
 Date    	[Dd][Aa][Tt][Ee]
 Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
 Cid     	[Cc][Ii][Dd]
+File		[Ff][Ii][Ll][Ee]
+Line		[Ll][Ii][Nn][Ee]
 Sun		[Ss][Uu]([Nn])?
 Mon		[Mm][Oo]([Nn])?
 Tue		[Tt][Uu]([Ee])?
@@ -87,7 +89,6 @@ Sep             [Se][Ee][Pp]
 Oct             [Oo][Cc][Tt]
 Nov             [Nn][Oo][Vv]
 Dec             [Dd][Ee][Cc]
-File		[Ff][Ii][Ll][Ee]
 Eq		=(=)?
 Ne		!=
 Gt		\>
@@ -142,6 +143,7 @@ Datestr         {Month}({Day}-{Day})?
 {ConnStr}	{yylval=CONNSTR;return(CONNSTR);}
 {Speed}		{yylval=SPEED;return(SPEED);}
 {Sfree}		{yylval=SFREE;return(SFREE);}
+{Line}		{yylval=FLLINE;return(FLLINE);}
 {File}		{yylval=FLFILE;return(FLFILE);}
 {Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
 {Phone}		{yylval=PHONE;return(PHONE);}

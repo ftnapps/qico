@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.53si-cvs],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.53si-cvs])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.19 2004/03/20 16:04:16 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.20 2004/03/21 10:42:42 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -45,7 +45,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 getcwd memchr memmove mkdir mktime rmdir])
 AC_CHECK_FUNCS([select setlocale statfs statvfs strcasecmp])
 AC_CHECK_FUNCS([strchr strdup strerror strncasecmp strrchr])
-AC_CHECK_FUNCS([strspn strstr strtol strtoul uname])
+AC_CHECK_FUNCS([strspn strstr strtol strtoul uname vsnprintf])
 AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -60,9 +60,20 @@ AC_CHECK_SIZEOF([short],[2])
 AC_CHECK_SIZEOF([int],[4])
 AC_CHECK_SIZEOF([long],[4])
 AC_C_BIGENDIAN
-AC_CHECK_MEMBER([struct tm.tm_gmtoff],[AC_DEFINE(TM_HAVE_GMTOFF,1,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])],,)
-AC_CHECK_MEMBER([struct statfs.f_bavail],[AC_DEFINE(STATFS_HAVE_F_BAVAIL,1,[Define to 1 if 'struct statfs' have 'f_bavail' field])],,)
-AC_CHECK_MEMBER([struct statvfs.f_bavail],[AC_DEFINE(STATVFS_HAVE_F_BAVAIL,1,[Define to 1 if 'struct statvfs' have 'f_bavail' field])],,)
+AC_CHECK_MEMBER([struct tm.tm_gmtoff],[AC_DEFINE(TM_HAVE_GMTOFF,1,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])],,[
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+])
+AC_CHECK_MEMBER([struct statfs.f_bavail],[AC_DEFINE(STATFS_HAVE_F_BAVAIL,1,[Define to 1 if 'struct statfs' have 'f_bavail' field])],,[#include <sys/statfs.h>])
+AC_CHECK_MEMBER([struct statvfs.f_bavail],[AC_DEFINE(STATVFS_HAVE_F_BAVAIL,1,[Define to 1 if 'struct statvfs' have 'f_bavail' field])],,[#include <sys/statvfs.h>])
 AC_CHECK_DECL([facilitynames],[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,1,[Define to 1 if 'facilitynames' defined in syslog headers])],,[
 #include <stdlib.h>
 #define SYSLOG_NAMES

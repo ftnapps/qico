@@ -1,9 +1,9 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.10 2004/02/17 11:23:22 sisoft Exp $
+ * $Id: flagexp.y,v 1.11 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
-%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS
+%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS FLLINE
 %token DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE
 %token GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK
 %token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE
@@ -32,6 +32,7 @@ static int checkport(void);
 static int checkcid(void);
 static int checkhost(void);
 static int checkfile(void);
+static int checkline(int lnum);
 static int yyerror(char *s);
 extern char *yyPTR;
 %}
@@ -68,6 +69,8 @@ elemexp		: flag
 			{$$ = checkport();}
 		| FLFILE PATHSTR
 			{$$ = checkfile();}
+		| FLLINE NUMBER
+			{$$ = checkline($2);}
 		| ITIME timestring
 			{$$ = $2;}
 		| TIME gapstring
@@ -208,6 +211,15 @@ static int checkfile(void)
 	struct stat sb;
 	DEBUG(('Y',2,"checkfile: \"%s\" -> %d",yytext,!stat(yytext,&sb)));
 	if(!stat(yytext,&sb)) return 1;
+	return 0;
+}
+
+static int checkline(int lnum)
+{
+	DEBUG(('Y',2,"checkline: \"%s\"",yytext));
+	if(!rnode) return 0;
+	DEBUG(('Y',3,"checkline: %d <-> %d",lnum,rnode->hidnum));
+	if(rnode->hidnum==lnum)return 1;
 	return 0;
 }
 
