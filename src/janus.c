@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.18 2001/05/25 18:30:44 lev Exp $
+ * $Id: janus.c,v 1.19 2001/06/02 15:39:34 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -202,8 +202,8 @@ int janus()
 						brain_dead=t_set(120);
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
-						if(fwrite(rxbuf+4,
-								  rxblklen -= 4, 1, rxfd)<0) {
+                        rxblklen -= 4;
+						if(fwrite(rxbuf+4, rxblklen, 1, rxfd)<0) {
 							write_log("write error on %s", recvf.fname);
 							goto giveup;
 						}
