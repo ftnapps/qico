@@ -1,13 +1,13 @@
-/* $Id: TodayFixes,v 1.30 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.31 2004/02/10 12:08:39 sisoft Exp $ */
+---
+fix boxes queue scan.
+fix freqs.
+.
+previous:
 ---
 add if-expression 'sfree' - free disk space.
 small resctructure srcs.
 try to fix arbitrarily open chat.
-.
-previous:
----
-in qcc: change error to warning if file not accessed.
-in qcc: increase maximum lines to 16.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,3 +1,18 @@
+2004-02-09 04:05  sisoft
+
+	* Changes, configure.in, qico.conf.sample, src/aso.c, src/binkp.c,
+	src/bso.c, src/call.c, src/config.c, src/crc.c, src/crc.h,
+	src/daemon.c, src/emsi.c, src/flagexp.y, src/flaglex.l, src/freq.c,
+	src/ftn.c, src/ftn.h, src/globals.c, src/globals.h, src/headers.h,
+	src/log.c, src/mailer.h, src/main.c, src/protfm.c, src/qcc.c,
+	src/qctl.c, src/qipc.h, src/qnlc.c, src/queue.c, src/session.c,
+	src/tcp.c, src/tools.c, src/tools.h, src/tty.c, src/tty.h,
+	src/ver.c.in, src/ver.h, src/xmem.c, src/xmem.h, src/xstr.c:
+
+	add if-expression 'sfree' - free disk space.
+	small resctructure srcs.
+	try to fix arbitrarily open chat.
+	
 2004-02-07 23:37  sisoft
 
 	* src/: qcc.c, qctl.c:
