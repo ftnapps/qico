@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.35 2002/04/10 12:25:56 lev Exp $
+ * $Id: session.c,v 1.36 2003/03/06 19:50:23 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -473,7 +473,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			if(*t=='J' && rnode->options&P_JANUS)
 				{pr[0]='J';emsi_lo|=P_JANUS;break;}
 			if(*t=='D' && rnode->options&P_DIRZAP)
-				{pr[0]='1';emsi_lo|=P_DIRZAP;break;}
+				{pr[0]='D';emsi_lo|=P_DIRZAP;break;}
 			if(*t=='Z' && rnode->options&P_ZEDZAP)
 				{pr[0]='Z';emsi_lo|=P_ZEDZAP;break;}
 			if(*t=='1' && rnode->options&P_ZMODEM)
