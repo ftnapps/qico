@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.8 2001/06/22 13:05:30 lev Exp $
+ * $Id: tcp.c,v 1.9 2003/05/29 07:44:48 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -91,7 +91,12 @@ int tcp_call(char *host, ftnaddr_t *fa)
 		closetcp();
 		if((rc&S_MASK)==S_REDIAL) {
 			write_log("creating poll for %s", ftnaddrtoa(fa));
-			bso_poll(fa,F_ERR); 
+			if(is_bso() == 1) {
+				bso_poll(fa,F_ERR); 
+			}
+			else if(is_aso() == 1) {
+				aso_poll(fa,F_ERR);
+			}
 		} 
 	} else rc=S_REDIAL;
 	title("Waiting...");

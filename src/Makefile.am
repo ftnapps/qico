@@ -12,7 +12,7 @@ X2H = x2h.awk
 EXTRA_DIST = $(X2H) $(X2C)
 
 BUILT_SOURCES = qconf.c qconf.h
-qico_SOURCES = bso.c call.c config.c crc.c emsi.c execsh.c \
+qico_SOURCES = aso.c bso.c call.c config.c crc.c emsi.c execsh.c \
 		freq.c ftn.c globals.c gmtoff.c hydra.c janus.c log.c ls_zglue.c \
 		ls_zmodem.c ls_zreceive.c ls_zsend.c main.c nodelist.c protfm.c \
 		qconf.c qipc.c qnlc.c queue.c session.c tcp.c tty.c ver.c xmem.c xstr.c \

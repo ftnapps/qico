@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.37 2003/03/10 15:58:13 cyrilm Exp $
+ * $Id: session.c,v 1.38 2003/05/29 07:44:48 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -141,20 +141,42 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	faslist_t *j;
 
 	DEBUG(('S',1,"Make filelist for %s", ftnaddrtoa(fa)));
-	for(i=0;i<5;i++)
-		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
-			snprintf(str, MAX_STRING, "%08lx.pkt", sequencer());
-			addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 0);
-			totalm+=sb.st_size;totaln++;
+	for(i=0;i<5;i++) {
+		if(is_bso() == 1) {
+			if(!stat(bso_pktn(fa, fls[i]), &sb)) {
+				snprintf(str, MAX_STRING, "%08lx.pkt", sequencer());
+				addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 0);
+				totalm+=sb.st_size;totaln++;
+			}
 		}
-	
-	if(!stat(bso_reqn(fa), &sb)) {
-		snprintf(str, MAX_STRING, "%04x%04x.req", fa->n, fa->f);
-		addflist(fl, xstrdup(bso_tmp), xstrdup(str), ' ', 0, NULL, 1);
-		totalf+=sb.st_size;totaln++;
+		if(is_aso() == 1) {
+			if(!stat(aso_pktn(fa, fls[i]), &sb)) {
+				snprintf(str, MAX_STRING, "%08lx.pkt", sequencer());
+				addflist(fl, xstrdup(aso_tmp), xstrdup(str), '^', 0, NULL, 0);
+				totalm+=sb.st_size;totaln++;
+			}
+		}
 	}
 	
-	for(i=0;i<5;i++) floflist(fl, bso_flon(fa, fls[i]));
+	if(is_bso() == 1) {
+		if(!stat(bso_reqn(fa), &sb)) {
+			snprintf(str, MAX_STRING, "%04x%04x.req", fa->n, fa->f);
+			addflist(fl, xstrdup(bso_tmp), xstrdup(str), ' ', 0, NULL, 1);
+			totalf+=sb.st_size;totaln++;
+		}
+	}
+	if(is_aso() == 1) {
+		if(!stat(aso_reqn(fa), &sb)) {
+			snprintf(str, MAX_STRING, "%04x%04x.req", fa->n, fa->f);
+			addflist(fl, xstrdup(aso_tmp), xstrdup(str), ' ', 0, NULL, 1);
+			totalf+=sb.st_size;totaln++;
+		}
+	}
+	
+	for(i=0;i<5;i++) {
+		if(is_bso() == 1) floflist(fl, bso_flon(fa, fls[i]));
+		if(is_aso() == 1) floflist(fl, aso_flon(fa, fls[i]));
+	}
 
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
 		if(ADDRCMP((*fa),j->addr)) {
@@ -417,8 +439,10 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				  ftnaddrtoa(&rnode->addrs->addr));
 	}			
 	log_rinfo(rnode);
-	for(pp=rnode->addrs;pp;pp=pp->next)
-		bso_locknode(&pp->addr);
+	for(pp=rnode->addrs;pp;pp=pp->next) {
+		if(is_bso() == 1) bso_locknode(&pp->addr);
+		if(is_aso() == 1) aso_locknode(&pp->addr);
+	}
 	if(mode) {
 		if(!has_addr(calladdr, rnode->addrs)) {
 			write_log("remote isn't %s!", ftnaddrtoa(calladdr));
@@ -632,7 +656,10 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		write_log("unsupported session type! (%d)", type);
 		return S_REDIAL;
 	}
-	for(pp=rnode->addrs;pp;pp=pp->next) bso_unlocknode(&pp->addr);
+	for(pp=rnode->addrs;pp;pp=pp->next) {
+		if(is_bso() == 1) bso_unlocknode(&pp->addr);
+		if(is_aso() == 1) aso_unlocknode(&pp->addr);
+	}
 	if(rnode->options&O_NRQ || rnode->options&O_HRQ) rc|=S_HOLDR;
 	if(rnode->options&O_HXT) rc|=S_HOLDX;
 	if(rnode->options&O_HAT) rc|=S_HOLDA;
