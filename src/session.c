@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.10 2000/11/26 13:17:34 lev Exp $
+ * $Id: session.c,v 1.11 2000/12/26 12:22:09 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -291,7 +291,7 @@ int hydra(int mode, int hmod, int rh1)
 	int rc=XFER_OK;
 
 	sline("Hydra-%dk session", hmod*2);
-	hydra_init(HOPT_XONXOFF|HOPT_TELENET, mode, hmod);
+	hydra_init(HOPT_XONXOFF|HOPT_TELENET, mode, hmod, cfgi(CFG_HRXWIN), cfgi(CFG_HTXWIN));
 	for(l=fl;l;l=l->next) 
 		if(l->sendas) {
 			if(l->type==IS_REQ || !rh1) {
