@@ -1,13 +1,17 @@
-/* $Id: TodayFixes,v 1.26 2004/02/05 19:51:15 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.27 2004/02/06 21:52:58 sisoft Exp $ */
+---
+correct includes.
+fix crash on outoging calls over ip.
+more debugs in queue scan.
+fix chat in binkp.
+in qcc: show '=' in queue on active addresses.
+.
+previous:
 ---
 in conf.sample: remove (new!) markers and some corrections.
 remove trailing spaces from sources.
 add makefile in /debian.
 strip down ftn* to tools*.
-.
-previous:
----
-added socks4 and socks5 support. added keword 'socks'.
 .
 
 ps: в связи с временным отсутствием фидошки,
