@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.6 2000/11/09 13:42:16 lev Exp $
+ * $Id: bso.c,v 1.7 2000/11/10 20:33:11 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -226,6 +226,7 @@ char *bso_pktn(ftnaddr_t *fa, int fl)
 		break;
 	case F_HOLD:
 		strcat(bso_tmp, "hut");
+		break;
 	case F_IMM:
 		strcat(bso_tmp, "iut");
 		break;
