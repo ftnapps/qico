@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.2.2.3 2000/11/04 20:52:21 lev Exp $
+ * $Id: hydra.c,v 1.2.2.4 2000/11/06 21:44:41 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -846,7 +846,7 @@ int hydra_file(char *txpathname, char *txalias)
 				if ((i = fread(txbufin + ((int) sizeof (long)),1,txblklen,txfd)) < 0) {
 					sline("hydra: file read error");
 					txclose(&txfd, FOP_ERROR);
-					txpos = -2L;                            /* Skip */
+					txpos = H_SUSPEND;                            /* Skip */
 				}
 			}
 
@@ -1083,10 +1083,10 @@ int hydra_file(char *txpathname, char *txalias)
 						switch(rxopen(p, rxftime, rxfsize,
 									  &rxfd)) {
 						case FOP_SKIP:
-							rxpos=-2;
+							rxpos=H_SKIP;
 							break;
 						case FOP_SUSPEND:
-							rxpos=-1;
+							rxpos=H_SUSPEND;
 							break;
 						case FOP_CONT:
 						case FOP_OK:
@@ -1103,7 +1103,7 @@ int hydra_file(char *txpathname, char *txalias)
 						qpfrecv();
 					}
 				} else if (rxstate == HRX_DONE)
-					rxpos = (!rxbuf[0]) ? 0L : -2L;
+					rxpos = (!rxbuf[0]) ? 0L : H_SUSPEND;
 
 				h_long1(txbufin) = intell(rxpos);
 				txpkt((int) sizeof (long),HPKT_FINFOACK);
@@ -1128,7 +1128,7 @@ int hydra_file(char *txpathname, char *txalias)
 							if(txpos > 0L) {
 								if(fseek(txfd,txpos,SEEK_SET) < 0L) {
 									txclose(&txfd, FOP_ERROR);
-									txpos = -2L;
+									txpos = H_SUSPEND;
 									txstate = HTX_EOF;
 									break;
 								}
@@ -1138,10 +1138,10 @@ int hydra_file(char *txpathname, char *txalias)
 						}
 						else {
 							switch(txpos) {
-							case -1:
+							case H_SKIP:
 								txclose(&txfd,FOP_SKIP);
 								return XFER_SKIP;
-							case -2:
+							case H_SUSPEND:
 								txclose(&txfd,FOP_SUSPEND);
 								return XFER_SUSPEND;
 							default:
@@ -1217,7 +1217,7 @@ int hydra_file(char *txpathname, char *txalias)
 						if (stat(tmp, &statf) && errno == ENOENT)
 						{
 						 rxclose(&rxfd, FOP_SKIP);
-						 rxpos = -1L;
+						 rxpos = H_SKIP;
 						 rxretries = 1;
 						 rxsyncid++;
 						 h_long1(txbufin) = intell(rxpos);
@@ -1228,7 +1228,7 @@ int hydra_file(char *txpathname, char *txalias)
 						if (fwrite(rxbuf + ((int) sizeof (long)),rxpktlen,1,rxfd) != 1) {
 							sline("HR: file write error");
 							rxclose(&rxfd, FOP_ERROR);
-							rxpos = -2L;
+							rxpos = H_SUSPEND;
 							rxretries = 1;
 							rxsyncid++;
 							h_long1(txbufin) = intell(rxpos);
@@ -1290,11 +1290,11 @@ int hydra_file(char *txpathname, char *txalias)
 						txpos = intell(h_long1(rxbuf));
 						if (txpos < 0L) {
 							if (txfd) {
-								sline("hydra: %s %s",txpos==-1?"refusing":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
-								txclose(&txfd, txpos==-1?FOP_SUSPEND:FOP_SKIP);
+								sline("hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
+								txclose(&txfd, txpos==H_SUSPEND?FOP_SUSPEND:FOP_SKIP);
 								txstate = HTX_EOF;
 							}
-							txpos = (txpos==-1?-1:-2);
+							txpos = (txpos==H_SUSPEND?H_SUSPEND:H_SKIP);
 							break;
 						}
 
@@ -1327,7 +1327,7 @@ int hydra_file(char *txpathname, char *txalias)
 							txpos,txblklen);
 						if (fseek(txfd,txpos,SEEK_SET) < 0L) {
 							txclose(&txfd, FOP_ERROR);
-							txpos = -2L;
+							txpos = H_SUSPEND;
 							txstate = HTX_EOF;
 							break;
 						}
@@ -1418,7 +1418,7 @@ int hydra_file(char *txpathname, char *txalias)
 					if(txfd) {
 						txclose(&txfd, FOP_OK);
 						return (XFER_OK);
-					} else return (XFER_SKIP);
+					} else return (txpos==H_SUSPEND?XFER_SUSPEND:XFER_SKIP);
 				}
 				break;
 
