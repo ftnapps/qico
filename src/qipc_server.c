@@ -2,7 +2,7 @@
  * File: qipc_server.c
  * Created at Wed Apr  4 23:53:12 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_server.c,v 1.3 2001/09/27 14:19:46 lev Exp $
+ * $Id: qipc_server.c,v 1.4 2001/09/27 16:20:26 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -15,6 +15,15 @@ static anylist_t *tty_lines;
 static anylist_t *clients;
 static int line_socket;
 static int client_socket;
+
+/* Static misc functions */
+static void reset_txrx(txrxstate_t *txrx)
+{
+	memset(txrx,0,sizeof(*txrx));
+	txrx->phase = TXRX_PHASE_BEGIN;
+	txrx->filephase;
+}
+
 
 /* 
  *   Support functions for anylist_t with uiclient_t
@@ -84,6 +93,7 @@ al_item_t *ipline_alloc(void *key)
 	memset(p,0,sizeof(*p));
 	p->pid = *((pid_t*)key);
 	p->phase = SESS_PHASE_NOPROC;
+	p->send.phase = p->recv.phase = TXRX_PHASE_BEGIN;
 	if(!(p->clients=al_new(lien2ui_alloc,line2ui_free,line2ui_cmp))) return NULL;
 	return (al_item_t*)p;
 }
@@ -108,6 +118,7 @@ al_item_t *ttyline_alloc(void *key)
 	if(!(p=xmalloc(sizeof(*p)))) return NULL;
 	memset(p,0,sizeof(*p));
 	p->phase = SESS_PHASE_NOPROC;
+	p->send.phase = p->recv.phase = TXRX_PHASE_BEGIN;
 	if(!(p->tty=xstrdup((char*)key))) return NULL;
 	if(!(p->clients=al_new(lien2ui_alloc,line2ui_free,line2ui_cmp))) return NULL;
 	return (al_item_t*)p;
@@ -156,6 +167,7 @@ void ttyline_clear(linestate_t *p)
 	p->clients = l;
 	p->tty = c;
 	p->phase = SESS_PHASE_NOPROC;
+	p->send.phase = p->recv.phase = TXRX_PHASE_BEGIN;
 }
 
 static int set_all_opts(int s)
@@ -255,6 +267,16 @@ static txrxstate_t *get_txrx_state(linestate_t *line, char d)
 	}
 }
 
+static void evt_out_of_sequence(evtlam_t *evt)
+{
+	write_log("Out of sequence %02x event from '%16s'",evt->type,evt->tty[0]?evt->tty:'tcp');
+}
+
+static void evt_not_unpack(evtlam_t *evt)
+{
+	write_log("Could not unpack event %02x: %d bytes from '%16s'",evt->type,evt.fulllength,evt->tty[0]?evt->tty:'tcp');
+}
+
 int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_in *sa)
 {
 	char *pwd;
@@ -287,7 +309,7 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 		line->phase = SESS_PHASE_BEGIN;
 		memcpy(&line->from,sa,sizeof(line->from));
 		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&line->mode)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		line->mode = toupper(line->mode);
@@ -304,11 +326,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 	case EVTL2M_STAT_CONNECT:				/* Modem connected, carrier detected. Speed and CID */
 											/* Signature: "dss"  -- SPEED,CONNECT,CID*/
 		if(line->phase != SESS_PHASE_BEGIN) {
-			write_log("Invalid CONNECT event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(3!=unpack_ipc_packet(evt->data,evt.fulllength,"dss",&line->speed,&line->connect,&line->cid)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
 		line->phase = SESS_PHASE_CONNECT;
@@ -316,94 +338,159 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 	case EVTL2M_STAT_DETECTED:				/* Mailer detected. Session type. */
 											/* Signature: "d"  -- SESSION TYPE */
 		if(line->phase != SESS_PHASE_CONNECT) {
-			write_log("Invalid DETECTED event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"d",&line->type)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
 		break;
 	case EVTL2M_STAT_DATAGOT:				/* We know about remote node. node_t info */
 											/* Signature: "n" -- REMOTE NODE INFO */
-		if(line->phase != SESS_PHASE_CONNECT && line->phase != SESS_PHASE_HSHAKEOUT) {
-			write_log("Invalid DATAGOT event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+		if((line->mode == 'A' && line->phase != SESS_PHASE_CONNECT)
+				||
+			(line->mode == 'C' && line->phase != SESS_PHASE_HSHAKEOUT)) {
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"n",&line->remote)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
 		line->phase = SESS_PHASE_HSHAKEIN;
 		break;
 	case EVTL2M_STAT_DATASENT:				/* Remote know about us */
 											/* Signature: "" */
-		if(line->phase != SESS_PHASE_CONNECT && line->phase != SESS_PHASE_HSHAKEIN) {
-			write_log("Invalid DATASENT event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+		if((line->mode == 'A' && line->phase != SESS_PHASE_HSHAKEIN)
+				||
+			(line->mode == 'C' && line->phase != SESS_PHASE_CONNECT)) {
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		line->phase = SESS_PHASE_HSHAKEOUT;
 		break;
 	case EVTL2M_STAT_HANDSHAKED:			/* Handshake finished. Protocols and options */
 											/* Signature: "dd" -- PROTOCOL,FINAL OPTIONS*/
-		if(line->phase != SESS_PHASE_HSHAKEOUT && line->phase != SESS_PHASE_HSHAKEIN) {
-			write_log("Invalid HANDSHAKED event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+		if((line->mode == 'A' && line->phase != SESS_PHASE_HSHAKEOUT)
+				||
+			(line->mode == 'C' && line->phase != SESS_PHASE_HSHAKEIN)) {
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(2!=unpack_ipc_packet(evt->data,evt.fulllength,"dd",&line->proto,&line->flags)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
 		line->phase = SESS_PHASE_INPROCESS;
 		break;
-	case EVTL2M_BATCH_STARTED:				/* Batch started */
+	case EVTL2M_BATCH_START:				/* Batch starts */
 											/* Signature: "c" -- DIRECTION */
 		if(line->phase != SESS_PHASE_INPROCESS) {
-			write_log("Invalid BATCH_STARTED event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(rxtx = get_txrx_state(line,c))) return -1;
-		rxtx->phase = TXRX_PHASE_BEGIN;
-		rxtx->transferstarted = time(NULL);
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(txrx->phase != TXRX_PHASE_BEGIN && txrx->phase != TXRX_PHASE_EOT) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->phase = TXRX_PHASE_HSHAKE;
+		txrx->transferstarted = time(NULL);
 		break;
-	case EVTL2M_BATCH_ENDED:				/* Batch finished */
+	case EVTL2M_BATCH_HSHAKED:				/* Batch handshaked */
 											/* Signature: "c" -- DIRECTION */
 		if(line->phase != SESS_PHASE_INPROCESS) {
-			write_log("Invalid BATCH_ENDED event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(rxtx = get_txrx_state(line,c))) return -1;
-		rxtx->phase = TXRX_PHASE_EOT;
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(txrx->phase != TXRX_PHASE_HSHAKE) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->phase = TXRX_PHASE_LOOP;
 		break;
-	case EVTL2M_BATCH_INFO:					/* Batch info */
+	case EVTL2M_BATCH_CLOSE:				/* Batch finishing */
+											/* Signature: "c" -- DIRECTION */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->phase = TXRX_PHASE_FINISH;
+		break;
+	case EVTL2M_BATCH_CLOSED:				/* Batch finished */
+											/* Signature: "c" -- DIRECTION */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(txrx->phase != TXRX_PHASE_FINISH) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->phase = TXRX_PHASE_EOT;
+		break;
+	case EVTL2M_BATCH_INFO:					/* Batch info -- async */
 											/* Signature: "cdddd" -- DIRECTION,MAX BLOCK,CRC,FILES,TOTAL SIZE */
 		if(line->phase != SESS_PHASE_INPROCESS) {
-			write_log("Invalid BATCH_INFO event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			evt_out_of_sequence(evt);
 			return -1;
 		}
 		if(5!=unpack_ipc_packet(evt->data,evt.fulllength,"cdddd",&c,&dw1,&dw2,&dw3,&dw4)) {
-			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(rxtx = get_txrx_state(line,c))) return -1;
-		rxtx->maxblock = dw1;
-		rxtx->crcsize = dw2;
-		rxtx->totalfiles = dw3;
-		rxtx->totalsize = dw4;
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		txrx->maxblock = dw1;
+		txrx->crcsize = dw2;
+		txrx->totalfiles = dw3;
+		txrx->totalsize = dw4;
 		break;
 	case EVTL2M_FILE_START:					/* New file started */
 											/* Signature: "c" */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->filephase = TXRX_FILE_HSHAKE;
 		break;
 	case EVTL2M_FILE_INFO:					/* Info about new file sended/received */
-											/* Signature: "csdd" -- DIRECTION,NAME,SIZE,TIME  */
+											/* Signature: "csddd" -- DIRECTION,NAME,CRC,SIZE,TIME */
+		break;
+	case EVTL2M_FILE_DATA:					/* FINFO Ok, start data exhcnage */
+											/* Signature: "cd" -- DIRECTION,SIZE  */
 		break;
 	case EVTL2M_FILE_BLOCK:					/* Block sended/received */
 											/* Signature: "cd" -- DIRECTION,SIZE  */
@@ -485,6 +572,8 @@ int server_dispatch_events(int usec)
 		if(FD_ISSET(rfds,line_socket)) {
 			levt = (evtlam_t*)receive_ipc_packet_udp(line_socket,&sa);
 			if(levt) {
+				UINT32 pid = levt->pid;
+				levt->pid = FETCH32(((BYTE*)&pid));
 				if(!levt->tty[0]) {
 					/* Find TCP line, andd new one if it is needed */
 					line = al_finda(ip_lines,levt->pid,NULL);
