@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.23 2003/03/26 09:35:54 cyrilm Exp $
+ * $Id: tty.c,v 1.24 2003/04/19 20:31:30 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -32,7 +32,7 @@ void tty_sighup(int sig)
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 				  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	tty_hangedup=1;
-	write_log("tty: got SIG%s signal",sigs[sig]);
+	DEBUG(('M',3,"tty: got SIG%s signal",sigs[sig]));
 	return;
 }
 
