@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.20 2004/06/14 20:29:32 sisoft Exp $
+ * $Id: flaglex.l,v 1.21 2004/06/20 21:30:30 sisoft Exp $
  **********************************************************/
 %option noyywrap case-insensitive never-interactive
 %{
@@ -59,6 +59,7 @@ month           (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|any)
 decimal		[1-9][0-9]*
 numeric		[0-9][0-9]*
 ident		[a-z][a-z0-9\-]*
+anystr		[a-z0-9\-+_,\.'`/]+
 pathstr		\/([^\/]+\/)*[^\/]+
 timestr		{dow}({ihour}{minute}\-{ihour}{minute})?
 gapstr      	(([0-7].)?{hour}:{minute}\-{hour}:{minute}|(([0-7].)?{hour}\-{hour})|([0-7].{hour}:{minute}\-[0-7].{hour}:{minute})|([0-7].{hour}\-[0-7].{hour})|cm|t[a-x][a-x])
@@ -103,7 +104,7 @@ date		RETV(FLDATE);
 {gapstr}	RETN(GAPSTR,chkgaps(yytext));
 {addrstr}	RETN(ADDRSTR,chkaddr(yytext));
 {ident}		RETV(IDENT);
-[^ \t\n]+	RETV(ANYSTR);
+{anystr}	RETV(ANYSTR);
 %%
 
 static int chkaddr(char *str)

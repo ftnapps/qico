@@ -1,6 +1,5 @@
 #!/bin/sh
 
-aclocal &&
+aclocal && autoheader &&
     automake --copy --add-missing --force-missing &&
-	autoconf --force &&
-	    autoheader
+	autoconf --force

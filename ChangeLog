@@ -1,3 +1,9 @@
+2004-06-20 22:50  sisoft
+
+	* autogen.sh, src/perl.c:
+
+	perl: fix error, if 'perlfile' undefined or not exist.
+
 2004-06-20 02:29  sisoft
 
 	* Changes, Makefile.am, README, configure.in, src/main.c,
