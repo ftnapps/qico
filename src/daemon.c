@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.19 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: daemon.c,v 1.20 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -345,7 +345,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			sl=NULL;p=buf+3+strlen(buf+3)+1;
 			while(strlen(p)){
 				write_log("requested '%s' from %s",p,ftnaddrtoa(&fa));
-				stodos((unsigned char*)p);
+				if(strchr(cfgs(CFG_MAPOUT),'r'))recode_to_remote(p);
 				slist_add(&sl,p);
 				p+=strlen(p)+1;
 			}

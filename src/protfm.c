@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.15 2004/03/17 21:28:44 sisoft Exp $
+ * $Id: protfm.c,v 1.16 2004/03/24 17:50:04 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -282,7 +282,7 @@ void chatinit(int prot)
 	xstrcpy(hellostr,"\05\05\05",MAX_STRING);
 	strtr(cfgs(CFG_CHATHALLOSTR),'|','\n');strtr(ccs,'$','\a');
 	snprintf(hellostr+3,MAX_STRING-7,ccs,rnode->sysop);
-	stodos((unsigned char*)hellostr);
+	recode_to_remote(hellostr);
 	xstrcat(hellostr,"\05\05\05",MAX_STRING);
 	chattimer=0;
 	chatlg=0;
@@ -345,7 +345,6 @@ int c_devsend(unsigned char *str,unsigned len)
 
 int chatsend(unsigned char *str)
 {
-	int i;
 	if(!str||!*str)return 0;
 	if(!c_devfree())return 1;
 	if(chattimer<2) {
@@ -353,8 +352,9 @@ int chatsend(unsigned char *str)
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,0);
 		qchat("");
 	} else if(*str!=5) {
-		for(i=0;i<=strlen((char*)str)&&i<CHAT_BUF;i++)ubuf[i]=todos(str[i]);
-		if(!c_devsend(ubuf,i-1))return 1;
+		strncpy(ubuf,str,CHAT_BUF);
+		recode_to_remote((char*)ubuf);
+		if(!c_devsend(ubuf,strlen((char*)ubuf)))return 1;
 		if(chatlg)chatlog_write((char*)str,0);
 	} else write_log("Chat already opened!");
 	chattimer=time(NULL)+TIM_CHAT;
@@ -372,7 +372,7 @@ void c_devrecv(unsigned char *data,unsigned len)
 		c_devsend((unsigned char*)hellostr,strlen(hellostr));
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,1);
 	}
-	stokoi(data);
+	recode_to_local((char*)data);
 	if(data[strlen((char*)data)-1]==5)data[strlen((char*)data)-1]='\n';
 	for(len=i=0;len<=strlen((char*)data);len++)if(data[len]!=5)data[i++]=data[len];
 	chattimer=time(NULL)+TIM_CHAT;

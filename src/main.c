@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.23 2004/03/09 23:11:57 sisoft Exp $
+ * $Id: main.c,v 1.24 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -24,27 +24,26 @@ char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1"
 static void usage(char *ex)
 {
 	printf("usage: %s [<options>] [<node>]\n"
- 		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n"
-		   "-h           this help screen\n"
-		   "-I<config>   override default config\n"
-		   "-d           start in daemon (originate) mode\n"
- 		   "-a<type>     start in answer mode with <type> session, type can be:\n"
-		   "                       auto - autodetect\n"
-		   "             **EMSI_INQC816 - EMSI session without init phase\n"
-		   "                      binkp - BinkP session\n"
-		   "                      tsync - FTS-0001 session (unsuppported)\n"
-		   "                     yoohoo - YOOHOO session (unsuppported)\n"
- 		   "-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
-		   "-c[N|I|A]    force call to <node>\n"
-		   "             N - normal call\n"
-		   "             I - call <i>mmediately (don't check node worktime)\n"
-		   "             A - call on <a>ny free port (don't check cancall setting)\n"
-		   "             You could specify line after <node>, lines are numbered from 1\n"
-		   "-b           call with BinkD (default call ifcico)\n"
-		   "-n           compile nodelists\n"
-		   "-t           check config file for errors\n"
-                   "-v           show version\n"
-		   "\n",ex);
+		"<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n",ex);
+	puts(	"-h           this help screen\n"
+		"-I<config>   override default config\n"
+		"-d           start in daemon (originate) mode\n"
+ 		"-a<type>     start in answer mode with <type> session, type can be:\n"
+		"                       auto - autodetect\n"
+		"             **EMSI_INQC816 - EMSI session without init phase\n"
+		"                      binkp - BinkP session\n"
+		"                      tsync - FTS-0001 session (unsuppported)\n"
+		"                     yoohoo - YOOHOO session (unsuppported)");
+	puts(	"-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
+		"-c[N|I|A]    force call to <node>\n"
+		"             N - normal call\n"
+		"             I - call <i>mmediately (don't check node worktime)\n"
+		"             A - call on <a>ny free port (don't check cancall setting)\n"
+		"             You could specify line after <node>, lines are numbered from 1\n"
+		"-b           call with BinkD (default call ifcico)\n"
+		"-n           compile nodelists\n"
+		"-t           check config file for errors\n"
+                "-v           show version\n");
 	exit(0);
 }
 
@@ -345,7 +344,7 @@ int main(int argc,char *argv[],char *envp[])
 	}
 	if(hostname||daemon==12) {
 		if(!parseftnaddr(argv[optind],&fa,&DEFADDR,0)) {
-			write_log("%s: can't parse address '%s'!",argv[0],argv[optind]);
+			write_log("can't parse address '%s'!",argv[optind]);
 			log_done();
 			exit(1);
 		}
@@ -390,7 +389,7 @@ int main(int argc,char *argv[],char *envp[])
 		int locked=0;
 		if(optind<argc) {
 			if(1!=sscanf(argv[optind],"%d",&line)) {
-				write_log("%s: can't parse line number '%s'!\n",argv[0],argv[optind]);
+				write_log("can't parse line number '%s'!\n",argv[optind]);
 				exit(1);
 			}
 		} else line = 0;
@@ -400,10 +399,10 @@ int main(int argc,char *argv[],char *envp[])
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
 
-		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init BSO",argv[0]);
-		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init ASO",argv[0]);
+		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
+		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
 		if(!BSO&&!ASO) {
-			write_log("%s: No outbound defined",argv[0]);
+			write_log("No outbound defined");
 			cls_close(ssock);
 			exit(1);
 		}
@@ -418,7 +417,7 @@ int main(int argc,char *argv[],char *envp[])
 			if(BSO)bso_unlocknode(&fa,LCK_x);
 			if(ASO)aso_unlocknode(&fa,LCK_x);
 		} else rc=0;
-		if(rc&S_MASK)write_log("%s: can't call to %s",argv[0],ftnaddrtoa(&fa));
+		if(rc&S_MASK)write_log("can't call to %s",ftnaddrtoa(&fa));
 		if(BSO)bso_done();
 		if(ASO)aso_done();
 		stopit(rc);

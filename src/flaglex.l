@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.15 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: flaglex.l,v 1.16 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -311,14 +311,11 @@ static int chktime(char *str)
 static int chkdate(char *str)
 {
 	int d1,d2,m;
-	char *mnths[13]={"Jan","Feb","Mar","Apr","May","Jun",
-					 "Jul","Aug","Sep","Oct","Nov","Dec","Any"};
-
 	char *p;
 	struct tm *now;
 	time_t tt;
 	time(&tt);now=localtime(&tt);
-	for(m=0;m<13;m++) if(!strncasecmp(str,mnths[m],3)) break;
+	for(m=0;m<13;m++) if(!strncasecmp(str,engms[m],3)) break;
 	DEBUG(('Y',2,"chkdate: \"%s\": month is %d, now %d",str,m,now->tm_mon));
 	if(m>12 || (m!=12 && m!=now->tm_mon)) return 0;
 

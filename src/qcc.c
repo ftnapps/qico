@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.30 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: qcc.c,v 1.31 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -195,18 +195,12 @@ static slot_t *slots[MAX_SLOTS];
 static qslot_t *queue;
 static int currslot,allslots=-9,q_pos,q_first,q_max,crey=0,crex=0;
 static int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
-
 static char *m_header=NULL,*m_status=NULL;
-
 static WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
-
-static int sock=-1;
-
-static int hstlast=0;
+static int sock=-1,hstlast=0;
 static char *hst[HSTMAX+1],*myaddr;
-
 static char qflgs[Q_MAXBIT]=Q_CHARS;
-static int  qclrs[Q_MAXBIT]=Q_COLORS;
+static int qclrs[Q_MAXBIT]=Q_COLORS;
 
 static void usage(char *ex)
 {
@@ -441,19 +435,23 @@ static char *sscat(char *s,int size)
 
 static void mylog(char *str,...)
 {
-	char s[MAX_STRING],*mon[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-	struct tm *tt;int y,x;
+	int y,x;
+	struct tm *tt;
+	char s[MAX_STRING];
 	va_list args;
 	time_t tim;
 	tim=time(NULL);
 	tt=localtime(&tim);
-	va_start(args,str);
-	vsnprintf(s,MAX_STRING,str,args);
-	va_end(args);
 	getyx(wlog,y,x);
 	wattron(wlog,A_BOLD);
 	if(x)waddch(wlog,'\n');
-	if(*s!=1)wprintw(wlog,"%02d %3s %02d:%02d:%02d : ",tt->tm_mday,mon[tt->tm_mon],tt->tm_hour,tt->tm_min,tt->tm_sec);
+	if(*str!=1) {
+		strftime(s,MAX_STRING,"%d %b %H:%M:%S : ",tt);
+		waddnstr(wlog,s,18);
+	}
+	va_start(args,str);
+	vsnprintf(s,MAX_STRING,str,args);
+	va_end(args);
 	waddnstr(wlog,s+(*s==1),COL-18*(*s!=1));
 	wattroff(wlog,A_BOLD);
 	if(currslot<0)wrefresh(wlog);

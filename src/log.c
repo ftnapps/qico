@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.15 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: log.c,v 1.16 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -232,7 +232,8 @@ int chatlog_init(char *remname,ftnaddr_t *ra,int side)
 	if(chatlog){fwrite(str,strlen(str),1,chatlog);fclose(chatlog);}
 	if(lemail)fwrite(str,strlen(str),1,lemail);
 	if(cpkt) {
-		stodos((unsigned char*)str);strtr(str,'\n','\r');
+		if(cfgi(CFG_RECODEPKTS))recode_to_remote(str);
+		strtr(str,'\n','\r');
 		fwrite(str,strlen(str),1,cpkt);
 		runtoss=1;
 	}
@@ -244,7 +245,7 @@ void chatlog_write(char *text,int side)
 {
 	FILE *chatlog=NULL;
 	long i,n,m;
-	char quot[2]={0},*tmp,*cbuf=side?rchat:mchat;
+	char quot[2]={0},*tmp,*cbuf=side?rchat:mchat,tm;
 	if(side)*quot='>'; else *quot=' ';
 	if(text&&*text) {
 		xstrcpy(cbuf+(side?rcpos:mcpos),text,CHATLOG_BUF-(side?rcpos:mcpos)-1);
@@ -268,8 +269,10 @@ void chatlog_write(char *text,int side)
 				for(i=0;i<n;i++) {
 					if(cbuf[i]=='\n')cbuf[i]='\r';
 					if(cbuf[i]==7)cbuf[i]='*';
-					cbuf[i]=todos(cbuf[i]);
 				}
+				tm=cbuf[i];cbuf[i]=0;
+				if(cfgi(CFG_RECODEPKTS))recode_to_remote(cbuf);
+				cbuf[i]=tm;
 				fwrite(quot,1,1,cpkt);
 				fwrite(cbuf,1,n,cpkt);
 			}
@@ -294,7 +297,8 @@ void chatlog_done()
 	if(chatlog){fwrite(str,strlen(str),1,chatlog);fclose(chatlog);}
 	if(lemail)fwrite(str,strlen(str),1,lemail);
 	if(cpkt) {
-		stodos((unsigned char*)str);strtr(str,'\n','\r');
+		if(cfgi(CFG_RECODEPKTS))recode_to_remote(str);
+		strtr(str,'\n','\r');
 		fwrite(str,strlen(str)-1,1,cpkt);
 		closeqpkt(cpkt,adr);
 		snprintf(str,MAX_STRING,"%s/%s",cfgs(CFG_INBOUND),basename(pktname));

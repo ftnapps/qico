@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.5 2004/02/19 23:36:39 sisoft Exp $ */
+/* $Id: tools.h,v 1.6 2004/03/24 17:50:04 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -48,11 +48,10 @@ typedef struct {
 extern void strlwr(char *s);
 extern void strupr(char *s);
 extern void strtr(char *s, char a, char b);
-extern unsigned char todos(unsigned char c);
-extern unsigned char tokoi(unsigned char c);
-extern void stodos(unsigned char *str);
-extern void stokoi(unsigned char *str);
+extern void recode_to_remote(char *str);
+extern void recode_to_local(char *str);
 extern void chop(char *s, int n);
+extern int hexdcd(char d,char c);
 extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
 extern int strhex2bin(unsigned char *binptr,const char *string);
 extern size_t filesize(char *fname);

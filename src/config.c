@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.13 2004/03/06 14:53:35 sisoft Exp $
+ * $Id: config.c,v 1.14 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -163,6 +163,10 @@ int readconfig(char *cfgname)
 				configtab[i].items=ci;
 			}
 		}
+	}
+	if(rc) { /* read tables */
+		recode_to_local(NULL);
+		recode_to_remote(NULL);
 	}
 	return rc;
 }

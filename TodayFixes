@@ -1,8 +1,14 @@
-/* $Id: TodayFixes,v 1.53 2004/03/21 10:43:51 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.54 2004/03/24 17:50:01 sisoft Exp $ */
 ---
+fix compile on old systems without socklen_t.
+fix logging about qico execute errors.
+in qcc: print qcc's log time with strftime().
+don't try exchange with daemon, if its not exists.
+new option for map(in|out): 'r' - recode filenames in *.req files (was: always recode).
+add keyword 'recodepkts' - recode freq-report packets to transport charset. (was: always recode).
+add keywords 'remotecp' and 'localcp' - see conf.sample for description.
+remove obsoleted keyword 'remoterecode'.
 .
 previous:
 ---
-fix vsnprintf() and tm.tm_gmtoff detection.
-add if-expression 'line' (was documented, but unreleased).
 .
