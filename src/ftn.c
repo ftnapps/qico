@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.37 2001/10/05 10:07:59 lev Exp $
+ * $Id: ftn.c,v 1.38 2001/10/08 18:42:18 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -420,6 +420,7 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
 {
 	fprintf(f,"--- %s\r * Origin: %s (%s)\r,%c%c%c", tear, orig, ftnaddrtoa(fa), 0, 0, 0);
+	fclose(f);
 }
 
 #ifndef HAVE_SETPROCTITLE
