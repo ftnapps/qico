@@ -17,6 +17,7 @@ log,C_PATH,char *,1,NULL
 masterlog,C_PATH,char *,1,NULL
 port,C_STRL,slist_t *,1,NULL
 dialdelay,C_INT,int,0,"60"
+dialdelta,C_INT,int,0,"0"
 rescanperiod,C_INT,int,0,"300"
 subst,C_ADRSTRL,faslist_t *,0,NULL
 phonetr,C_STRL,slist_t *,1,NULL

@@ -1,5 +1,7 @@
 Version 0.49.2
 ~~~~~~~~~~~~~~
+- Новая возможность: dialdelta, случайное изменение dialdelay
+  (Patch from Sir Raorn <raorn@binec.ru>)
 - bugifx: Учитываются subst'ы при звонке по `-c'
 - bugifx: Исправлен баг в Hydra по рецепту Игоря Ванина и GPMail'а
 - bugifx: Hydra поправлена до стандарта (знаменитый баг в Ленцовских

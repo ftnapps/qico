@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.14 2000/10/23 18:39:32 lev Exp $
+ * $Id: main.c,v 1.15 2000/10/24 09:40:59 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -145,6 +145,7 @@ void alarmer(int i)
 {
 }
 
+
 char qchars[]=Q_CHARS;
 char *sts_str(int flags)
 {
@@ -153,6 +154,12 @@ char *sts_str(int flags)
 	s[Q_MAXBIT]=0;
 	return s;
 }
+
+int randper(int base, int diff)
+{
+	return base-diff+(int)(diff*2.0*rand()/(RAND_MAX+1.0));
+}
+
 
 void daemon_mode()
 {
@@ -213,6 +220,8 @@ void daemon_mode()
 	}
 	log("%s-%s/%s daemon started",progname,version,osname);
 	t_rescan=cfgi(CFG_RESCANPERIOD);
+	srand(time(NULL));
+	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 	while(1) {
 		title("Queue manager [%d]", cfgi(CFG_RESCANPERIOD)-t_rescan);
 		if(t_rescan>=cci || do_rescan) {
@@ -222,8 +231,9 @@ void daemon_mode()
 				log("can't rescan outbound %s!", cfgs(CFG_OUTBOUND));
 			t_rescan=0;
 		}
-		sline("Waiting %d...", cfgi(CFG_DIALDELAY)-t_dial);
-		if(t_dial>=cci) {
+		sline("Waiting %d...", c_delay-t_dial);
+		if(t_dial>=c_delay) {
+			c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 			t_dial=0;
 			dable=0;
 
