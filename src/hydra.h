@@ -2,7 +2,7 @@
  * File: hydra.h
  * Created at Tue Aug 10 22:49:42 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: hydra.h,v 1.3 2000/12/26 12:18:12 lev Exp $
+ * $Id: hydra.h,v 1.4 2001/05/25 18:30:43 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -132,7 +132,7 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 
 /* What we can do */
 #define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32) 
-// |HOPT_DEVICE
+/* |HOPT_DEVICE */
 /* Vital options if we ask for any; abort if other side doesn't support them */
 #define HNEC_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANBRK)
 /* Non-vital options; nice if other side supports them, but doesn't matter */

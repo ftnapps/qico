@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.17 2001/03/28 17:07:51 lev Exp $
+ * $Id: janus.c,v 1.18 2001/05/25 18:30:44 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -334,7 +334,7 @@ int janus()
 					caps=*(strchr(rxbuf,'\0')+1);
 					xmit_retry = 0L;
 					write_log("recd janus freq: %s", rxbuf);
-					// TODO FREQS
+					/* TODO FREQS */
 					if(cfgs(CFG_EXTRP)) {
 						slist_t req;
 						req.str=rxbuf;
@@ -366,7 +366,7 @@ int janus()
 			case FRNAKACKPKT:
 				if (txstate == XRCVFRNAKACK) {
 					xmit_retry = 0L;
-//					if(l) l=&(*l)->next;	
+/*					if(l) l=&(*l)->next;	*/
 					getfname(&l);
 					txstate = XSENDFNAME;
 				}
