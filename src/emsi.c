@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.19 2001/02/16 10:43:40 aaz Exp $
+ * $Id: emsi.c,v 1.20 2001/03/02 15:54:21 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -87,7 +87,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			strip8(cfgs(CFG_SYSOP)),strip8(cfgs(CFG_PHONE)),
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
 			mail, files, cfgs(CFG_WORKTIME),
-			cfgs(CFG_FREQTIME)?" ":"",cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"",
+			" ",cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"Never",
 			time(NULL)+gmtoff(tm),gmtoff(tm)/3600
 		);
 	strcat(dat, tmp);
