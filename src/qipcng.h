@@ -2,14 +2,39 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.3 2001/06/08 15:43:20 lev Exp $
+ * $Id: qipcng.h,v 1.4 2001/07/05 19:56:59 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
 
 #define LOG_BUFFER_SIZE 10
-#define MAX_CLIENTS		10
 #define LINE_TIMEOUT	240
+
+/* Stream DES context */
+typedef struct _SESSENCCONTEXT {
+	CHAR iv[8];
+	descontext_t cx;
+} sessenccontext_t;
+
+/* Universal list descriptor -- for generic procedures */
+typedef struct _ANYLIST {
+	struct _ANYLIST *next;
+	CHAR data[];
+} anylist_t;
+
+/* One UI client -- socket (and it is unique ID), encryption context, next one */
+typedef struct _UICLIENT {
+	struct _UICLIENT *next;
+	int socket;
+	sessenccontext_t cx;
+} uiclient_t;
+
+/* One UI <-mask-> Line relation */
+typedef struct _UI2LINE {
+	struct _UI2LINE *next;
+	uiclient_t *client;
+	UINT32 mask;
+} ui2line_t;
 
 /* State of file transfer */
 typedef struct _TRANSFERSTATE {
@@ -36,6 +61,7 @@ typedef struct _TRANSFERSTATE {
 
 /* Information about one line */
 typedef struct _LINESTATE {
+	struct _LINESTATE *next;
 	CHAR phase;				/* Phase of session */
 #define SESS_PHASE_NOPROC		'n'
 #define SESS_PHASE_BEGIN		'b'
@@ -59,31 +85,36 @@ typedef struct _LINESTATE {
 	pid_t pid;
 	int socket;
 	time_t lastevent;
-	int clients_sock[MAX_CLIENTS];
-	int clients;
-	_LINESTATE *next;
-	_LINESTATE *prev;
+	ui2line_t **clients;		/* Head of registered for this line clients */
 } linestate_t;
+
+/* Generic event structure -- for typecasting */
+typedef struct _EVTANY {
+	UINT32 fulllength;			/* Full length of following data  */
+	CHAR data[];				/* Data for event */
+} evtany_t;
 
 /* Line-to-manager and manager-to-line event structure */
 typedef struct _EVTLAM {
-	UINT32 fulllength;			/* Full length, include type and fulllength fields */
+	UINT32 fulllength;			/* Full length of following data  */
 	CHAR password[8];			/* Password, zero-padded */
 	/* Retranslated data begins here */
 	UINT32 pid;					/* Line PID */
 	CHAR fixed;					/* 0 if it is IP line (dynamic), 1 if fixed (tty) one */
 	UINT8 type;					/* See EVTL2M_XXXX / EVTM2L_XXXX */
-	CHAR *data;					/* Data for event */
+	CHAR data[];				/* Data for event */
 } evtlam_t;
 
 /* Manager-to-UI and UI-to-manager event structure */
 typedef struct _EVTLAU {
-	UINT32 fulllength;			/* Full length, include type and fulllength fields */
+	UINT32 fulllength;			/* Full length of following data  */
 	UINT8 type;					/* See EVTU2M_XXXX / EVTM2U_XXXX */
-	CHAR *data;					/* Data for event */
+	CHAR data[];				/* Data for event */
 } evtlau_t;
 
-typedef int (*event_handler)(linestat_t *line, evtl2m_t *event);
+
+
+typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 
 /* Events from lines to manager */
 #define EVTL2M_GROUP_GLOBAL		0x10	/* Very global event */
