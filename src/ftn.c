@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.24 2001/03/11 20:15:27 lev Exp $
+ * $Id: ftn.c,v 1.25 2001/03/20 15:02:35 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -124,7 +124,7 @@ void falist_add(falist_t **l, ftnaddr_t *a)
 {
 	falist_t **t;
 	for(t=l;*t;t=&((*t)->next));
-	*t=(falist_t *)malloc(sizeof(falist_t));
+	*t=(falist_t *)xmalloc(sizeof(falist_t));
 	(*t)->next=NULL;
 	ADDRCPY((*t)->addr, (*a));
 }
@@ -134,7 +134,7 @@ void falist_kill(falist_t **l)
 	falist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		sfree(*l);
+		xfree(*l);
 		*l=t;
 	}
 }
@@ -149,9 +149,9 @@ slist_t *slist_add(slist_t **l, char *s)
 {
 	slist_t **t;
 	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)malloc(sizeof(slist_t));
+	*t=(slist_t *)xmalloc(sizeof(slist_t));
 	(*t)->next=NULL;
-	(*t)->str=strdup(s);
+	(*t)->str=xstrdup(s);
 	return *t;
 }
 
@@ -160,8 +160,8 @@ void slist_kill(slist_t **l)
 	slist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		sfree((*l)->str);
-		sfree(*l);
+		xfree((*l)->str);
+		xfree(*l);
 		*l=t;
 	}
 }
@@ -171,9 +171,9 @@ void faslist_add(faslist_t **l, char *s, ftnaddr_t *a)
 {
 	faslist_t **t;
 	for(t=l;*t;t=&((*t)->next));
-	*t=(faslist_t *)malloc(sizeof(faslist_t));
+	*t=(faslist_t *)xmalloc(sizeof(faslist_t));
 	(*t)->next=NULL;
-	(*t)->str=strdup(s);
+	(*t)->str=xstrdup(s);
 	ADDRCPY((*t)->addr, (*a));
 }
 
@@ -182,8 +182,8 @@ void faslist_kill(faslist_t **l)
 	faslist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		sfree((*l)->str);
-		sfree(*l);
+		xfree((*l)->str);
+		xfree(*l);
 		*l=t;
 	}
 }
@@ -421,29 +421,6 @@ void setproctitle(char *str)
 }
 
 #endif
-
-char *xstrcpy(char **to, char *from)
-{
-	sfree(*to);
-	return *to=strdup(from?from:"");
-}
-
-char *xstrncpy(char **to, char *from, int n)
-{
-	sfree(*to);
-	*to=malloc(MIN(n,strlen(from))+1);
-	strncpy(*to, from, n);
-	return *to;
-}
-
-char *xstrcat(char **to, char *from)
-{
-	if(!from) return *to;
-	if(!*to) return xstrcpy(to, from);
-	*to=realloc(*to, strlen(*to)+strlen(from)+1);
-	strcat(*to, from);
-	return *to;
-}
 
 int fexist(char *s)
 {

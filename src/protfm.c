@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.16 2001/03/17 18:46:15 lev Exp $
+ * $Id: protfm.c,v 1.17 2001/03/20 15:02:36 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -60,8 +60,8 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	int prevcps = (recvf.start&&(time(NULL)-recvf.start>2))?recvf.cps:effbaud/10;
 
  	recvf.start=time(NULL);
- 	if(recvf.fname) free(recvf.fname);
- 	recvf.fname=strdup(bn);
+	xfree(recvf.fname);
+ 	recvf.fname=xstrdup(bn);
 	recvf.mtime=rtime;recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
@@ -192,8 +192,8 @@ FILE *txopen(char *tosend, char *sendas)
 		write_log("can't find file %s!", tosend);
 		return NULL;
 	}
- 	if(sendf.fname) free(sendf.fname);
- 	sendf.fname=strdup(sendas);
+	xfree(sendf.fname);
+ 	sendf.fname=xstrdup(sendas);
 	sendf.ftot=sb.st_size;sendf.mtime=sb.st_mtime;
 	sendf.foff=sendf.soff=0;sendf.start=time(NULL);
 	if(sendf.toff+sb.st_size > sendf.ttot) sendf.ttot+=sb.st_size;

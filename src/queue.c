@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.7 2000/11/26 13:17:34 lev Exp $
+ * $Id: queue.c,v 1.8 2001/03/20 15:02:37 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -31,7 +31,7 @@ qitem_t *q_add(ftnaddr_t *fa)
 	int r=1;
 	for(i=&q_queue;*i && (r=q_cmp(&(*i)->addr, fa))<0;i=&((*i)->next));
 	if(r==0) return *i;
-	q=calloc(1,sizeof(qitem_t));
+	q=xcalloc(1,sizeof(qitem_t));
 	q->next=*i;*i=q;
 	ADDRCPY(q->addr, (*fa));
 	return q;
@@ -107,11 +107,11 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 			d=opendir(name);
 			if(d) {
 				while((de=readdir(d))) {
-					p=malloc(strlen(name)+2+strlen(de->d_name));
+					p=xmalloc(strlen(name)+2+strlen(de->d_name));
 					sprintf(p,"%s/%s", name, de->d_name);
 					if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) 
 						total+=sb.st_size;
-					sfree(p);
+					xfree(p);
 				}
 				closedir(d);
 			} else write_log("can't open %s: %s", name, strerror(errno));
@@ -146,7 +146,7 @@ void rescan_boxes()
 			while((de=readdir(d))) 
 				if(sscanf(de->d_name, "%hd.%hd.%hd.%hd",
 						  &a.z, &a.n, &a.f, &a.p)==4) {
-					p=malloc(strlen(ccs)+2+strlen(de->d_name));
+					p=xmalloc(strlen(ccs)+2+strlen(de->d_name));
 					sprintf(p,"%s/%s", ccs, de->d_name);
 					q=q_add(&a);
 					q_recountbox(p, &q->sizes[5], &q->times[5]); 
@@ -155,8 +155,8 @@ void rescan_boxes()
 						q->flv|=Q_HOLD;
 						q->what|=T_ARCMAIL;
 					}
-					sfree(p);
-			}
+					xfree(p);
+				}
 			closedir(d);
 		} else write_log("can't open %s: %s", ccs, strerror(errno));
 	}
@@ -177,7 +177,7 @@ int q_rescan(qitem_t **curr)
 	p=&q_queue;
 	while((q=*p)) {
 		if(!q->touched) {
-			*p=q->next;if(q==*curr) *curr=*p;sfree(q);
+			*p=q->next;if(q==*curr) *curr=*p;xfree(q);
 		} else {
 			bso_getstatus(&q->addr, &sts);
 			q->flv|=sts.flags;q->try=sts.try;

@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.12 2001/01/19 15:18:22 lev Exp $
+ * $Id: qcc.c,v 1.13 2001/03/20 15:02:36 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@
 #include "ver.h"
 #include "byteop.h"
 
-#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
+#define xfree(p) do { if(p) free(p); p = NULL; } while(0)
 
 #define SAFE(s) s?s:nothing
 #define MH 10
@@ -342,8 +342,8 @@ void killqueue(qslot_t **l)
 	qslot_t *t;
 	while(*l) {
 		t=(*l)->next;
-		sfree((*l)->addr);
-		sfree(*l);
+		xfree((*l)->addr);
+		xfree(*l);
 		*l=t;
 	}
 }
@@ -434,7 +434,7 @@ char *strefresh(char **what, char *to)
 	return *what;
 }
 
-#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
+#define xfree(p) do { if(p) free(p); p = NULL; } while(0)
 
 void usage(char *ex)
 {
@@ -550,12 +550,12 @@ int main(int argc, char **argv)
 				}
 				if(type==QC_EMSID) {
 					if(!len) {
-						sfree(slots[rc]->name);
-						sfree(slots[rc]->sysop);
-						sfree(slots[rc]->city);
-						sfree(slots[rc]->flags);
-						sfree(slots[rc]->phone);
-						sfree(slots[rc]->addrs);
+						xfree(slots[rc]->name);
+						xfree(slots[rc]->sysop);
+						xfree(slots[rc]->city);
+						xfree(slots[rc]->flags);
+						xfree(slots[rc]->phone);
+						xfree(slots[rc]->addrs);
 						slots[rc]->session=0;
 					} else {
 						p=data;
@@ -591,7 +591,7 @@ int main(int argc, char **argv)
 						char *p=data;
 						
 						slots[rc]->session=1;
-						sfree(slots[rc]->s.fname);
+						xfree(slots[rc]->s.fname);
 
 						slots[rc]->s.foff=FETCH32(p);INC32(p);
 						slots[rc]->s.ftot=FETCH32(p);INC32(p);
@@ -618,7 +618,7 @@ int main(int argc, char **argv)
 						char *p=data;
 						
 						slots[rc]->session=1;
-						sfree(slots[rc]->r.fname);
+						xfree(slots[rc]->r.fname);
 
 						slots[rc]->r.foff=FETCH32(p);INC32(p);
 						slots[rc]->r.ftot=FETCH32(p);INC32(p);

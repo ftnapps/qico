@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.12 2001/03/04 10:49:06 lev Exp $
+ * $Id: tty.c,v 1.13 2001/03/20 15:02:37 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -110,7 +110,7 @@ int tty_open(char *port, int speed)
 {
 	int rc, fd;
 
-	tty_port=strdup(port);
+	tty_port=xstrdup(port);
 	if(tty_lock(port))
 		return ME_CANTLOCK;
 
@@ -300,7 +300,7 @@ int tty_close()
 	tty_cooked();
 	fclose(stdin);fclose(stdout);
 	tty_unlock(tty_port);
-	sfree(tty_port);
+	xfree(tty_port);
 	return ME_OK;
 }
 

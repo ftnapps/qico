@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.13 2001/03/10 19:50:18 lev Exp $
+ * $Id: janus.c,v 1.14 2001/03/20 15:02:35 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -65,8 +65,8 @@ int janus()
 	goodneeded   = 3;
 	txstate      = XSENDFNAME;
 
-	txbuf=calloc(txmaxblklen+8,1);
-	rxbuf=calloc(txmaxblklen+8,1);
+	txbuf=xcalloc(txmaxblklen+8,1);
+	rxbuf=xcalloc(txmaxblklen+8,1);
 
 	rxbufmax = rxbuf+BUFMAX+8;
 	
@@ -434,8 +434,8 @@ int janus()
 		if(!l->sendas) flexecute(l);
 		l=l->next;
 	}
-	free(txbuf);
-	free(rxbuf);
+	xfree(txbuf);
+	xfree(rxbuf);
 	slist_kill(&reqs);
 	return rc;
 }

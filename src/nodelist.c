@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.10 2001/03/08 17:52:28 lev Exp $
+ * $Id: nodelist.c,v 1.11 2001/03/20 15:02:36 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -13,7 +13,7 @@ char *NL_SIGN="qico nodelist index";
 
 int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 {
-	ninfo_t *nlent=malloc(sizeof(ninfo_t));
+	ninfo_t *nlent=xmalloc(sizeof(ninfo_t));
 	FILE *idx;
 	idxh_t ih;
 	idxent_t ie[NL_RECS];
@@ -27,32 +27,32 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	if(islocked(nlp)) return 0;
 	sprintf(nlp, "%s/%s", nlpath, NL_IDX);
 	idx=fopen(nlp, "rb");
-	if(!idx) { sfree(nlent);return 1; }
+	if(!idx) { xfree(nlent);return 1; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
-		sfree(nlent);return 1;
+		xfree(nlent);return 1;
 	}
 	if(strcmp(ih.sign, NL_SIGN)) {
-		sfree(nlent);return 1;
+		xfree(nlent);return 1;
 	}
 	do {
 		rc=fread(&ie, sizeof(idxent_t), NL_RECS, idx);
 		for(i=0;i<rc;i++) if(ADDRCMP(ie[i].addr, (*addr))) break;
 	} while(rc>=NL_RECS && i==rc);
 	fclose(idx);
-	if(i==rc) { sfree(nlent);return 0; }
+	if(i==rc) { xfree(nlent);return 0; }
 	strcpy(nlp, nlpath);strcat(nlp, "/");
 	strcat(nlp, ih.nlname[ie[i].index]);
 	if(stat(nlp,&sb)) {
-		sfree(nlent);return 2;
+		xfree(nlent);return 2;
 	} else
 		if(sb.st_mtime!=ih.nltime[ie[i].index]) {
-			sfree(nlent);return 3;
+			xfree(nlent);return 3;
 		}
 	idx=fopen(nlp, "rt");
-	if(!idx) { sfree(nlent);return 2; }
+	if(!idx) { xfree(nlent);return 2; }
 	fseek(idx, ie[i].offset, SEEK_SET);
 	if(!fgets(str, MAX_STRING, idx)) {
-		sfree(nlent);return 2;
+		xfree(nlent);return 2;
 	}
 	fclose(idx);t=str;
 	p=strsep(&t, ",");
@@ -64,21 +64,21 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	}
 	strsep(&t, ",");
 	p=strsep(&t, ",");if(p) {
-		strtr(p,'_',' ');nlent->name=strdup(p);
+		strtr(p,'_',' ');nlent->name=xstrdup(p);
 		p=strsep(&t, ",");
 		if(p) {
-			strtr(p,'_',' ');nlent->place=strdup(p);
+			strtr(p,'_',' ');nlent->place=xstrdup(p);
 			p=strsep(&t, ",");
 			if(p) {
-				strtr(p,'_',' ');nlent->sysop=strdup(p);
+				strtr(p,'_',' ');nlent->sysop=xstrdup(p);
 				p=strsep(&t, ",");
 				if(p) {
-					nlent->phone=strdup(p);
+					nlent->phone=xstrdup(p);
 					p=strsep(&t, ",");
 					if(p) {
 						nlent->speed=atoi(p);
 						p=strsep(&t, "\r\n\0");
-						if(p) nlent->flags=strdup(p);
+						if(p) nlent->flags=xstrdup(p);
 					}
 				}
 			}
@@ -121,7 +121,7 @@ void phonetrans(char **pph, slist_t *phtr)
 
 	if(!*pph || !*ph) return;
 	for(pht=phtr;pht && rc;pht=pht->next) {
-		s=strdup(pht->str);
+		s=xstrdup(pht->str);
 		p=strchr(s,' ');
 		if(p) {
 			*(p++)='\0';
@@ -132,18 +132,18 @@ void phonetrans(char **pph, slist_t *phtr)
 		if(strncmp(ph, s, strlen(s))==0) {
 			if(p) strcpy(tmp, p);else *tmp=0;
 			strcat(tmp, ph+strlen(s));
-			sfree(ph); ph=malloc(strlen(tmp)+1); *pph=ph;
-			strcpy(ph, tmp);sfree(s);
+			xfree(ph); ph=xmalloc(strlen(tmp)+1); *pph=ph;
+			strcpy(ph, tmp);xfree(s);
 			return;
 		}
 		if(s[0]=='=') {
 			if(p) strcpy(tmp, p);else *tmp=0;
 			strcat(tmp, ph);
-			sfree(ph); ph=malloc(strlen(tmp)+1); *pph=ph;
-			strcpy(ph, tmp);sfree(s);
+			xfree(ph); ph=xmalloc(strlen(tmp)+1); *pph=ph;
+			strcpy(ph, tmp);xfree(s);
 			return;
 		}
-		sfree(s);
+		xfree(s);
 	}
 }
 
@@ -159,15 +159,15 @@ int checktimegaps(char *ranges)
 	if(!ranges) return 0;
 	if(!strlen(ranges)) return 0;
 
-	if(!(rs=strdup(ranges))) return 0;
+	if(!(rs=xstrdup(ranges))) return 0;
 
 	for(r=strtok(rs, ",");r;r=strtok(NULL, ",")) {
 		while(*r==' ') r++;
 		if(!*r) continue;
-		if(!strcasecmp(r, "cm")) { sfree(rs); return 1;}
-		if(!strcasecmp(r, "never")) { sfree(rs); return 0;}
+		if(!strcasecmp(r, "cm")) { xfree(rs); return 1;}
+		if(!strcasecmp(r, "never")) { xfree(rs); return 0;}
 		if(r[0]=='T') {
-			if(chktxy(r)) { sfree(rs); return 1;}
+			if(chktxy(r)) { xfree(rs); return 1;}
 			else continue;     
 		} 
 
@@ -192,7 +192,7 @@ int checktimegaps(char *ranges)
 						if((f = strchr(s + 1, ':')))
 							secondMinute = atoi(f + 1);
 					} else {
-						sfree(rs);
+						xfree(rs);
 						return 0;
 					}
 				} else {						
@@ -222,7 +222,7 @@ int checktimegaps(char *ranges)
 			secondDay > 7  || secondDay == 0 || secondHour < -1 ||
 			secondHour > 24 || secondMinute < -1 || secondMinute > 59 ||
 			firstHour == -1 || (secondDay != -1 && secondHour==-1))
-			{ sfree(rs);return 0; }
+			{ xfree(rs);return 0; }
 
 		ti=localtime(&tim);
 		Day=ti->tm_wday;if(!Day) Day = 7;
@@ -242,10 +242,10 @@ int checktimegaps(char *ranges)
 				if(Day >= firstDay && Day <= secondDay) {
 					if(firstMark < secondMark) {
 						if(currentMark >= firstMark && currentMark < secondMark)
-							{ sfree(rs); return 1; }
+							{ xfree(rs); return 1; }
 					} else {
 						if(currentMark >= firstMark || currentMark < secondMark)
-							{ sfree(rs); return 1; }
+							{ xfree(rs); return 1; }
 					}
 				}
 			} else {
@@ -253,20 +253,20 @@ int checktimegaps(char *ranges)
 					if(Day == firstDay) {
 						if(firstMark <= secondMark) {
 							if(currentMark >= firstMark && currentMark < secondMark)
-								{ sfree(rs); return 1;}
+								{ xfree(rs); return 1;}
 						} else {
 							if(currentMark >= firstMark || currentMark < secondMark)
-								{ sfree(rs); return 1;}
+								{ xfree(rs); return 1;}
 						}
 					}
 				} else {
 					if(Day >= firstDay || Day <= secondDay) {
 						if(firstMark <= secondMark) {
 							if(currentMark >= firstMark && currentMark < secondMark)
-								{ sfree(rs); return 1;}
+								{ xfree(rs); return 1;}
 						} else {
 							if(currentMark >= firstMark || currentMark < secondMark)
-								{ sfree(rs); return 1;}
+								{ xfree(rs); return 1;}
 						}
 					}
 				}
@@ -274,31 +274,31 @@ int checktimegaps(char *ranges)
 		} else if(secondHour != -1) {
 			if(firstMark <= secondMark) {
 				if(currentMark >= firstMark && currentMark < secondMark)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			} else {
 				if(currentMark >= firstMark || currentMark < secondMark)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			}
 		} else if(firstDay != -1) {
 			if(firstMinute != -1) {
 				if(Day == firstDay && Hour == firstHour && Min == firstMinute)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			} else {
 				if(Day == firstDay && Hour == firstHour)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			}
 		} else {
 			if(firstMinute != -1) {
 				if(Hour == firstHour && Min == firstMinute)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			} else {
 				if(Hour == firstHour)
-					{ sfree(rs); return 1;}
+					{ xfree(rs); return 1;}
 			}
 		}
     }
 			
-	sfree(rs);
+	xfree(rs);
 	return 0;
 }
 
@@ -316,18 +316,18 @@ int checktxy(char *flags)
 {
 	char *u, *p, *w;
 	
-	w=strdup(flags);u=w;
+	w=xstrdup(flags);u=w;
 	while((p=strsep(&u, ","))) {
 		if(!strcmp(p,"CM")) {
-			sfree(w);
+			xfree(w);
 			return 1;
 		}
 		if(p[0]=='T' && p[3]==0) {
-			sfree(w);
+			xfree(w);
 			return chktxy(p);
 		}
 	}
-	sfree(w);
+	xfree(w);
 	return 0;
 }
 
@@ -345,13 +345,13 @@ subst_t *parsesubsts(faslist_t *sbs)
 	while(sbs) {
 		q=findsubst(&sbs->addr, subs);
 		if(!q) {
-			q=malloc(sizeof(subst_t));
+			q=xmalloc(sizeof(subst_t));
 			q->next=subs;subs=q;			
 			ADDRCPY(q->addr, sbs->addr);
 			q->hiddens=q->current=NULL;
 			q->nhids=0;
 		}
-		d=malloc(sizeof(dialine_t));
+		d=xmalloc(sizeof(dialine_t));
 
 		/* Insert ind _end_ of list */
 		c=q->hiddens;
@@ -367,11 +367,11 @@ subst_t *parsesubsts(faslist_t *sbs)
 		t=strsep(&p, " ");
 		if(t) {
 			if(*t!='-')
-				d->phone=strdup(t);
+				d->phone=xstrdup(t);
 			if(p) {
 				while(*p==' ') p++;
 				t=strsep(&p, " ");	
-				if(t) if(*t!='-') d->timegaps=strdup(t);
+				if(t) if(*t!='-') d->timegaps=xstrdup(t);
 			}
 		}
 		sbs=sbs->next;
@@ -393,19 +393,19 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	if(!d->phone) query_nodelist(&nl->addrs->addr,cfgs(CFG_NLPATH),&from_nl);
 
 	if(d->phone) {
-		if(nl->phone) sfree(nl->phone);
-		nl->phone=strdup(d->phone);
+		if(nl->phone) xfree(nl->phone);
+		nl->phone=xstrdup(d->phone);
 	} else if(from_nl && from_nl->phone) {
-		if(nl->phone) sfree(nl->phone);
-		nl->phone=strdup(from_nl->phone);
+		if(nl->phone) xfree(nl->phone);
+		nl->phone=xstrdup(from_nl->phone);
 		phonetrans(&nl->phone, cfgsl(CFG_PHONETR));
 	}
 	if(d->timegaps) {
-		if(nl->wtime) sfree(nl->wtime);
-		nl->wtime=strdup(d->timegaps);
+		if(nl->wtime) xfree(nl->wtime);
+		nl->wtime=xstrdup(d->timegaps);
 		nl->haswtime=1;
 	} else {
-		if(nl->wtime) sfree(nl->wtime);
+		if(nl->wtime) xfree(nl->wtime);
 		nl->haswtime=0;
 	}
 	nl->hidnum=(sb->nhids>1)?d->num:0;
@@ -422,11 +422,11 @@ void killsubsts(subst_t **l)
 		d=(*l)->hiddens;
 		while(d) {
 			e=d->next;
-			sfree(d->phone);sfree(d->timegaps);
-			sfree(d);
+			xfree(d->phone);xfree(d->timegaps);
+			xfree(d);
 			d=e;
 		}
-		sfree(*l);
+		xfree(*l);
 	    *l=t;
 	}
 }
@@ -460,14 +460,14 @@ void nlkill(ninfo_t **nl)
 {
 	if(!*nl) return;
 	falist_kill(&(*nl)->addrs);
-	sfree((*nl)->name);
-	sfree((*nl)->place);
-	sfree((*nl)->sysop);
-	sfree((*nl)->phone);
-	sfree((*nl)->wtime);
-	sfree((*nl)->flags);
-	sfree((*nl)->pwd);
-	sfree((*nl)->mailer);
-	sfree(*nl);
+	xfree((*nl)->name);
+	xfree((*nl)->place);
+	xfree((*nl)->sysop);
+	xfree((*nl)->phone);
+	xfree((*nl)->wtime);
+	xfree((*nl)->flags);
+	xfree((*nl)->pwd);
+	xfree((*nl)->mailer);
+	xfree(*nl);
 }
 	

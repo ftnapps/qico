@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.44 2001/03/10 19:50:19 lev Exp $
+ * $Id: main.c,v 1.45 2001/03/20 15:02:36 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -279,15 +279,15 @@ void daemon_mode()
 				case 3:write_log("index is older than the list, need recompile");break;
 				}
 				if(!rnode) {
-					rnode=calloc(1,sizeof(ninfo_t));
+					rnode=xcalloc(1,sizeof(ninfo_t));
 					falist_add(&rnode->addrs, &current->addr);
-					rnode->name=strdup("Unknown");
-					rnode->phone=strdup("");
+					rnode->name=xstrdup("Unknown");
+					rnode->phone=xstrdup("");
 				}
 				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 				DEBUG(('Q',1,"%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
-				rnode->tty=strdup(baseport(port));
+				rnode->tty=xstrdup(baseport(port));
 				if(checktimegaps(cfgs(CFG_CANCALL)) &&
 					find_dialable_subst(rnode,  current->flv&Q_IMM, psubsts)) {
 					dable=1;current->flv|=Q_DIAL;
@@ -636,7 +636,7 @@ void getsysinfo()
 	char tmp[MAX_STRING];
 	if(uname(&uts)) return;
 	sprintf(tmp, "%s-%s (%s)", uts.sysname, uts.release, uts.machine);
-	osname=strdup(tmp);
+	osname=xstrdup(tmp);
 }
 
 
@@ -645,14 +645,14 @@ void answer_mode(int type)
 	int rc, spd;char *cs;
 	struct sockaddr_in sa;int ss=sizeof(sa);
 
-	rnode=calloc(1, sizeof(ninfo_t));
+	rnode=xcalloc(1, sizeof(ninfo_t));
 	is_ip=!isatty(0);
 #if IP_D	
 	sprintf(ip_id, "ip%d", getpid());
 #else
 	sprintf(ip_id, "ipd");
 #endif
-	rnode->tty=strdup(is_ip?"tcpip":basename(ttyname(0)));
+	rnode->tty=xstrdup(is_ip?"tcpip":basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
@@ -705,10 +705,10 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 	case 3:write_log("index is older than the list, need recompile");break;
 	}
 	if(!rnode) {
-		rnode=calloc(1,sizeof(ninfo_t));
+		rnode=xcalloc(1,sizeof(ninfo_t));
 		falist_add(&rnode->addrs, fa);
-		rnode->name=strdup("Unknown");
-		rnode->phone=strdup("");
+		rnode->name=xstrdup("Unknown");
+		rnode->phone=xstrdup("");
 	}
 	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	rnode->tty=NULL;
@@ -719,14 +719,14 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 			if(!ports) exit(33);
 			port=tty_findport(ports,cfgs(CFG_NODIAL));
 			if(!port) exit(33);
-			if(rnode->tty) sfree(rnode->tty);
-			rnode->tty=strdup(baseport(port));
+			if(rnode->tty) xfree(rnode->tty);
+			rnode->tty=xstrdup(baseport(port));
 			ports=ports->next;
 		} while(!checktimegaps(cfgs(CFG_CANCALL)));
 		if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
 	} else {
 		if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
-			rnode->tty=strdup(baseport(port));
+			rnode->tty=xstrdup(baseport(port));
 		} else {
 			exit(33);
 		}
@@ -857,7 +857,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	if(hostname) {
 		is_ip=1;
-		rnode=calloc(1,sizeof(ninfo_t));
+		rnode=xcalloc(1,sizeof(ninfo_t));
 #if IP_D	
 		sprintf(ip_id, "ip%d", getpid());
 #else

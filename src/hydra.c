@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.13 2001/03/10 19:50:17 lev Exp $
+ * $Id: hydra.c,v 1.14 2001/03/20 15:02:35 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -643,8 +643,8 @@ void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwi
 {
 	hydra_modifier=hmod;
 	
-	txbuf=malloc(H_BUFLEN(hydra_modifier));
-	rxbuf=malloc(H_BUFLEN(hydra_modifier));
+	txbuf=xmalloc(H_BUFLEN(hydra_modifier));
+	rxbuf=xmalloc(H_BUFLEN(hydra_modifier));
 
 	txbufin  = txbuf + ((H_MAXBLKLEN(hmod) + H_OVERHEAD + 5) * 2);
 	rxbufmax = rxbuf + H_MAXPKTLEN(hmod);
@@ -691,7 +691,7 @@ void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwi
 void hydra_deinit (void)
 {
 	qpreset(0);qpreset(1);
-	sfree(txbuf);sfree(rxbuf);
+	xfree(txbuf);xfree(rxbuf);
 }/*hydra_deinit()*/
 
 
