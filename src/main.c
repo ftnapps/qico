@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.34 2001/01/21 20:52:44 lev Exp $
+ * $Id: main.c,v 1.35 2001/02/08 21:38:20 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -111,20 +111,33 @@ void sighup(int sig)
 	do_rescan=1;
 }
 
-
-void sendrpkt(char what, pid_t pid, char *fmt, ...)
+void sendipcpkt(int wait, char what, pid_t pid, char *fmt, va_list args)
 {
 	char buf[MSG_BUFFER];
 	int rc;
-	va_list args;
-	
 	*((int *)buf)=pid;
 	buf[4]=what;
-	va_start(args, fmt);
 	rc=vsnprintf(buf+5, MSG_BUFFER-1, fmt, args);
+	msgsnd(qipcr_msg, buf, rc+6, wait?0:IPC_NOWAIT);
+}
+
+void sendrpkt(char what, pid_t pid, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	sendipcpkt(0,what,pid,fmt,args);
 	va_end(args);
-	msgsnd(qipcr_msg, buf, rc+6, IPC_NOWAIT);
-}	
+}
+
+void sendrpktwait(char what, pid_t pid, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	sendipcpkt(1,what,pid,fmt,args);
+	va_end(args);
+}
+
+
 
 char qchars[]=Q_CHARS;
 char *sts_str(int flags)
@@ -582,15 +595,15 @@ void daemon_mode()
 				case QR_QUEUE:
 					sinfo = q_queue;
 					do {
-						sendrpkt(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu%c",
+						sendrpktwait(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu",
 							(char)1,
 							ftnaddrtoa(&sinfo->addr),(char)0,
 							(unsigned long)sinfo->pkts,(char)0,
-							(unsigned long)q_sum(sinfo)+sinfo->reqs,(char)0,
+							(unsigned long)(q_sum(sinfo)+sinfo->reqs),(char)0,
 							(unsigned long)sinfo->try,(char)0,
-							(unsigned long)sinfo->flv,(char)0);
+							(unsigned long)sinfo->flv);
 					} while ((sinfo = sinfo->next));
-					sendrpkt(0,chld,"%c",0);
+					sendrpktwait(0,chld,"%c",0);
 					break;
 				default:
 					write_log("got unsupported packet type: %c", C0(buf[8]));
