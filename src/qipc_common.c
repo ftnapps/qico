@@ -2,7 +2,7 @@
  * File: qipc_common.c
  * Created at Mon May 7 23:07:41 2001  by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_common.c,v 1.4 2001/07/05 19:55:51 lev Exp $
+ * $Id: qipc_common.c,v 1.5 2001/07/24 14:11:26 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
