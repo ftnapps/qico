@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4 2000/09/21 12:28:35 lev Exp $
+ * $Id: main.c,v 1.4.2.1 2000/09/25 11:14:15 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -563,13 +563,13 @@ int main(int argc, char *argv[], char *envp[])
 	printf("...press any key...\n");getchar();
 #endif	
 
-	if(daemon==0 || daemon==1) qipc_init(0);
+	if(daemon==0 || daemon==1 || daemon==12) qipc_init(0);
 
 #ifdef STDERRLOG	
 	freopen("/usr/src/qico/stderr.out","at",stderr);
 	setbuf(stderr, NULL);
 #endif
-	if(hostname || (daemon>=3 && daemon<=8)) 
+	if(hostname || (daemon>=3 && daemon<=8) || daemon==12) 
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
 			log("%s: can't parse address '%s'!\n", argv[0],
 				argv[optind]);
@@ -602,7 +602,7 @@ int main(int argc, char *argv[], char *envp[])
 		stopit(0);
 	}
 
-	if(daemon>=3 && daemon<=8) 
+	if(daemon>=3 && daemon<=8 || daemon==12) 
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
 			log("%s: can't init bso!\n", argv[0]);
 			exit(1);
