@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.9 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: clserv.c,v 1.10 2004/03/15 01:19:30 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -89,9 +89,20 @@ int xsend(int sock,char *buf,size_t len)
 int xrecv(int sock,char *buf,size_t len,int wait)
 {
 	int rc;
+	fd_set rfd;
 	unsigned short l=0;
+	struct timeval tv;
 	if(sock<0){errno=EBADF;return -1;}
-	rc=recv(sock,&l,2,MSG_PEEK|(wait?MSG_WAITALL:MSG_DONTWAIT));
+	if(!wait) {
+		tv.tv_sec=0;tv.tv_usec=0;
+		FD_ZERO(&rfd);FD_SET(sock,&rfd);
+		rc=select(sock+1,&rfd,NULL,NULL,&tv);
+		if(rc<1) {
+			if(!rc)errno=EAGAIN;
+			return -1;
+		}
+	}
+	rc=recv(sock,&l,2,MSG_PEEK|MSG_WAITALL);
 	if(rc<=0)return rc;
 	if(rc==2) {
 		l=I2H16(l);
