@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.10 2001/01/12 13:11:16 lev Exp $
+ * $Id: qcc.c,v 1.11 2001/01/12 13:13:10 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -454,7 +454,9 @@ int main(int argc, char **argv)
 	struct tm *tt;
 	key_t qipc_key;
 	int lastfirst=1, lastpos=1;
+#ifdef CURS_HAVE_WRESIZE		
 	struct winsize size;
+#endif
 
  	while((c=getopt(argc, argv, "h"))!=EOF) {
 		switch(c) {
