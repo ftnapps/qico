@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.9 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: qipc.c,v 1.10 2004/01/21 15:40:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -13,10 +13,6 @@
 void qsendpkt(char what,char *line,char *buff,int len)
 {
 	char buf[MSG_BUFFER];
-/*			if(rnode&&rnode->starttime) {
-				qemsisend(rnode);
-				if(chattimer>0)qchat("");
-			}*/
 	if(!xsend_cb)return;
 	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
 /*	write_log("sendpkt %s %d", line, len); */
