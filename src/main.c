@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.8 2001/01/04 18:21:12 lev Exp $
+ * $Id: main.c,v 1.4.2.9 2001/01/04 18:25:26 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -428,56 +428,54 @@ void answer_mode(int type)
 
 int force_call(ftnaddr_t *fa, int flags)
 {
- char *port=NULL;
- slist_t *ports=NULL;
- int rc;
+	char *port=NULL;
+	slist_t *ports=NULL;
+	int rc;
 
- rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
- if (!rnode) return 0;
- phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
- rnode->tty=NULL;
+	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
+	if (!rnode) return 0;
+	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+	rnode->tty=NULL;
 
- if((flags & 2) != 2) {
+	if((flags & 2) != 2) {
+		ports=cfgsl(CFG_PORT);
+		do {
+			if(!ports) exit(33);
+			port=tty_findport(ports,cfgs(CFG_NODIAL));
+			if(!port) exit(33);
+			if(rnode->tty) sfree(rnode->tty);
+			rnode->tty=strdup(baseport(port));
+			ports=ports->next;
+		} while(!checktimegaps(cfgs(CFG_CANCALL)));
+		if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
+	} else {
+		if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
+			rnode->tty=strdup(baseport(port));
+		} else {
+			exit(33);
+		}
+	}
 
- 	ports=cfgsl(CFG_PORT);
- 	do {
- 		if(!ports) exit(33);
- 		port=tty_findport(ports,cfgs(CFG_NODIAL));
- 		if(!port) exit(33);
- 		if(rnode->tty) sfree(rnode->tty);
-		rnode->tty=strdup(baseport(port));
-        ports=ports->next;
- 	} while(!checktimegaps(cfgs(CFG_CANCALL)));
-	if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
+	applysubst(rnode, psubsts);
+	if(!can_dial(rnode,(flags & 1) == 1)) {
+		fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
+		exit(0);
+	}
 
- } else {
- 	if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
-		rnode->tty=strdup(baseport(port));
- 	} else {
- 		exit(33);
- 	}
- }
+	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
+		printf("can't open log %s!\n", ccs);
+		exit(0);
+	}
 
- applysubst(rnode, psubsts);
- if(!can_dial(rnode,(flags & 1) == 1)) {
- 	fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
- 	exit(0);
- }
+	if(rnode->hidnum) {
+		log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+	} else {								
+		log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
+	}								
 
- if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-	 printf("can't open log %s!\n", ccs);
-	 exit(0);
- }
-
- if(rnode->hidnum) {
-	log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
- } else {								
-	log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
- }								
-
- rc=do_call(fa, rnode->phone,port);
- stopit(rc);
- return rc;
+	rc=do_call(fa, rnode->phone,port);
+	stopit(rc);
+	return rc;
 }
 
 
@@ -677,11 +675,8 @@ int main(int argc, char *argv[], char *envp[])
 			if(verb) log("call %s\n", ftnaddrtoa(&fa));
 			rc=force_call(&fa,call_flags);
 			bso_unlocknode(&fa);
-		} else
-			rc=0;
-		if(!(rc&S_MASK)) {
-			log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
-		}
+		} else rc=0;
+		if(!(rc&S_MASK)) log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
 		break;
 	case 3:
 		if(bso_locknode(&fa)) {
