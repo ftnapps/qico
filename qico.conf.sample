@@ -36,7 +36,7 @@
 # and '!' (not) operators, and some tokens:
 #
 # + address <addr_mask>      - remote has this address(s)
-#                              ex.: 'address 2:5030/*'
+#                              ex.: 'address 1:2345/*'
 # + port <wildcard>          - connection is on <port> (or 'ip' for ip 
 #                              connections)
 #                              ex.: 'port ttyS?'  
@@ -86,13 +86,16 @@
 ###############################################################################
 # your addresses, first will be used as primary and its zone and net will be
 # used as default
-address		2:5030/736.25
-address 	47:239/13
+address		1:2345/7845
+address 	111:222/44
 
 # passwords for nodes
-#password        2:5030/1115     COOLPASS
-#password	 47:239/1   	 SOMEPWD
-include		/etc/ftn/qico.passwd
+#password	2:2345/1234		COOLPASS
+#password	111:222/13		SOMEPWD
+
+# You rcould include passwords file
+#include		/etc/ftn/qico.passwd
+
 
 ###############################################################################
 ### paths and filenames #######################################################
@@ -176,9 +179,9 @@ nodial         	/etc/nodial
 history	        /var/log/ftn/history	
 
 # personal fileboxes
-#filebox 	2:5030/163	/var/spool/ftn/fbox/test
-#filebox 	2:5030/763	/var/spool/ftn/fbox/tma
-#filebox 	47:239/1	/var/spool/ftn/fbox/andrew
+#filebox 	1:2345/999	/var/spool/ftn/fbox/uplink
+#filebox 	1:2345/888	/var/spool/ftn/fbox/downlink
+#filebox 	111:222/0	/var/spool/ftn/fbox/leftnet.nc
 
 # long name fileboxes base directory
 #longboxpath	/var/spool/ftn/lbox
@@ -302,18 +305,18 @@ waitcarrier	60
 ### station info and session parameters #######################################
 ###############################################################################
 # EMSI data (warning! don't use ']' and '}' symbols in this fields!!!!)
-station		Aaz's Lair
-sysop		Pavel Kurnosoff
+station		Station name
+sysop		Sysop Sysopoff
 place		St.Petersburg
 worktime	0:00-7:00
 phone		7-812-y0U-kN0W
 speed		33600
-flags		Linux, anti-ifcico team
+flags		FreeBSD, anti-ifcico team
 
 # mailer info. qico-<version>/<your_os> will be used, if not defined.
 #progname	qico
-#version         2000
-#osname          Windows95
+#version    2000
+#osname     Windows95
 
 # Send **EMSI_INQC816 twice, as required by standard (FSC-0056.TXT).
 standardemsi yes
@@ -453,22 +456,21 @@ mapout 		bS
 ###############################################################################
 # substs in format: subst <addr> <phone> <wtime> 
 # each field can be replaced with '-' (keep unchanged)
-# ex: subst 2:5030/532	 - 	23:30-8:00
-#     subst 2:5030/666 	02 	CM 		
-#     subst 111:222/33   - 	-		
+# ex:
+#
+#subst	1:2345/123		-			23:30-8:00
+#subst	1:2345/546		123-4567	-
+#subst	1:2345/666		02			CM 		
+#
+# Subst override nodelist, so for second (hidden) line you must specify
+# two (or more) `subst':
+#		One for nodelist line
+#subst 111:222/33		-			-		
+#		One (ore more) for hidden line(s)
+#subst 111:222/33		987-6543	18:00-9:00
 # warning! subst phones are used without translation!
-subst 		47:239/1 	245-8477 0-7
-subst           2:5030/763      521-3530 22:30-9:00
-subst           2:5030/816      - 1-5
-subst           2:5030/754      - 1-8
 
-#subst 		2:5030/1115     315-8915 CM
-#subst 		2:5030/1115     315-8983 CM
-subst 		2:5030/1115     326-3610 CM
-
-subst           2:5030/163      272-6074 CM
-subst           2:5030/163      275-1579 CM
-subst           2:5030/163      275-6354 CM
+# You could include subst file.
 #include /etc/ftn/substs
 
 ###############################################################################
@@ -484,12 +486,12 @@ aftersession	/usr/local/bin/up
 ### some example conditions ###################################################
 ###############################################################################
 # they (or we? ;) have buggy hydra, so we will turn it off
-if address 2:5030/1061.3 | address 2:5030/1061.15 | address 2:5030/1061.16
+if address 1:2345/7845.3 | address 1:2345/7845.15 | address 1:2345/7845.16
  protorder Z1
 
 # endif can be skipped here
 # he has stupid big /etc/issue ;)
-if address 2:5030/763
+if address 1:2345/678
  showintro no
 
 # security violation
@@ -506,4 +508,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.21 2001/07/12 21:43:20 lev Exp $
+# $Id: qico.conf.sample,v 1.22 2001/07/15 07:46:19 lev Exp $
