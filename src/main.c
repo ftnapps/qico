@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.2 2000/07/18 12:56:17 lev Exp $
+ * $Id: main.c,v 1.3 2000/07/22 16:00:07 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -391,7 +391,7 @@ void answer_mode(int type)
 	}
 
 	log("answering incoming call");vidle();
-	if(is_ip && !getsockname(0,(struct sockaddr *)&sa,&ss)) {
+	if(is_ip && !getpeername(0,(struct sockaddr *)&sa,&ss)) {
 		log("remote is %s", inet_ntoa(sa.sin_addr));
 		spd=TCP_SPEED;
 	} else {	
