@@ -2,7 +2,7 @@
  * File: xstr.c
  * Created at Tue Mar 20 22:37:42 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xstr.c,v 1.1 2001/03/20 19:49:57 lev Exp $
+ * $Id: xstr.c,v 1.2 2001/03/20 19:52:09 lev Exp $
  **********************************************************/
 #include <stdlib.h>
 #include <config.h>
@@ -22,6 +22,7 @@ char *xstrcpy(char *dst, char *src, size_t size)
 	return dst;
 }
 #endif
+
 #ifndef HAVE_STRLCAT
 char *xstrcat(char *dst, char *src, size_t size)
 {

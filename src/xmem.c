@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.6 2001/03/20 19:49:57 lev Exp $
+ * $Id: xmem.c,v 1.7 2001/03/20 19:52:08 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -41,6 +41,7 @@ char *xstrdup(char *str)
 	abort();
 	return NULL;
 }
+
 
 char *restrcpy(char **dst, char *src)
 {
