@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.12 2004/03/27 21:38:40 sisoft Exp $
+ * $Id: flagexp.y,v 1.13 2004/06/01 01:12:49 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
 %token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS FLLINE
@@ -225,24 +225,26 @@ static int checkline(int lnum)
 
 int yyparse();
 
-int flagexp(char *expr,int strict)
+int flagexp(slist_t *expr,int strict)
 {
 	char *p;
-	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
-	if(!expr||!*expr)return 0;
-	p=xstrdup(expr);
-	yyPTR=p;
-	flxpres=0;
-	if(yyparse()) {
-		DEBUG(('Y',1,"checkexpression: couldn't parse%s",strict?"":", assume 'false'",expr));
-		xfree(p);
-		return(strict?-1:0);
-	}
+	for(;expr;expr=expr->next) {
+		DEBUG(('Y',1,"checkexpression: \"%s\"",expr->str));
+		p=xstrdup(expr->str);
+		yyPTR=p;
+		flxpres=0;
+		if(yyparse()) {
+			DEBUG(('Y',1,"checkexpression: couldn't parse%s",strict?"":", assume 'false'",expr->str));
+			xfree(p);
+			return(strict?-1:0);
+		}
 #ifdef NEED_DEBUG
-	if(!strict)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
+		if(!strict)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
 #endif
-	xfree(p);
-	return flxpres;
+		xfree(p);
+		if(!flxpres)return 0;
+	}
+	return 1;
 }
 
 static int yyerror(char *s)

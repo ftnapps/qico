@@ -1,13 +1,12 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.18 2004/05/29 23:34:45 sisoft Exp $
+ * $Id: config.c,v 1.19 2004/06/01 01:12:49 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-extern int flagexp(char *expr,int strict);
+extern int flagexp(slist_t *expr,int strict);
 
-static slist_t *condlist=NULL;
-static char *curcond=NULL;
+static slist_t *condlist=NULL,*curcond;
 
 static int getstr(char **to,char *from)
 {
@@ -69,6 +68,39 @@ static int getstrl(slist_t **to,char *from)
 {
 	slist_add(to,from);
 	return 1;
+}
+
+static slist_t *slist_addl(slist_t **l,char *s)
+{
+	slist_t **t;
+	for(t=l;*t;t=&((*t)->next));
+	*t=(slist_t *)xmalloc(sizeof(slist_t));
+	(*t)->next=NULL;
+	(*t)->str=s;
+	return *t;
+}
+
+static char *slist_dell(slist_t **l)
+{
+	char *p=NULL;
+	slist_t *t,*cc=NULL;
+	for(t=*l;t&&t->next;cc=t,p=t->next->str,t=t->next);
+	if(cc)xfree(cc->next);
+	    else {
+		xfree(t);
+		*l=NULL;
+	}
+	return p;
+}
+
+static void slist_killn(slist_t **l)
+{
+	slist_t *t;
+	while(*l) {
+		t=(*l)->next;
+		xfree(*l);
+		*l=t;
+	}
 }
 
 static int setvalue(cfgitem_t *ci,char *t,int type)
@@ -145,7 +177,13 @@ int readconfig(char *cfgname)
 {
 	int rc,i;
 	cfgitem_t *ci;
+	curcond=NULL;
 	rc=parseconfig(cfgname);
+	if(curcond) {
+		write_log("%s: not all <if>-expressions closed",cfgname);
+		while(curcond)slist_dell(&curcond);
+		rc=0;
+	}
 	if(!rc)return 0;
 	for(i=0;i<CFG_NNN;i++) {
 		if(!configtab[i].found) {
@@ -173,15 +211,20 @@ int readconfig(char *cfgname)
 int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 {
 	int i=0,rc=1;
+	slist_t *cc;
 	cfgitem_t *ci;
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
 	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d",kw,arg,i,cfgname,line));
 	if(configtab[i].keyword) {
-		for(ci=configtab[i].items;ci;ci=ci->next)
-			if(ci->condition==curcond)break;
+		for(ci=configtab[i].items;ci;ci=ci->next) {
+			slist_t *a=ci->condition,*b=curcond;
+			for(;a&&b&&a->str==b->str;a=a->next,b=b->next);
+			if(!a&&!b)break;
+		}
 		if(!ci) {
 			ci=xcalloc(1,sizeof(cfgitem_t));
-			ci->condition=curcond;
+			for(cc=curcond;cc;cc=cc->next)
+				slist_addl(&ci->condition,cc->str);
 			ci->next=configtab[i].items;
 			configtab[i].items=ci;
 		}
@@ -210,7 +253,6 @@ int parseconfig(char *cfgname)
 		write_log("can't open config file '%s': %s",cfgname,strerror(errno));
 		return 0;
 	}
-	curcond=NULL;
 	while(fgets(s,MAX_STRING*2,f)) {
 contl:		line++;p=s;
 		strtr(p,'\t',' ');
@@ -231,23 +273,14 @@ contl:		line++;p=s;
 			while(*t==' ')t++;
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
 			if(!strcasecmp(p,"include")) {
-				if(curcond) {
-					write_log("%s:%d: found <include> inside <if>-expression",cfgname,line);
+				if(!strncmp(cfgname,t,MAX_STRING)) {
+					write_log("%s:%d: <include> including itself -> infinity loop",cfgname,line);
 					rc=0;
-				} else {
-					if(!strncmp(cfgname,t,MAX_STRING)) {
-						write_log("%s:%d: <include> including itself -> infinity loop",cfgname,line);
-						rc=0;
-					} else if(!parseconfig(t)) {
-						write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
-						rc=0;
-					}
+				} else if(!parseconfig(t)) {
+					write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
+					rc=0;
 				}
 			} else if(!strcasecmp(p,"if"))	{
-				if(curcond) {
-					write_log("%s:%d: found second <if> before <endif>",cfgname,line);
-					rc=0;
-				}
 				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
 				if(*k==':'&&k[1]==' ') {
 					*k++=0;
@@ -261,39 +294,34 @@ contl:		line++;p=s;
 						rc=0;k=NULL;
 					}
 				} else k=NULL;
-				if(flagexp(t,1)<0) {
+				cc=slist_add(&condlist,t);
+				if(flagexp(cc,1)<0) {
 					write_log("%s:%d: can't parse expression '%s'",cfgname,line,t);
 					rc=0;
-				} else {
-					cc=slist_add(&condlist,t);
-					curcond=cc->str;
-				}
+				} else slist_addl(&curcond,cc->str);
 				if(k&&curcond) {
 					if(!parsekeyword(k,p,cfgname,line))rc=0;
-					curcond=NULL;
+					slist_dell(&curcond);
 				}
 			} else if(!strcasecmp(p,"else")) {
 				if(!curcond) {
 					write_log("%s:%d: misplaced <else> without <if>",cfgname,line);
 					rc=0;
 				} else {
-					snprintf(s,MAX_STRING,"not(%s)",curcond);
+					k=slist_dell(&curcond);
+					snprintf(s,MAX_STRING,"not(%s)",k);
 					cc=slist_add(&condlist,s);
-					curcond=cc->str;
+					slist_addl(&curcond,cc->str);
 				}
 			} else if(!strcasecmp(p,"endif")) {
 				if(!curcond) {
 					write_log("%s:%d: misplaced <endif> without <if>",cfgname,line);
 					rc=0;
-				} else curcond=NULL;
+				} else slist_dell(&curcond);
 			} else if(!parsekeyword(p,t,cfgname,line))rc=0;
 		}
 	}
 	fclose(f);
-	if(curcond) {
-		write_log("%s:%d: last <if>-expression unclosed",cfgname,line);
-		rc=0;
-	}
 	return rc;
 }
 
@@ -312,8 +340,14 @@ void dumpconfig()
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
 			xstrcpy(buf,"conf:   ",LARGE_STRING);
-			if(c->condition)snprintf(buf+8,LARGE_STRING,"if %s: ",c->condition);
-			    else xstrcat(buf,"default: ",LARGE_STRING);
+			if(c->condition) {
+				xstrcpy(buf+8,"if (",LARGE_STRING);
+				for(sl=c->condition;sl;sl=sl->next) {
+					xstrcat(buf+12,sl->str,LARGE_STRING);
+					if(sl->next)xstrcat(buf+12,") and (",LARGE_STRING);
+				}
+				xstrcat(buf+12,"): ",LARGE_STRING);
+			} else xstrcat(buf,"default: ",LARGE_STRING);
 			switch(configtab[i].type) {
 			    case C_PATH:
 			    case C_STR:
@@ -373,6 +407,7 @@ void killconfig()
 				c->value.v_int=0;
 				break;
 			}
+			slist_killn(&c->condition);
 			xfree(c);
 			c=t;
 		}

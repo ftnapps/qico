@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.12 2004/05/31 13:15:39 sisoft Exp $ */
+/* $Id: tools.h,v 1.13 2004/06/01 01:12:49 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -14,7 +14,7 @@
 #define C_OCT     10
 
 typedef struct _cfgitem_t {
-	char *condition;
+	slist_t *condition;
 	union {
 		int v_int;
 		char *v_char;
