@@ -49,7 +49,7 @@ AC_CHECK_FUNCS(strcspn vsnprintf snprintf)
 AC_REPLACE_FUNCS(basename strsep usleep getsid)
 
 dnl Checking for FreeBSD setproctitle in libutil
-AC_CHECK_LIB(util, setproctitle)
+AC_CHECK_FUNC(setproctitle,,AC_CHECK_LIB(util, setproctitle))
 AC_CHECK_HEADERS(libutil.h)
 dnl FreeBSD 4.x have basename(2) in libgen.h
 AC_CHECK_HEADERS(libgen.h)
