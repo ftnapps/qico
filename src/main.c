@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.15 2000/10/24 09:40:59 lev Exp $
+ * $Id: main.c,v 1.16 2000/10/24 09:56:05 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -163,7 +163,7 @@ int randper(int base, int diff)
 
 void daemon_mode()
 {
-	int t_dial=0, t_rescan=0; 
+	int t_dial=0, c_delay, t_rescan=0; 
 	int rc=1, dable, f, w, res, set;
 	char *port, buf[MSG_BUFFER], *p;
 	sts_t sts;
