@@ -1,3 +1,9 @@
+2004-06-30 13:08  sisoft
+
+	* src/session.c, stuff/test.pl:
+
+	show remote time in local timezone.
+
 2004-06-25 13:46  sisoft
 
 	* debian/examples, src/call.c, src/mailer.h, src/main.c,
