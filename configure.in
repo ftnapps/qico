@@ -144,7 +144,7 @@ fi
 
 dnl ZModem
 AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=NOTSET)
-if test x$with_new_zmodem != xNOTSET; then
+if test "${with_new_zmodem}x" != "NOTSETx"; then
 	AC_MSG_WARN([Use new ZModem IN ANY case, old ZModem was eliminated!])
 fi
 
@@ -202,7 +202,7 @@ esac
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
 AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
-if test x$enable_aso != xno; then
+if test "${enable_aso}x" != "nox"; then
 	AC_MSG_RESULT(aso)
 	AC_DEFINE(AMIGA4D)
 else 
@@ -238,14 +238,27 @@ fi
 
 dnl Compile in debug messages
 AC_MSG_CHECKING([for debug logging])
-AC_ARG_ENABLE(debug,[  --disable-debug        disable adding debug messages ], , enable_debug=yes)
-if test x$enable_debug != xno; then
+AC_ARG_ENABLE(debug,[  --disable-debug         disable adding debug messages ], , enable_debug=yes)
+if test "${enable_debug}x" != "nox"; then
 	AC_MSG_RESULT([yes, use loglevels in config to tune])
 	AC_DEFINE(NEED_DEBUG)
 	NEED_DEBUG=1
 else
 	AC_MSG_RESULT([no, logleves in config is useless])
 	NEED_DEBUG=0
+fi
+
+dnl Electric Fence malloc() debbuger support
+AC_MSG_CHECKING([for Electric Fence malloc() debbuger])
+AC_ARG_ENABLE(efence, [  --enable-efence         enable linking with libefence malloc() debugger ], , enable_efence=no)
+if test "${enable_efence}x" != "nox"; then
+	AC_MSG_RESULT(yes)
+	AC_CHECK_LIB(efence, malloc, LIBS="${LIBS} -L/usr/local/lib -lefence",enable_efence=no, "-L/usr/local/lib")
+	if test "${enable_fence}x" = "nox"; then
+		AC_MSG_WARN([No Electric Fence library found -- turn --enable-efence off])
+	fi
+else 
+	AC_MSG_RESULT(no)
 fi
 
 dnl My substs
