@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.6 2000/11/26 13:17:33 lev Exp $
+ * $Id: freq.c,v 1.7 2000/12/12 11:27:05 lev Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -84,7 +84,10 @@ int freq_ifextrp(slist_t *reqs)
 			fputs(s,g);fputc('\r',g);
 		}
 		fclose(f);
-		sprintf(s, "%s-%s/%s", progname, version, osname);
+		sprintf(s, "%s-%s/%s",
+			cfgs(CFG_PROGNAME) == NULL ? progname :	cfgs(CFG_PROGNAME),
+			cfgs(CFG_VERSION)  == NULL ? version  :	cfgs(CFG_VERSION),
+			cfgs(CFG_OSNAME)   == NULL ? osname   : cfgs(CFG_OSNAME));
 		closepkt(g, ma, s, cfgs(CFG_STATION));
 		sprintf(s,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);p=strdup(s);
 		sprintf(s,"%08lx.pkt", sequencer());
