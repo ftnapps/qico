@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.20 2000/11/26 13:59:26 lev Exp $
+ * $Id: ftn.c,v 1.21 2000/12/17 11:15:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -244,8 +244,8 @@ int lockpid(char *pidfn)
 	fprintf(f,"%10d\n",getpid());
 	fclose(f);
 	rc=link(tmpname,pidfn);
-	if(rc) return 0;
 	unlink(tmpname);
+	if(rc) return 0;
 #else
 	rc=open(pidfn,O_WRONLY|O_CREAT|O_EXCL,0644);
 	if(rc<0) return 0;
