@@ -1,3 +1,10 @@
+2004-06-12 00:30  sisoft
+
+	* src/daemon.c, src/flagexp.y, src/flaglex.l, src/perl.c,
+	  stuff/test.pl:
+
+	partially rewrite lexical config parser and fix possibly fuzzy detections.
+
 2004-06-10 02:25  sisoft
 
 	* cvs_com, src/daemon.c, src/flagexp.y, src/flaglex.l, src/hydra.c,
