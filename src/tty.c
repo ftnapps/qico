@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.10 2001/02/08 19:24:53 lev Exp $
+ * $Id: tty.c,v 1.11 2001/02/11 11:31:28 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -365,13 +365,13 @@ int tty_get(char *buf, int size, int *timeout)
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
 	
-	t = time(NULL);
+	t=time(NULL);
 	rc=select(1, &rfds, &wfds, &efds, &tv);
 	if(rc<0) {
 		if(tty_hangedup) return RCDO;
 		else return ERROR;
 	}
-	*timeout -= (time(NULL)-t);
+	*timeout-=(time(NULL)-t);
 	if(rc==0) return TIMEOUT;
 	if(FD_ISSET(0, &efds)) return ERROR;
 	
@@ -475,7 +475,7 @@ int tty_hasdata_timed(int *timeout)
 		if(tty_hangedup) return RCDO;
 		else return ERROR;
 	}
-	*timeout -= (time(NULL)-t);
+	*timeout-=(time(NULL)-t);
 	if(rc==0) return TIMEOUT;
 	if(rc>0) if(FD_ISSET(0, &efds) || !FD_ISSET(0, &rfds)) return ERROR;
 	return OK;
