@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.9 2003/10/08 01:26:48 sisoft Exp $
+#* $Id: qconf.x,v 1.10 2003/10/08 10:07:50 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -33,6 +33,7 @@ emsifreqtime,C_STR,char *,0,NULL
 emsilog,C_PATH,char *,0,NULL
 estimatedtime,C_YESNO,int,0,"no"
 extrp,C_STR,char *,0,NULL
+failpolls,C_YESNO,int,0,"yes"
 fails_hold_div,C_INT,int,0,"0"
 fails_hold_time,C_INT,int,0,"0"
 filebox,C_ADRSTRL,faslist_t *,0,NULL

@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.7 2003/10/08 01:26:48 sisoft Exp $
+ * $Id: tcp.c,v 1.8 2003/10/08 10:07:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -151,7 +151,7 @@ int tcp_call(char *host, ftnaddr_t *fa)
 	if(fd>=0) {
 		rc=session(1,bink?SESSION_BINKP:SESSION_AUTO, fa, TCP_SPEED);
 		closetcp(fd);
-		if((rc&S_MASK)==S_REDIAL) {
+		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
 			write_log("creating poll for %s",ftnaddrtoa(fa));
 			if(is_bso()==1)bso_poll(fa,F_ERR);
 			    else if(is_aso()==1)aso_poll(fa,F_ERR);
