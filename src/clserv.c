@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.5 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: clserv.c,v 1.6 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -91,8 +91,9 @@ int xrecv(int sock,char *buf,int len,int wait)
 		if(l>len)l=len;
 		rc=recv(sock,buf,MIN(l+2,len),MSG_WAITALL);
 		if(rc<=0)return rc;
-		rc=FETCH16(buf);
-		if(!rc)return 0;
+		rc=MIN(rc-2,FETCH16(buf));
+		if(rc<1)return 0;
+		if(rc>=len)rc=len-2;
 		memcpy(buf,buf+2,rc);
 		return rc;
 	}

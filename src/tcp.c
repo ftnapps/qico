@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.11 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: tcp.c,v 1.12 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -41,12 +41,12 @@ static int http_conn(char *name)
 	char *n,*p;
 	char buf[H_BUF+1];
 	if((p=strchr(cfgs(CFG_PROXY),' ')))*p++=0;
-	if(!strchr(name,':'))strncpy(buf+768,bink?":24554":":60179",6);
+	if(!strchr(name,':'))xstrcpy(buf+768,bink?":24554":":60179",8);
 	    else buf[768]=0;
-	i=sprintf(buf,"CONNECT %s%s HTTP/1.0\r\n",name,buf[768]?buf+768:"");
+	i=snprintf(buf,H_BUF,"CONNECT %s%s HTTP/1.0\r\n",name,buf[768]?buf+768:"");
 	if(p) {
 		if((n=strchr(p,' ')))*n=':';
-		i+=sprintf(buf+i,"Proxy-Authorization: basic ");
+		i+=snprintf(buf+i,H_BUF-i,"Proxy-Authorization: basic ");
 		i+=base64(p,strlen(p),buf+i);
 		buf[i++]='\r';buf[i++]='\n';
 	}

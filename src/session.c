@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.19 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: session.c,v 1.20 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -93,14 +93,12 @@ void floflist(flist_t **fl, char *flon)
 					}
 				}
 				if(map && strchr(map, 'S')) strtr(p,'\\','/');
-				fp=xstrdup(p);l=strrchr(fp, '/');if(l) l++;else l=fp;
+				fp=xstrdup(p);l=basename(fp);
 				if(map && strchr(map, 'U')) strupr(l);
 				if(map && strchr(map, 'L')) strlwr(l);
-				
-				fn=strrchr(p, '/');if(fn) fn++;else fn=p;
-    				mapname((char*)fn, map, fn-(char*)str);
-				addflist(fl, fp, xstrdup(fn), str[0], off, f, 1);
-				
+				fn=basename(p);
+    				mapname(fn,map,MAX_PATH-(fn-str)-1);
+				addflist(fl,fp,xstrdup(fn),str[0],off,f,1);
 				if(!stat(fp,&sb)) {
 					totalf+=sb.st_size;totaln++;
 				}
@@ -128,7 +126,7 @@ int boxflist(flist_t **fl, char *path)
 			snprintf(p,len,"%s/%s", path, de->d_name);
 			if(!stat(p,&sb)&&(S_ISREG(sb.st_mode)||S_ISLNK(sb.st_mode))) {
 				xstrcpy(mn,de->d_name,MAX_PATH);
-				mapname((char*)mn,cfgs(CFG_MAPOUT),MAX_PATH);
+				mapname(mn,cfgs(CFG_MAPOUT),MAX_PATH);
 				addflist(fl, p, xstrdup(mn), '^', 0, NULL, 0);
 				totalf+=sb.st_size;totaln++;
 			} else xfree(p);

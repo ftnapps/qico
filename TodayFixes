@@ -1,14 +1,14 @@
-/* $Id: TodayFixes,v 1.22 2004/01/26 21:24:43 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.23 2004/02/01 18:11:42 sisoft Exp $ */
 ---
-fix 'translatesubst' on outgoing from daemon.
+another paranoidal changes.
+change f_notify to dnotify (as in kernel).
+fix crash if bad ip packet recv.
+fix 'mapout' keyword.
+use basename() in mapping.
 .
 previous:
 ---
-add debugs in queue scan.
-change id of first client to 1.
-don't send unnecessary info to new clients.
-in qcc: show new ip lines on first free window.
-in qcc: fix chat.
+fix 'translatesubst' on outgoing from daemon.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.11 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: ftn.c,v 1.12 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -306,10 +306,11 @@ int islocked(char *pidfn)
 	
 char *strip8(char *s)
 {
-	unsigned char *p=(unsigned char*)s,buf[128],t;
 	int i=0;
-	while(*p) {
-		t=todos(*p);
+	unsigned char t;
+	static unsigned char buf[MAX_STRING+1];
+	while(*s&&i<MAX_STRING) {
+		t=todos(*s);
 		if(t>127)
 		{
 			buf[i++]='\\';
@@ -317,11 +318,10 @@ char *strip8(char *s)
 			buf[i]=t%16+((t%16)>9?'a'-10:'0');
 		} else buf[i]=t;
 		if(buf[i]=='}'||buf[i]==']')buf[i]=')';
-		i++;p++;
+		i++;s++;
 	}
-	*s=0;buf[i]=0;
-	strcat(s,(char*)buf);
-	return s;
+	buf[i]=0;
+	return((char*)buf);
 }
 
 unsigned long sequencer()

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico], [0.51si-cvs], [sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.51si-cvs])
-AC_REVISION([$Id: configure.in,v 1.9 2004/01/18 15:58:58 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.10 2004/02/01 18:11:42 sisoft Exp $])
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
@@ -233,9 +233,9 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-dnl Check for F_NOTIFY
-AC_MSG_CHECKING([for F_NOTIFY (for ASO auto-rescascan)])
-AC_ARG_ENABLE(notify,AC_HELP_STRING([--disable-notify],[disable use F_NOTIFY for ASO auto-rescan]),,enable_notify=yes)
+dnl Check for DNOTIFY
+AC_MSG_CHECKING([for DNOTIFY (for ASO auto-rescan)])
+AC_ARG_ENABLE(notify,AC_HELP_STRING([--disable-notify],[disable use DNOTIFY for ASO auto-rescan]),,enable_notify=yes)
 if test "${enable_notify}x" != "nox"; then
 	AC_TRY_RUN([
 #define _GNU_SOURCE
@@ -269,7 +269,7 @@ bad:close(fd);
     return rc;
 }
 	],AC_MSG_RESULT(yes);
-	AC_DEFINE(HAVE_FNOTIFY,1,[Allow use F_NOTIFY for ASO auto-recan]),
+	AC_DEFINE(HAVE_DNOTIFY,1,[Allow use DNOTIFY for ASO auto-recan]),
 	AC_MSG_RESULT(no),AC_MSG_RESULT(cross-compiling. No assumptions made))
 else
 	AC_MSG_RESULT(no);
