@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.12 2000/11/01 10:29:23 lev Exp $
+ * $Id: ftn.c,v 1.13 2000/11/01 14:12:27 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -513,17 +513,24 @@ char *fnc(char *s)
 	
 int whattype(char *fn)
 {
-	char *ext[] = {"su","mo","tu","we","th","fr","sa","pkt","req"};
-	int i;char *p;
+	static char *ext[] = {"su","mo","tu","we","th","fr","sa","pkt","req"};
+	int i, l;char *p;
+	char low;
 	if(!fn) return IS_ERR;
 	p=strrchr(fn,'.');
 	if(!p) return IS_FILE;
+	p++;
+	l=strlen(p);
+	if(l != 3) return IS_FILE;
 	for(i=0;i<9;i++)
-		if(!strncasecmp(p+1,ext[i],strlen(ext[i])))
+		if(!strncasecmp(p,ext[i],strlen(ext[i])))
 			switch(i) {
 			case 7: return IS_PKT;
 			case 8: return IS_REQ;
-			default: return IS_ARC;
+			default:
+				low=tolower(p[2]);
+				if((low >= '0' && low <= '9') || (low >= 'a' && low <= 'z')) return IS_ARC;
+				break;
 			}
 	return IS_FILE;
 }                                           
