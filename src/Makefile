@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.3 2000/07/18 12:56:15 lev Exp $
+# $Id: Makefile,v 1.4 2000/07/18 12:58:57 lev Exp $
 #
 include	../CONFIG
 
@@ -13,7 +13,7 @@ STRIP=0
 #DEFS   += -DC_DEBUG # Config & Substs
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
-DEFS    += -DSHELL=\"$(SHELL)\" -DCONFIG=\"$(CONF)\" -DFREE_BSD=1
+DEFS    += -DSHELL=\"$(SHELL)\" -DCONFIG=\"$(CONF)\"
 CFLAGS	= $(DEFS) -Wall -m486 -O2 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1 -I/usr/local/include
 ifeq (1,$(STRIP))
 IFLAGS  = -s
@@ -22,7 +22,12 @@ LFLAGS  += -g
 CFLAGS  += -g
 endif
 #DLIBS   = -lccmalloc -ldl
+ifeq (1,$(FREE_BSD))
 LIBS   += -lutil
+DEFS   += -DFREE_BSD=1
+else
+LIBS   +=
+endif
 QCLIBS  = -L/usr/local/lib -lncurses
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \

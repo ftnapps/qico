@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.2 2000/07/18 12:56:18 lev Exp $
+ * $Id: nodelist.c,v 1.3 2000/07/18 12:58:58 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -421,11 +421,11 @@ int can_dial(ninfo_t *nl, int ct)
 	char *p;int d=0;
 	if(!nl) return 0;
 	if(!*nl->phone) return 0;
-	for(p=nl->phone;*p;p++) if(isdigit(*p)) d++;
-	if(d<2) return 0;
+	for(p=nl->phone;*p;p++) if(!strchr("0123456789*#TtPpRr,.\"Ww@!-",*p)) d++;
+	if(d>0) return 0;
 	if(ct) return 1;
 	if(nl->haswtime) return checktimegaps(nl->wtime);
-	if(nl->type==NT_HOLD||nl->type==NT_DOWN) return 0;
+	if(nl->type==NT_HOLD||nl->type==NT_DOWN||nl->type==NT_PVT) return 0;
 	if(checktxy(nl->flags)) return 1;
 	if(nl->addrs->addr.p==0 && checktimegaps(cfgs(CFG_ZMH)))
 		return 1;

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.2 2000/07/18 12:56:16 lev Exp $
+ * $Id: emsi.c,v 1.3 2000/07/18 12:58:57 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -402,7 +402,6 @@ int emsi_init(int mode)
 				tries++;
 				if(tries > 10) return TIMEOUT;
 				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
-				PUTSTR(emsiinq);
 				PUTSTR(emsiinq);
 				PUTCHAR('\r');
 			}
