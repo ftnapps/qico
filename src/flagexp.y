@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.17 2004/06/20 21:30:30 sisoft Exp $
+ * $Id: flagexp.y,v 1.18 2004/06/20 21:34:23 sisoft Exp $
  **********************************************************/
 %{
 #include "headers.h"
@@ -9,7 +9,7 @@
 #ifdef NEED_DEBUG
 #define YYERROR_VERBOSE 1
 #endif
-/*#define YYDEBUG 1*/
+#define YYDEBUG 0
 
 #ifdef YYTEXT_POINTER
 extern char *yytext;
@@ -316,7 +316,7 @@ static int checkline(int lnum)
 int flagexp(slist_t *expr,int strict)
 {
 	char *p;
-#ifdef YYDEBUG
+#if YYDEBUG==1
 	yydebug=1;
 #endif
 	for(;expr;expr=expr->next) {
