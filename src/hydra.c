@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.11 2001/02/13 21:49:20 aaz Exp $
+ * $Id: hydra.c,v 1.12 2001/02/17 15:52:14 aaz Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -17,6 +17,7 @@
 #include "defs.h"
 #include "qipc.h"
 #include "hydra.h"
+#include "byteop.h"
 
 #define SLONG 4 //sizeof(long)
 #define SWORD 2 //sizeof(long)
@@ -66,8 +67,6 @@ unsigned long chatfill;
 int hydra_modifier;
 
 
-#define intell(x) (x)
-#define inteli(x) (x)
 #define crc16block crc16cc
 #define crc32block crc32cc
 
@@ -76,9 +75,6 @@ int hydra_modifier;
 #define h_crc32test(crc)   (((crc) == 0xdebb20e3L) ? 1 : 0)
 #define h_uuenc(c)         (((c) & 0x3f) + '!')
 #define h_uudec(c)         (((c) - '!') & 0x3f)
-#define h_long1(buf)       (*((long *) (buf)))
-#define h_long2(buf)       (*((long *) ((buf) + ((int) SLONG))))
-#define h_long3(buf)       (*((long *) ((buf) + (2 * ((int) SLONG)))))
 typedef long               h_timer;
 #define h_timer_set(t)     (time(NULL) + (t))
 #define h_timer_running(t) (t != 0L)
@@ -219,8 +215,8 @@ static void hydra_devrecv (void)
 	register int   i;
 	word len = rxpktlen;
 
-	p += (int) SLONG;                       /* skip the id long  */
-	len -= (int) SLONG;
+	p += 4;                       /* skip the id long  */
+	len -= 4;
 	for (i = 0; h_dev[i].dev; i++) {                /* walk through devs */
 		if (!strncmp(p,h_dev[i].dev,H_FLAGLEN)) {
 			if (h_dev[i].func) {
@@ -560,7 +556,7 @@ static int rxpkt (void)
 						break;
 					}
 					n = h_crc32test(crc32block(rxbuf,rxpktlen));
-					rxpktlen -= (int) SLONG;  /* remove CRC-32 */
+					rxpktlen -= 4;  /* remove CRC-32 */
 				}
 				else {
 					if (rxpktlen < 3) {
@@ -755,12 +751,12 @@ int hydra_file(char *txpathname, char *txalias)
 			/*---------------------------------------------------------*/
 		case HTD_DATA:
 			if (txstate > HTX_RINIT) {
-				h_long1(txbufin) = intell(devtxid);
-				p = ((char *) txbufin) + ((int) SLONG);
+				STORE32(txbufin,devtxid);
+				p = txbufin + 4;
 				strcpy(p,devtxdev);
 				p += H_FLAGLEN + 1;
 				memcpy(p,devtxbuf,devtxlen);
-				txpkt(((int) SLONG) + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
+				txpkt(4 + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
 				devtxtimer = h_timer_set(timeout);
 				devtxstate = HTD_DACK;
 			}
@@ -836,8 +832,8 @@ int hydra_file(char *txpathname, char *txalias)
 			if (txpos < 0L)
 				i = -1;                                    /* Skip */
 			else {
-				h_long1(txbufin) = intell(txpos);
-				if ((i = fread(txbufin + ((int) SLONG),1,txblklen,txfd)) < 0) {
+				STORE32(txbufin,txpos);
+				if ((i = fread(txbufin + 4,1,txblklen,txfd)) < 0) {
 					sline("hydra: file read error");
 					txclose(&txfd, FOP_ERROR);
 					txpos = H_SUSPEND;                            /* Skip */
@@ -847,7 +843,7 @@ int hydra_file(char *txpathname, char *txalias)
 			if (i > 0) {
 				txpos += i;
 			
-				txpkt(((int) SLONG) + i, HPKT_DATA);
+				txpkt(4 + i, HPKT_DATA);
 
 				if (txblklen < txmaxblklen &&
 					(txgoodbytes += i) >= txgoodneeded) {
@@ -874,8 +870,8 @@ int hydra_file(char *txpathname, char *txalias)
 
 			/*---------------------------------------------------------*/
 		case HTX_EOF:
-			h_long1(txbufin) = intell(txpos);
-			txpkt((int) SLONG,HPKT_EOF);
+			STORE32(txbufin,txpos);
+			txpkt(4,HPKT_EOF);
 			txtimer = h_timer_set(txretries ? timeout / 2 : timeout);
 			txstate = HTX_EOFACK;
 			break;
@@ -1092,8 +1088,8 @@ int hydra_file(char *txpathname, char *txalias)
 				} else if (rxstate == HRX_DONE)
 					rxpos = (!rxbuf[0]) ? 0L : H_SUSPEND;
 
-				h_long1(txbufin) = intell(rxpos);
-				txpkt((int) SLONG,HPKT_FINFOACK);
+				STORE32(txbufin, rxpos);
+				txpkt(4,HPKT_FINFOACK);
 				break;
 
 				/*---------------------------------------------------*/
@@ -1107,7 +1103,7 @@ int hydra_file(char *txpathname, char *txalias)
 					}
 					else {
 						txtimer = h_timer_reset();
-						txpos = intell(h_long1(rxbuf));
+						txpos = FETCH32(rxbuf);
 						if (txpos >= 0L) {
 							txoffset = txpos;
 							txlastack = txpos;
@@ -1143,13 +1139,14 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_DATA:
 				if (rxstate == HRX_DATA) {
-					if (intell(h_long1(rxbuf)) != rxpos ||
-						intell(h_long1(rxbuf)) < 0L) {
-						if (intell(h_long1(rxbuf)) <= rxlastsync) {
+					int gotpos=FETCH32(rxbuf);
+					if (gotpos != rxpos ||
+						gotpos < 0L) {
+						if (gotpos <= rxlastsync) {
 							rxtimer = h_timer_reset();
 							rxretries = 0;
 						}
-						rxlastsync = intell(h_long1(rxbuf));
+						rxlastsync = FETCH32(rxbuf);
 
 						if (!h_timer_running(rxtimer) ||
 							h_timer_expired(rxtimer)) {
@@ -1189,16 +1186,16 @@ int hydra_file(char *txpathname, char *txalias)
 							
 							sline("HR: bad pkt at %ld - Retry %u (newblklen=%u)",
 								  rxpos,rxretries,i);
-							h_long1(txbufin) = intell(rxpos);
-							h_long2(txbufin) = intell((long) i);
-							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) SLONG),HPKT_RPOS);
+							STORE32(txbufin, rxpos);
+							STORE32(txbufin+4, i);
+							STORE32(txbufin+8, rxsyncid);
+							txpkt(3 * 4,HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 						}
 					}
 					else { char tmp[255];
 						braindead = h_timer_set(H_BRAINDEAD);
-						rxpktlen -= (int) SLONG;
+						rxpktlen -= 4;
 						rxblklen = rxpktlen;
 						sprintf(tmp, "%s/tmp/%s", ccs, recvf.fname);
 						if (stat(tmp, &statf) && errno == ENOENT)
@@ -1207,21 +1204,21 @@ int hydra_file(char *txpathname, char *txalias)
 						 rxpos = H_SKIP;
 						 rxretries = 1;
 						 rxsyncid++;
-						 h_long1(txbufin) = intell(rxpos);
+						 STORE32(txbufin, rxpos);
 						 txpkt(4,HPKT_RPOS);
 						 rxtimer = h_timer_set(timeout);
 						 break;
 						}
-						if (fwrite(rxbuf + ((int) SLONG),rxpktlen,1,rxfd) != 1) {
+						if (fwrite(rxbuf + 4,rxpktlen,1,rxfd) != 1) {
 							sline("HR: file write error");
 							rxclose(&rxfd, FOP_ERROR);
 							rxpos = H_SUSPEND;
 							rxretries = 1;
 							rxsyncid++;
-							h_long1(txbufin) = intell(rxpos);
-							h_long2(txbufin) = intell(0L);
-							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) SLONG),HPKT_RPOS);
+							STORE32(txbufin, rxpos);
+							STORE32(txbufin+4, 0L);
+							STORE32(txbufin+8, rxsyncid);
+							txpkt(3 * 4,HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 							if (errno==ENOSPC) return XFER_ABORT;
 							break;
@@ -1231,8 +1228,8 @@ int hydra_file(char *txpathname, char *txalias)
 						rxlastsync = rxpos;
  						rxpos += rxpktlen; 
 						if (rxwindow) {
-							h_long1(txbufin) = intell(rxpos);
-							txpkt((int) SLONG,HPKT_DATAACK);
+							STORE32(txbufin, rxpos);
+							txpkt(4,HPKT_DATAACK);
 						}
 						if (!rxstart)
 							rxstart = time(NULL) -
@@ -1247,8 +1244,8 @@ int hydra_file(char *txpathname, char *txalias)
 				if (txstate == HTX_XDATA || txstate == HTX_DATAACK ||
 					txstate == HTX_XWAIT ||
 					txstate == HTX_EOF || txstate == HTX_EOFACK) {
-					if (txwindow && intell(h_long1(rxbuf)) > txlastack) {
-						txlastack = intell(h_long1(rxbuf));
+					if (txwindow && FETCH32(rxbuf) > txlastack) {
+						txlastack = FETCH32(rxbuf);
 						if (txstate == HTX_DATAACK &&
 							(txpos < (txlastack + txwindow))) {
 							txstate = HTX_XDATA;
@@ -1264,11 +1261,11 @@ int hydra_file(char *txpathname, char *txalias)
 				if (txstate == HTX_XDATA || txstate == HTX_DATAACK ||
 					txstate == HTX_XWAIT ||
 					txstate == HTX_EOF || txstate == HTX_EOFACK) {
-					if (intell(h_long3(rxbuf)) != txsyncid) {
-						txsyncid = intell(h_long3(rxbuf));
+					if (FETCH32(rxbuf+8) != txsyncid) {
+						txsyncid = FETCH32(rxbuf+8);
 						txretries = 1;
 						txtimer = h_timer_reset();
-						txpos = intell(h_long1(rxbuf));
+						txpos = FETCH32(rxbuf);
 						if (txpos < 0L) {
 							if (txfd) {
 								sline("hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
@@ -1279,8 +1276,8 @@ int hydra_file(char *txpathname, char *txalias)
 							break;
 						}
 
-						if (txblklen > intell(h_long2(rxbuf)))
-							txblklen = (word) intell(h_long2(rxbuf));
+						if (txblklen > FETCH32(rxbuf+4))
+							txblklen = (word) FETCH32(rxbuf+4);
 						else
 							txblklen >>= 1;
 						if      (txblklen <=  64) txblklen =   64;
@@ -1330,17 +1327,17 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_EOF:
 				if (rxstate == HRX_DATA) {
-					if (intell(h_long1(rxbuf)) < 0L) {
+					if (FETCH32(rxbuf) < 0L) {
 						rxclose(&rxfd, FOP_SKIP);
 						rxstate = HRX_FINFO;
 						braindead = h_timer_set(H_BRAINDEAD);
 					}
-					else if (intell(h_long1(rxbuf)) != rxpos) {
-						if (intell(h_long1(rxbuf)) <= rxlastsync) {
+					else if (FETCH32(rxbuf) != rxpos) {
+						if (FETCH32(rxbuf) <= rxlastsync) {
 							rxtimer = h_timer_reset();
 							rxretries = 0;
 						}
-						rxlastsync = intell(h_long1(rxbuf));
+						rxlastsync = FETCH32(rxbuf);
 
 						if (!h_timer_running(rxtimer) ||
 							h_timer_expired(rxtimer)) {
@@ -1372,10 +1369,10 @@ int hydra_file(char *txpathname, char *txalias)
 
 							sline("HR: Bad EOF at %ld - Retry %u (newblklen=%u)",
 								  rxpos,rxretries,i);
-							h_long1(txbufin) = intell(rxpos);
-							h_long2(txbufin) = intell((long) i);
-							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) SLONG),HPKT_RPOS);
+							STORE32(txbufin, rxpos);
+							STORE32(txbufin+4, i);
+							STORE32(txbufin+8, rxsyncid);
+							txpkt(3 * 4,HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 						}
 					}
@@ -1435,17 +1432,17 @@ int hydra_file(char *txpathname, char *txalias)
 
 				/*---------------------------------------------------*/
 			case HPKT_DEVDATA:
-				if (devrxid != intell(h_long1(rxbuf))) {
+				if (devrxid != FETCH32(rxbuf)) {
 					hydra_devrecv();
-					devrxid = intell(h_long1(rxbuf));
+					devrxid = FETCH32(rxbuf);
 				}
-				h_long1(txbufin) = intell(devrxid);
-				txpkt((int) SLONG,HPKT_DEVDACK);
+				STORE32(txbufin, devrxid);
+				txpkt(4,HPKT_DEVDACK);
 				break;
 
 				/*---------------------------------------------------*/
 			case HPKT_DEVDACK:
-				if (devtxstate && (devtxid == intell(h_long1(rxbuf)))) {
+				if (devtxstate && (devtxid == FETCH32(rxbuf))) {
 					devtxtimer = h_timer_reset();
 					devtxstate = HTD_DONE;
 				}
