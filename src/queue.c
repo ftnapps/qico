@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations
- * $Id: queue.c,v 1.12 2004/02/10 12:08:39 sisoft Exp $
+ * $Id: queue.c,v 1.13 2004/02/26 23:55:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -29,7 +29,7 @@ qitem_t *q_add(ftnaddr_t *fa)
 	if(!r)return *i;
 	q=xcalloc(1,sizeof(qitem_t));
 	q->next=*i;*i=q;
-	ADDRCPY(q->addr,(*fa));
+	addr_cpy(&q->addr,fa);
 	return q;
 }
 
@@ -132,7 +132,7 @@ void rescan_boxes(int rslow)
 	qitem_t *q;
 	DIR *d;
 	struct dirent *de;
-	ftnaddr_t a;
+	FTNADDR_T(a);
 	char *p,rev[27],flv;
 	int len,n;
 	DEBUG(('Q',3,"rescan_boxes"));

@@ -1,5 +1,9 @@
-/* $Id: ver.c.in,v 1.4 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: ver.c.in,v 1.5 2004/02/26 23:55:25 sisoft Exp $ */
+#include <config.h>
 #include <stdio.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include <sys/utsname.h>
 #include "ver.h"
 #include "cvsdate.h"

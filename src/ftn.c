@@ -1,13 +1,29 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.18 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: ftn.c,v 1.19 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
 #include "crc.h"
 
-/* domain name for translate ftn addr to inet addr. */
-#define DOMAIN ".fidonet.net"
+/* domain name for translate ftn addr to inet host. */
+#define FTNDOMAIN "fidonet.net"
+
+void addr_cpy(ftnaddr_t *a,ftnaddr_t *b)
+{
+	if(!a||!b)return;
+	a->z=b->z;a->n=b->n;
+	a->f=b->f;a->p=b->p;
+	if(b->d&&*b->d)a->d=xstrdup(b->d);
+	    else a->d=NULL;
+}
+
+int addr_cmp(ftnaddr_t *a,ftnaddr_t *b)
+{
+	if(!a||!b)return 0;
+	if(a->z==b->z&&a->n==b->n&&a->f==b->f&&a->p==b->p)return 1;
+	return 0;
+}
 
 int parseftnaddr(char *s,ftnaddr_t *a,ftnaddr_t *b,int wc)
 {
@@ -15,11 +31,10 @@ int parseftnaddr(char *s,ftnaddr_t *a,ftnaddr_t *b,int wc)
 	int n=-1,wn=0,pq=1;
 	if(!s||!*s)return 0;
 	if(b) {
-		a->z=b->z;a->n=b->n;a->f=b->f;
-		a->p=(wc?-1:0);a->d=b->d?xstrdup(b->d):NULL;
-	} else { a->z=a->n=a->f=a->p=(wc?-1:0);a->d=NULL; }
-	pn=p;
-	while(*p&&pq) {
+		addr_cpy(a,b);
+		a->p=wc?-1:0;
+	} else a->z=a->n=a->f=a->p=wc?-1:0,a->d=NULL;
+	for(pn=p;*p&&pq;p++) {
 		if(isdigit((int)*p))wn=1;
 		else if(wc&&*p=='*')wn=2;
 		else switch(*p) {
@@ -53,7 +68,6 @@ int parseftnaddr(char *s,ftnaddr_t *a,ftnaddr_t *b,int wc)
 				break;
 			default:return 0;
 		}
-		p++;
 	}
 	switch(n) {
 	    case 2:
@@ -121,8 +135,8 @@ char *ftnaddrtoda(ftnaddr_t *a)
 char *ftnaddrtoia(ftnaddr_t *a)
 {
 	static char s[64];
-	if(a->p)snprintf(s,64,"p%d.f%d.n%d.z%d" DOMAIN,a->p,a->f,a->n,a->z);
-	    else snprintf(s,64,"f%d.n%d.z%d" DOMAIN,a->f,a->n,a->z);
+	if(a->p)snprintf(s,64,"p%d.f%d.n%d.z%d." FTNDOMAIN,a->p,a->f,a->n,a->z);
+	    else snprintf(s,64,"f%d.n%d.z%d." FTNDOMAIN,a->f,a->n,a->z);
 	return s;
 }
 
@@ -132,7 +146,7 @@ void falist_add(falist_t **l,ftnaddr_t *a)
 	for(t=l;*t;t=&((*t)->next));
 	*t=(falist_t *)xmalloc(sizeof(falist_t));
 	(*t)->next=NULL;
-	ADDRCPY((*t)->addr,(*a));
+	addr_cpy(&(*t)->addr,a);
 }
 
 void falist_kill(falist_t **l)
@@ -140,6 +154,7 @@ void falist_kill(falist_t **l)
 	falist_t *t;
 	while(*l) {
 		t=(*l)->next;
+		xfree((*l)->addr.d);
 		xfree(*l);
 		*l=t;
 	}
@@ -147,7 +162,7 @@ void falist_kill(falist_t **l)
 
 falist_t *falist_find(falist_t *l,ftnaddr_t *a)
 {
-	for(;l;l=l->next)if(ADDRCMP(l->addr,(*a)))return l;
+	for(;l;l=l->next)if(addr_cmp(&l->addr,a))return l;
 	return NULL;
 }
 
@@ -179,7 +194,7 @@ void faslist_add(faslist_t **l,char *s,ftnaddr_t *a)
 	*t=(faslist_t *)xmalloc(sizeof(faslist_t));
 	(*t)->next=NULL;
 	(*t)->str=xstrdup(s);
-	ADDRCPY((*t)->addr,(*a));
+	addr_cpy(&(*t)->addr,a);
 }
 
 void faslist_kill(faslist_t **l)
@@ -187,6 +202,7 @@ void faslist_kill(faslist_t **l)
 	faslist_t *t;
 	while(*l) {
 		t=(*l)->next;
+		xfree((*l)->addr.d);
 		xfree((*l)->str);
 		xfree(*l);
 		*l=t;
@@ -216,7 +232,7 @@ char *strip8(char *s)
 int has_addr(ftnaddr_t *a,falist_t *l)
 {
 	while(l) {
-		if(ADDRCMP((*a),(l->addr)))return 1;
+		if(addr_cmp(a,&l->addr))return 1;
 		l=l->next;
 	}
 	return 0;
@@ -468,6 +484,6 @@ char *findpwd(ftnaddr_t *a)
 {
 	faslist_t *cf;
 	for(cf=cfgfasl(CFG_PASSWORD);cf;cf=cf->next)
-		if(ADDRCMP(cf->addr,(*a)))return cf->str;
+		if(addr_cmp(&cf->addr,a))return cf->str;
 	return NULL;
 }

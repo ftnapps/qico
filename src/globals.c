@@ -1,6 +1,6 @@
 /**********************************************************
  * global variables
- * $Id: globals.c,v 1.7 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: globals.c,v 1.8 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -17,8 +17,8 @@ char *tty_port=NULL;
 falist_t *ccal;
 faslist_t *ccfasl;
 flist_t *fl=NULL;
-ftnaddr_t DEFADDR={0,0,0,0,NULL};
-ftnaddr_t ndefaddr;
+FTNADDR_T(DEFADDR);
+FTNADDR_T(ndefaddr);
 int bink=0;
 int calling=0;
 int cci;

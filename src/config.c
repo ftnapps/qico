@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.11 2004/02/23 01:02:11 sisoft Exp $
+ * $Id: config.c,v 1.12 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -39,7 +39,7 @@ static int getoct(int *to,char *from)
 
 static int getaddrl(falist_t **to,char *from)
 {
-	ftnaddr_t ta;
+	FTNADDR_T(ta);
 	if(!parseftnaddr(from,&ta,&DEFADDR,0))return 0;
 	if(!DEFADDR.z) {DEFADDR.z=ta.z;DEFADDR.n=ta.n;}
 	falist_add(to,&ta);
@@ -49,7 +49,7 @@ static int getaddrl(falist_t **to,char *from)
 static int getfasl(faslist_t **to,char *from)
 {
 	char *p;
-	ftnaddr_t ta;
+	FTNADDR_T(ta);
 	if(!parseftnaddr(from,&ta,&DEFADDR,0)) return 0;
 	if(!DEFADDR.z) {DEFADDR.z=ta.z;DEFADDR.n=ta.n;}
 	p=strchr(from,' ');if(!p)return 0;
@@ -293,7 +293,7 @@ void dumpconfig()
 	falist_t *al;
 	faslist_t *fasl;
 	for(i=0;i<CFG_NNN;i++) {
-		write_log("conf: %s, type=%d, need=%d, found=%d",
+		write_log("conf: %s. (type=%d, need=%d, found=%d)",
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {

@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.17 2004/02/22 21:33:03 sisoft Exp $
+ * $Id: emsi.c,v 1.18 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -21,7 +21,8 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 {
 	char *dat=xcalloc(EMSI_BUF,1),tmp[1024],*p;
 	int c;
-	falist_t *cs;ftnaddr_t *ba;
+	falist_t *cs;
+	ftnaddr_t *ba;
 	time_t tm=time(NULL);
 
 	xstrcpy(dat,"**EMSI_DAT0000{EMSI}{",EMSI_BUF);
@@ -142,7 +143,8 @@ static void emsi_dcds(char *s)
 int emsi_parsedat(char *str, ninfo_t *dat)
 {
 	char *p, *t, *s, *lcod, *ccod;
-	int l;ftnaddr_t fa;
+	int l;
+	FTNADDR_T(fa);
 	FILE *elog;
 
 	if(cfgs(CFG_EMSILOG)) {
@@ -152,9 +154,9 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 		}
 	}
 	if(!(str=strstr(str, "**EMSI_DAT")))return 0;
-	sscanf(str+10,"%04X",&l);
+	sscanf(str+10,"%04X",(unsigned*)&l);
 	if(l!=strlen(str)-18)return 0;
-	sscanf(str+strlen(str)-4,"%04X",&l);
+	sscanf(str+strlen(str)-4,"%04X",(unsigned*)&l);
 	if(l!=crc16usd(str+2,strlen(str)-6))return 0;
 	if(strncmp(str+14,"{EMSI}",6))return 0;
 	t=str+20;
@@ -216,7 +218,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 		} else if(!strcmp(p, "TRAF")) {
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
-			sscanf(p,"%x %x",&dat->netmail,&dat->files);
+			sscanf(p,"%x %x",(unsigned*)&dat->netmail,(unsigned*)&dat->files);
 		} else if(!strcmp(p,"OHFR")) {
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
@@ -226,12 +228,12 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
 			s=emsi_tok(&p,"[]");
-			if(sscanf(s,"%x",&dat->holded)!=1)return 0;
+			if(sscanf(s,"%x",(unsigned*)&dat->holded)!=1)return 0;
 		} else if(!strcmp(p,"TRX#")) {
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
 			s=emsi_tok(&p,"[]");
-			if(sscanf(s,"%lx",&dat->time)!=1)return 0;
+			if(sscanf(s,"%lx",(unsigned long*)&dat->time)!=1)return 0;
 		} else p=emsi_tok(&t,"{}");
 	}
 	return 1;
@@ -274,7 +276,7 @@ int emsi_send(int mode,unsigned char *dat)
 					DEBUG(('E',1,"Skipping EMSI_REQ"));
 					continue;
 				}
-				if(!strncmp(str,emsiack,7))break;//
+				if(!strncmp(str,emsiack,7))break;
 			}
 			if(got)*p++=ch;
 			if((p-str)>=MAX_STRING) {
@@ -343,7 +345,7 @@ int emsi_recv(int mode,ninfo_t *rememsi)
 				emsidatgot++;
 			} else if((emsidathdr=strstr(str, emsidat)) && (p-emsidathdr==14)) {
 				*p = 0;
-				sscanf(emsidathdr+10,"%04X",&emsidatlen);
+				sscanf(emsidathdr+10,"%04X",(unsigned*)&emsidatlen);
 				emsidatgot = 0;
 				emsidatlen += 4; /* CRC on the end of EMSI_DAT is 4 bytes long */
 				DEBUG(('E',1,"Got start of EMSI_DAT, length is %d",emsidatlen));

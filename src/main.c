@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.21 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: main.c,v 1.22 2004/02/26 23:55:18 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -254,7 +254,7 @@ int main(int argc,char *argv[],char *envp[])
 {
 	int c,daemon=-1,rc,sesstype=SESSION_AUTO,line=0,call_flags=0;
 	char *hostname=NULL,*str=NULL;
-	ftnaddr_t fa;
+	FTNADDR_T(fa);
 #ifndef HAVE_SETPROCTITLE
 	setargspace(argc,argv,envp);
 #endif

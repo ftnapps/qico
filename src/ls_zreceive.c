@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Receiver logic.
-   $Id: ls_zreceive.c,v 1.5 2004/02/13 22:29:01 sisoft Exp $
+   $Id: ls_zreceive.c,v 1.6 2004/02/26 23:55:18 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -140,7 +140,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			if(!rc) { 		/* Everything is OK, decode frame */
 				xstrcpy(f->name,(char *)rxbuf,MAX_PATH);
 				f->name[MAX_PATH-1] = '\x00';
-				if(sscanf((char *)rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
+				if(sscanf((char *)rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",(long*)&f->size,(unsigned long*)&f->mtime,(unsigned*)&len,(unsigned*)&ls_SerialNum,(long*)&f->filesleft,(long*)&f->bytesleft) < 2) {
 					DEBUG(('Z',1,"ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1));
 					f->filesleft = -1;
 				}

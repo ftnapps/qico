@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.14 2004/02/22 21:33:03 sisoft Exp $ */
+/* $Id: ftn.h,v 1.15 2004/02/26 23:55:17 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -37,6 +37,8 @@ typedef struct {
 	short z,n,f,p;
 	char *d;
 } ftnaddr_t;
+
+#define FTNADDR_T(a) ftnaddr_t (a)={0,0,0,0,NULL}
 
 typedef struct {
 	char sign[20];
@@ -97,9 +99,6 @@ typedef struct _subst {
 	struct _subst *next;
 } subst_t;
 
-#define ADDRCMP(a,b) ((a).z==(b).z&&(a).n==(b).n&&(a).f==(b).f&&(a).p==(b).p)
-#define ADDRCPY(a,b) do{(a).z=(b).z;(a).n=(b).n;(a).f=(b).f;(a).p=(b).p;(a).d=((b).d)?xstrdup((b).d):NULL;}while(0)
-
 typedef struct {
 	UINT16 phONode,
 		phDNode,
@@ -153,6 +152,8 @@ typedef struct {
 	bp_status_t bp;
 } sts_t;
 
+extern void addr_cpy(ftnaddr_t *a,ftnaddr_t *b);
+extern int addr_cmp(ftnaddr_t *a,ftnaddr_t *b);
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);

@@ -1,3 +1,12 @@
+2004-02-23 04:02  sisoft
+
+	* Changes, configure.in, qico.conf.sample, debian/copyright,
+	src/binkp.c, src/config.c, src/flaglex.l:
+
+	add short aliases for weekdays (su,mo,tu...).
+	add aliases 'or','no[t]','xor','and' for same symbols (|!^&).
+	add support for multiline breaking (line must end on " \").
+	
 2004-02-23 00:33  sisoft
 
 	* Changes, TODO, qico.conf.sample, src/binkp.c, src/config.c,

@@ -1,6 +1,6 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.9 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: aso.c,v 1.10 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -41,10 +41,9 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow)
 {
 	struct dirent *dez;
 	char *p;
-	ftnaddr_t a;
+	FTNADDR_T(a);
 	DIR *dz;
 	char fn[MAX_PATH];
-
 	dz=opendir(aso_base);if(!dz) return 0;
 	while((dez=readdir(dz))) {
 		p=strrchr(dez->d_name, '.');
@@ -225,8 +224,8 @@ int aso_getstatus(ftnaddr_t *fa, sts_t *st)
 	f=fopen(aso_stsn(fa),"rt");
 	if(f) {
 		rc=fscanf(f,"%d %d %lu %lu %d %d %lu %s",
-		    &st->try,&st->flags,&st->htime,&st->utime,
-			&st->bp.flags,&st->bp.size,&st->bp.time,buf);
+		    &st->try,&st->flags,(unsigned long*)&st->htime,(unsigned long*)&st->utime,
+			&st->bp.flags,(int*)&st->bp.size,(unsigned long*)&st->bp.time,buf);
 		fclose(f);
 		if(rc<8)memset(&st->bp,0,sizeof(st->bp));
 		    else if(*buf)st->bp.name=xstrdup(buf);
