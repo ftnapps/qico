@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.25 2001/01/02 19:57:10 lev Exp $
+ * $Id: main.c,v 1.26 2001/01/03 15:05:30 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -833,7 +833,7 @@ int main(int argc, char *argv[], char *envp[])
 			rc=force_call(&fa,call_flags);
 			bso_unlocknode(&fa);
 		} else rc=0;
-		if(rc) write_log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
+		if(rc&S_MASK) write_log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
 		bso_done();
 		stopit(rc);
 	}
