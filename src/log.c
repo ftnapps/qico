@@ -2,12 +2,46 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.7 2001/01/03 15:08:53 lev Exp $
+ * $Id: log.c,v 1.8 2001/02/16 10:41:45 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
+
+#ifndef HAVE_SYSLOG_NAMES
+typedef struct _slncode {
+	char	*c_name;
+	int	c_val;
+} SLNCODE;
+
+SLNCODE facilitynames[] =
+  {
+    { "auth", LOG_AUTH },
+    { "authpriv", LOG_AUTHPRIV },
+    { "cron", LOG_CRON },
+    { "daemon", LOG_DAEMON },
+    { "ftp", LOG_FTP },
+    { "kern", LOG_KERN },
+    { "lpr", LOG_LPR },
+    { "mail", LOG_MAIL },
+    { "mark", INTERNAL_MARK },		/* INTERNAL */
+    { "news", LOG_NEWS },
+    { "security", LOG_AUTH },		/* DEPRECATED */
+    { "syslog", LOG_SYSLOG },
+    { "user", LOG_USER },
+    { "uucp", LOG_UUCP },
+    { "local0", LOG_LOCAL0 },
+    { "local1", LOG_LOCAL1 },
+    { "local2", LOG_LOCAL2 },
+    { "local3", LOG_LOCAL3 },
+    { "local4", LOG_LOCAL4 },
+    { "local5", LOG_LOCAL5 },
+    { "local6", LOG_LOCAL6 },
+    { "local7", LOG_LOCAL7 },
+    { NULL, -1 }
+  };
+#endif
 
 int log_type=0;
 char *log_name=NULL;
