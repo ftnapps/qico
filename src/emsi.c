@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.16 2001/01/21 20:53:28 lev Exp $
+ * $Id: emsi.c,v 1.17 2001/01/31 21:43:28 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -254,13 +254,12 @@ int emsi_send(int mode, char *dat)
 	t1=t_set(60);
 	while(1) {
 		sline("Sending EMSI_DAT");
-		PUTSTR(dat);PUTCHAR('\r');
+		PUTSTR(dat);
 		tries++;
 		if(tries>10) return TIMEOUT;
 		t2=t_set(20);got=0;p=str;
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
-/*   			write_log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);   */
 			if(NOTTO(ch)) return ch;
 			if(t_exp(t1)) return TIMEOUT;
 			if(t_exp(t2)) break;
@@ -291,7 +290,8 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 {
 	int tries, got=0, ch;
 	time_t t1,t2;
-	char str[EMSI_BUF], *p=str;
+	char str[EMSI_BUF], *p=str, *emsidathdr;
+	int emsidatlen=0, emsidatgot=-1;
 
 	
 	t1=t_set(20);t2=t_set(60);tries=0;
@@ -310,12 +310,16 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
-/*  			write_log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);  */
 			if(NOTTO(ch)) return ch;
 			if(ch<0) break;
 			if(!got && ch=='*') got=1;
-			if(got && (ch=='\r' || ch=='\n')) {
+			if(got && (ch=='\r' || ch=='\n' || (emsidatgot==emsidatlen))) {
+#ifdef E_DEBUG
+				write_log("Got %d bytes of %d of EMSI_DAT",emsidatgot,emsidatlen);
+#endif
 				*p=0;p=str;got=0;
+				emsidatgot=-1; emsidatlen=0;
+				emsidathdr=NULL;
 #ifdef E_DEBUG	
 				if(strstr(str, emsidat))
 					write_log("emsidat at offs %d", strstr(str, emsidat)-str);
@@ -342,6 +346,17 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 			if((p-str)>=EMSI_BUF) {
 				write_log("too long EMSI packet!");
 				got=0;p=str;
+			}
+			if(emsidatlen) {
+				emsidatgot++;
+			} else if((emsidathdr=strstr(str, emsidat)) && (p-emsidathdr==14)) {
+				*p = 0;
+				sscanf(emsidathdr+10,"%04X",&emsidatlen);
+				emsidatgot = 0;
+#ifdef E_DEBUG
+				write_log("Got start of EMSI_DAT, length is %d (%d with CRC)",emsidatlen,emsidatlen+4);
+#endif
+				emsidatlen += 4; /* CRC on the ned of EMSI_DAT is 4 bytes long */
 			}
 			if(t_exp(t2)) {
 				sline("Timeout receiving EMSI_DAT");return TIMEOUT;
