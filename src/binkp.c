@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.3 2003/09/12 19:16:44 sisoft Exp $
+ * $Id: binkp.c,v 1.4 2003/09/13 15:31:49 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -38,10 +38,10 @@ static int msgr(char *buf)
 	int rc=BPM_NONE,d;
 	register int c;
 	unsigned len=0,i;
-	*buf=0;d=1;
+	*buf=0;d=2;
 	if((c=GETCHAR(0))>=0) {
 		if(bp_crypt)update_keys(key_in,c^=decrypt_byte(key_in));
-		if(c&0x80)d=0;
+		if(c&0x80)d=0; else d=1;
 		c&=0x7f;len=c<<8;
 		while((c=GETCHAR(10))==TIMEOUT);
 		if(c<0)return c;
@@ -61,7 +61,7 @@ static int msgr(char *buf)
 		    else *(long*)buf=(long)len;
 	}
 	if(c<0&&c!=OK&&c!=TIMEOUT)return c;
-	return((d&&len)?BPM_DATA:rc);
+	return((d==1)?BPM_DATA:((!d)?rc:BPM_NONE));
 }
 
 static void str_bin2hex(char *string,const unsigned char *binptr,int binlen)
@@ -219,9 +219,9 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			break;
 		    case BPO_Auth:
 		    case BPI_Auth:
+			rc=0;
 			DEBUG(('B',3,"state: auth (%d)",txstate));
 			title("%sbound session %s",mode?"Out":"In",ftnaddrtoa(&rnode->addrs->addr));
-			log_rinfo(rnode);rc=0;
 			if(is_bso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
 				rc+=bso_locknode(&pp->addr,LCK_s);
 			if(is_aso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
@@ -290,9 +290,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					(bp_opt&BP_OPT_CRYPT&&bp_opt&BP_OPT_MD5)?" CRYPT":"");
 				if(strlen(tmp))msgs(BPM_NUL,"OPT",tmp);
 			}
-			snprintf(tmp,120,"%lu %lu",totalm,totalf);
-			msgs(BPM_NUL,"TRF ",tmp);
-			write_log("we have: %d%c mail; %d%c files",SIZES(totalm),SIZEC(totalm),SIZES(totalf),SIZEC(totalf));
+			if(totalm||totalf) {
+				snprintf(tmp,120,"%lu %lu",totalm,totalf);
+				msgs(BPM_NUL,"TRF ",tmp);
+			}
 			if(txstate==BPI_Auth) {
 				msgs(BPM_OK,(rnode->options&O_PWD)?"secure":"non-secure",NULL);
 				rxstate=0;
@@ -301,111 +302,113 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			txstate=BPO_WaitOk;
 			break;
 		}
-		if(rxstate) {
-			rc=msgr(tmp);
-			if(rc==RCDO||tty_hangedup) {
-				flkill(&fl,0);
-				return S_REDIAL;
-			}
-			switch(rc) {
-			    case BPM_NONE: case TIMEOUT: case BPM_DATA:
-				break;
-			    case BPM_NUL:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				if(txstate==BPO_WaitNul||txstate==BPO_WaitAdr||txstate==BPI_WaitAdr||txstate==BPO_WaitOk) {
-					char *n;
-					if(!strncmp(tmp,"SYS ",4))restrcpy(&rnode->name,tmp+4);
-					else if(!strncmp(tmp,"ZYZ ",4))restrcpy(&rnode->sysop,tmp+4);
-					else if(!strncmp(tmp,"LOC ",4))restrcpy(&rnode->place,tmp+4);
-					else if(!strncmp(tmp,"PHN ",4))restrcpy(&rnode->phone,tmp+4);
-					else if(!strncmp(tmp,"NDL ",4)) {
-						long x;rnode->speed=TCP_SPEED;
-						if((x=atol(tmp+4))>=300) {
-							rnode->speed=x;
-							restrcpy(&rnode->flags,strchr(tmp+4,',')+1);
-						} else restrcpy(&rnode->flags,tmp+4);
-					} else if(!strncmp(tmp,"TIME ",5)) {
-						long gmt=0;
-						ti=time(NULL);
-						tt=gmtime(&ti);
-						n=strchr(tmp,':')-2;
-						if(*n==' ')n++;
-						tt->tm_hour=atoi(n);
-						n=strchr(tmp,':')+1;
-						tt->tm_min=atoi(n);n+=3;
-						tt->tm_sec=atoi(n);
-						n=strrchr(tmp,' ');
-						if(n&&(n[1]=='+'||n[1]=='-'))
-							gmt=(n[2]-'0')*600+(n[3]-'0')*60+(n[4]-'0');
-						if(gmt<-86400||gmt>86400)gmt=0;
-						rnode->time=mktime(tt)+((n[1]=='-')?-gmt:gmt)*60;
-					} else if(!strncmp(tmp,"OPT ",4)) {
-						n=tmp+4;
-						while((p=strsep(&n," "))) {
-							if(!strcmp(p,"NR"))bp_opt|=BP_OPT_NR;
-							else if(!strcmp(p,"MB"))bp_opt|=BP_OPT_MB;
-							else if(!strcmp(p,"ND"))bp_opt|=BP_OPT_ND;
-							else if(!strcmp(p,"MPWD"))bp_opt|=BP_OPT_MPWD;
-							else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
-							else if(!strncmp(p,"CRAM-",5)) {
-								char *hash_t=p+5,*chall;
-								chall=strchr(hash_t,'-');
-								if(chall) {
-									char *o;
-									*chall++=0;
-									while((o=strsep(&hash_t,"/"))) {
-										if(!strcmp(o,"SHA1"))bp_opt|=BP_OPT_SHA1;
-										if(!strcmp(o,"MD5"))bp_opt|=BP_OPT_MD5;
-										if(!strcmp(o,"DES"))bp_opt|=BP_OPT_DES;
-									}
-									if(strlen(chall)>(2*sizeof(chal)))write_log("binkp got too long challenge string");
-									    else chal_len=str_hex2bin(chal,chall);
-								} else write_log("binkp got invalid option \"%s\"",p);
-							}
+		rc=msgr(tmp);
+		if(rc==RCDO||tty_hangedup) {
+			flkill(&fl,0);
+			return S_REDIAL;
+		}
+		switch(rc) {
+		    case BPM_NONE: case TIMEOUT: case BPM_DATA:
+			break;
+		    case BPM_NUL:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			if(txstate==BPO_WaitNul||txstate==BPO_WaitAdr||txstate==BPI_WaitAdr||txstate==BPO_WaitOk) {
+				char *n;
+				if(!strncmp(tmp,"SYS ",4))restrcpy(&rnode->name,tmp+4);
+				else if(!strncmp(tmp,"ZYZ ",4))restrcpy(&rnode->sysop,tmp+4);
+				else if(!strncmp(tmp,"LOC ",4))restrcpy(&rnode->place,tmp+4);
+				else if(!strncmp(tmp,"PHN ",4))restrcpy(&rnode->phone,tmp+4);
+				else if(!strncmp(tmp,"NDL ",4)) {
+					long x;rnode->speed=TCP_SPEED;
+					if((x=atol(tmp+4))>=300) {
+						rnode->speed=x;
+						restrcpy(&rnode->flags,strchr(tmp+4,',')+1);
+					} else restrcpy(&rnode->flags,tmp+4);
+				} else if(!strncmp(tmp,"TIME ",5)) {
+					long gmt=0;
+					ti=time(NULL);
+					tt=gmtime(&ti);
+					n=strchr(tmp,':')-2;
+					if(*n==' ')n++;
+					tt->tm_hour=atoi(n);
+					n=strchr(tmp,':')+1;
+					tt->tm_min=atoi(n);n+=3;
+					tt->tm_sec=atoi(n);
+					n=strrchr(tmp,' ');
+					if(n&&(n[1]=='+'||n[1]=='-'))
+						gmt=(n[2]-'0')*600+(n[3]-'0')*60+(n[4]-'0');
+					if(gmt<-86400||gmt>86400)gmt=0;
+					rnode->time=mktime(tt)+((n[1]=='-')?-gmt:gmt)*60;
+				} else if(!strncmp(tmp,"TRF ",4)) {
+					n=tmp+4;rnode->netmail=atoi(n);
+					n=strchr(n,' ');
+					if(n)rnode->files=atoi(n+1);
+				} else if(!strncmp(tmp,"OPT ",4)) {
+					n=tmp+4;
+					while((p=strsep(&n," "))) {
+						if(!strcmp(p,"NR"))bp_opt|=BP_OPT_NR;
+						else if(!strcmp(p,"MB"))bp_opt|=BP_OPT_MB;
+						else if(!strcmp(p,"ND"))bp_opt|=BP_OPT_ND;
+						else if(!strcmp(p,"MPWD"))bp_opt|=BP_OPT_MPWD;
+						else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
+						else if(!strncmp(p,"CRAM-",5)) {
+							char *hash_t=p+5,*chall;
+							chall=strchr(hash_t,'-');
+							if(chall) {
+								char *o;
+								*chall++=0;
+								while((o=strsep(&hash_t,"/"))) {
+									if(!strcmp(o,"SHA1"))bp_opt|=BP_OPT_SHA1;
+									if(!strcmp(o,"MD5"))bp_opt|=BP_OPT_MD5;
+									if(!strcmp(o,"DES"))bp_opt|=BP_OPT_DES;
+								}
+								if(strlen(chall)>(2*sizeof(chal)))write_log("binkp got too long challenge string");
+								    else chal_len=str_hex2bin(chal,chall);
+							} else write_log("binkp got invalid option \"%s\"",p);
 						}
-						bp_opt&=BP_OPTIONS;
-					} else if(!strncmp(tmp,"VER ",4))restrcpy(&rnode->mailer,tmp+4);
-					    else write_log("BinkP: got invalid NUL: \"%s\"",tmp);
-					if(txstate==BPO_WaitNul)txstate=BPO_SendPwd;
-				}
-				break;
-			    case BPM_ADR:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				if(txstate==BPO_WaitAdr||txstate==BPI_WaitAdr) {
-					char *n=tmp;
-					falist_kill(&rnode->addrs);
-					while((p=strsep(&n," ")))
-					    if(parseftnaddr(p,&fa,NULL,0))
-						if(!falist_find(rnode->addrs,&fa))
-						    falist_add(&rnode->addrs,&fa);
-					txstate=(txstate==BPO_WaitAdr)?BPO_Auth:BPI_WaitPwd;
-				}
-				break;
-			    case BPM_PWD:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				if(txstate==BPI_WaitPwd) {
-					restrcpy(&rnode->pwd,tmp);
-					txstate=BPI_Auth;
-				}
-				break;
-			    case BPM_OK:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				if(txstate==BPO_WaitOk)rxstate=0;
-				break;
-			    case BPM_ERR:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				write_log("BinkP error: \"%s\"",tmp);
-			    case ERROR:
-				flkill(&fl,0);
-				return S_FAILURE|S_ADDTRY;
-			    case BPM_BSY:
-				DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
-				write_log("BinkP busy: \"%s\"",tmp);
-				flkill(&fl,0);
-				return S_REDIAL;
-			    default:
-				DEBUG(('B',4,"got: unknown msg %d, state=%d",rc,txstate));
+					}
+					bp_opt&=BP_OPTIONS;
+				} else if(!strncmp(tmp,"VER ",4))restrcpy(&rnode->mailer,tmp+4);
+				    else write_log("BinkP: got invalid NUL: \"%s\"",tmp);
+				if(txstate==BPO_WaitNul)txstate=BPO_SendPwd;
 			}
+			break;
+		    case BPM_ADR:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			if(txstate==BPO_WaitAdr||txstate==BPI_WaitAdr) {
+				char *n=tmp;
+				falist_kill(&rnode->addrs);
+				while((p=strsep(&n," ")))
+				    if(parseftnaddr(p,&fa,NULL,0))
+					if(!falist_find(rnode->addrs,&fa))
+					    falist_add(&rnode->addrs,&fa);
+				txstate=(txstate==BPO_WaitAdr)?BPO_Auth:BPI_WaitPwd;
+			}
+			break;
+		    case BPM_PWD:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			if(txstate==BPI_WaitPwd) {
+				restrcpy(&rnode->pwd,tmp);
+				txstate=BPI_Auth;
+			}
+			break;
+		    case BPM_OK:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			if(txstate==BPO_WaitOk)rxstate=0;
+			break;
+		    case BPM_ERR:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			write_log("BinkP error: \"%s\"",tmp);
+		    case ERROR:
+			flkill(&fl,0);
+			return S_FAILURE|S_ADDTRY;
+		    case BPM_BSY:
+			DEBUG(('B',4,"got: M_%s, state=%d",mess[rc],txstate));
+			write_log("BinkP busy: \"%s\"",tmp);
+			flkill(&fl,0);
+			return S_REDIAL;
+		    default:
+			DEBUG(('B',4,"got: unknown msg %d, state=%d",rc,txstate));
 		}
 	}
 	if(t_exp(t1)) {
@@ -427,6 +430,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			for(p=rnode->pwd;*p;p++)update_keys(key_out,(int)*p);
 		}
 	}
+	log_rinfo(rnode);
+	write_log("we have: %d%c mail; %d%c files",SIZES(totalm),SIZEC(totalm),SIZES(totalf),SIZEC(totalf));
 	rnode->starttime=time(NULL);
 	if(cfgi(CFG_MAXSESSION))alarm(cci*60);
 	DEBUG(('S',1,"Maxsession: %d",cci));
@@ -496,6 +501,21 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		switch(rc) {
 		    case BPM_NONE: case TIMEOUT:
 			break;
+		    case BPM_NUL: {
+			char *n;
+			DEBUG(('B',4,"got: M_%s (%s)",mess[rc],tmp));
+			if(!strncmp(tmp,"OPT ",4)) {
+				n=tmp+4;
+				while((p=strsep(&n," "))) {
+					if(!strcmp(p,"NR"))bp_opt|=BP_OPT_NR;
+					else if(!strcmp(p,"MB"))bp_opt|=BP_OPT_MB;
+					else if(!strcmp(p,"ND"))bp_opt|=BP_OPT_ND;
+					else if(!strcmp(p,"MPWD"))bp_opt|=BP_OPT_MPWD;
+					else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
+				}
+				bp_opt&=BP_OPTIONS;
+			} else DEBUG(('B',2,"message ignored"));
+		      } break;
 		    case BPM_DATA:
 			DEBUG(('B',4,"got: data"));
 			if(recv_file) {
@@ -541,7 +561,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				flkill(&fl,0);
 				return S_FAILURE;
 			}
-			if(recvf.fname&&!strncmp(fname,recvf.fname,64) &&
+			if(recvf.fname&&!strncasecmp(fname,recvf.fname,64) &&
 			    recvf.mtime==ftime&&recvf.ftot==fsize&&recvf.soff==foffs) {
 				recv_file=1;rxpos=foffs;
 				break;
@@ -580,7 +600,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    case BPM_SKIP:
 			DEBUG(('B',4,"got: M_%s",mess[rc]));
 			if(!f_pars(tmp,&fname,&fsize,&ftime,NULL)) {
-				if(send_file&&sendf.fname&&!strncmp(fname,sendf.fname,64) &&
+				if(send_file&&sendf.fname&&!strncasecmp(fname,sendf.fname,64) &&
 				    sendf.mtime==ftime&&sendf.ftot==fsize&&sendf.soff==foffs) {
 					DEBUG(('B',2,"file %s %s",sendf.fname,(rc==BPM_GOT)?"skipped":"suspended"));
 					txclose(&txfd,(rc==BPM_GOT)?FOP_SKIP:FOP_SUSPEND);
@@ -588,7 +608,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					send_file=0;
 					break;
 				}
-				if(wait_got&&sendf.fname&&!strncmp(fname,sendf.fname,64) &&
+				if(wait_got&&sendf.fname&&!strncasecmp(fname,sendf.fname,64) &&
 				    sendf.mtime==ftime&&sendf.ftot==fsize&&sendf.soff==foffs) {
 					wait_got=0;
 					DEBUG(('B',2,"file %s %s",sendf.fname,(rc==BPM_GOT)?"done":"suspended"));
@@ -615,7 +635,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    case BPM_GET:
 			DEBUG(('B',4,"got: M_%s",mess[rc]));
 			if(!f_pars(tmp,&fname,&fsize,&ftime,&foffs)) {
-				if(send_file&&sendf.fname&&!strncmp(fname,sendf.fname,64) &&
+				if(send_file&&sendf.fname&&!strncasecmp(fname,sendf.fname,64) &&
 				    sendf.mtime==ftime&&sendf.ftot==fsize&&sendf.soff==foffs) {
 					if(fseek(txfd,foffs,SEEK_SET)<0) {
 						write_log("can't send file from requested offset");

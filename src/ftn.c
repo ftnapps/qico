@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.5 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: ftn.c,v 1.6 2003/09/13 15:31:49 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -113,9 +113,9 @@ char *ftnaddrtoia(ftnaddr_t *a)
 {
 	static char s[50];
 	if(a->p)
-		snprintf(s, 50, "p%d.f%d.n%d.z%d", a->p, a->f, a->n, a->z);
+		snprintf(s, 50, "p%d.f%d.n%d.z%d@fidonet.net",a->p,a->f,a->n,a->z);
 	else
-		snprintf(s, 50, "f%d.n%d.z%d", a->f, a->n, a->z);
+		snprintf(s, 50, "f%d.n%d.z%d@fidonet.net",a->f,a->n,a->z);
 	return s;
 }
 
