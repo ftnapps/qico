@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.2 2000/07/18 12:56:15 lev Exp $
+ * $Id: bso.c,v 1.2.2.1 2000/10/25 19:18:42 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -282,7 +282,7 @@ int bso_request(ftnaddr_t *adr, slist_t *files)
 
 int bso_rmstatus(ftnaddr_t *adr)
 {
-	rdunlink(bso_stsn(adr))
+	rdunlink(bso_stsn(adr));
 	return 1;
 }
 
