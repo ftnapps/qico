@@ -645,7 +645,11 @@ mapin	lk
 
 # calling format: <progname> <address>
 # executed after session established
-;runonemsi	/usr/local/bin/script
+;runonemsi	/usr/local/bin/onemsi
+
+# calling format: <progname> <address> <phone|host>
+# executed before dialing or connecting to remote.
+;runoncall	/usr/local/bin/oncall
 
 ###############################################################################
 ### some example conditions ###################################################
@@ -681,5 +685,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.28 2004/03/06 14:53:34 sisoft Exp $
+# $Id: qico.conf.sample,v 1.29 2004/03/09 23:11:57 sisoft Exp $
 ###############################################################################

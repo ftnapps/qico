@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.14 2004/02/05 19:51:17 sisoft Exp $
+#* $Id: qconf.x,v 1.15 2004/03/09 23:11:57 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -103,6 +103,7 @@ remoterecode,C_YESNO,int,0,"no"
 rescanperiod,C_INT,int,0,"300"
 rmboxes,C_YESNO,int,0,"no"
 rootdir,C_PATH,char *,0,NULL
+runoncall,C_STR,char *,0,NULL
 runonchat,C_STR,char *,0,NULL
 runonemsi,C_STR,char *,0,NULL
 sendonly,C_YESNO,int,0,"no"
