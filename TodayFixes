@@ -1,9 +1,9 @@
-/* $Id: TodayFixes,v 1.81 2004/06/09 22:25:49 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.82 2004/06/11 20:30:24 sisoft Exp $ */
 ---
-add if-expression flags 'perl[0-9]' - flags, setted from perl script.
-other perl-related changes.
+partially rewrite lexical config parser and fix possibly fuzzy detections.
 .
 previous:
 ---
-fix receiving files from last position after abort, not from begin.
+add if-expression flags 'perl[0-9]' - flags, setted from perl script.
+other perl-related changes.
 .

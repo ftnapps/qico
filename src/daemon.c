@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.33 2004/06/09 22:25:50 sisoft Exp $
+ * $Id: daemon.c,v 1.34 2004/06/11 20:30:24 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -203,6 +203,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
 		parse_log_levels();
+		if(facilities_levels['C']>=8)dumpconfig();
 #endif
 		IFPerl(perl_on_reload(0));
 		do_rescan=1;

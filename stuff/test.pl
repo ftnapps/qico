@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.3 2004/06/09 22:25:50 sisoft Exp $
+# $Id: test.pl,v 1.4 2004/06/11 20:30:24 sisoft Exp $
 
 # available qico functions:
 #  sub wlog(string): write string to log.
@@ -9,14 +9,16 @@
 #use strict;
 
 # called for initialization.
+# $conf: config file name.
 # %conf: hash of config values.
 # $daemon: true, if script loaded into daemon, not in line.
 # $init: true on init, and false after reload configs or daemon forking.
 sub on_load {
     my $re=$init?"":"re";
-    wlog("normally ${re}loaded, daemon=$daemon");
-    wlog("main addr: $conf{address}[0], sysop: $conf{sysop}");
-    wlog("first password: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
+    wlog("normally ${re}loaded, daemon=$daemon, ver=$version");
+    wlog("from $conf:");
+    wlog(" main addr: $conf{address}[0], sysop: $conf{sysop}");
+    wlog(" first password line: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
 }
 
 # called before exit, for deinitialization.

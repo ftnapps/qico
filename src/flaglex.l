@@ -1,15 +1,19 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.18 2004/06/09 22:25:50 sisoft Exp $
+ * $Id: flaglex.l,v 1.19 2004/06/11 20:30:24 sisoft Exp $
  **********************************************************/
-%option noyywrap
+%option noyywrap noyyalloc noyyrealloc 
+%option case-insensitive never-interactive
 %{
-
-char *yyPTR = NULL;
-int yyBUFL;
 
 #ifndef yywrap
 #define yywrap() 1
+#endif
+#ifndef yyalloc
+#define yyalloc xmalloc
+#endif
+#ifndef yyrealloc
+#define yyrealloc xrealloc
 #endif
 
 #undef ECHO
@@ -20,8 +24,7 @@ int yyBUFL;
 #define YY_INPUT(buf,result,max_size) \
 	if ((yyPTR == NULL) || (*yyPTR == '\0')) \
 		result=YY_NULL; \
-	else \
-	{ \
+	else { \
 		yyBUFL=strlen(yyPTR); \
 		if (yyBUFL > max_size) yyBUFL=max_size; \
 		memcpy(buf,yyPTR,yyBUFL); \
@@ -34,195 +37,81 @@ int yyBUFL;
 #undef input
 #undef output
 #undef unput
-
 #define input() (((yyPTR == NULL) || (*yyPTR == '\0'))?NULL:*yyPTR++)
 #define output(c)
 #define unput(c) (*--yyPTR = (c))
 
 #endif
 
+#define RETV(x) yylval=x;return x;
+#define RETN(x,f) yylval=f;return x;
+
 #include "flagexp.h"
 #include "headers.h"
-static int flagfor(char*);
 static int chkaddr(char*);
 static int chktime(char*);
 static int chkdate(char*);
 static int chkgaps(char*);
-int yylval;
+extern int yylval;
+char *yyPTR=NULL;
+int yyBUFL;
 %}
 
-Blank		[ \t\n]+
-Host    	[Hh][Oo][Ss][Tt]
-ConnStr		[Cc][Oo][Nn][Nn][Ss][Tt][Rr]
-Speed		[Ss][Pp][Ee][Ee][Dd]
-Sfree		[Ss][Ff][Rr][Ee][Ee]
-Phone		[Pp][Hh][Oo][Nn][Ee]
-Mailer		[Mm][Aa][Ii][Ll][Ee][Rr]
-Time		[Tt][Ii][Mm][Ee]
-iTime		[Ii][Tt][Ii][Mm][Ee]
-Address		[Aa][Dd][Dd][Rr]([Ee][Ss][Ss])?
-Port    	[Pp][Oo][Rr][Tt]
-Date    	[Dd][Aa][Tt][Ee]
-Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
-Cid     	[Cc][Ii][Dd]
-Exec		[Ee][Xx][Ee][Cc]
-File		[Ff][Ii][Ll][Ee]
-Line		[Ll][Ii][Nn][Ee]
-Sun		[Ss][Uu]([Nn])?
-Mon		[Mm][Oo]([Nn])?
-Tue		[Tt][Uu]([Ee])?
-Wed		[Ww][Ee]([Dd])?
-Thu		[Tt][Hh]([Uu])?
-Fri		[Ff][Rr]([Ii])?
-Sat		[Ss][Aa]([Tt])?
-Any		[Aa][Nn][Yy]
-Wk		[Ww][Kk]
-We		[Ww][Ee]
-Jan             [Jj][Aa][Nn]
-Feb             [Ff][Ee][Bb]
-Mar             [Mm][Aa][Rr]
-Apr             [Aa][Pp][Rr]
-May             [Mm][Aa][Yy]
-Jun             [Jj][Uu][Nn]
-Jul             [Jj][Uu][Ll]
-Aug             [Aa][Uu][Gg]
-Sep             [Se][Ee][Pp]
-Oct             [Oo][Cc][Tt]
-Nov             [Nn][Oo][Vv]
-Dec             [Dd][Ee][Cc]
-Eq		=(=)?
-Ne		!=
-Gt		\>
-Ge		\>=
-Lt		\<
-Le		\<=
-And		(\&)|([Aa][Nn][Dd])
-Or		(\|)|([Oo][Rr])
-Not		(\!)|([Nn][Oo]([Tt])?)
-Xor		(\^)|([Xx][Oo][Rr])
-Lb		\(
-Rb		\)
-Comma		[\,\;]
-Asterisk	\*
-Dow		({Sun}|{Mon}|{Tue}|{Wed}|{Thu}|{Fri}|{Sat}|{Any}|{Wk}|{We})
-Month           ({Jan}|{Feb}|{Mar}|{Apr}|{May}|{Jun}|{Jul}|{Aug}|{Sep}|{Oct}|{Nov}|{Dec}|{Any})
-Day		(([0-2]?[0-9])|(3[01]))
-iHour		(([0-1][0-9])|(2[0-3]))
-Minute		[0-5][0-9]
-Decimal		[1-9][0-9]*
-Numeric		[0-9][0-9]*
-Phstr		[0-9-]+
-Ident		[A-Za-z][A-Za-z0-9]*
-Pathstr		\/([^\/]+\/)*[^\/]+
-Timestr		{Dow}({iHour}{Minute}\-{iHour}{Minute})?
-Hour        	(([0-1]?[0-9])|(2[0-3]))
-Gapstr      	(([0-7].)?{Hour}:{Minute}\-{Hour}:{Minute}|(([0-7].)?{Hour}\-{Hour})|([0-7].{Hour}:{Minute}\-[0-7].{Hour}:{Minute})|([0-7].{Hour}\-[0-7].{Hour})|CM|T[a-xA-X][a-xA-X])
-Addrstr		(({Decimal}|{Asterisk}):)?(({Decimal}|{Asterisk})\/)?({Numeric}|{Asterisk})(.({Numeric}|{Asterisk}))?(@({Ident}|{Asterisk}))?
-Datestr         {Month}({Day}-{Day})?
-Anystr		[^ \t\n]+
+minute		[0-5][0-9]
+ihour		([0-1][0-9]|2[0-3])
+hour        	([0-1]?[0-9]|2[0-3])
+day		([0-2]?[0-9]|3[01])
+dow		(sun?|mon?|tue?|wed?|thu?|fri?|sat?|any|wk|we)
+month           (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|any)
+decimal		[1-9][0-9]*
+numeric		[0-9][0-9]*
+ident		[a-z][a-z0-9\-]*
+pathstr		\/([^\/]+\/)*[^\/]+
+timestr		{dow}({ihour}{minute}\-{ihour}{minute})?
+gapstr      	(([0-7].)?{hour}:{minute}\-{hour}:{minute}|(([0-7].)?{hour}\-{hour})|([0-7].{hour}:{minute}\-[0-7].{hour}:{minute})|([0-7].{hour}\-[0-7].{hour})|cm|t[a-x][a-x])
+addrstr		(({decimal}|\*):)?(({decimal}|\*)\/)?({numeric}|\*)(.({numeric}|\*))?(@({ident}|\*))?
+datestr         {month}({day}-{day})?
 %%
-{Blank}		;
-{Decimal}	{yylval=strtol(yytext,NULL,0);return(NUMBER);}
-{Timestr}	{yylval=chktime(yytext);return(TIMESTR);}
-{Datestr}       {yylval=chkdate(yytext);return(DATESTR);}
-{Gapstr}	{yylval=chkgaps(yytext);return(GAPSTR);}
-{Phstr}		{yylval=PHSTR;return(PHSTR);}
-{Eq}		{yylval=EQ;return(AROP);}
-{Ne}		{yylval=NE;return(AROP);}
-{Gt}		{yylval=GT;return(AROP);}
-{Ge}		{yylval=GE;return(AROP);}
-{Lt}		{yylval=LT;return(AROP);}
-{Le}		{yylval=LE;return(AROP);}
-{And}		{yylval=AND;return(LOGOP);}
-{Or}		{yylval=OR;return(LOGOP);}
-{Not}		{yylval=NOT;return(NOT);}
-{Xor}		{yylval=XOR;return(LOGOP);}
-{Lb}		{yylval=LB;return(LB);}
-{Rb}		{yylval=RB;return(RB);}
-{Comma}		{yylval=COMMA;return(COMMA);}
-{Asterisk}	{yylval=ASTERISK;return(ASTERISK);}
-{Connect}	{yylval=CONNECT;return(CONNECT);}
-{ConnStr}	{yylval=CONNSTR;return(CONNSTR);}
-{Speed}		{yylval=SPEED;return(SPEED);}
-{Sfree}		{yylval=SFREE;return(SFREE);}
-{Line}		{yylval=FLLINE;return(FLLINE);}
-{File}		{yylval=FLFILE;return(FLFILE);}
-{Exec}		{yylval=FLEXEC;return(FLEXEC);}
-{Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
-{Phone}		{yylval=PHONE;return(PHONE);}
-{Cid}		{yylval=CID;return(CID);}
-{Host}		{yylval=HOST;return(HOST);}
-{Port}		{yylval=PORT;return(PORT);}
-{Mailer}	{yylval=MAILER;return(MAILER);}
-{Time}		{yylval=TIME;return(TIME);}
-{iTime}		{yylval=ITIME;return(ITIME);}
-{Address}	{yylval=ADDRESS;return(ADDRESS);}
-{Ident}		{yylval=flagfor(yytext);return(IDENT);}
-{Addrstr}	{yylval=chkaddr(yytext);return(ADDRSTR);}
-{Anystr}	{yylval=ANYSTR;return(ANYSTR);}
+[ \t\n]+	;
+{decimal}	RETN(NUMBER,atol(yytext));
+{pathstr}	RETV(PATHSTR);
+[0-9\-]+	RETV(PHSTR);
+==?		RETN(AROP,EQ);
+!=		RETN(AROP,NE);
+\>		RETN(AROP,GT);
+\>=		RETN(AROP,GE);
+\<		RETN(AROP,LT);
+\<=		RETN(AROP,LE);
+or|\|		RETN(LOGOP,OR);
+and|\&		RETN(LOGOP,AND);
+xor|\^		RETN(LOGOP,XOR);
+not?|\!		RETV(NOT);
+\(		RETV(LB);
+\)		RETV(RB);
+[\,\;]		RETV(COMMA);
+addr(ess)?	RETV(ADDRESS);
+cid		RETV(CID);
+connect		RETV(CONNECT);
+connstr		RETV(CONNSTR);
+exec		RETV(EXEC);
+file		RETV(FLFILE);
+host		RETV(HOST);
+itime		RETV(ITIME);
+line		RETV(FLLINE);
+mailer		RETV(MAILER);
+phone		RETV(PHONE);
+port		RETV(PORT);
+sfree		RETV(SFREE);
+speed		RETV(SPEED);
+time		RETV(FLTIME);
+date		RETV(FLDATE);
+{timestr}	RETN(TIMESTR,chktime(yytext));
+{datestr}       RETN(DATESTR,chkdate(yytext));
+{gapstr}	RETN(GAPSTR,chkgaps(yytext));
+{addrstr}	RETN(ADDRSTR,chkaddr(yytext));
+{ident}		RETV(IDENT);
+[^ \t\n]+	RETV(ANYSTR);
 %%
-
-static int flagfor(char *str)
-{
-	int fln;
-	char *p, *q;
-	if(!str||!*str||!strncasecmp(str,"tty",3)||
-			!strncasecmp(str,"cua",3))return 0;
-	DEBUG(('Y',2,"flagfor: \"%s\"",str));
-	if(!rnode)return 0;
- 	if(!strncasecmp(str,"list",4)) {
-		DEBUG(('Y',3,"flagfor: listed: %d",rnode->options&O_LST));
-		return rnode->options&O_LST;
-	}
-	if(!strncasecmp(str,"prot",4)) {
-		DEBUG(('Y',3,"flagfor: protected: %d",rnode->options&O_PWD));
-		return rnode->options&O_PWD;
-	}
-	if(!strncasecmp(str,"in",2)) {
-		DEBUG(('Y',3,"flagfor: inbound: %d",rnode->options&O_INB));
-		return rnode->options&O_INB;
-	}
-	if(!strncasecmp(str,"out",3)) {
-		DEBUG(('Y',3,"flagfor: outbound: %d",!(rnode->options&O_INB)));
-		return !(rnode->options&O_INB);
-	}
-	if(!strncasecmp(str,"tcp",3)) {
-		DEBUG(('Y',3,"flagfor: tcp/ip: %d",rnode->options&O_TCP));
-		return rnode->options&O_TCP;
-	}
-	if(!strncasecmp(str,"binkp",5)) {
-		DEBUG(('Y',3,"flagfor: binkp: %d",bink));
-		return bink;
-	}
-	if(!strncasecmp(str,"bad",3)) {
-		DEBUG(('Y',3,"flagfor: bad password: %d",rnode->options&O_BAD));
-		return rnode->options&O_BAD;
-	}
-#ifdef WITH_PERL
-	if(!strncasecmp(str,"perl",4)) {
-		if((fln=atoi(str+4))<0||fln>9) {
-			write_log("error: illegal perl flag: %s",str);
-			return 0;
-		}
-		DEBUG(('Y',3,"flagfor: perl%d: %d",fln,(perl_flg&(1<<fln))?1:0));
-		return((perl_flg&(1<<fln))?1:0);
-	}
-#endif
-	if(rnode->flags) {
-		q=xstrdup(rnode->flags);p=strtok(q,",");
-		while(p) {
-			if(!strcasecmp(str,p)) {
-				xfree(q);
-				DEBUG(('Y',3,"flagfor: other: 1"));
-				return 1;
-			}
-			p=strtok(NULL,",");
-		}
-		xfree(q);
-	}
-	DEBUG(('Y',3,"flagfor: other: 0"));
-	return 0;
-}
 
 static int chkaddr(char *str)
 {
@@ -258,7 +147,6 @@ static int chkaddr(char *str)
 	DEBUG(('Y',3,"chkaddr: 0"));
 	return 0;
 }
-
 
 static int chkgaps(char *str)
 {
