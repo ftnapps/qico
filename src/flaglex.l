@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.8 2004/02/15 01:22:25 sisoft Exp $
+ * $Id: flaglex.l,v 1.9 2004/02/17 11:23:22 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -12,8 +12,11 @@ int yyBUFL;
 #define yywrap() 1
 #endif
 
+#undef ECHO
+
 #ifdef FLEX_SCANNER
 #undef YY_INPUT
+#define YY_NO_UNPUT
 #define YY_INPUT(buf,result,max_size) \
 	if ((yyPTR == NULL) || (*yyPTR == '\0')) \
 		result=YY_NULL; \
@@ -41,11 +44,11 @@ int yyBUFL;
 #include "flagexp.h"
 #include "headers.h"
 extern ftnaddr_t ndefaddr;
-int flagfor(char *);
-int chkaddr(char*);
-int chktime(char*);
-int chkdate(char*);
-int chkgaps(char*);
+static int flagfor(char *);
+static int chkaddr(char*);
+static int chktime(char*);
+static int chkdate(char*);
+static int chkgaps(char*);
 int yylval;
 %}
 
@@ -152,7 +155,7 @@ Datestr         {Month}({Day}-{Day})?
 {Addrstr}	{yylval=chkaddr(yytext);return(ADDRSTR);}
 %%
 
-int flagfor(char *str)
+static int flagfor(char *str)
 {
 	char *p, *q;
 	if(!str||!*str||!strncasecmp(str,"tty",3)||!strncasecmp(str,"tcp",3)||
@@ -161,31 +164,31 @@ int flagfor(char *str)
 	DEBUG(('Y',2,"flagfor: \"%s\"",str));
 	if(!rnode) return 0;
  	if(!strncasecmp(str,"list",4)) {
-		DEBUG(('Y',2,"flagfor: listed: %d",rnode->options&O_LST));
+		DEBUG(('Y',3,"flagfor: listed: %d",rnode->options&O_LST));
 		return rnode->options&O_LST;
 	}
 	if(!strncasecmp(str,"prot",4)) {
-		DEBUG(('Y',2,"flagfor: protected: %d",rnode->options&O_PWD));
+		DEBUG(('Y',3,"flagfor: protected: %d",rnode->options&O_PWD));
 		return rnode->options&O_PWD;
 	}
 	if(!strncasecmp(str,"in",2)) {
-		DEBUG(('Y',2,"flagfor: inbound: %d",rnode->options&O_INB));
+		DEBUG(('Y',3,"flagfor: inbound: %d",rnode->options&O_INB));
 		return rnode->options&O_INB;
 	}
 	if(!strncasecmp(str,"out",3)) {
-		DEBUG(('Y',2,"flagfor: outbound: %d",!(rnode->options&O_INB)));
+		DEBUG(('Y',3,"flagfor: outbound: %d",!(rnode->options&O_INB)));
 		return !(rnode->options&O_INB);
 	}
 	if(!strncasecmp(str,"tcp",3)) {
-		DEBUG(('Y',2,"flagfor: tcp/ip: %d",rnode->options&O_TCP));
+		DEBUG(('Y',3,"flagfor: tcp/ip: %d",rnode->options&O_TCP));
 		return rnode->options&O_TCP;
 	}
 	if(!strncasecmp(str,"binkp",5)) {
-		DEBUG(('Y',2,"flagfor: binkp: %d",bink));
+		DEBUG(('Y',3,"flagfor: binkp: %d",bink));
 		return bink;
 	}
 	if(!strncasecmp(str,"bad",3)) {
-		DEBUG(('Y',2,"flagfor: bad password: %d",rnode->options&O_BAD));
+		DEBUG(('Y',3,"flagfor: bad password: %d",rnode->options&O_BAD));
 		return rnode->options&O_BAD;
 	}
 	if(rnode->flags) {
@@ -193,18 +196,18 @@ int flagfor(char *str)
 		while(p) {
 			if(!strcasecmp(str,p)) {
 				xfree(q);
-				DEBUG(('Y',2,"flagfor: other: 1"));
+				DEBUG(('Y',3,"flagfor: other: 1"));
 				return 1;
 			}
 			p=strtok(NULL,",");
 		}
 		xfree(q);
 	}
-	DEBUG(('Y',2,"flagfor: other: 0"));
+	DEBUG(('Y',3,"flagfor: other: 0"));
 	return 0;
 }
 
-int chkaddr(char *str)
+static int chkaddr(char *str)
 {
 	ftnaddr_t addr;
 	falist_t *i;
@@ -217,37 +220,37 @@ int chkaddr(char *str)
 	if(!rnode) return 0;
 
 	if(!rnode->addrs) {
-		DEBUG(('Y',2,"chkaddr: check %d:%d/%d.%d",ndefaddr.z,ndefaddr.n,ndefaddr.f,ndefaddr.p));
+		DEBUG(('Y',3,"chkaddr: check %d:%d/%d.%d",ndefaddr.z,ndefaddr.n,ndefaddr.f,ndefaddr.p));
 		if((addr.z<0 || ndefaddr.z==addr.z) &&
 			   (addr.n<0 || ndefaddr.n==addr.n) &&
 			   (addr.f<0 || ndefaddr.f==addr.f) &&
 			   (addr.p<0 || ndefaddr.p==addr.p)) {
-			DEBUG(('Y',2,"chkaddr: 1"));
+			DEBUG(('Y',3,"chkaddr: 1"));
 			return 1;
 		}
 	} else for(i=rnode->addrs;i;i=i->next) {
-		DEBUG(('Y',2,"chkaddr: check %d:%d/%d.%d",i->addr.z,i->addr.n,i->addr.f,i->addr.p));
+		DEBUG(('Y',3,"chkaddr: check %d:%d/%d.%d",i->addr.z,i->addr.n,i->addr.f,i->addr.p));
 		if((addr.z<0 || i->addr.z==addr.z) &&
 			   (addr.n<0 || i->addr.n==addr.n) &&
 			   (addr.f<0 || i->addr.f==addr.f) &&
 			   (addr.p<0 || i->addr.p==addr.p)) {
-			DEBUG(('Y',2,"chkaddr: 1"));
+			DEBUG(('Y',3,"chkaddr: 1"));
 			return 1;
 		}
 	}
-	DEBUG(('Y',2,"chkaddr: 0"));
+	DEBUG(('Y',3,"chkaddr: 0"));
 	return 0;
 }
 
 
-int chkgaps(char *str)
+static int chkgaps(char *str)
 {
 	int r = checktimegaps(str);
 	DEBUG(('Y',2,"chkgaps: \"%s\": %d",str,r));
 	return r;
 }
 
-int chktime(char *str)
+static int chktime(char *str)
 {
 	int h1,h2,m1,m2,beg,end,cur,dayok,day,r;
 	struct tm *now;
@@ -286,7 +289,7 @@ int chktime(char *str)
 
 	while (*str && ((*str < '0') || (*str > '9'))) str++;
 	if (*str == '\0') {
-		DEBUG(('Y',2,"chktime: nothing after day: 1"));
+		DEBUG(('Y',3,"chktime: nothing after day: 1"));
 		return 1;
 	}
 	if (sscanf(str,"%02d%02d-%02d%02d",&h1,&m1,&h2,&m2) != 4)
@@ -300,11 +303,11 @@ int chktime(char *str)
 	if (end > beg) r = ((cur >= beg) && (cur <= end));
 	else r = ((cur >= beg) || (cur <= end));
 
-	DEBUG(('Y',2,"chktime: %02d:%02d <= %02d:%02d <= %02d:%02d: %d",h1,m1,now->tm_hour,now->tm_min,h2,m2,r));
+	DEBUG(('Y',3,"chktime: %02d:%02d <= %02d:%02d <= %02d:%02d: %d",h1,m1,now->tm_hour,now->tm_min,h2,m2,r));
 	return r;
 }
 
-int chkdate(char *str)
+static int chkdate(char *str)
 {
 	int d1,d2,m;
 	char *mnths[13]={"Jan","Feb","Mar","Apr","May","Jun",
@@ -329,11 +332,11 @@ int chkdate(char *str)
 		DEBUG(('Y',1,"chkdate: no two days: 0"));
 		return 0;
 	}
-	DEBUG(('Y',2,"chkdate: days: %d-%d",d1,d2));
+	DEBUG(('Y',3,"chkdate: days: %d-%d",d1,d2));
 	if(d1>d2) {
 		DEBUG(('Y',1,"chkdate: %d > %d",d1,d2));
 		return 0;
 	}
-	DEBUG(('Y',2,"chkdate: %d",now->tm_yday>=d1 && now->tm_yday<=d2));
+	DEBUG(('Y',3,"chkdate: %d",now->tm_yday>=d1 && now->tm_yday<=d2));
 	return now->tm_yday>=d1 && now->tm_yday<=d2;
 }

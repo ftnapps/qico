@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.8 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: call.c,v 1.9 2004/02/17 11:23:22 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -17,7 +17,9 @@ int alive()
 	rc=modem_chat(ac,cfgsl(CFG_MODEMOK),cfgsl(CFG_MODEMERROR),cfgsl(CFG_MODEMNODIAL),
 			 cfgsl(CFG_MODEMBUSY),cfgs(CFG_MODEMRINGING),
 			 cfgi(CFG_MAXRINGS),2,NULL,0);
+#ifdef NEED_DEBUG
 	if(rc!=MC_OK)DEBUG(('M',3,"alive: failed, rc=%d",rc));
+#endif
 	return rc;
 }
 
@@ -39,7 +41,9 @@ int hangup()
 		rc=alive();
 		tty_purge();
 	}
+#ifdef NEED_DEBUG
 	if(rc!=MC_OK)DEBUG(('M',3,"hangup: failed, rc=%d",rc));
+#endif
 	return rc;
 }
 

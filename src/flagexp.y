@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.9 2004/02/15 01:22:25 sisoft Exp $
+ * $Id: flagexp.y,v 1.10 2004/02/17 11:23:22 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
 %token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS
@@ -16,13 +16,9 @@ extern char *yytext;
 #else
 extern char yytext[];
 #endif
-
 #ifdef NEED_DEBUG
 #define YYERROR_VERBOSE 1
 #endif
-
-#define YY_NO_UNPUT
-#undef ECHO
 
 int yylex();
 int flxpres;
@@ -156,14 +152,11 @@ static int checkspeed(int op, int speed, int real)
 
 static int checksfree(int op,int sf)
 {
-	int fs;
-	DEBUG(('Y',2,"checksfree: \"%s\"",yytext));
-	fs=(int)getfreespace((const char*)yytext);
-	DEBUG(('Y',3,"checksfree: '%s' %d (%d,%s) %d",yytext,fs,op,
+	int fs=getfreespace((const char*)yytext);
+	DEBUG(('Y',2,"checksfree: '%s' %d (%d,%s) %d",yytext,fs,op,
 	        (GT==op?">":(GE==op?">=":
 	        (LT==op?"<":(LE==op?"<=":"???")))),sf));
-	switch (op)
-	{
+	switch (op) {
 	case GT:	return(fs >  sf);
 	case GE:	return(fs >= sf);
 	case LT:	return(fs <  sf);
@@ -178,7 +171,7 @@ static int checkphone(void)
 {
 	DEBUG(('Y',2,"checkphone: \"%s\"",yytext));
 	if(!rnode||!rnode->phone) return 0;
-	DEBUG(('Y',2,"checkphone: \"%s\" <-> \"%s\"",yytext,rnode->phone));
+	DEBUG(('Y',3,"checkphone: \"%s\" <-> \"%s\"",yytext,rnode->phone));
 	if(!strncasecmp(yytext,rnode->phone,strlen(yytext))) return 1;
 	return 0;
 }
@@ -196,7 +189,7 @@ static int checkhost(void)
 {
 	DEBUG(('Y',2,"checkhost: \"%s\"",yytext));
 	if(!rnode || !rnode->host) return 0;
-	DEBUG(('Y',2,"checkhost: \"%s\" <-> \"%s\"",yytext,rnode->host));
+	DEBUG(('Y',3,"checkhost: \"%s\" <-> \"%s\"",yytext,rnode->host));
 	if(!strncasecmp(yytext,rnode->host,strlen(yytext)))return 1;
 	return 0;
 }
@@ -205,7 +198,7 @@ static int checkport(void)
 {
 	DEBUG(('Y',2,"checkport: \"%s\"",yytext));
 	if(!rnode || !rnode->tty) return 0;
-	DEBUG(('Y',2,"checkport: \"%s\" <-> \"%s\"",yytext,rnode->tty));
+	DEBUG(('Y',3,"checkport: \"%s\" <-> \"%s\"",yytext,rnode->tty));
 	if(!fnmatch(yytext,rnode->tty,FNM_NOESCAPE|FNM_PATHNAME)) return 1;
 	return 0;
 }
@@ -223,20 +216,19 @@ int yyparse();
 int flagexp(char *expr,int strict)
 {
 	char *p;
-	DEBUG(('Y',1,"checkexpression: \"%s\"%s",expr,strict?" (strict)":""));
+	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
 	if(!expr||!*expr)return 0;
 	p=xstrdup(expr);
 	yyPTR=p;
-#ifdef FLEX_SCANNER  /* flex requires reinitialization */
-	yy_init=1;
-#endif
 	flxpres=0;
 	if(yyparse()) {
 		DEBUG(('Y',1,"checkexpression: couldn't parse%s",strict?"":", assume 'false'",expr));
 		xfree(p);
 		return(strict?-1:0);
 	}
-	DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
+#ifdef NEED_DEBUG
+	if(!strict)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
+#endif
 	xfree(p);
 	return flxpres;
 }

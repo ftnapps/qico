@@ -1,11 +1,10 @@
-/* $Id: TodayFixes,v 1.36 2004/02/15 01:22:24 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.37 2004/02/17 11:23:18 sisoft Exp $ */
+---
+try to fix emsi.
+.
+previous:
 ---
 fix some if-expressions.
 check expressions syntax on config read.
 change syntax of if-expression 'sfree'.
-.
-previous:
----
-fix binkp session closing with opened chat.
-in qcc: split input history into groups.
 .

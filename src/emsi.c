@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: emsi.c,v 1.16 2004/02/17 11:23:22 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -260,18 +260,21 @@ int emsi_send(int mode,unsigned char *dat)
 			if(!got&&ch=='*')got=1;
 			if(got&&(ch=='\r'||ch=='\n')) {
 				*p=0;p=str;got=0;
-            			DEBUG(('E',2,"Got str '%s' %d",str,strlen(str)));
+            			DEBUG(('E',2,"Got str '%s' (%d)",str,strlen(str)));
 				if(!strncmp(str,emsiack,14)) {
 					sline("Got EMSI_ACK");
 					DEBUG(('E',1,"Got EMSI_ACK"));
 					return OK;
 				}
-				if(!strncmp(str, emsireq, 14)) {
+				if(!strncmp(str,emsireq,14)) {
 					sline("Got strange EMSI_REQ");
-					DEBUG(('E',1,"Got strange EMSI_REQ, send EMSI_INQ (safe)"));
+					/* DEBUG(('E',1,"Got strange EMSI_REQ, send EMSI_INQ (safe)"));
 					PUTSTR((unsigned char*)emsiinq);
-					break;
+					break; */
+					DEBUG(('E',1,"Skipping EMSI_REQ"));
+					continue;
 				}
+				if(!strncmp(str,emsiack,7))break;//
 			}
 			if(got)*p++=ch;
 			if((p-str)>=MAX_STRING) {
