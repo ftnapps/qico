@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.11 2001/02/16 14:45:56 aaz Exp $
+ * $Id: qctl.c,v 1.12 2001/02/17 13:26:41 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 			flv=toupper(*optarg);
 			if(strchr("0123456789:./",flv)) {
 				flv='?';
-                optind--;
+				optind--;
 			}
 			break;
 		case 'K':
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 			flv=toupper(*optarg);
 			if(strchr("0123456789:./",flv)) {
 				flv='?';
-                optind--;
+				optind--;
 			}
 			break;
 		case 'o':
@@ -244,9 +244,14 @@ int main(int argc, char *argv[])
 		msgsnd(qipc_msg, buf, 9, 0);
 		return getanswer();
 	case QR_INFO:
-		strcpy(buf+9, argv[optind]);
-		msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
-		return getnodeinfo();
+		if(optind<argc) {
+			strcpy(buf+9, argv[optind]);
+			msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
+			return getnodeinfo();
+		} else {
+			usage(argv[0]);
+			return 1;
+		}
 	case QR_KILL:
 	case QR_POLL:
 		while(optind<argc){
