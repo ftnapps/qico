@@ -15,5 +15,4 @@ mkinstalldirs
 missing
 depcomp
 qico*.tar.*
-x.tmp
 x

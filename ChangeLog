@@ -1,3 +1,19 @@
+2003-10-02 19:17  sisoft
+
+	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,
+	TodayFixes, autogen.sh, configure.in, cvs_com, qico.conf.sample,
+	src/binkp.c, src/binkp.h, src/ftn.c, src/main.c, src/qcc.c,
+	src/qctl.c, src/session.c, src/tcp.c:
+
+	change version to 0.50si-cvs.
+	small change in configure.in.
+	add support for NR and MB modes in binkp.
+	fix binkp: change spaces to underlines in filenames.
+	fix stupid error in parse M_GET.
+	more correct set PWD flag on outbound binkp sess.
+	fix 'binkpopt' keyword.
+	added TodayFixes: changes in current commit.
+	
 2003-09-24 01:48  sisoft
 
 	* README, src/binkp.c:

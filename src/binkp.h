@@ -1,13 +1,14 @@
 /******************************************************************
  * BinkP protocol defines. by sisoft\\trg'2003.
- * $Id: binkp.h,v 1.3 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: binkp.h,v 1.4 2003/10/03 00:11:36 sisoft Exp $
  ******************************************************************/
 #ifndef __BINKP_H__
 #define __BINKP_H__
 
 #define BP_VERSION	"binkp/1.1"
-#define BP_BLKSIZE	(4*1024u) /* BinkP block size */
-#define BP_TIMEOUT	300    /* BinkP session timeout */
+#define BP_BLKSIZE	(4*1024u) /* block size */
+#define BP_TIMEOUT	300    /* session timeout */
+#define BP_BUFFER	32770  /* buffer size */
 
 /* options */
 #define BP_OPT_NR       0x01   /* Non-reliable mode */
@@ -19,7 +20,7 @@
 #define BP_OPT_CRYPT	0x40   /* Crypt traffic */
 #define BP_OPT_ND       0x80   /* Non-dupes mode */
 
-/* supported BinkP extensions */
+/* supported extensions */
 #define BP_OPTIONS	BP_OPT_MD5|BP_OPT_NOPLAIN|BP_OPT_NR|BP_OPT_MB
 
 /* outbound state */
