@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.14 2001/03/20 16:54:41 lev Exp $
+ * $Id: qcc.c,v 1.15 2001/05/11 07:31:28 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -597,8 +597,8 @@ int main(int argc, char **argv)
 						slots[rc]->s.ftot=FETCH32(p);INC32(p);
 						slots[rc]->s.toff=FETCH32(p);INC32(p);
 						slots[rc]->s.ttot=FETCH32(p);INC32(p);
-						slots[rc]->s.nf=FETCH32(p);INC32(p);
-						slots[rc]->s.allf=FETCH32(p);INC32(p);
+						slots[rc]->s.nf=FETCH16(p);INC16(p);
+						slots[rc]->s.allf=FETCH16(p);INC16(p);
 						slots[rc]->s.cps=FETCH32(p);INC32(p);
 						slots[rc]->s.soff=FETCH32(p);INC32(p);
 						slots[rc]->s.stot=FETCH32(p);INC32(p);
