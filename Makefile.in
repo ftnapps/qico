@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.4 2000/10/17 17:08:01 lev Exp $
+# $Id: Makefile.in,v 1.5 2000/11/12 12:41:44 lev Exp $
 #
 
 prefix  = @prefix@
@@ -32,6 +32,7 @@ clean:
 	rm -f qico-$(VERSION).tar.gz *~
 
 full-clean: clean
+	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
 	rm -f $(AUTOFILES)
 
 install:  install-bin
