@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.33 2004/06/16 03:42:20 sisoft Exp $
+ * $Id: session.c,v 1.34 2004/06/16 06:22:48 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -559,6 +559,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	if(rnode->options&O_HAT)rc|=S_HOLDA;
 	signal(SIGALRM,SIG_DFL);
 	sest=rnode->starttime?time(NULL)-rnode->starttime:0;
+	IFPerl(perl_end_session(sest,rc));
 	write_log("total: %d:%02d:%02d online, %d%c sent, %d%c received",
 		sest/3600,sest%3600/60,sest%60,
 		SIZES(sendf.toff-sendf.soff),SIZEC(sendf.toff-sendf.soff),

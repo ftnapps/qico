@@ -1,9 +1,8 @@
-/* $Id: TodayFixes,v 1.85 2004/06/16 03:42:20 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.86 2004/06/16 06:22:48 sisoft Exp $ */
 ---
-some perl-related changes.
+perl: fix compiling, implement end_session() hook.
 .
 previous:
 ---
-fix compile with old flex.
-fix kill files from *.hlo and *.hut, when holdout=yes.
+some perl-related changes.
 .
