@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.3 2000/10/07 13:37:44 lev Exp $
+ * $Id: bso.c,v 1.4 2000/10/25 19:22:35 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -187,7 +187,7 @@ int bso_unlocknode(ftnaddr_t *adr)
 
 int bso_rmstatus(ftnaddr_t *adr)
 {
-	lunlink(bso_stsn(adr))
+	lunlink(bso_stsn(adr));
 	return 1;
 }
 
