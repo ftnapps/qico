@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.11 2001/02/11 11:31:28 lev Exp $
+ * $Id: tty.c,v 1.12 2001/03/04 10:49:06 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -156,12 +156,13 @@ int tty_setattr(int speed)
 	if(tspeed) {
 		cfsetispeed(&tios,tspeed);
 		cfsetospeed(&tios,tspeed);
+		/* Speed is zero on answer, and we don't want to flush incoming EMSI_DAT */
+		tcflush(0, TCIFLUSH);
 	}
 		
 	tios.c_cc[VTIME]=0;
 	tios.c_cc[VMIN]=1;
 
-	tcflush(0, TCIFLUSH);
 	rc=tcsetattr(0, TCSANOW, &tios);
 	if(rc) rc=ME_ATTRS;
 	return rc;
