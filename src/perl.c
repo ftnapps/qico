@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.4 2004/06/16 03:42:20 sisoft Exp $
+ * $Id: perl.c,v 1.5 2004/06/16 06:22:48 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -414,30 +414,29 @@ int perl_on_session(int mode,char *sysflags)
 	return S_OK;
 }
 
-int perl_end_session()
+void perl_end_session(long sest,int result)
 {
 	if(PerlHave(PERL_END_SESSION)) {
-		SV *sv,*svret;
+		SV *sv;
 		dSP;
-		DEBUG(('P',4,"perl_end_session()"));
-
+		DEBUG(('P',4,"perl_end_session(%ld, %d)",sest,result));
+		pladd_int(sv,"r_bytes",recvf.toff-recvf.soff);
+		pladd_int(sv,"r_files",recvf.nf);
+		pladd_int(sv,"s_bytes",sendf.toff-sendf.soff);
+		pladd_int(sv,"s_files",sendf.nf);
+		pladd_int(sv,"sesstime",sest);
+		pladd_int(sv,"result",result);
 		ENTER;
 		SAVETMPS;
 		PUSHMARK(SP);
 		PUTBACK;
-		perl_call_pv(perl_subnames[PERL_END_SESSION],G_EVAL|G_SCALAR);
+		perl_call_pv(perl_subnames[PERL_END_SESSION],G_EVAL|G_VOID);
 		SPAGAIN;
-		svret=POPs;
-		if(SvOK(svret))rc=SvIV(svret);
 		PUTBACK;
 		FREETMPS;
 		LEAVE;
-		if(SvTRUE(ERRSV)) {
-			sub_err(PERL_END_SESSION);
-		}
-
+		if(SvTRUE(ERRSV))sub_err(PERL_END_SESSION);
 	}
-	return 1;
 }
 
 #endif

@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.5 2004/06/16 03:42:21 sisoft Exp $
+# $Id: test.pl,v 1.6 2004/06/16 06:22:48 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
@@ -78,9 +78,12 @@ sub on_session {
 }
 
 # called after session.
-#
+# $r_bytes: bytes received.
+# $r_files: files received.
+# $s_bytes: bytes sended.
+# $s_files: files sended.
+# $result: session result, set of S_* constants.
+# $sesstime: session time in seconds.
 sub end_session {
-    wlog("end_session.");
-
-
+    wlog("end_session (rb,rf,sb,sf,rc,time)=($r_bytes,$r_files,$s_bytes,$s_files,$result,$sesstime).");
 }

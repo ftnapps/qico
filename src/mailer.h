@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.17 2004/06/16 03:42:20 sisoft Exp $
+ * $Id: mailer.h,v 1.18 2004/06/16 06:22:48 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -134,6 +134,7 @@ extern void perl_on_std(int sub);
 extern void perl_on_log(char *str);
 extern int perl_on_call(ftnaddr_t *fa,char *site,char *port);
 extern int perl_on_session(int mode,char *sysflags);
+extern void perl_end_session(long sest,int result);
 #else
 #define IFPerl(x)
 #endif
