@@ -2,11 +2,14 @@
  * File: replace.h
  * Replace functions declarations
  * Created at Fri Feb 16 16:52:46 2001 by pqr@yasp.com
- * $Id: replace.h,v 1.4.4.1 2003/01/24 08:59:22 cyrilm Exp $
+ * $Id: replace.h,v 1.4.4.2 2003/01/24 18:51:22 cyrilm Exp $
  ***************************************************************************/
 #ifndef __REPLACE_H__
 #define __REPLACE_H__
 
+#if HAVE_CONFIG_H
+# include "config.h"
+#endif
 #if !HAVE_BASENAME
 extern char *basename (const char *filename);
 /*

@@ -2,43 +2,13 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.5 2001/05/21 20:01:11 lev Exp $
+ * $Id: flaglex.l,v 1.5.4.1 2003/01/24 18:51:22 cyrilm Exp $
  **********************************************************/
+%option noyywrap
 %{
 
-static char *yyPTR = NULL;
-static int yyBUFL;
-
-#ifndef yywrap
-#define yywrap() 1
-#endif
-
-#ifdef FLEX_SCANNER
-#undef YY_INPUT
-#define YY_INPUT(buf,result,max_size) \
-	if ((yyPTR == NULL) || (*yyPTR == '\0')) \
-		result=YY_NULL; \
-	else \
-	{ \
-		yyBUFL=strlen(yyPTR); \
-		if (yyBUFL > max_size) yyBUFL=max_size; \
-		memcpy(buf,yyPTR,yyBUFL); \
-		yyPTR += yyBUFL; \
-		result=yyBUFL; \
-	}
-
-#else /* this is most probably native lex? */
-
-#undef input
-#undef output
-#undef unput
-
-#define input() (((yyPTR == NULL) || (*yyPTR == '\0'))?NULL:*yyPTR++)
-#define output(c)
-#define unput(c) (*--yyPTR = (c))
-
-#endif
-
+#include "flagexp.h"
+#include "headers.h"
 int flagfor(char *);
 int chkaddr(char*);
 int chktime(char*);
@@ -226,6 +196,9 @@ int chkgaps(char *str)
 int chktime(char *str)
 {
 	int h1,h2,m1,m2,beg,end,cur,dayok,day,r;
+	struct tm *now;
+	time_t tt;
+	time(&tt);now=localtime(&tt);
 
 	if (strncasecmp(str,"Sun",3) == 0) day=0;
 	else if (strncasecmp(str,"Mon",3) == 0) day=1;
@@ -284,6 +257,9 @@ int chkdate(char *str)
 					 "Jul","Aug","Sep","Oct","Nov","Dec","Any"};
 
 	char *p;
+	struct tm *now;
+	time_t tt;
+	time(&tt);now=localtime(&tt);
 	for(m=0;m<13;m++) if(!strncasecmp(str,mnths[m],3)) break;
 	DEBUG(('Y',2,"chkdate: \"%s\": month is %d, now %d",str,m,now->tm_mon));
 	if(m>12 || (m!=12 && m!=now->tm_mon)) return 0;

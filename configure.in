@@ -1,14 +1,16 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico], [0.49.10], [cyrilm@users.sourceforge.net])
+AM_INIT_AUTOMAKE([qico],[0.49.10])
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
-AC_CONFIG_HEADER([config.h])
+AM_CONFIG_HEADER([config.h])
+AM_MAINTAINER_MODE
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_AWK
 AC_PROG_INSTALL
-AC_PROG_LEX
+AM_PROG_LEX
 AC_PROG_YACC
 AC_LANG([C])
 
@@ -23,7 +25,7 @@ dnl FreeBSD 3.x have setproctitle(2) in libutil.h
 dnl FreeBSD 4.x have basename(2) in libgen.h
 
 dnl whether syslog.h and sys/syslog.h may both be included
-AC_CHECK_HEADER([sys/syslog.h],[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,,[Could <syslog.h> and <sys/syslog.h> be included in one file])],,[#define SYSLOG_NAMES
+AC_CHECK_HEADER([sys/syslog.h],[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,1,[Could <syslog.h> and <sys/syslog.h> be included in one file])],,[#define SYSLOG_NAMES
 #include <syslog.h>])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -38,25 +40,25 @@ AC_CHECK_SIZEOF([short],[2])
 AC_CHECK_SIZEOF([int],[4])
 AC_CHECK_SIZEOF([long],[4])
 AC_C_BIGENDIAN
-AC_CHECK_MEMBER([struct tm.tm_gmtoff],[AC_DEFINE(TM_HAVE_GMTOFF,,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])],,)
-AC_CHECK_DECL([facilitynames],[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
+AC_CHECK_MEMBER([struct tm.tm_gmtoff],[AC_DEFINE(TM_HAVE_GMTOFF,1,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])],,)
+AC_CHECK_DECL([facilitynames],[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,1,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
 # include <sys/syslog.h>
 #endif])
-AC_CHECK_DECL([prioritynames],[AC_DEFINE(HAVE_SYSLOG_PRI_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
+AC_CHECK_DECL([prioritynames],[AC_DEFINE(HAVE_SYSLOG_PRI_NAMES,1,[Define to 1 if 'facilitynames' defined in syslog headers])],,[#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
 # include <sys/syslog.h>
 #endif])
-AC_CHECK_DECL([TIOCSCTTY],[AC_DEFINE(HAVE_TIOCSCTTY,,[Define to 1 if system have 'TIOCSCTTY' ioctl()])],,[#include <stdlib.h>
+AC_CHECK_DECL([TIOCSCTTY],[AC_DEFINE(HAVE_TIOCSCTTY,1,[Define to 1 if system have 'TIOCSCTTY' ioctl()])],,[#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <termios.h>])
-AC_CHECK_DECL([EIDRM],AC_DEFINE(HAVE_EIDRM,,[Define to 1 if system defines 'EIDRM' errno value]),,[#include <stdlib.h>
+AC_CHECK_DECL([EIDRM],AC_DEFINE(HAVE_EIDRM,1,[Define to 1 if system defines 'EIDRM' errno value]),,[#include <stdlib.h>
 #include <errno.h>])
-AC_CHECK_DECLS([STDIN_FILENO,STDOUT_FILENO,STDERR_FILENO],AC_DEFINE(HAVE_STDXXX_FILENO,,[Define to 1 if system defines 'STDxxx_FILENO' constants]),,[#include <unistd.h>])
+AC_CHECK_DECLS([STDIN_FILENO,STDOUT_FILENO,STDERR_FILENO],AC_DEFINE(HAVE_STDXXX_FILENO,1,[Define to 1 if system defines 'STDxxx_FILENO' constants]),,[#include <unistd.h>])
 
 dnl Checks for library functions.
 AC_FUNC_FNMATCH
@@ -80,13 +82,13 @@ int main(int argc, char **argv) {
 }
 ],[ac_cv_func_basename_nonbroken=yes], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
 if test $ac_cv_func_basename_nonbroken = yes; then
-	AC_DEFINE([HAVE_BASENAME],,[Define to 1 if basename() is nonbroken])
+	AC_DEFINE([HAVE_BASENAME],1,[Define to 1 if basename() is nonbroken])
 else
 	AC_LIBOBJ(basename)
 fi
 
 dnl Checking for FreeBSD setproctitle in libutil
-AC_CHECK_FUNC([setproctitle],[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])],[AC_CHECK_LIB(util,setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])])])
+AC_CHECK_FUNC([setproctitle],[AC_DEFINE(HAVE_SETPROCTITLE,1,[Define to 1 if system have setproctitle() call])],[AC_CHECK_LIB(util,setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,1,[Define to 1 if system have setproctitle() call])])])
 
 dnl Socket functions are in libnsl.a on SunOS 5.5
 AC_CHECK_FUNCS([socket],,[AC_CHECK_LIB(socket,socket)])
@@ -155,7 +157,7 @@ case "$with_lock_style" in
 		;;
 	open | OPEN | VFAT | vfat )
 		AC_MSG_RESULT(open)
-		AC_DEFINE(LOCKSTYLE_OPEN,,[Create lock files with open(), not link()])
+		AC_DEFINE(LOCKSTYLE_OPEN,1,[Create lock files with open(), not link()])
 		;;
 	*)
 		AC_MSG_RESULT(unknown)
@@ -168,7 +170,7 @@ AC_MSG_CHECKING([for outbound mode])
 AC_ARG_ENABLE(aso,AC_HELP_STRING([--enable-aso],[enable Amiga-style 4D outbound]),,enable_aso=no)
 if test "${enable_aso}x" != "nox"; then
 	AC_MSG_RESULT(aso)
-	AC_DEFINE(AMIGA4D,,[Use Amiga-style outbound])
+	AC_DEFINE(AMIGA4D,1,[Use Amiga-style outbound])
 else 
 	AC_MSG_RESULT(bso)
 fi
@@ -178,7 +180,7 @@ AC_MSG_CHECKING([for Hydra8k/16k support])
 AC_ARG_ENABLE(hydra8k,AC_HELP_STRING([--enable-hydra8k],[enable buggy Hydra8k/16k protocols support]),,enable_hydra8k=no)
 if test "${enable_hydra8k}x" != "nox"; then
 	AC_MSG_RESULT(yes)
-	AC_DEFINE(HYDRA8K16K,,[Allow Hydra-8K and Hydra-16K protocols])
+	AC_DEFINE(HYDRA8K16K,1,[Allow Hydra-8K and Hydra-16K protocols])
 else
 	AC_MSG_RESULT(no)
 fi
@@ -186,14 +188,14 @@ fi
 dnl qcc support
 AC_ARG_ENABLE(qcc,AC_HELP_STRING([--disable-qcc],[disable building of qcc and its support]),,enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
-	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,,[Define to 1 if system have ncurses])
-	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,,[Define to 1 if system have curses])
+	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,1,[Define to 1 if system have ncurses])
+	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,1,[Define to 1 if system have curses])
 	CURSES=curses])])
 	if test $CURSES; then
-		AC_CHECK_LIB($CURSES,mvvline,[AC_DEFINE(CURS_HAVE_MVVLINE,,[Define to 1 if system (n)curses have mvvline()])])
-		AC_CHECK_LIB($CURSES,wresize,[AC_DEFINE(CURS_HAVE_WRESIZE,,[Define to 1 if system (n)curses have wresize()])])
-		QCC=1
-		AC_DEFINE(QCC,,[Build qcc (interface program)])
+		AC_CHECK_LIB($CURSES,mvvline,[AC_DEFINE(CURS_HAVE_MVVLINE,1,[Define to 1 if system (n)curses have mvvline()])])
+		AC_CHECK_LIB($CURSES,wresize,[AC_DEFINE(CURS_HAVE_WRESIZE,1,[Define to 1 if system (n)curses have wresize()])])
+		QCC=qcc
+		AC_DEFINE(QCC,1,[Build qcc (interface program)])
 		AC_CHECK_HEADERS(curses.h ncurses.h)
 		QCCLIBS=-l$CURSES
 		AC_MSG_CHECKING([for qcc support])
@@ -202,12 +204,12 @@ if test "${enable_qcc}x" != "nox"; then
 		AC_MSG_WARN([there's no any curses library here])
 		AC_MSG_CHECKING([for qcc support])
 		AC_MSG_RESULT(no)
-		QCC=0
+		QCC=
 	fi
 else
 	AC_MSG_CHECKING([for qcc support])
 	AC_MSG_RESULT(no)
-	QCC=0
+	QCC=
 fi
 
 dnl Compile in debug messages
@@ -215,7 +217,7 @@ AC_MSG_CHECKING([for debug logging])
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--disable-debug],[disable adding debug messages]),,enable_debug=yes)
 if test "${enable_debug}x" != "nox"; then
 	AC_MSG_RESULT([yes, use loglevels in config to tune])
-	AC_DEFINE(NEED_DEBUG,,[Build debug loglevels support])
+	AC_DEFINE(NEED_DEBUG,1,[Build debug loglevels support])
 	NEED_DEBUG=1
 else
 	AC_MSG_RESULT([no, logleves in config is useless])
@@ -239,6 +241,7 @@ dnl My defines -- from acconfig.h, hack for new autoconf
 AC_DEFINE_UNQUOTED(MAX_PATH,256,[Maximum length of file path])
 AC_DEFINE_UNQUOTED(MAX_STRING,256,[Maximum length of string on stack for log and some other places])
 AC_DEFINE_UNQUOTED(MAX_NODELIST,32,[Maximum number of compiled nodelists])
+AC_DEFINE([QIPC_KEY],"$sbindir/qico",["QICO IPC Key"])
 
 dnl My substs
 AC_SUBST(QCCLIBS)
@@ -246,7 +249,6 @@ AC_SUBST(QCC)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
-AC_SUBST(QIPC_KEY)
 
 dnl calculate real config -- prefix already known, so we could eval config
 with_config=`eval echo $with_config`
@@ -255,7 +257,6 @@ CONFIG=$with_config
 
 AC_SUBST(CONFIG)
 
-AC_CONFIG_FILES([src/ver.c qico.spec src/Makefile Makefile])
-AC_CONFIG_COMMANDS([default],[[echo timestamp > stamp-h]],[[]])
+AC_CONFIG_FILES([src/ver.c qico.spec Makefile src/Makefile stuff/Makefile ])
  
 AC_OUTPUT

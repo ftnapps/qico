@@ -2,10 +2,18 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.9 2002/08/09 17:10:21 lev Exp $
+ * $Id: flagexp.y,v 1.9.4.1 2003/01/24 18:51:22 cyrilm Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#ifdef YYTEXT_POINTER
+extern char *yytext;
+#else
+extern char yytext[];
+#endif
 #include <fnmatch.h>
 #include "headers.h"
 
@@ -13,7 +21,6 @@
 #undef ECHO
 	
 int flxpres;
-struct tm *now;
 	
 
 static int logic(int e1, int op,int e2);
@@ -81,8 +88,6 @@ gapstring	: GAPSTR
 			{$$ = logic($1,OR,$3);}
 		;
 %%
-
-#include "flaglex.c"
 
 static int logic(int e1, int op,int e2)
 {
@@ -168,14 +173,11 @@ int yyparse();
  
 int flagexp(char *expr)
 {
-	time_t tt;
 	char *p;
 
 	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
 
-	time(&tt);now=localtime(&tt);
 	p=strdup(expr);
-	yyPTR=p;
 #ifdef FLEX_SCANNER  /* flex requires reinitialization */
 	yy_init=1;
 #endif

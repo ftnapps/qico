@@ -6,8 +6,9 @@ qctl
 qconf.h
 qconf.c
 flagexp.c
+flagexp.h
 flaglex.c
 ver.c
 ver.h
 Makefile
-
+Makefile.in
