@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.16 2001/03/20 19:53:14 lev Exp $
+ * $Id: hydra.c,v 1.17 2001/03/25 10:26:58 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -333,7 +333,7 @@ static void txpkt (register word len, int type)
 
 
 	if (crc32b) {
-		dword crc = ~crc32block(txbufin,len);
+		dword crc = (~crc32block(txbufin,len)) & 0xffffffff;
 
 		txbufin[len++] = crc;
 		txbufin[len++] = crc >> 8;
@@ -341,7 +341,7 @@ static void txpkt (register word len, int type)
 		txbufin[len++] = crc >> 24;
 	}
 	else {
-		word crc = ~crc16block(txbufin,len);
+		word crc = (~crc16block(txbufin,len)) & 0xffff;
 
 		txbufin[len++] = crc;
 		txbufin[len++] = crc >> 8;
