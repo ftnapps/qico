@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.5 2000/09/25 11:19:43 lev Exp $
+ * $Id: main.c,v 1.6 2000/09/25 16:54:53 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -57,7 +57,7 @@ void usage(char *ex)
 		   "-n           compile nodelists\n"
 		   "-f           query info about <node>\n"
 		   "-p           poll <node>\n"
-		   "-c		     force call to <node>\n"
+		   "-c           force call to <node>\n"
 		   "-r           freq from <node> files <files>\n"
 		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
 		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
