@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.17 2001/03/10 19:50:18 lev Exp $
+ * $Id: ls_zmodem.c,v 1.18 2003/02/25 21:23:05 cyrilm Exp $
  **********************************************************/
 /*
 
@@ -163,7 +163,8 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	crc = STOI(crc & 0xffff);
 	ls_sendhex(crc >> 8);
 	ls_sendhex(crc & 0xff);
-	BUFCHAR(CR); BUFCHAR(LF|0x80);
+	BUFCHAR(CR);
+	BUFCHAR(LF|0x80);
 	if(frametype != ZACK && frametype != ZFIN) BUFCHAR(XON);
 	/* Clean buffer, do real send */
 	return BUFFLUSH();

@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.19 2001/06/02 15:39:34 lev Exp $
+ * $Id: janus.c,v 1.20 2003/02/25 21:23:03 cyrilm Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -153,7 +153,7 @@ int janus()
 			break;
 
 		case XSENDFNAME:
-			blklen = strchr( strchr(txbuf,'\0')+1, '\0') - (char *)txbuf + 3;
+			blklen = strchr( strchr((char *)txbuf,'\0')+1, '\0') - (char *)txbuf + 3;
 			sendpkt(txbuf,blklen,FNAMEPKT);
 			xmit_retry=t_set(timeout);
 			txstate = XRCVFNACK;
@@ -225,8 +225,8 @@ int janus()
 				/* Name and other data for next file to receive                      */
 				/*-------------------------------------------------------------------*/
 			case FNAMEPKT:
-				p=rxbuf+strlen(rxbuf)+1;
-				if (rxblklen > strlen(rxbuf)+strlen(p)+2
+				p=(char *)(rxbuf+strlen((char *)rxbuf)+1);
+				if (rxblklen > strlen((char *)rxbuf)+strlen(p)+2
 					&& !caps) {
 					caps=*((char *)strchr(p,0)+1) & OUR_JCAPS;
 					if (!capslogged) {
@@ -242,9 +242,9 @@ int janus()
 				if(rxstate==RRCVFNAME) {
 					if(!rxbuf[0]) {
 						if(reqs && (caps&JCAP_FREQ)) {
-							snprintf(txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
+							snprintf((char *)txbuf, 1024, "%s%c%c", reqs->str, 0, caps);
 							write_log("sent janus freq: %s", txbuf);
-							sendpkt((byte *)txbuf,strlen(txbuf)+2,FREQPKT);
+							sendpkt((byte *)txbuf,strlen((char *)txbuf)+2,FREQPKT);
 							reqs=reqs->next;
 							break;
 						} else {
@@ -254,7 +254,7 @@ int janus()
 					} else {
 						sscanf(p, "%u %lo %*o",
 							  &recvf.ftot, &recvf.mtime);
-						switch(rxopen(rxbuf, recvf.mtime, recvf.ftot, &rxfd)){
+						switch(rxopen((char *)rxbuf, recvf.mtime, recvf.ftot, &rxfd)){
 						case FOP_SUSPEND:
 							goto breakout;
 						case FOP_CONT:
@@ -331,13 +331,13 @@ int janus()
 				/*---------------------------------------------------------------*/
 			case FREQPKT:
 				if ((txstate == XRCVFNACK) || (txstate == XDONE)) {
-					caps=*(strchr(rxbuf,'\0')+1);
+					caps=*(strchr((char *)rxbuf,'\0')+1);
 					xmit_retry = 0L;
 					write_log("recd janus freq: %s", rxbuf);
 					/* TODO FREQS */
 					if(cfgs(CFG_EXTRP)) {
 						slist_t req;
-						req.str=rxbuf;
+						req.str=(char *)rxbuf;
 						req.next=NULL;
 						if(freq_ifextrp(&req)) {
 							l = fl;
@@ -611,7 +611,7 @@ byte rcvpkt()
 			if ((c=rcvbyte(timeout)) < 0) break;
 			pktcrc=(pktcrc<<8)|c;
 		}                                                               
-		clccrc=(is32?crc32(rxbuf, p-rxbuf):crc16usd(rxbuf, p-rxbuf));
+		clccrc=(is32?crc32((char *)rxbuf, p-rxbuf):crc16usd((char *)rxbuf, p-rxbuf));
 		DEBUG(('J',1,"recvpkt: CRC%d is %08x, got %08x",is32?32:16,clccrc,pktcrc));
 		if(!i && pktcrc==clccrc) {
 			/*---------------------------------------------------------------*/
@@ -741,8 +741,8 @@ void getfname(flist_t **l)
 		}
 		*l=(*l)->next;
 	}
-	if(txfd) snprintf(txbuf,1024,"%s%c%u %lo %o%c%c",(*l)->sendas,0,sendf.ftot,sendf.mtime,0644,0,OUR_JCAPS);
-	else snprintf(txbuf,1024,"%c%c%c",0,0,OUR_JCAPS);
+	if(txfd) snprintf((char *)txbuf,1024,"%s%c%u %lo %o%c%c",(*l)->sendas,0,sendf.ftot,sendf.mtime,0644,0,OUR_JCAPS);
+	else snprintf((char *)txbuf,1024,"%c%c%c",0,0,OUR_JCAPS);
 }
 
 void preparereqs(flist_t *l)

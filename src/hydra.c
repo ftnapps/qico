@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.19 2001/05/25 18:30:43 lev Exp $
+ * $Id: hydra.c,v 1.20 2003/02/25 21:23:00 cyrilm Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -96,7 +96,8 @@ static  byte   *txbufin;                        /* read data from disk here  */
 static  byte                    rxdle;          /* count of received H_DLEs  */
 static  byte                    rxpktformat;    /* format of pkt receiving   */
 static  word                    rxpktlen;       /* length of last packet     */
-static  word    txmaxblklen;                    /* max block length allowed  */
+/*CYRILM:static*/
+word    txmaxblklen;                    /* max block length allowed  */
 static  long    txlastack;                      /* last dataack received     */
 static  long    txoffset,       rxoffset;       /* offset in file we begun   */
 static  h_timer txtimer,        rxtimer;        /* retry timers              */
@@ -333,7 +334,7 @@ static void txpkt (register word len, int type)
 
 
 	if (crc32b) {
-		dword crc = (~crc32block(txbufin,len)) & 0xffffffff;
+		dword crc = (~crc32block((char *) txbufin,len)) & 0xffffffff;
 
 		txbufin[len++] = crc;
 		txbufin[len++] = crc >> 8;
@@ -341,7 +342,7 @@ static void txpkt (register word len, int type)
 		txbufin[len++] = crc >> 24;
 	}
 	else {
-		word crc = (~crc16block(txbufin,len)) & 0xffff;
+		word crc = (~crc16block((char *) txbufin,len)) & 0xffff;
 
 		txbufin[len++] = crc;
 		txbufin[len++] = crc >> 8;
@@ -430,7 +431,7 @@ static void txpkt (register word len, int type)
 		}
 	}
 
-	PUTBLK(txbuf,(word) (out - txbuf));
+	PUTBLK((char *) txbuf,(word) (out - txbuf));
 }/*txpkt()*/
 
 	
@@ -551,7 +552,7 @@ static int rxpkt (void)
 						c = H_NOPKT;
 						break;
 					}
-					n = h_crc32test(crc32block(rxbuf,rxpktlen));
+					n = h_crc32test(crc32block((char *) rxbuf,rxpktlen));
 					rxpktlen -= 4;  /* remove CRC-32 */
 				}
 				else {
@@ -559,7 +560,7 @@ static int rxpkt (void)
 						c = H_NOPKT;
 						break;
 					}
-					n = h_crc16test(crc16block(rxbuf,rxpktlen));
+					n = h_crc16test(crc16block((char *) rxbuf,rxpktlen));
 					rxpktlen -= (int) SWORD;  /* remove CRC-16 */
 				}
 
@@ -744,7 +745,7 @@ int hydra_file(char *txpathname, char *txalias)
 		case HTD_DATA:
 			if (txstate > HTX_RINIT) {
 				STORE32(txbufin,devtxid);
-				p = txbufin + 4;
+				p = (char *)(txbufin + 4);
 				xstrcpy(p,devtxdev,1020);
 				p += H_FLAGLEN + 1;
 				memcpy(p,devtxbuf,devtxlen);
@@ -765,7 +766,7 @@ int hydra_file(char *txpathname, char *txalias)
 		switch (txstate) {
 			/*---------------------------------------------------------*/
 		case HTX_START:
-			PUTBLK((byte *) autostr,(int) strlen(autostr));
+			PUTBLK(autostr,(int) strlen(autostr));
 			txpkt(0,HPKT_START);
 			txtimer = h_timer_set(H_START);
 			txstate = HTX_SWAIT;
@@ -905,6 +906,7 @@ int hydra_file(char *txpathname, char *txalias)
 				case H_CANCEL:
 				case H_SYSABORT:
 				case H_BRAINTIME:
+					break;
 				}
 /* 				write_log("Hydra: %s",p); */
 				if(txstate!=HTX_ENDACK)	res = XFER_ABORT;
@@ -1051,9 +1053,9 @@ int hydra_file(char *txpathname, char *txalias)
 
 						if(!recvf.allf && count) recvf.allf=count;
 
-						p=rxbuf+40;
+						p=(char *) (rxbuf+40);
 						if(strlen(p)+41<rxpktlen)
-							p=rxbuf+41+strlen(p);
+							p=(char *)(rxbuf+41+strlen(p));
 						switch(rxopen(p, rxftime, rxfsize,
 									  &rxfd)) {
 						case FOP_SKIP:
