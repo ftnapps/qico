@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.30 2001/01/18 18:55:11 lev Exp $
+ * $Id: main.c,v 1.31 2001/01/21 09:21:56 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -807,14 +807,16 @@ int main(int argc, char *argv[], char *envp[])
 		exit(EXC_BADCONFIG);
 	}
 
-	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef C_DEBUG
 	dumpconfig();
+#endif	
+    psubsts=parsesubsts(cfgfasl(CFG_SUBST));
+#ifdef C_DEBUG
 	{
 		subst_t *s;
 		dialine_t *l;
 		for(s=psubsts;s;s=s->next) {
-			printf("subst for %s [%d]\n", ftnaddrtoa(&s->addr), s->nhids);				
+			printf("subst for %s [%d]\n", ftnaddrtoa(&s->addr), s->nhids);
 			for(l=s->hiddens;l;l=l->next)
 				printf(" * %s,%s,%d\n",l->phone,l->timegaps,l->num);
 		}
