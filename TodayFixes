@@ -1,9 +1,10 @@
-/* $Id: TodayFixes,v 1.82 2004/06/11 20:30:24 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.83 2004/06/13 17:05:46 sisoft Exp $ */
 ---
-partially rewrite lexical config parser and fix possibly fuzzy detections.
+fix freqs: do not include path in outgoing filenames.
+fix debian packages install.
+distrubute stuff/test.pl.
 .
 previous:
 ---
-add if-expression flags 'perl[0-9]' - flags, setted from perl script.
-other perl-related changes.
+partially rewrite lexical config parser and fix possibly fuzzy detections.
 .

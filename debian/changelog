@@ -1,6 +1,7 @@
 qico (0.55si-1) stable; urgency=low
 
   * new upstream release.
+  * fix packages installation.
 
  -- Stepan A. Pologov <sisoft@bk.ru>  Sat,  5 Jun 2004 11:55:01 +0300
 

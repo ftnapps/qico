@@ -14,5 +14,7 @@ etc/fido/qico/qico.conf.sample
 %%PORTDOCS%%%%EXAMPLESDIR%%/stat.run
 %%PORTDOCS%%%%EXAMPLESDIR%%/synctime
 %%PORTDOCS%%%%EXAMPLESDIR%%/tossing
+%%PORTDOCS%%%%EXAMPLESDIR%%/koi8r_866.cp
+%%PORTDOCS%%%%EXAMPLESDIR%%/test.pl
 %%PORTDOCS%%@dirrm %%EXAMPLESDIR%%
 %%PORTDOCS%%@dirrm %%DOCSDIR%%
