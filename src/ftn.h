@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.7 2003/09/23 12:55:54 sisoft Exp $ */
+/* $Id: ftn.h,v 1.8 2003/10/14 18:44:05 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -132,7 +132,7 @@ typedef struct _subst {
 } subst_t;
 
 #define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)  
-#define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=b.d?xstrdup(b.d):NULL;}
+#define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=/*b.d?xstrdup(b.d):*/NULL;}
 
 typedef struct {
 	UINT16 phONode,
