@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.21 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: tcp.c,v 1.22 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_SOCKET_H
@@ -212,7 +212,7 @@ static int socks_conn(char *name)
 	return 1;
 }
 
-int opentcp(char *name,char *prx,int sp)
+static int opentcp(char *name,char *prx,int sp)
 {
 	char *portname,*p;
 	struct servent *se;
@@ -278,37 +278,26 @@ int opentcp(char *name,char *prx,int sp)
 	return fd;
 }
 
-void closetcp(int fd)
+int tcp_dial(ftnaddr_t *fa,char *host)
+{
+	int fd,s=0;
+	char *p=NULL,*t=NULL;
+	if(cfgs(CFG_PROXY))p=xstrdup(ccs);
+	    else if(cfgs(CFG_SOCKS))p=xstrdup(ccs),s=1;
+	if(p&&(t=strchr(p,' ')))*t=0;
+	write_log("connecting to %s at %s%s%s%s [%s]",ftnaddrtoa(fa),host,
+	    p?" via ":"",p?(s?"socks ":"proxy "):"",SS(p),bink?"binkp":"ifcico");
+	if(t)*t=' ';
+	fd=opentcp(host,p,s);
+	xfree(p);
+	return fd;
+}
+
+void tcp_done(int fd)
 {
 	close(fd);
 #ifdef HAVE_SHUTDOWN
 	shutdown(STDIN_FILENO,2);
 #endif
 	signal(SIGPIPE,SIG_DFL);
-}
-
-int tcp_call(char *host,ftnaddr_t *fa)
-{
-	int rc,fd,s=0;
-	char *p=NULL,*t=NULL;
-	if(cfgs(CFG_PROXY))p=xstrdup(ccs);
-	    else if(cfgs(CFG_SOCKS)){p=xstrdup(ccs);s=1;}
-	if(p&&(t=strchr(p,' ')))*t=0;
-	write_log("connecting to %s at %s%s%s%s [%s]",ftnaddrtoa(fa),host,
-	    p?" via ":"",p?(s?"socks ":"proxy "):"",SS(p),bink?"binkp":"ifcico");
-	if(t)*t=' ';
-	fd=opentcp(host,p,s);xfree(p);
-	if(fd>=0) {
-		rc=session(1,bink?SESSION_BINKP:SESSION_AUTO,fa,TCP_SPEED);
-		closetcp(fd);
-		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
-			write_log("creating poll for %s",ftnaddrtoa(fa));
-			if(BSO)bso_poll(fa,F_ERR);
-			    else if(ASO)aso_poll(fa,F_ERR);
-		}
-	} else rc=S_REDIAL;
-	title("Waiting...");
-	sline("");
-	vidle();
-	return rc;
 }

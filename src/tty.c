@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.12 2004/03/06 12:50:56 sisoft Exp $
+ * $Id: tty.c,v 1.13 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -351,7 +351,7 @@ int tty_cooked()
 	return rc;
 }
 
-static int tty_setdtr(int dtr)
+int tty_setdtr(int dtr)
 {
 	int status,rc;
 	rc=ioctl(STDIN_FILENO, TIOCMGET, &status);
@@ -631,144 +631,4 @@ char *baseport(char *p)
 	xstrcpy(pn, basename(p), sizeof(pn));
 	if((q=strrchr(pn,':'))) *q=0;
 	return pn;
-}
-
-int modem_sendstr(char *cmd)
-{
-	int rc=1;
-	if(!cmd) return 1;
-	DEBUG(('M',1,">> %s",cmd));
-	while(*cmd && rc>0) {
-		switch(*cmd) {
-		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000L);break;
-		case '~': sleep(1);rc=1;break;
-		case '\'': usleep(200000L);rc=1;break;
-		case '^': rc=tty_setdtr(1); break;
-		case 'v': rc=tty_setdtr(0); break;
-		default: rc=write(STDOUT_FILENO, cmd, 1);
-		DEBUG(('M',4,">>> %c",C0(*cmd)));
-		}
-		cmd++;
-	}
-	if(rc>0) DEBUG(('M',4,"modem_sendstr: sent"));
-	    else DEBUG(('M',3,"modem_sendstr: error, rc=%d, errno=%d",rc,errno));
-	return rc;
-}
-
-int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist_t *bys,
-			   char *ringing, int maxr, int timeout, char *rest, size_t restlen)
-{
-	char buf[MAX_STRING];
-	int rc,nrng=0;
-	slist_t *cs;
-	time_t t1;
-	calling=1;
-	DEBUG(('M',4,"modem_chat: cmd=\"%s\" timeout=%d",cmd,timeout));
-	rc=modem_sendstr(cmd);
-	if(rc!=1) {
-		if(rest) xstrcpy(rest, "FAILURE", restlen);
-		DEBUG(('M',3,"modem_chat: modem_sendstr failed, rc=%d",rc));
-		return MC_FAIL;
-	}
-	if(!oks && !ers && !bys) return MC_OK;
-	rc=OK;
-	t1=t_set(timeout);
-	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
-		getevt();
-		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
-		if(rc==RCDO) {
-			if(rest)xstrcpy(rest,"HANGUP",restlen);
-	    		return MC_BUSY;
-		}
-		if(rc!=OK) {
-			if(rest) xstrcpy(rest, "FAILURE", restlen);
-			DEBUG(('M',3,"modem_chat: tty_gets failed, rc=%d",rc));
-			return MC_FAIL;
-		}
-		if(!*buf)continue;
-		for(cs=oks;cs;cs=cs->next)
-			if(!strncmp(buf,cs->str,strlen(cs->str))) {
-				if(rest)xstrcpy(rest,buf,restlen);
-				return MC_OK;
-			}
-		for(cs=ers;cs;cs=cs->next)
-			if(!strncmp(buf,cs->str,strlen(cs->str))) {
-				if(rest)xstrcpy(rest,buf,restlen);
-				return MC_ERROR;
-			}
-		if(ringing&&!strncmp(buf,ringing,strlen(ringing))) {
-			if(!nrng&&strlen(ringing)==4) {
-				if(rest)xstrcpy(rest,buf,restlen);
-				return MC_RING;
-			}
-			nrng++;
-			continue;
-		}
-		for(cs=nds;cs;cs=cs->next)
-			if(!strncmp(buf,cs->str,strlen(cs->str))) {
-				if(rest)xstrcpy(rest,buf,restlen);
-				return MC_NODIAL;
-			}
-		for(cs=bys;cs;cs=cs->next)
-			if(!strncmp(buf,cs->str,strlen(cs->str))) {
-				if(rest)xstrcpy(rest,buf,restlen);
-				return MC_BUSY;
-			}
-	}
-	if(rest) {
-		if(nrng && maxr && nrng>=maxr) snprintf(rest, restlen, "%d RINGINGs", nrng);
-		    else if(ISTO(rc)) xstrcpy(rest, "TIMEOUT", restlen);
-			else xstrcpy(rest, "FAILURE", restlen);
-	}
-	return MC_FAIL;
-}
-
-int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout, char *stat, size_t stat_len)
-{
-	char buf[MAX_STRING];int rc;
-	slist_t *cs;time_t t1=t_set(timeout);
-
-	DEBUG(('M',4,"modem_stat: cmd=\"%s\" timeout=%d",cmd,timeout));
-
-	rc=modem_sendstr(cmd);
-	if(rc!=1) {
-		if(stat) xstrcpy(stat, "FAILURE", stat_len);
-		DEBUG(('M',3,"modem_stat: modem_sendstr failed, rc=%d",rc));
-		return MC_FAIL;
-	}
-	if(!oks && !ers) return MC_OK;
-	rc=OK;
-	while(ISTO(rc) && !t_exp(t1)) {
-		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
-		if(!*buf) continue;
-		if(rc!=OK) {
-			if(stat) xstrcat(stat, "FAILURE",
-				stat_len);
-			DEBUG(('M',3,"modem_stat: tty_gets failed"));
-			return MC_FAIL;
-		}
-		for(cs=oks;cs;cs=cs->next)
-			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(stat) xstrcat(stat, buf,
-					stat_len);
-				return MC_OK;
-			}
-		for(cs=ers;cs;cs=cs->next)
-			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(stat) xstrcat(stat, buf,
-					stat_len);
-				return MC_ERROR;
-			}
-		if(stat)
-			{
-			xstrcat(stat,buf,stat_len);
-		 	xstrcat(stat,"\n",stat_len);
-			}
-	}
-
-	if(stat) {
-		if (ISTO(rc)) xstrcat(stat, "TIMEOUT", stat_len);
-		else xstrcat(stat, "FAILURE", stat_len);
-	}
-	return MC_FAIL;
 }

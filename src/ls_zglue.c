@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zglue.c,v 1.4 2004/02/13 22:29:01 sisoft Exp $
+   $Id: ls_zglue.c,v 1.5 2004/05/27 18:50:03 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -43,7 +43,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 		}
 		return rc;
 	}
-	sline("ZSend: File %s not found!", tosend);
+	sline("ZSend: File %s not found", tosend);
 	return OK;
 }
 

@@ -1,11 +1,15 @@
 /**********************************************************
  * work with nodelists
- * $Id: nodelist.c,v 1.7 2004/04/17 07:25:25 sisoft Exp $
+ * $Id: nodelist.c,v 1.8 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
 char *NL_IDX="/qnode.idx";
 char *NL_SIGN="qico nodelist index";
+
+char *nlerr[3]={"can't query nodelist, index error",
+		"can't query nodelist, nodelist error",
+		"index is older than the list, need recompile"};
 
 static int compare_ftnaddr(const void *a, const void *b)
 {
@@ -506,7 +510,6 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	} else if(from_nl && from_nl->phone) {
 		xfree(nl->phone);
 		nl->phone=xstrdup(from_nl->phone);
-		/*if(!cfgi(CFG_TRANSLATESUBST))*/
 		phonetrans(&nl->phone,cfgsl(CFG_PHONETR));
 	}
 	if(d->host) {

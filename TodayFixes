@@ -1,11 +1,10 @@
-/* $Id: TodayFixes,v 1.66 2004/05/26 07:46:09 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.67 2004/05/27 18:50:00 sisoft Exp $ */
 ---
-last fix for --with-config.
-other small changes.
+fix end 'qico -c' calls.
+move modem functions to modem.c, calls to call.c.
 .
 previous:
 ---
-some small fixes and changes.
-add keyword 'serverpwd' - password for clients auth (optional).
-also added option '-w' to qcc and qctl for set password.
+last fix for --with-config.
+other small changes.
 .

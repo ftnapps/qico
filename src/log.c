@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.18 2004/04/14 22:21:26 sisoft Exp $
+ * $Id: log.c,v 1.19 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -114,7 +114,7 @@ int log_init(char *ln, char *tn)
 		len=strlen(progname)+2+strlen(tn);
 		n=malloc(len);
 		if(!n) {
-			fprintf(stderr,"can't malloc memory");
+			fprintf(stderr,"can't malloc() %d bytes of memory\n",len);
 			abort();
 			exit(1);
 		}

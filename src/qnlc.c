@@ -1,6 +1,6 @@
 /**********************************************************
  * nodelist compiler
- * $Id: qnlc.c,v 1.6 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: qnlc.c,v 1.7 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -123,7 +123,7 @@ int compile_nodelists()
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
 				} else if(!gp) continue;
 				if(ie.addr.z<0||ie.addr.n<0||ie.addr.f<0||ie.addr.p<0) {
-					write_log("can't parse address in %s at line %d!",basename(fn),line);
+					write_log("can't parse address in %s at line %d",basename(fn),line);
 					fclose(idx);
 					snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);lunlink(fn);
 					return 0;
@@ -140,7 +140,7 @@ int compile_nodelists()
 			printf("compiled %s: %d nodes\n",basename(fn),k);
 			i++;
 			if(i>MAX_NODELIST) {
-				write_log("too much lists - increase MAX_NODELIST in config.h and rebuild!");
+				write_log("too much lists - increase MAX_NODELIST in config.h and rebuild");
 				break;
 			}
 		}
@@ -171,7 +171,7 @@ int compile_nodelists()
 		}
 		xfree(ies);
 	}
-	printf("total %d lists,%d nodes\n",i,total);
+	printf("total %d lists, %d nodes\n",i,total);
 	fseek(idx,0,SEEK_SET);
 	if(fwrite(&idxh,sizeof(idxh),1,idx)!=1)write_log("can't write to index: %s",strerror(errno));
 	fclose(idx);

@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.20 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: emsi.c,v 1.21 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -329,7 +329,7 @@ int emsi_recv(int mode,ninfo_t *rememsi)
 			}
 			if(got) *p++=ch;
 			if((p-str)>=EMSI_BUF) {
-				write_log("too long EMSI packet!");
+				write_log("too long EMSI packet");
 				got=0;p=str;
 			}
 			if(emsidatlen) {

@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.10 2004/02/26 23:55:17 sisoft Exp $ */
+/* $Id: hydra.c,v 1.11 2004/05/27 18:50:03 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
 #include "crc.h"
@@ -964,7 +964,7 @@ int hydra_file(char *txpathname, char *txalias)
 					rxoptions &= get_flags(p,h_flags);
 					rxoptions &= HCAN_OPTIONS;
 					if (rxoptions < (options & HNEC_OPTIONS)) {
-						write_log("hydra is incompatible on this link!");
+						write_log("hydra is incompatible on this link");
 						txstate = HTX_DONE;
 						res = XFER_ABORT;
 						break;
