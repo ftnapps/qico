@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.7 2000/11/26 13:25:01 lev Exp $
+ * $Id: qipc.c,v 1.8 2001/01/07 11:24:47 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -145,9 +145,9 @@ void qipc_done() {}
 void vlogs(char *str) {}	
 void vlog(char *str, ...) {}	
 void sline(char *str, ...) {}	
-void qsendpkt(char *what, char *line, char *buff, int len) {}	
+void qsendpkt(char what, char *line, char *buff, int len) {}
 void qpreset(int snd) {}
-void qemsisend(ninfo_t *e, int sec, int lst) {}
+void qemsisend(ninfo_t *e) {}
 void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags) {}
 
 #endif
