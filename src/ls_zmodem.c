@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.9 2000/12/30 19:39:42 lev Exp $
+ * $Id: ls_zmodem.c,v 1.10 2001/01/04 11:44:33 lev Exp $
  **********************************************************/
 /*
 
@@ -105,14 +105,14 @@ int ls_zsendbhdr(int frametype, int len, char *hdr)
 
 	/* First, calculate packet header byte */
 	if ((type = HEADER_TYPE[(ls_Protocol & LSZ_OPTCRC32)==LSZ_OPTCRC32][(ls_Protocol & LSZ_OPTVHDR)==LSZ_OPTVHDR][(ls_Protocol & LSZ_OPTRLE)==LSZ_OPTRLE]) < 0) {
-		write_log("ZErr: invalid options set, %s, %s, %s",
-				(ls_Protocol & LSZ_OPTCRC32)?"crc32":"crc16",
-				(ls_Protocol & LSZ_OPTVHDR)?"varh":"fixh",
+		write_log("zmodem link options error: %s, %s, %s",
+				(ls_Protocol & LSZ_OPTCRC32)?"CRC32":"CRC16",
+				(ls_Protocol & LSZ_OPTVHDR)?"VHDR":"HDR",
 				(ls_Protocol & LSZ_OPTRLE)?"RLE":"Plain");
-		return ERROR;
+		return LSZ_ERROR;
 	}
 #ifdef Z_DEBUG
-	write_log("lszsendbhdr: %c, %s, len: %d",type,LSZ_FRAMETYPES[frametype+LSZ_FTOFFSET],len);
+	write_log("ls_zsendbhdr: %c, %s, len: %d",type,LSZ_FRAMETYPES[frametype+LSZ_FTOFFSET],len);
 #endif
 
 	/* Send *<DLE> and packet type */
@@ -130,7 +130,7 @@ int ls_zsendbhdr(int frametype, int len, char *hdr)
 	}
 	crc = LSZ_FINISH_CRC(crc);
 #ifdef Z_DEBUG2
-	write_log("lszsendbhdr: crc is %d (%d)",crc,(ls_Protocol & LSZ_OPTCRC32)?32:16);
+	write_log("ls_zsendbhdr: CRC%d is %08x",(ls_Protocol&LSZ_OPTCRC32)?32:16,crc);
 #endif
 	if (ls_Protocol & LSZ_OPTCRC32) {
 		crc = LTOI(crc);
@@ -151,11 +151,10 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	int n;
 
 #ifdef Z_DEBUG
-	write_log("lszsendhhdr: %s, len: %d",LSZ_FRAMETYPES[frametype+LSZ_FTOFFSET],len);
+	write_log("ls_zsendhhdr: %s, len: %d",LSZ_FRAMETYPES[frametype+LSZ_FTOFFSET],len);
 #endif
 	/* Send **<DLE> */
 	BUFCHAR(ZPAD); BUFCHAR(ZPAD); BUFCHAR(ZDLE);
-
 	/* Send header type */
 	if (ls_Protocol & LSZ_OPTVHDR) {
 		BUFCHAR(ZVHEX);
@@ -175,7 +174,7 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	}
 	crc = LSZ_FINISH_CRC16(crc);
 #ifdef Z_DEBUG2
-	write_log("lszsendhhdr: crc is %d",crc);
+	write_log("ls_zsendhhdr: CRC16 is %04x",crc);
 #endif
 	crc = STOI(crc & 0xffff);
 	ls_sendhex(crc >> 8);
@@ -226,12 +225,12 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	int rc;
 
 #ifdef Z_DEBUG
-	write_log("lszrecvhdr: tout %d",timeout);
+	write_log("ls_zrecvhdr: timeout %d",timeout);
 #endif
 
 	if(rhInit == state) {
-#ifdef Z_DEBUG
-		write_log("lszrecvhdr: init state");
+#ifdef Z_DEBUG2
+		write_log("ls_zrecvhdr: init state");
 #endif
 		frametype = LSZ_ERROR;
 		crc = 0;
@@ -262,7 +261,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			break;
 		case rhZPAD:
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhZPAD");
+			write_log("ls_zrecvhdr: rhZPAD, garbage counter: %d",ls_Garbage);
 #endif
 			switch(c) {
 			case ZPAD: break;
@@ -272,17 +271,15 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			break;
 		case rhZDLE:
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhZDLE, got: %02x (%c)",(unsigned char)c,(unsigned char)c);
+			write_log("ls_zrecvhdr: rhZDLE, got: %02x (%c)",(unsigned char)c,(unsigned char)c);
 #endif
 			switch(c) {
 			case ZBIN: state = rhZBIN; readmode = rmZDLE; break;
 			case ZHEX: state = rhZHEX; readmode = rmHEX; break;
 			case ZBIN32: state = rhZBIN32; readmode = rmZDLE; break;
-			case ZBINR32: state = rhZBINR32; readmode = rmZDLE; break;
 			case ZVBIN: state = rhZVBIN; readmode = rmZDLE; break;
 			case ZVHEX: state = rhZVHEX; readmode = rmHEX; break;
 			case ZVBIN32: state = rhZVBIN32; readmode = rmZDLE; break;
-			case ZVBINR32: state = rhZVBINR32; readmode = rmZDLE; break;
 			default: ls_Garbage++; state = rhInit; readmode = rm7BIT; break;
 			}
 			break;
@@ -293,13 +290,13 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhZVHEX:
 			if(c > LSZ_MAXHLEN) {
 #ifdef Z_DEBUG
-				write_log("lszrecvhdr: Header TOO long: %d (%d, %d)",c,(int)state,crcl);
+				write_log("ls_zrecvhdr: Header TOO long: %d bytes (state: %d, CRC%d)",c,(int)state,(2==crcl?16:32));
 #endif
 				state = rhInit;
 				return LSZ_BADCRC;
 			}
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: Any rhZV %d (%d, %d)",c,(int)state,crcl);
+			write_log("ls_zrecvhdr: Any rhZV: %d bytes (state: %d, CRC%d)",c,(int)state,(2==crcl?16:32));
 #endif
 			len = c;
 			state = rhFrameType;
@@ -311,33 +308,34 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhZHEX:
 			if(c < 0 || c > LSZ_MAXFRAME) {
 #ifdef Z_DEBUG
-				write_log("lszrecvhdr: Unknown frame type: %d (%d, %d)",c,(int)state,crcl);
+				write_log("ls_zrecvhdr: Unknown frame type: %d (state: %d, CRC%d)",c,(int)state,(2==crcl?16:32));
 #endif
 				state = rhInit;
 				return LSZ_BADCRC;
 			}
+#ifdef Z_DEBUG2
+			write_log("lszrecvhdr: Any rhZ frametype: %d, %s (state: %d, CRC%d)",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET],(int)state,(2==crcl?16:32));
+#else
 #ifdef Z_DEBUG
-			write_log("lszrecvhdr: Frametype %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
+			write_log("ls_zrecvhdr: frametype %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
+#endif
 #endif
 			len = 4;
 			frametype = c;
 			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16((unsigned char)c,LSZ_INIT_CRC16); }
 			else { incrc = LSZ_UPDATE_CRC32((unsigned char)c,LSZ_INIT_CRC32); }
-#ifdef Z_DEBUG2
-			write_log("lszrecvhdr: Any rhZ %d, %d",(int)state,crcl);
-#endif
 			state = rhBYTE;
 			break;
 		case rhFrameType:
 			if(c < 0 || c > LSZ_MAXFRAME) {
 #ifdef Z_DEBUG
-				write_log("lszrecvhdr: Unknown frame type: %d (%d, %d)",c,(int)state,crcl);
+				write_log("ls_zrecvhdr: Unknown frame type: %d (state: %d, CRC%d)",c,(int)state,(2==crcl?16:32));
 #endif
 				state = rhInit;
 				return LSZ_BADCRC;
 			}
 #ifdef Z_DEBUG
-			write_log("lszrecvhdr: Frametype %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
+			write_log("ls_zrecvhdr: frametype %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
 #endif
 			frametype = c;
 			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16((unsigned char)c,LSZ_INIT_CRC16); }
@@ -346,7 +344,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			break;			
 		case rhBYTE:
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhBYTE: %02x",c);
+			write_log("ls_zrecvhdr: rhBYTE: %02x",c);
 #endif
 			hdr[got] = c;
 			if(++got == len) state = rhCRC;
@@ -355,7 +353,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			break;
 		case rhCRC:
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhCRC");
+			write_log("ls_zrecvhdr: rhCRC");
 #endif
 			if(2 == crcl) { crc <<= 8; crc |= (unsigned char)c; }
 			else { crc |= (unsigned long)c << (8*crcgot); }
@@ -364,19 +362,19 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 				ls_Garbage = 0;
 				if(2 == crcl) {
 #ifdef Z_DEBUG
-					if(ls_Protocol&LSZ_OPTCRC32 && rmHEX!=readmode) write_log("Was CRC32, got CRC16 binary header");
+					if(ls_Protocol&LSZ_OPTCRC32 && rmHEX!=readmode) write_log("ls_zrecvhdr: was CRC32, got CRC16 binary header");
 #endif
 					incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xffff);
 					if(rmHEX!=readmode) ls_Protocol &= (~LSZ_OPTCRC32);
 				} else {
 #ifdef Z_DEBUG
-					if(!(ls_Protocol&LSZ_OPTCRC32)) write_log("Was CRC16, got CRC32 binary header");
+					if(!(ls_Protocol&LSZ_OPTCRC32)) write_log("ls_zrecvhdr: was CRC16, got CRC32 binary header");
 #endif
 					incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc);
 					ls_Protocol |= LSZ_OPTCRC32;
 				}
 #ifdef Z_DEBUG2
-				write_log("lsrecvhdr: CRC%d got %08x, claculated %08x",(2==crcl)?16:32,incrc,crc);
+				write_log("ls_zrecvhdr: CRC%d got %08x, claculated %08x",(2==crcl)?16:32,incrc,crc);
 #endif
 				if (incrc != crc) return LSZ_BADCRC;
 				*hlen = got;
@@ -388,7 +386,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhCR:
 			state = rhInit;
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhCR");
+			write_log("ls_zrecvhdr: rhCR");
 #endif
 			switch(c) {
 			case CR:
@@ -405,7 +403,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhLF:
 			state = rhInit;
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: rhLF");
+			write_log("ls_zrecvhdr: rhLF");
 #endif
 			switch(c) {
 			case LF:
@@ -420,7 +418,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		}
 	}
 #ifdef Z_DEBUG
-	write_log("lszrecvhdr: timeout ot something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+	write_log("ls_zrecvhdr: timeout ot something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 	return rc;
 }
@@ -432,7 +430,7 @@ int ls_zsenddata(char *data, int len, int frame)
 	int n;
 
 #ifdef Z_DEBUG
-	write_log("lssenddata: %d, %c",len,(char)frame);
+	write_log("ls_zsenddata: %d bytes, %c frameend",len,(char)frame);
 #endif
 	for(;len--; data++) {
 		ls_sendchar(*data);
@@ -442,6 +440,10 @@ int ls_zsenddata(char *data, int len, int frame)
 	crc = LSZ_UPDATE_CRC(frame,crc);
 	crc = LSZ_FINISH_CRC(crc);
 
+#ifdef Z_DEBUG2
+	write_log("ls_zsenddata: CRC%d is %08x",(ls_Protocol&LSZ_OPTCRC32)?32:16,crc);
+#endif
+
 	if (ls_Protocol & LSZ_OPTCRC32) {
 		crc = LTOI(crc);
 		for (n=0;n<4;n++) { ls_sendchar(crc&0xff); crc >>= 8; }
@@ -450,7 +452,7 @@ int ls_zsenddata(char *data, int len, int frame)
 		ls_sendchar(crc >> 8);
 		ls_sendchar(crc & 0xff);
 	}
-	if((ls_Protocol & LSZ_OPTDIRZAP) == 0 && ZCRCW == frame) BUFCHAR(XON);
+	if(!(ls_Protocol & LSZ_OPTDIRZAP) && ZCRCW == frame) BUFCHAR(XON);
 	return BUFFLUSH();
 }
 
@@ -469,7 +471,7 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 	int rc;
 
 #ifdef Z_DEBUG
-	write_log("lsrecvdata: %d, %d",timeout,crc32);
+	write_log("ls_zrecvdata: timeout %d, CRC%d",timeout,crc32?32:16);
 #endif
 
 	while(OK == (rc = HASDATA(t_rest0(t)))) {
@@ -483,7 +485,7 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 				rcvdata = 0;
 				frametype = c & 0xff;
 #ifdef Z_DEBUG2
-				write_log("lsrecvdata: Frameend %c",(char)frametype);
+				write_log("ls_zrecvdata: frameend %c",(char)frametype);
 #endif
 				incrc = crc32?LSZ_UPDATE_CRC32((unsigned char)c,incrc):LSZ_UPDATE_CRC16((unsigned char)c,incrc);
 				break;
@@ -492,7 +494,7 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 				incrc = crc32?LSZ_UPDATE_CRC32((unsigned char)c,incrc):LSZ_UPDATE_CRC16((unsigned char)c,incrc);
 				if(got > ls_MaxBlockSize) {
 #ifdef Z_DEBUG
-					write_log("lsrecvdata: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
+					write_log("ls_zrecvdata: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
 #endif
 					return LSZ_BADCRC;
 				}
@@ -505,19 +507,19 @@ int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 				if(2 == crcl) { incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xffff); }
 				else { incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc); }
 #ifdef Z_DEBUG2
-				write_log("lsrecvdata: CRC%d got %08x, claculated %08x",(2==crcl)?16:32,incrc,crc);
+				write_log("ls_zrecvdata: CRC%d got %08x, claculated %08x",crc32?32:16,incrc,crc);
 #endif
 				if (incrc != crc) return LSZ_BADCRC;
 				*len = got;
 #ifdef Z_DEBUG2
-				write_log("lsrecvdata: OK");
+				write_log("ls_zrecvdata: OK");
 #endif
 				return frametype;
 			}
 		}
 	}
 #ifdef Z_DEBUG
-	write_log("lsrecvdata: timeout or something else: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+	write_log("ls_zrecvdata: timeout or something else: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 	return rc;
 }
@@ -627,9 +629,6 @@ int ls_readzdle(int timeout)
 				switch(c) {
 				case XON: case XON | 0x80:
 				case XOFF: case XOFF | 0x80:
-#ifdef Z_DEBUG2
-					write_log("ls_readzdle: XON/XOFF %02x",c);
-#endif
 					c = LSZ_XONXOFF;
 				}
 			}
@@ -644,34 +643,16 @@ int ls_readzdle(int timeout)
 		if((c = ls_readcanned(t_rest0(t))) < 0) return c;
         switch(c) {
 		case ZCRCE:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZCRCE)",c);
-#endif
 			return LSZ_CRCE;
 		case ZCRCG:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZCRCG)",c);
-#endif
 			return LSZ_CRCG;
 		case ZCRCQ:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZCRCQ)",c);
-#endif
 			return LSZ_CRCQ;
 		case ZCRCW:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZCRCW)",c);
-#endif
 			return LSZ_CRCW;
 		case ZRUB0:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZRUB0)",c);
-#endif
 			return ZDEL;
 		case ZRUB1:
-#ifdef Z_DEBUG2
-			write_log("ls_readzdle: %02x (ZRUB1)",c);
-#endif
 			return ZDEL | 0x80;
 		default:
 			if((c&0x60) != 0x40) {

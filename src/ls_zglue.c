@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.2 2000/12/30 19:37:21 lev Exp $
+ * $Id: ls_zglue.c,v 1.3 2001/01/04 11:44:33 lev Exp $
  **********************************************************/
 /*
 
@@ -26,7 +26,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 #endif
 
 	txfd=txopen(tosend,sendas);
-	sline("ZSend %s %p",sendas);
+	sline("ZSend %s",sendas);
 	if(txfd) {
 		strcpy(f.name,sendas);
 		f.size = sendf.ftot;
@@ -55,19 +55,22 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 		}
 		return rc;
 	}
-	sline("ZS: File not found %s!", tosend);
+	sline("ZSend: File %s not found!", tosend);
 	return OK;
 }
 
 /* Init sending -- wrapper */
 int zmodem_sendinit(int canzap) {
 	int rc;
+#ifdef Z_DEBUG
+	write_log("zmodem_sendinit: %s",canzap?"ZedZap":"ZModem");
+#endif
 	if((rc=ls_zinitsender(canzap?LSZ_OPTZEDZAP|LSZ_OPTCRC32|LSZ_OPTSKIPGUARD:LSZ_OPTCRC32|LSZ_OPTSKIPGUARD,effbaud,cfgi(CFG_ZTXWIN),NULL))<0) return rc;
-	write_log("zmodem options: %d/%d/%s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
+	write_log("zmodem link options: %d/%d, %s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
 				(ls_Protocol&LSZ_OPTCRC32)?"CRC32":"CRC16",
-				(ls_rxCould&LSZ_RXCANDUPLEX)?"/DPX":"",
-				(ls_Protocol&LSZ_OPTVHDR)?"/VHDR":"",
-                (ls_Protocol&LSZ_OPTESCAPEALL)?"/ESCALL":"");
+				(ls_rxCould&LSZ_RXCANDUPLEX)?",DUPLEX":"",
+				(ls_Protocol&LSZ_OPTVHDR)?",VHEADER":"",
+				(ls_Protocol&LSZ_OPTESCAPEALL)?",ESCALL":"");
 	return rc;
 }
 
@@ -75,6 +78,9 @@ int zmodem_sendinit(int canzap) {
 int zmodem_senddone()
 {
 	if(txbuf) sfree(txbuf);
+#ifdef Z_DEBUG
+	write_log("zmodem_senddone");
+#endif
 	return ls_zdonesender();
 }
 
@@ -90,11 +96,14 @@ int zmodem_receive(char *c) {
 	switch((rc=ls_zinitreceiver(LSZ_OPTCRC32|LSZ_OPTZEDZAP|LSZ_OPTSKIPGUARD,effbaud,cfgi(CFG_ZRXWIN),&f))) {
 	case ZEOF:
 #ifdef Z_DEBUG2
-		write_log("zmodem_receive: EOF after INIT");
+		write_log("zmodem_receive: EOF after INIT, empty batch");
 #endif
 		ls_zdonereceiver();
 		return LSZ_OK;
 	case ZFILE:
+#ifdef Z_DEBUG2
+		write_log("zmodem_receive: ZFILE after INIT");
+#endif
 		break;
 	default:
 #ifdef Z_DEBUG
@@ -104,16 +113,16 @@ int zmodem_receive(char *c) {
 		ls_zdonereceiver();
 		return LSZ_ERROR;
 	}
-	write_log("zmodem options: %d/%d/%s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
+	write_log("zmodem link options: %d/%d, %s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
 				(ls_Protocol&LSZ_OPTCRC32)?"CRC32":"CRC16",
-				(ls_rxCould&LSZ_RXCANDUPLEX)?"/DPX":"",
-				(ls_Protocol&LSZ_OPTVHDR)?"/VHDR":"",
-                (ls_Protocol&LSZ_OPTESCAPEALL)?"/ESCALL":"");
+				(ls_rxCould&LSZ_RXCANDUPLEX)?",DUPLEX":"",
+				(ls_Protocol&LSZ_OPTVHDR)?",VHEADER":"",
+				(ls_Protocol&LSZ_OPTESCAPEALL)?",ESCALL":"");
 	while(1) {
 		switch(rc) {
 		case ZFIN:
 #ifdef Z_DEBUG2
-			write_log("zmodem_receive: EOF");
+			write_log("zmodem_receive: ZFIN");
 #endif
 			ls_zdonereceiver();
 			return LSZ_OK;

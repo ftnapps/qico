@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.6 2000/12/30 19:38:21 lev Exp $
+ * $Id: ls_zsend.c,v 1.7 2001/01/04 11:44:33 lev Exp $
  **********************************************************/
 /*
 
@@ -34,7 +34,7 @@ int ls_zsendsinit(char *attstr)
 	int l;
 
 #ifdef Z_DEBUG
-			write_log("ls_zsendsinit: '%s'",attstr?attstr:"(null)");
+	write_log("ls_zsendsinit: '%s'",attstr?attstr:"(null)");
 #endif
 
 	if (attstr)  {
@@ -47,6 +47,9 @@ int ls_zsendsinit(char *attstr)
 
 	do {
 		if(retransmit) {
+#ifdef Z_DEBUG2
+			write_log("ls_zsendsinit: resend ZSINIT");
+#endif
 			/* We don't support ESC8, so don't ask for it in any case */
 			ls_txHdr[LSZ_F0] = (ls_Protocol&LSZ_OPTESCAPEALL)?LSZ_TXWNTESCCTL:0;
 			ls_txHdr[LSZ_F1] = ls_txHdr[LSZ_F2] = ls_txHdr[LSZ_F3] = 0;
@@ -57,8 +60,14 @@ int ls_zsendsinit(char *attstr)
 		}
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
 		case ZRINIT:		/* Skip it */
+#ifdef Z_DEBUG2
+			write_log("ls_zsendsinit: ZRINIT");
+#endif
 			break;
 		case ZACK:			/* Ok */
+#ifdef Z_DEBUG2
+			write_log("ls_zsendsinit: ZACK");
+#endif
 			return LSZ_OK;
 		case ZCHALLENGE:	/* Return number to peer, he is paranoid */
 #ifdef Z_DEBUG2
@@ -131,6 +140,9 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	do {
 		if(retransmit) {
 			/* Send first ZRQINIT (do we need it?) */
+#ifdef Z_DEBUG2
+			write_log("ls_zinitsender: resend ZRQINIT");
+#endif
 			ls_storelong(ls_txHdr,0L);
 			if((rc=ls_zsendhhdr(ZRQINIT,4,ls_txHdr))<0) return rc;
 			retransmit = 0;
@@ -156,7 +168,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 			if(window && (!ls_txWinSize || ls_txWinSize > window)) ls_txWinSize = window;
 
 #ifdef Z_DEBUG2
-			write_log("ls_zinitsender: RINIT OK, effproto: %x, winsize: %d",ls_Protocol,ls_txWinSize);
+			write_log("ls_zinitsender: RINIT OK, effproto: %08x, winsize: %d",ls_Protocol,ls_txWinSize);
 #endif
 
 			/* Ok, now we could calculate real max frame size and initial block size */
@@ -203,6 +215,9 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 			retransmit = 1;
 			break;
 		case ZFIN:			/* ZFIN from previous session? Or may be real one? */
+#ifdef Z_DEBUG2
+			write_log("ls_zinitsender: ZFIN %d",zfins);
+#endif
 			if(++zfins == LSZ_TRUSTZFINS) return LSZ_ERROR;
 			break;
 		case LSZ_BADCRC:	/* Please, resend */
@@ -260,6 +275,9 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 
 	do {
 		if(retransmit) {
+#ifdef Z_DEBUG2
+			write_log("ls_zsendfinfo: resend ZFILE");
+#endif
 			ls_txHdr[LSZ_F0] = LSZ_CONVBIN | LSZ_CONVRECOV;
 			ls_txHdr[LSZ_F1] = 0; /* No managment */
 			ls_txHdr[LSZ_F2] = 0; /* No compression/encryption */
@@ -392,20 +410,33 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 	int hlen;
 	int needack = 0;
 
+#ifdef Z_DEBUG
+	write_log("ls_zsendfile: %s",f->name);
+#endif
+
 	switch((rc = ls_zsendfinfo(f,sernum,&txpos))) {
 	case ZRPOS:		/* Ok, It's OK! */
+#ifdef Z_DEBUG2
+		write_log("ls_zsendfile: ZRPOS to %d",txpos);
+#endif
 		break;
 	case ZSKIP:		/* Skip it */
 	case ZFERR:		/* Suspend it */
+#ifdef Z_DEBUG2
+		write_log("ls_zsendfile: %s",LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+#endif
 		return rc;
 	case ZABORT:
 	case ZFIN:		/* Session is aborted */
+#ifdef Z_DEBUG2
+		write_log("ls_zsendfile: %s",LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+#endif
 		ls_finishsend();
 		return LSZ_ERROR;
 	default:
 		if(rc < 0) return rc;
 #ifdef Z_DEBUG
-		write_log("ls_zsendfile: Strange ansfer on finfo:  %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+		write_log("ls_zsendfile: Strange anwfer on ZFILE:  %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 		return LSZ_ERROR;
 	}
@@ -425,11 +456,17 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		mode = sfStream;
 	}
 	frame = ZCRCW;
+#ifdef Z_DEBUG
+	write_log("ls_zsendfile: mode %s",sfStream==mode?"stream":(sfBuffered==mode?"buffered":"sliding window"));
+#endif
 
 	while(!feof(txfd)) {
 		/* We need to send ZDATA if previous frame was ZCRCW
 		Also, frame will be ZCRCW, if it is after RPOS */
 		if(ZCRCW == frame) { 
+#ifdef Z_DEBUG
+			write_log("ls_zsendfile: send ZDATA at %d",txpos);
+#endif
 			ls_storelong(ls_txHdr,txpos);
 			if((rc=ls_zsendbhdr(ZDATA,4,ls_txHdr))<0) return rc;
 		}
@@ -437,12 +474,15 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		bread = fread(txbuf,1,ls_txCurBlockSize,txfd);
 		if(bread < 0) {
 #ifdef Z_DEBUG
-			write_log("ls_zsendfile: Read error");
+			write_log("ls_zsendfile: read error at %d",txpos);
 #endif
 			return LSZ_ERROR;
 		}
 		/* Select sub-frame type */
 		if(bread < ls_txCurBlockSize) {		/* This is last sub-frame -- EOF */
+#ifdef Z_DEBUG2
+			write_log("ls_zsendfile: EOF at %d",txpos+bread);
+#endif
 			if(sfStream == mode) frame = ZCRCE;
 			else frame = ZCRCW;
 		} else {							/* This is not-last sub-frame */
@@ -456,7 +496,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 			}
 		}
 #ifdef Z_DEBUG2
-		write_log("ls_zsendfile: Send at %d",txpos);
+		write_log("ls_zsendfile: send at %d",txpos);
 #endif
 		if((rc=ls_zsenddata(txbuf,bread,frame))<0) return rc;
 		txpos += bread;
@@ -506,9 +546,10 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 #ifdef Z_DEBUG
 				write_log("ls_zsendfile: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
+				if(rc < 0) return rc;
 				break;
 			}
-		} while(ls_txWinSize && txpos > ls_txLastACK + ls_txWinSize && ++trys < 10);
+		} while((ls_txWinSize && txpos > ls_txLastACK + ls_txWinSize) && ++trys < 10);
 		if(trys >= 10) {
 #ifdef Z_DEBUG
 			write_log("ls_zsendfile: Trys when waiting for ACK/RPOS exceed");
@@ -575,7 +616,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 			} while(feof(txfd) && trys < 10);
 			if(feof(txfd)) {
 #ifdef Z_DEBUG
-				write_log("lszsendfile: Trys when waiting for ZEOF ACK exceed");
+				write_log("ls_zsendfile: Trys when waiting for ZEOF ACK exceed");
 #endif
 				return LSZ_ERROR;
 			}

@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.2 2000/12/30 19:41:01 lev Exp $
+ * $Id: ls_zreceive.c,v 1.3 2001/01/04 11:44:33 lev Exp $
  **********************************************************/
 /*
 
@@ -23,7 +23,7 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 {
 
 #ifdef Z_DEBUG
-	write_log("ls_zinitreceiver: %x, %d, %d",protocol,baud,window);
+	write_log("ls_zinitreceiver: %08x, %dbaud, %d bytes",protocol,baud,window);
 #endif
 
 	/* Set all options to requested state -- this may be alerted by other side in ZSINIT */
@@ -104,7 +104,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 	int win;
 
 #ifdef Z_DEBUG
-	write_log("ls_zrecvfinfo");
+	write_log("ls_zrecvfinfo: frame %d, %s, first: %d",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET],first);
 #endif
 	/* Send temporary variables */
 	win = STOI(ls_txWinSize);
@@ -118,13 +118,16 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 
 	do {
 		if(retransmit) {
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: send %d, %s",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET]);
-#endif
 			if(ZRINIT != frame) {
+#ifdef Z_DEBUG2
+				write_log("ls_zrecvfinfo: send %d, %s",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET]);
+#endif
 				ls_storelong(ls_txHdr,ls_SerialNum);
 				if((rc=ls_zsendhhdr(frame,4,ls_txHdr))<0) return rc;
 			}
+#ifdef Z_DEBUG2
+			write_log("ls_zrecvfinfo: send %d, ZRINIT",ZRINIT);
+#endif
 			ls_txHdr[LSZ_F0] = flags;
 			ls_txHdr[LSZ_F1] = (ls_Protocol&LSZ_OPTVHDR)?(char)LSZ_RXCANVHDR:0;
 			ls_txHdr[LSZ_P1] = (unsigned char)((win>>8) & 0xff);
@@ -158,7 +161,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 				trys++;
 			}
 			break;
-		case ZFILE:			/* Ok, first file started! */
+		case ZFILE:			/* Ok, File started! */
 #ifdef Z_DEBUG2
 			write_log("ls_zrecvfinfo: ZFILE");
 #endif
@@ -218,7 +221,7 @@ int ls_zrecvnewpos(unsigned long oldpos, unsigned long *pos)
 	int hlen;
 
 #ifdef Z_DEBUG
-	write_log("ls_zrecvnewpos");
+	write_log("ls_zrecvnewpos: will retransmit %d",oldpos);
 #endif
 	do {
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
@@ -264,8 +267,6 @@ int ls_zrecvnewpos(unsigned long oldpos, unsigned long *pos)
 	return LSZ_TIMEOUT;
 }
 
-
-
 /* Receive one file */
 int ls_zrecvfile(int pos)
 {
@@ -285,20 +286,29 @@ int ls_zrecvfile(int pos)
 	do {
 		if(needzdata) {		/* We need new position -- ZDATA (and may be ZEOF) */
 #ifdef Z_DEBUG
-			write_log("ls_zrecvfile: receive ZDATA");
+			write_log("ls_zrecvfile: want ZDATA/ZEOF at %d",rxpos);
 #endif
 			if((rc=ls_zrecvnewpos(rxpos,&newpos))<0) return rc;
 			if(newpos != rxpos) {
+#ifdef Z_DEBUG
+				write_log("ls_zrecvfile: bad new position %d in %s",newpos,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
+#endif
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
 				ls_storelong(ls_txHdr,rxpos);
 				if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 			} else {
 				if(ZEOF == rc) {
+#ifdef Z_DEBUG2
+					write_log("ls_zrecvfile: ZEOF");
+#endif
 					ls_storelong(ls_txHdr,0);
 					if((rc=ls_zsendhhdr(ZRINIT,4,ls_txHdr))<0) return rc;
 					return LSZ_OK;
 				}
+#ifdef Z_DEBUG2
+				write_log("ls_zrecvfile: ZDATA");
+#endif
 				needzdata = 0;
 			}
 		} else {
@@ -307,7 +317,7 @@ int ls_zrecvfile(int pos)
 				needzdata = 1;
 			case ZCRCG:
 #ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: CRC: %c",rc);
+				write_log("ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCE?'E':'G',len,rxpos);
 #endif
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
@@ -320,7 +330,7 @@ int ls_zrecvfile(int pos)
 				needzdata = 1;
 			case ZCRCQ:
 #ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: CRC: %c",rc);
+				write_log("ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCW?'W':'Q',len,rxpos);
 #endif
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
@@ -380,7 +390,7 @@ int ls_zdonereceiver()
 		}
 	} while (++trys < 10);
 #ifdef Z_DEBUG
-	write_log("ls_zdonereceiver: timeout or somethin strange %d",rc);
+	write_log("ls_zdonereceiver: timeout or something strange %d",rc);
 #endif
 	return rc;
 }
