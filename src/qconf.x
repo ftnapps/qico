@@ -54,14 +54,15 @@ minspeed,C_INT,int,0,"0"
 autoskip,C_STRL,slist_t *,0,NULL
 aftersession,C_STR,char *,0,NULL
 emsilog,C_STR,char *,0,NULL
-pidfile,C_STR,char *,1,NULL
+pidfile,C_STR,char *,0,NULL
 defperm,C_OCT,int,0,"644"
 dirperm,C_OCT,int,0,"755"
+ipcperm,C_OCT,int,0,"666"
 progname,C_STR,char *,0,NULL
 version,C_STR,char *,0,NULL
 osname,C_STR,char *,0,NULL
 mincpsin,C_INT,int,0,"0"
 mincpsout,C_INT,int,0,"0"
-clearundial,C_INT,int,0,"0"
 lockdir,C_STR,char *,1,NULL
+clearundial,C_INT,int,0,"0"
 aftermail,C_STR,char *,0,NULL

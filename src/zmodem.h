@@ -2,7 +2,7 @@
  * File: zmodem.h
  * Created at Fri Jul 16 17:24:54 1999 by pk // aaz@ruxy.org.ru
  * Manifest constants for ZMODEM
- * $Id: zmodem.h,v 1.2 2000/10/07 13:38:42 lev Exp $
+ * $Id: zmodem.h,v 1.3 2000/10/12 19:13:17 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1993 Omen Technology Inc All Rights Reserved
@@ -187,8 +187,8 @@ extern char *zbuffer;
 extern int  zlength;
 
 #define BUFCLEAR()  zlength=0
-#define BUFCHAR(c)  { if(zlength>=ZBUFFER) BUFFLUSH(); zbuffer[zlength++]=(c); }
 #define BUFFLUSH()  { PUTBLK(zbuffer, zlength);zlength=0; }
+#define BUFCHAR(c)  { if(zlength>=ZBUFFER) BUFFLUSH(); zbuffer[zlength++]=(c); }
 
 #endif
 /* End of zmodem.h */

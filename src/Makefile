@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.7 2000/10/07 14:28:57 lev Exp $
+# $Id: Makefile,v 1.8 2000/10/12 19:13:16 lev Exp $
 #
 include	../CONFIG
 
@@ -15,6 +15,7 @@ STRIP=1
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 DEFS    += -DSHELL=\"$(SHELL)\" -DCONFIG=\"$(CONF)\"
+DEFS    += -DQIPC_KEY=\"$(BINDIR)/qico\"
 CFLAGS	= $(DEFS) -Wall -m486 -O2 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1 -I/usr/local/include
 ifeq (1,$(STRIP))
 IFLAGS  = -s
@@ -25,23 +26,24 @@ endif
 #DLIBS   = -lccmalloc -ldl
 ifeq (1,$(FREE_BSD))
 LIBS   += -lutil
-DEFS   += -DFREE_BSD=1
+DEFS   += -DFREE_BSD=1 -DHAVE_NCURSES_H
 else
 LIBS   +=
+DEFS   += -DHAVE_CURSES_H
 endif
 QCLIBS  = -L/usr/local/lib -lncurses
 
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o zm.o zmr.o \
-          zrecv.o zsend.o session.o call.o qnlc.o qipc.o qcconst.o tcp.o \
+          zrecv.o zsend.o session.o call.o qnlc.o qipc.o tcp.o \
           hydra.o janus.o flagexp.o execsh.o protfm.o freq.o
 
-QCCOBJS	= qcc.o ver.o qcconst.o crc.o
+QCCOBJS	= qcc.o ver.o crc.o
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c zm.c zmr.c \
-          zrecv.c zsend.c session.c call.c qnlc.c qipc.c qcconst.c tcp.c \
-	  hydra.c execsh.c protfm.c
+          zrecv.c zsend.c session.c call.c qnlc.c qipc.c tcp.c \
+          hydra.c execsh.c protfm.c
 
 AUTOH = qconf.h 
 AUTOC = qconf.c flagexp.c flaglex.c ver.c

@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.6 2000/10/11 21:35:46 lev Exp $
+ * $Id: session.c,v 1.7 2000/10/12 19:13:17 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -487,7 +487,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	
 	if(is_listed(&rnode->addrs->addr, cfgs(CFG_NLPATH)))
 		rnode->options|=O_LST;
-	qemsisend(rnode, rnode->options&O_PWD, rnode->options&O_LST);
+	qemsisend(rnode);
 	qpreset(0);qpreset(1);
 
 	proto=(mode?rnode->options:emsi_lo)&P_MASK;

@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.3 2000/07/21 20:52:24 lev Exp $
+ * $Id: qcc.c,v 1.4 2000/10/12 19:13:16 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -10,48 +10,51 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/socket.h>
-#include <sys/un.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <time.h>
 #include <signal.h>
-#if defined __FreeBSD__ && __FreeBSD__ < 4
- #include <ncurses.h>
+#ifdef HAVE_NCURSES_H
+#include <ncurses.h>
 #else
- #include <curses.h>
+#ifdef HAVE_CURSES_H
+#include <curses.h>
+#endif
 #endif
 #include "qcconst.h"
 #include "ver.h"
 
 #define MAX_QUEUE 256
-
-extern unsigned short crc16(char *str, int l);
-void sigwinch(int s);
-
-#if defined __FreeBSD__ && __FreeBSD__ < 4
-void mvvline (int y,int x,int ch,int n)
-{
- move (y,x);
- vline (ch,n);
-}
-
-void mvhline (int y,int x,int ch,int n)
-{
- move (y,x);
- hline (ch,n);
-}
-
-void mvwhline (WINDOW *win,int y,int x,int ch,int n)
-{
- wmove (win,y,x);
- wvline (win,ch,n);
-}
-#endif
-
+#define SAFE(s) s?s:nothing
 #define MH 10
 #define MAX_SLOTS 9
 
+typedef struct {
+	char tty[8];
+	int  session;
+	
+	char *header;
+	char *status;
+
+	char *name;
+	char *city;
+	char *sysop;
+	char *flags;
+	char *phone;
+	char *addrs;
+	
+	int  speed;
+	int  options;
+	time_t start;
+	
+	pfile_t s,r;
+	WINDOW *wlog;
+} slot_t;
+
+void sigwinch(int s);
+char *nothing="";
 char *helpl[]={
 /* 	           "F1","Help ", */
 /* 			   "F2","Send ", */
@@ -66,28 +69,36 @@ char *helpl[]={
 			   NULL, NULL
 };
 
-typedef struct {
-	char tty[8];
-	int  session;
-	char header[MAX_STRING];
-	char status[MAX_STRING];
-	pemsi_t e;
-	pfile_t s,r;
-	WINDOW *wlog;
-} slot_t;
-
 slot_t *slots[MAX_SLOTS];
 pque_t queue[MAX_QUEUE];
 int currslot, allslots, q_size;
-time_t online;
 
-char m_header[MAX_STRING]="";
-char m_status[MAX_STRING]="";
+char *m_header=NULL;
+char *m_status=NULL;
 
 WINDOW *wlog, *wmain, *whdr, *wstat;
 
-int sock, saddrlen, caddrlen, qpos=0;
-struct sockaddr_un server, client;
+int qipc_msg, qpos=0;
+
+#ifndef CURS_HAVE_MVVLINE
+void mvvline (int y,int x,int ch,int n)
+{
+	move (y,x);
+	vline (ch,n);
+}
+
+void mvhline (int y,int x,int ch,int n)
+{
+	move (y,x);
+	hline (ch,n);
+}
+
+void mvwhline (WINDOW *win,int y,int x,int ch,int n)
+{
+	wmove (win,y,x);
+	wvline (win,ch,n);
+}
+#endif
 
 void initscreen()
 {
@@ -132,8 +143,7 @@ void initscreen()
 		k+=strlen(helpl[i]);
 	}
 	attron(COLOR_PAIR(10));
-	mvprintw(LINES-1,COLS-strlen(progname)-2-strlen(version), "%s-%s",
-			 progname, version);
+	mvprintw(LINES-1,COLS-3-2-strlen(version), "qcc-%s", version);
 	refresh();
 
 	wmain=newwin(MH, COLS-2, 1, 1);
@@ -168,7 +178,6 @@ void donescreen()
 	clear();
 	refresh();
 	endwin();
-	printf("%s-%s: have a nice unix! c u l8r!\n", progname, version);
 }
 
 void freshhdr()
@@ -240,32 +249,33 @@ void freshpfile(int b, int e, pfile_t *s, int act)
 	waddstr(wmain, timestr((s->ttot-s->toff-s->foff)/s->cps));
 }
 
-void freshproto()
+void freshslot()
 {
 	werase(wmain);
 	if(!slots[currslot]->session) return;
 	wattrset(wmain, COLOR_PAIR(3)|A_BOLD);
 	mvwprintw(wmain, 0, 1, "%s // %s",
-			  slots[currslot]->e.name,slots[currslot]->e.city);
+			  slots[currslot]->name,SAFE(slots[currslot]->city));
 	wattroff(wmain, A_BOLD);
-	mvwprintw(wmain, 0, COLS-3-8-strlen(slots[currslot]->e.sysop), " Sysop: %s",
-			  slots[currslot]->e.sysop);
+	mvwprintw(wmain, 0, COLS-3-8-strlen(SAFE(slots[currslot]->sysop)), " Sysop: %s",
+			  slots[currslot]->sysop);
 	mvwprintw(wmain, 1, 1, "[%d] %s",
-			  slots[currslot]->e.speed,slots[currslot]->e.flags);
-	mvwprintw(wmain, 1, COLS-3-8-strlen(slots[currslot]->e.phone), " Phone: %s",
-			  slots[currslot]->e.phone);
+			  slots[currslot]->speed,SAFE(slots[currslot]->flags));
+	mvwprintw(wmain, 1, COLS-3-8-strlen(SAFE(slots[currslot]->phone)), " Phone: %s",
+			  slots[currslot]->phone);
 	wattron(wmain, COLOR_PAIR(2)|A_BOLD);
 	mvwaddstr(wmain, 2, 1, "AKA: ");
 	wattroff(wmain, A_BOLD);
-	waddnstr(wmain, slots[currslot]->e.addrs, COLS-10-6);
+	waddnstr(wmain, SAFE(slots[currslot]->addrs), COLS-10-6);
 	wattrset(wmain, COLOR_PAIR(4));mvwaddch(wmain, 2, COLS-3-11,' ');
-	mvwaddstr(wmain, 2, COLS-3-10,slots[currslot]->e.secure?"[PWD]":"");
+	mvwaddstr(wmain, 2, COLS-3-10,slots[currslot]->options&O_PWD?"[PWD]":"");
 	wattrset(wmain, COLOR_PAIR(6));
-	mvwaddstr(wmain, 2, COLS-3-5,slots[currslot]->e.listed?"[LST]":"");
+	mvwaddstr(wmain, 2, COLS-3-5,slots[currslot]->options&O_LST?"[LST]":"");
 
 	wattrset(wmain, COLOR_PAIR(2));
 	mvwhline(wmain, 3, 0, ACS_HLINE, COLS-2);wattron(wmain, A_BOLD);
-	mvwprintw(wmain, 3, COLS/2-5, "[%s]", timestr(time(NULL)-online));
+	mvwprintw(wmain, 3, COLS/2-5, "[%s]",
+			  timestr(time(NULL)-slots[currslot]->start)); 
 	freshpfile(1, (COLS-2)/2-1, &slots[currslot]->r, 0);
 	freshpfile((COLS-2)/2+1, COLS-3, &slots[currslot]->s, 1);
 }
@@ -334,7 +344,7 @@ void freshall()
 	freshhdr();wnoutrefresh(whdr);
 	freshstatus();wnoutrefresh(wstat);
 	if(currslot>=0)
-		freshproto();
+		freshslot();
 	else
 		freshqueue();
 	wnoutrefresh(wmain);
@@ -344,15 +354,6 @@ void freshall()
 
 void sigwinch(int s)
 {
-/* 	struct winsize size; */
-/* 	if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) { */
-/* 		wrefresh(curscr);wrefresh(stdscr); */
-/* 		donescreen(); */
-/* 		initscreen(); */
-/* 		refresh(); */
-/* 		freshall(); */
-/* 	} */
-/* 	signal(SIGWINCH, sigwinch); */
 }
 
 int findslot(char *slt)
@@ -379,34 +380,62 @@ void logit(char *str, WINDOW *w)
 	waddch(w, '\n');
 }
 
+
+char *strefresh(char **what, char *to)
+{
+	if(*what!=NULL) free(*what);
+	*what=malloc(strlen(to)+1);
+	if(*what) strcpy(*what, to);
+	return *what;
+}
+
+#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
+
+void usage(char *ex)
+{
+	printf("qcc-%s copyright (c) pavel kurnosoff, 1999-2000\n"
+		   "usage: %s [options]\n"
+		   "-h           this help screen\n"
+		   "\n", version, ex);
+}
+
 int main(int argc, char **argv)
 {
-	int quitflag=0, len, crc, ch, rc;
+	int quitflag=0, len, ch, rc, type, pid;
 	fd_set rfds;
 	struct timeval tv;
-	char buf[MSG_BUFFER], tty[8], *p;
+	char buf[MSG_BUFFER], *data, c, *p;
 	time_t tim;
 	struct tm *tt;
-	
-	if((sock=socket(AF_UNIX,SOCK_DGRAM,0))<0) {
-		perror("can't create socket!");return 1;
+	key_t qipc_key;
+
+ 	while((c=getopt(argc, argv, "h"))!=EOF) {
+		switch(c) {
+		case 'h':
+			usage(argv[0]);
+			return 0;
+		default:
+			usage(argv[0]);
+			return 0;
+		}
 	}
-	unlink(Q_SOCKET);
-	bzero(&server, sizeof(server));
-	server.sun_family=AF_UNIX;
-	strcpy(server.sun_path, Q_SOCKET);
-	saddrlen = strlen(server.sun_path) + 1 + sizeof(server.sun_family);
-	if(bind(sock, (struct sockaddr*)&server, saddrlen)<0) {
-		perror("can't bind server socket!");return 1;
+		
+	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) {
+		fprintf(stderr, "can't create ipc key\n");
+		return 0;
 	}
-	chmod(Q_SOCKET, 0777);
+	if((qipc_msg=msgget(qipc_key, 0666 | IPC_CREAT | IPC_EXCL))<0) {
+		fprintf(stderr, "can't create message queue (may be there's another qcc is running?)\n");
+		return 0;
+	}
+
 	initscreen();
 	currslot=-1;
 	allslots=0;
 	freshhdr();wrefresh(whdr);
 	bzero(&slots, sizeof(slots));bzero(&queue, sizeof(queue));
-	q_size=0;/*strcpy(queue[0].addr, "2:5030/532.28");queue[0].flags=14;*/
-	freshall();online=time(NULL);
+	q_size=0;
+	freshall();
 	while(!quitflag) {
 		tim=time(NULL);
 		tt=localtime(&tim);wattron(whdr, COLOR_PAIR(15));
@@ -416,134 +445,143 @@ int main(int argc, char **argv)
 		doupdate();
 		FD_ZERO(&rfds);
 		FD_SET(0, &rfds);
-		FD_SET(sock, &rfds);
-		tv.tv_sec=1;
-		tv.tv_usec=0;
-		rc=select(sock+1, &rfds, NULL, NULL, &tv);
-		if(rc>0 && FD_ISSET(sock, &rfds)) {
-			caddrlen=sizeof(client);bzero(buf, MSG_BUFFER);
-			rc=recvfrom(sock, buf, MSG_BUFFER, 0,
-						(struct sockaddr *)&client, &caddrlen);
-			if(rc>=27 && !memcmp(buf, QC_SIGN, 6)) {
-				sscanf(buf+6, "%04x", &len);
-				sscanf(buf+10,"%04x", &crc);
-				if(rc>=len+27 && crc==crc16(buf+27, len)) {
-					memcpy(tty, buf+19, 8);
-					p=strchr(tty, ' ');if(p) *p=0;else tty[7]=0;
-					if(strcmp(tty, "master")) {
-						rc=findslot(tty);
-						if(!memcmp(buf+14, QC_ERASE, 5)) {
-							if(allslots>0) {
-								if(currslot==allslots-1)
-									currslot--;
-								allslots--;
-								delwin(slots[rc]->wlog);
-								free(slots[rc]);
-								slots[rc]=slots[rc+1];
-								freshall();								
-							}
-						} else if(rc<0) {
-							rc=createslot(tty);
-							freshhdr();wrefresh(whdr);
-						}
-						if(!memcmp(buf+14, QC_SLINE, 5)) {
-							strncpy(slots[rc]->status, buf+27, MAX_STRING);
-							freshstatus();wrefresh(wstat);
-						}
-						if(!memcmp(buf+14, QC_LOGIT, 5)) {
-							logit(buf+27, slots[rc]->wlog);
-							if(currslot==rc) {
-								wrefresh(slots[rc]->wlog);
-							}
-						}
-						if(!memcmp(buf+14, QC_TITLE, 5)) {
-							strncpy(slots[rc]->header, buf+27, MAX_STRING);
-							if(currslot==rc) {
-								freshhdr();wrefresh(whdr);
-							}
-						}
-						if(!memcmp(buf+14, QC_EMSID, 5)) {
-							online=time(NULL);
-							if(!len) {
-								bzero(&slots[rc]->e, sizeof(pemsi_t));
-								slots[rc]->session=0;
-							} else {
-								memcpy(&slots[rc]->e, buf+27,
-									   sizeof(pemsi_t));
-								slots[rc]->session=1;
-							}
-							if(currslot==rc) {								
-								freshproto();wrefresh(wmain);
-							}
-						}
-						if(!memcmp(buf+14, QC_LIDLE, 5)) {
-							if(&slots[rc]->session) {
-								slots[rc]->session=0;
-								bzero(&slots[rc]->e, sizeof(pemsi_t));
-								bzero(&slots[rc]->r, sizeof(pfile_t));
-								bzero(&slots[rc]->s, sizeof(pfile_t));
-								if(currslot==rc) {
-									freshproto();wrefresh(wmain);
-								}
-							}
-						}
-						if(!memcmp(buf+14, QC_SENDD, 5)) {
-							if(!len) {
-								bzero(&slots[rc]->s, sizeof(pfile_t));
-							} else {
-								slots[rc]->session=1;
-								memcpy(&slots[rc]->s, buf+27,
-									   sizeof(pfile_t));
-							}
-							if(currslot==rc) {								
-								freshproto();wrefresh(wmain);
-							}
-						}
-						if(!memcmp(buf+14, QC_RECVD, 5)) {
-							if(!len) {
-								bzero(&slots[rc]->r, sizeof(pfile_t));
-							} else {
-								slots[rc]->session=1;
-								memcpy(&slots[rc]->r, buf+27,
-									   sizeof(pfile_t));
-							}
-							if(currslot==rc) {								
-								freshproto();wrefresh(wmain);
-							}
-						}
-						
+		tv.tv_sec=0;
+		tv.tv_usec=5000;
+		rc=select(1, &rfds, NULL, NULL, &tv);
+		bzero(buf, MSG_BUFFER);
+		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
+		if(rc>=13) {
+			len=*((int *)buf+1);
+			pid=*((int *)buf+2);
+			type=buf[12];
+			data=strchr(buf+13,0)+1;
+			if(strcmp(buf+13, "master")) {
+				rc=findslot(buf+13);
+				if(type==QC_ERASE) {
+					if(allslots>0) {
+						if(currslot==allslots-1)
+							currslot--;
+						allslots--;
+						delwin(slots[rc]->wlog);
+						free(slots[rc]);
+						slots[rc]=slots[rc+1];
+						freshall();								
+					}
+				} else if(rc<0) {
+					rc=createslot(buf+13);
+					freshhdr();wrefresh(whdr);
+				}
+				if(type==QC_SLINE) {
+					strefresh(&slots[rc]->status, data);
+					freshstatus();wrefresh(wstat);
+				}
+				if(type==QC_LOGIT) {
+					logit(data, slots[rc]->wlog);
+					if(currslot==rc) {
+						wrefresh(slots[rc]->wlog);
+					}
+				}
+				if(type==QC_TITLE) {
+					strefresh(&slots[rc]->header, data);
+					if(currslot==rc) {
+						freshhdr();wrefresh(whdr);
+					}
+				}
+				if(type==QC_EMSID) {
+					if(!len) {
+						sfree(slots[rc]->name);
+						sfree(slots[rc]->sysop);
+						sfree(slots[rc]->city);
+						sfree(slots[rc]->flags);
+						sfree(slots[rc]->phone);
+						sfree(slots[rc]->addrs);
+						slots[rc]->session=0;
 					} else {
-						if(!memcmp(buf+14, QC_SLINE, 5)) {
-							strncpy(m_status, buf+27, MAX_STRING);
-							if(currslot<0) {
-								freshstatus();wrefresh(wstat);
-							}
+						p=data;
+						slots[rc]->speed=*((int *)p++);
+						slots[rc]->options=*((int *)p++);
+						slots[rc]->start=*((int *)p++);
+						strefresh(&slots[rc]->name, p);p+=strlen(p)+1;
+						strefresh(&slots[rc]->sysop, p);p+=strlen(p)+1;
+						strefresh(&slots[rc]->city, p);p+=strlen(p)+1;
+						strefresh(&slots[rc]->flags, p);p+=strlen(p)+1;
+						strefresh(&slots[rc]->phone, p);p+=strlen(p)+1;
+						strefresh(&slots[rc]->addrs, p);
+						slots[rc]->session=1;
+					}
+					if(currslot==rc) {								
+						freshslot();wrefresh(wmain);
+					}
+				}
+				if(type==QC_LIDLE) {
+					if(&slots[rc]->session) {
+						slots[rc]->session=0;
+						bzero(&slots[rc]->r, sizeof(pfile_t));
+						bzero(&slots[rc]->s, sizeof(pfile_t));
+						if(currslot==rc) {
+							freshslot();wrefresh(wmain);
 						}
-						if(!memcmp(buf+14, QC_TITLE, 5)) {
-							strncpy(m_header, buf+27, MAX_STRING);
-							if(currslot<0) {
-								freshhdr();wrefresh(whdr);
-							}
-						}
-						if(!memcmp(buf+14, QC_LOGIT, 5)) {
-							logit(buf+27, wlog);
-							if(currslot<0) {
-								wrefresh(wlog);
-							}
-						}
-						if(!memcmp(buf+14, QC_QUEUE, 5)) {
-							if(!len) {
-								bzero(&queue, sizeof(pque_t));
-								q_size=0;qpos=0;
-							} else {
-								memcpy(&queue[q_size], buf+27,
-									   sizeof(pque_t));
-								q_size++;
-							}
-							if(currslot<0) {								
-								freshqueue();wrefresh(wmain);
-							}
-						}
+					}
+				}
+				if(type==QC_SENDD) {
+					if(!len) {
+						bzero(&slots[rc]->s, sizeof(pfile_t));
+					} else {
+						slots[rc]->session=1;
+						sfree(slots[rc]->s.fname);
+						memcpy(&slots[rc]->s, data,
+							   sizeof(pfile_t));
+						slots[rc]->s.fname=strdup(data+sizeof(pfile_t));
+					}
+					if(currslot==rc) {								
+						freshslot();wrefresh(wmain);
+					}
+				}
+				if(type==QC_RECVD) {
+					if(!len) {
+						bzero(&slots[rc]->r, sizeof(pfile_t));
+					} else {
+						slots[rc]->session=1;
+						sfree(slots[rc]->r.fname);
+						memcpy(&slots[rc]->r, data,
+							   sizeof(pfile_t));
+						slots[rc]->r.fname=strdup(data+sizeof(pfile_t));
+					}
+					if(currslot==rc) {								
+						freshslot();wrefresh(wmain);
+					}
+				}
+						
+			} else {
+				if(type==QC_SLINE) {
+					strefresh(&m_status, data);
+					if(currslot<0) {
+						freshstatus();wrefresh(wstat);
+					}
+				}
+				if(type==QC_TITLE) {
+					strefresh(&m_header, data);
+					if(currslot<0) {
+						freshhdr();wrefresh(whdr);
+					}
+				}
+				if(type==QC_LOGIT) {
+					logit(data, wlog);
+					if(currslot<0) {
+						wrefresh(wlog);
+					}
+				}
+				if(type==QC_QUEUE) {
+					if(!len) {
+						bzero(&queue, sizeof(pque_t));
+						q_size=0;qpos=0;
+					} else {
+						memcpy(&queue[q_size], data,
+							   sizeof(pque_t));
+						q_size++;
+					}
+					if(currslot<0) {								
+						freshqueue();wrefresh(wmain);
 					}
 				}
 			}
@@ -555,38 +593,33 @@ int main(int argc, char **argv)
 				currslot=ch;
 				freshall();
 			}
-		} else switch(ch) {
-		case '\t':
-			if(allslots) {
-				currslot++;
-				if(currslot==allslots) currslot=-1;
-				freshall();
+		} else {
+			switch(ch) {
+			case '\t':
+				if(allslots) {
+					currslot++;
+					if(currslot==allslots) currslot=-1;
+					freshall();
+				}
+				break;
+			case 'q':
+			case KEY_F(10):
+				quitflag=1;break;
 			}
-			break;
-		case 'q':
-		case KEY_F(10):
-			quitflag=1;break;
-		case KEY_UP:
-			if(currslot<0) {
+			if(currslot<0) switch(ch) {
+			case KEY_UP:
 				if(qpos>0) qpos--;
 				freshqueue();wrefresh(wmain);
-			}
-			break;
-		case KEY_DOWN:
-			if(currslot<0) {
+				break;
+			case KEY_DOWN:
 				if(qpos+MH<=q_size) qpos++;
 				freshqueue();wrefresh(wmain);
+				break;
 			}
-			break;
 		}
 	}
 	donescreen();
-	close(sock);
-	p = (char *) malloc(strlen(Q_SOCKET) + 1);
-	strcpy(p,Q_SOCKET);
-	remove (p);
-	free(p);
-	unlink(Q_SOCKET);
 	
+	msgctl(qipc_msg, IPC_RMID, 0);
 	return 0;
 }

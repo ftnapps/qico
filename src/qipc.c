@@ -2,56 +2,73 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: qipc.c,v 1.2 2000/10/12 19:13:17 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <stdarg.h>
-#ifdef FREE_BSD
- #include <libutil.h>
-#endif
+#include <errno.h>
 #include "ftn.h"
 #include "qipc.h"
 #include "mailer.h"
 #include "qcconst.h"
 #include "globals.h"
+#ifdef FREE_BSD
+#include <libutil.h>
+#endif
 
-#ifdef MORDA 
+#ifdef MORDA
 
-int qc_sock=-1, qc_slen, qc_clen;
-struct sockaddr_un qc_serv, qc_clnt;
+int qipc_msg;
+key_t qipc_key;
 
-int qipc_init(int sock)
+int qipc_init()
 {
-	qc_sock=socket(AF_UNIX, SOCK_DGRAM, 0);
-	if(qc_sock<0) return 0;
-	bzero(&qc_serv, sizeof(qc_serv));
-	qc_serv.sun_family=AF_UNIX;
-	strcpy(qc_serv.sun_path, Q_SOCKET);
-	bzero(&qc_clnt, sizeof(qc_clnt));
-	qc_clnt.sun_family=AF_UNIX;
-	strcpy(qc_clnt.sun_path, "/tmp/qico.XXXXXX");
-	mktemp(qc_clnt.sun_path);
-	unlink(qc_clnt.sun_path);
-	qc_clen = sizeof(qc_clnt.sun_family) + strlen(qc_clnt.sun_path) + 1;
-	qc_slen = sizeof(qc_serv.sun_family) + strlen(qc_serv.sun_path) + 1;
-	if(bind(qc_sock, (struct sockaddr *)&qc_clnt, qc_clen)<0)
-		return 0;
-  
-	log_callback=vlogs;
+  	log_callback=vlogs;
+	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) return 0;
+	qipc_msg=msgget(qipc_key, 0666);
 	return 1;
 }
 
 void qipc_done()
 {
 	log_callback=NULL;
-	close(qc_sock);
-	unlink(qc_clnt.sun_path);
+/* 	msgctl(qipc_msg, IPC_RMID, 0); */
 }
+
+void qsendpkt(char what, char *line, char *buff, int len)
+{
+	int rc;
+	char buf[MSG_BUFFER];
+	if(qipc_msg<0) {
+		qipc_msg=msgget(qipc_key, 0666);
+		if(qipc_msg<0) return;
+		else {
+			if(rnode) {
+				if(rnode->starttime)
+					qemsisend(rnode);
+				else qsendqueue();
+			} else
+				qsendqueue();
+		}
+	}
+	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
+	*((int *)buf)=1;
+	*((int *)buf+1)=len;
+	*((int *)buf+2)=getpid();
+	buf[12]=what;
+	strncpy(buf+13,line,8);
+	memcpy(buf+13+strlen(line)+1, buff, len);
+	rc=msgsnd(qipc_msg, buf, 13+strlen(line)+1+len, IPC_NOWAIT);
+	if(rc<0 && errno==EIDRM) {
+		qipc_msg=-1;
+	}		
+}	
+
 
 void vlogs(char *str)
 {
@@ -69,19 +86,6 @@ void vlog(char *str, ...)
 	qsendpkt(QC_LOGIT, QLNAME, lin, strlen(lin)+1);
 }
 
-void qsendpkt(char *what, char *line, char *buff, int len)
-{
-	char buf[MSG_BUFFER];
-	int crc;
-	
-	if(qc_sock<0) return;
-	crc=crc16(buff, len);
-	sprintf(buf, "%s%04x%04x%5s%-8s",QC_SIGN,len,crc,what,line);	
-	memcpy(buf+27, buff, len);
-	len=sendto(qc_sock, buf, len+27, 0, (struct sockaddr *)&qc_serv,
-			   qc_slen);
-}	
-
 void sline(char *str, ...)
 {
 	va_list args;
@@ -93,36 +97,26 @@ void sline(char *str, ...)
 	qsendpkt(QC_SLINE, QLNAME, lin, strlen(lin)+1);
 }
 
-void vidle()
+void qemsisend(ninfo_t *e)
 {
-	qsendpkt(QC_LIDLE, QLNAME, "", 0); 
-}
-
-void qlerase()
-{
-	qsendpkt(QC_ERASE, QLNAME, "", 0); 
-}
-
-void qemsisend(ninfo_t *e, int sec, int lst)
-{
-	pemsi_t pe;
+	char buf[MSG_BUFFER], *p=buf;
 	falist_t *a;
-	int l=0;
-	strcpy(pe.name, e->name);
-	strcpy(pe.sysop, e->sysop);
-	strcpy(pe.city, e->place);
-	strcpy(pe.flags, e->flags);
-	strcpy(pe.phone, e->phone);
-	pe.speed=e->speed;
-	pe.addrs[0]=0;
+	*((int *)p++)=e->speed;
+	*((int *)p++)=e->options;
+	*((int *)p++)=e->starttime;
+	strncpy(p, e->name, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	strncpy(p, e->sysop, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	strncpy(p, e->place, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	strncpy(p, e->flags, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	strncpy(p, e->phone, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	*p=0;
 	for(a=e->addrs;a;a=a->next) {
-		l+=strlen(ftnaddrtoa(&a->addr))+1;
-		if(l>sizeof(pe.addrs)) break;
-		strcat(pe.addrs, ftnaddrtoa(&a->addr));
-		strcat(pe.addrs, " ");
+		if(p+strlen(ftnaddrtoa(&a->addr))+1>buf+MSG_BUFFER) break;
+		strcat(p, ftnaddrtoa(&a->addr));
+		strcat(p, " ");
 	}
-	pe.secure=sec;pe.listed=lst;
-	qsendpkt(QC_EMSID, QLNAME, (char *) &pe, sizeof(pe));
+	p+=strlen(p)+1;
+	qsendpkt(QC_EMSID, QLNAME, (char *) buf, p-buf);
 }
 
 void qpreset(int snd)
@@ -132,20 +126,6 @@ void qpreset(int snd)
 	qsendpkt(snd?QC_SENDD:QC_RECVD, QLNAME, "", 0);
 }
 
-void qereset()
-{
-	pemsi_t pe;
-	bzero(&pe, sizeof(pe));
-	qsendpkt(QC_EMSID, QLNAME, "", 0);
-}
-
-void qqreset()
-{
-	pemsi_t pq;
-	bzero(&pq, sizeof(pq));
-	qsendpkt(QC_QUEUE, QLNAME, "", 0);
-}
-	
 void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags)
 {
 	pque_t pq;
@@ -154,6 +134,17 @@ void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags)
 	pq.flags=flags;pq.try=try;
 	qsendpkt(QC_QUEUE, QLNAME, (char *)&pq, sizeof(pque_t));
 }
+
+void qpproto(char type, pfile_t *pf)
+{
+	char buf[MSG_BUFFER], *p=buf;
+	memcpy(p, pf, sizeof(pfile_t));
+	p+=sizeof(pfile_t);
+	strncpy(p, pf->fname, MSG_BUFFER-sizeof(pfile_t));
+	p+=strlen(p)+1;
+	qsendpkt(type, QLNAME, buf, p-buf);
+}
+
 #else
 
 int qipc_init(int socket) {return 1;}	
@@ -161,13 +152,9 @@ void qipc_done() {}
 void vlogs(char *str) {}	
 void vlog(char *str, ...) {}	
 void sline(char *str, ...) {}	
-void vidle() {}	
 void qsendpkt(char *what, char *line, char *buff, int len) {}	
-void qereset() {}	
 void qpreset(int snd) {}
 void qemsisend(ninfo_t *e, int sec, int lst) {}
-void qlerase() {}
-void qqreset() {}
 void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags) {}
 
 #endif

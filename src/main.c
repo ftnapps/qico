@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.8 2000/10/07 14:43:13 lev Exp $
+ * $Id: main.c,v 1.9 2000/10/12 19:13:16 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -18,6 +18,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <fcntl.h>
 #include "ftn.h"
 #include "ver.h"
@@ -35,6 +37,7 @@
 
 char *configname=CONFIG;
 subst_t *psubsts;
+int qipcr_msg;
 
 void usage(char *ex)
 {
@@ -142,6 +145,7 @@ void daemon_mode()
 	sts_t sts;
 	pid_t chld;
 	qitem_t *current=q_queue, *i;
+	key_t qipcr_key;
 
 	if(getppid()!=1) {
 		signal(SIGTTOU, SIG_IGN);
@@ -167,9 +171,19 @@ void daemon_mode()
 	signal(SIGCHLD, sigchild);
 	signal(SIGHUP, sighup);
 	
-	if(!lockpid(cfgs(CFG_PIDFILE))) {
-		log("another daemon exists or can't create pid file!");
-		stopit(1);
+	if(cfgs(CFG_PIDFILE)) {
+		if(!lockpid(ccs)) {
+			log("another daemon exists or can't create pid file!");
+			exit(1);
+		}
+	}
+	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
+		log("can't get key");
+		exit(1);
+	}
+	if((qipcr_msg=msgget(qipcr_key, cfgi(CFG_IPCPERM) | IPC_CREAT | IPC_EXCL))<0) {
+		log("can't create message queue (may be another daemon is running?)");
+		exit(1);
 	}
 
 	log("%s-%s/%s daemon started",progname,version,osname);
