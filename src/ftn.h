@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.9 2004/01/10 09:24:40 sisoft Exp $ */
+/* $Id: ftn.h,v 1.10 2004/01/12 21:41:56 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -134,6 +134,12 @@ typedef struct _subst {
 #define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)  
 #define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=/*b.d?xstrdup(b.d):*/NULL;}
 
+#define MAX(a,b) ((a>b)?a:b)
+#define MIN(a,b) ((a<b)?a:b)
+#define C0(c) ((c>=32)?c:'.')
+#define SIZES(x) (((x)<1024)?(x):((x)/1024))
+#define SIZEC(x) (((x)<1024)?'b':'k')
+
 typedef struct {
 	UINT16 phONode,
 		phDNode,
@@ -228,6 +234,7 @@ extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
 extern int xfnmatch(char *pattern,char *name,int flags);
+extern int runtoss;
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
@@ -315,12 +322,12 @@ extern void chatlog_done();
 extern int facilities_levels[256];
 extern void parse_log_levels();
 extern void write_debug_log(unsigned char facility, int level, char *fmt, ...);
-#	ifdef __GNUC__
-#		define DEBUG(all)	 __DEBUG all
-#		define __DEBUG(F,L,A...)	do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
-#	else
-#		define DEBUG(all)	 write_debug_log all
-#	endif
+#ifdef __GNUC__
+#	define DEBUG(all)	 __DEBUG all
+#	define __DEBUG(F,L,A...)	do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
+#else
+#	define DEBUG(all)	 write_debug_log all
+#endif
 #else
 #	define DEBUG(all)
 #endif
@@ -331,15 +338,6 @@ extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
-
-#define MAX(a,b) ((a>b)?a:b)
-#define MIN(a,b) ((a<b)?a:b)
-
-#define C0(c) ((c>=32)?c:'.')
-
-#define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define SIZEC(x) (((x)<1024)?'b':'k')
-
 extern int fexist(char *s);
 extern char *fnc(char *s);
 extern int whattype(char *fn);
@@ -348,11 +346,19 @@ extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
 extern char *qver(int what);
 extern int istic(char *fn);
-
+/* call.c */
+extern int hangup();
+extern int stat_collect();
+int do_call(ftnaddr_t *fa, char *phone, char *port);
 /* gmtoff.c */
 extern time_t gmtoff(time_t tt,int mode);
-
 /* main.c */
 extern void to_dev_null();
+extern void sigerr(int sig);
+extern char *configname;
+extern subst_t *psubsts;
+extern void stopit(int rc);
+/* daemon.c */
+extern void daemon_mode();
 
 #endif

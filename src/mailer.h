@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.6 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: mailer.h,v 1.7 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -60,25 +60,22 @@ typedef struct _flist_t {
 	int type;
 } flist_t;
 
-int (*receive_callback)(char *fn);
-
-int zmodem_receive(char *m, int canzap);
-int zmodem_send(slist_t *, slist_t *);
-int zmodem_sendfile(char *tosend, char *sendas,
+extern int zmodem_receive(char *m, int canzap);
+extern int zmodem_send(slist_t *, slist_t *);
+extern int zmodem_sendfile(char *tosend, char *sendas,
 					unsigned long *totalleft, unsigned long
 					*filesleft);
-int zmodem_sendinit(int canzap);
-int zmodem_senddone();
-int session(int mode, int type, ftnaddr_t *calladdr, int speed);
-int do_call(ftnaddr_t *fa, char *phone, char *port);
-int compile_nodelists();
-int tcp_call(char *host, ftnaddr_t *fa);
+extern int zmodem_sendinit(int canzap);
+extern int zmodem_senddone();
+extern int session(int mode, int type, ftnaddr_t *calladdr, int speed);
+extern int binkpsession(int mode,ftnaddr_t *remaddr);
+extern int compile_nodelists();
+extern int tcp_call(char *host, ftnaddr_t *fa);
 
-int execsh(char *cmd);
-int execnowait(char *cmd,char *p1,char *p2,char *p3);
+extern int execsh(char *cmd);
+extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
 
 /* emsi.c */
-extern int (*receive_callback)(char *fn);
 extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 						  unsigned long files, int lopt, char *protos,
 						  falist_t *adrs, int showpwd);
@@ -149,6 +146,7 @@ extern byte txlastc;
 #define BUFCLEAR() tty_bufclear()
 
 /* session.c */
+extern int (*receive_callback)(char *fn);
 extern void makeflist(flist_t **fl, ftnaddr_t *fa,int mode);
 extern void flkill(flist_t **l, int rc);
 
@@ -170,8 +168,8 @@ extern long chattimer;
 extern void getevt();
 
 /* md5.c */
-void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
-void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
+extern void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
+extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
                   int challenge_length,unsigned char *digest);
 
 

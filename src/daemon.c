@@ -1,21 +1,17 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.1 2004/01/10 09:26:21 sisoft Exp $
+ * $Id: daemon.c,v 1.2 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
 #include "byteop.h"
 #include "tty.h"
+#include "clserv.h"
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-extern void sigerr(int sig);
-extern char *configname;
-extern subst_t *psubsts;
-extern void stopit(int rc);
-
-int qipcr_msg,force=IPC_EXCL;
+/**/int qipcr_msg,force=IPC_EXCL;
 
 void sigchild(int sig)
 {
@@ -84,8 +80,7 @@ void sendxpkt(int wait,char what,pid_t pid,char *fmt,va_list args)
 	/* to be replaced with some emulation vsnprintf!!! */
 	rc=vsprintf(buf+5,fmt,args);
 #endif	
-//	cls_send(buf,rc+6,CLS_U,wait?CLS_WAIT:CLS_NOWAIT);
-	msgsnd(qipcr_msg,buf,rc+6,wait?0:IPC_NOWAIT);
+/**/	msgsnd(qipcr_msg,buf,rc+6,wait?0:IPC_NOWAIT);
 }
 
 void sendrpkt(char what,pid_t pid,char *fmt,...)
@@ -116,89 +111,54 @@ void daemon_mode()
 	time_t t;
 	ftnaddr_t fa;
 	slist_t *sl;
-
-	key_t qipcr_key;
-
-//	struct sockaddr_in *sa;
-//	fd_set rfds,efds;
-
+/**/	key_t qipcr_key;
 	if(cfgs(CFG_ROOTDIR)&&*ccs)chdir(ccs);
 	if(getppid()!=1) {
 		signal(SIGTTOU,SIG_IGN);
 		signal(SIGTTIN,SIG_IGN);
 		signal(SIGTSTP,SIG_IGN);
 		if((rc=fork())>0) {
-//			cls_done();
 			exit(0);
 		}
 		if(rc<0) {
 			write_log("can't spawn daemon!");
-//			cls_done();
 			exit(1);
 		}
 	}
-//	cls_done();
 	signal(SIGINT,sigerr);	
 	signal(SIGTERM,sigerr);
 	signal(SIGFPE,sigerr);
 	signal(SIGCHLD,sigchild);
 	signal(SIGHUP,sighup);
-//	cls_init(CLS_I);
 	if(cfgs(CFG_PIDFILE)) {
 		if(!lockpid(ccs)) {
 			write_log("another daemon exists or can't create pid file!");
-//			cls_done();
 			exit(1);
 		}
 	}
-//	if(cls_init(CLS_S)) {
-//		write_log("cls_init_server error");
-//		cls_done();
+
+//	lins_sock=cls_conn(CLS_SERV_L);
+//	if(lins_sock<0) {
+//		write_log("can't create server_udp: %s",str_error(errno));
 //		exit(1);
 //	}
-/*	sa.sin_family=AF_INET;
-	sa.sin_port=htons(60178);
-	sa.sin_addr.s_addr=INADDR_ANY;
-	lins_sock=socket(AF_INET,SOCK_DGRAM,0);
-	if(lins_sock<0) {
-		write_log("can't create server/udp socket: %s",strerror(errno));
-		exit(1);
-	}
-	f=fcntl(lins_sock,F_GETFL,0);
-	if(f>=0)fcntl(lins_sock,F_SETFL,x|O_NONBLOCK);
-	if(bind(lins_sock,(struct sockaddr*)&sa,sizeof(sa))<0) {
-		write_log("can't bind server/udp socket: %s",strerror(errno));
-		exit(1);
-	}
-	sa.sin_addr.s_addr=INADDR_ANY;
-	uis_sock=socket(AF_INET,SOCK_STREAM,0);
-	if(uis_sock<0) {
-		write_log("can't create server/tcp socket: %s",strerror(errno));
-		exit(1);
-	}
-	f=fcntl(uis_sock,F_GETFL,0);
-	if(f>=0)fcntl(uis_sock,F_SETFL,x|O_NONBLOCK);
-	if(bind(uis_sock,(struct sockaddr*)&sa,sizeof(sa))<0) {
-		write_log("can't bind server/tcp socket: %s",strerror(errno));
-		exit(1);
-	}
-	if(listen(uis_sock,4)<0) {
-		write_log("can't listen server socket: %s",strerror(errno));
-		exit(1);
-	}
-	log_callback=vlogs_s;*/
+//	uis_sock=cls_conn(CLS_SERV_U);
+//	if(uis_sock<0) {
+//		write_log("can't create server_tcp: %s",str_error(errno));
+//		shutd(lins_sock);
+//		exit(1);
+//	}
 
+//	log_callback=vlogs_s;
 
-
-	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
-		write_log("can't get key");
-		exit(1);
-	}
-	if((qipcr_msg=msgget(qipcr_key,cfgi(CFG_IPCPERM)|IPC_CREAT|force))<0) {
-		write_log("can't create message queue (may be another daemon is running?)");
-		exit(1);
-	}
-
+/**/	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
+/**/		write_log("can't get key");
+/**/		exit(1);
+/**/	}
+/**/	if((qipcr_msg=msgget(qipcr_key,cfgi(CFG_IPCPERM)|IPC_CREAT|force))<0) {
+/**/		write_log("can't create message queue (may be another daemon is running?)");
+/**/		exit(1);
+/**/	}
 
 	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)
 		write_log("can't init BSO");
@@ -206,16 +166,12 @@ void daemon_mode()
 		write_log("can't init ASO");
 	if(is_bso()!=1&&is_aso()!=1) {
 		write_log("No outbound defined");
-//		cls_done();
-//		if(lins_sock>=0){shutdown(lins_sock,3);close(lins_sock);}
-//		if(uis_sock>=0){shutdown(uis_sock,3);close(uis_sock);}
+//		cls_shutd(lins_sock);cls_shutd(uis_sock);
 		exit(1);
 	} 
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		write_log("can't open master log %s!", ccs);
-//		cls_done();
-//		if(lins_sock>=0){shutdown(lins_sock,3);close(lins_sock);}
-//		if(uis_sock>=0){shutdown(uis_sock,3);close(uis_sock);}
+		write_log("can't open master log %s!",ccs);
+//		cls_shutd(lins_sock);cls_shutd(uis_sock);
 		exit(1);
 	}
 	to_dev_null();
@@ -225,9 +181,9 @@ void daemon_mode()
 	srand(time(NULL));rnum=-1;
 	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 	while(1) {
-		rescanperiod = cfgi(CFG_RESCANPERIOD);
-		title("Queue manager [%d]", rescanperiod-t_rescan);
-		if(t_rescan>=rescanperiod || do_rescan) {
+		rescanperiod=cfgi(CFG_RESCANPERIOD);
+		title("Queue manager [%d]",rescanperiod-t_rescan);
+		if(t_rescan>=rescanperiod||do_rescan) {
 			sline("Rescanning outbound...");
 			if(rnum<0)rnum=cfgi(CFG_LONGRESCAN)-1;
 			do_rescan=0;
@@ -275,8 +231,7 @@ void daemon_mode()
 					}
 					
 				}
- 
-				if(falist_find(cfgal(CFG_ADDRESS),&current->addr)||
+ 				if(falist_find(cfgal(CFG_ADDRESS),&current->addr)||
 					f&Q_UNDIAL||!havestatus(f,CFG_CALLONFLAVORS)||
 					needhold(f,w)||(mailonly&&!current->pkts)) {
 					    current=current->next;
@@ -325,24 +280,15 @@ void daemon_mode()
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(cfgi(CFG_TRANSLATESUBST)==1&&!is_ip)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
-						log_done();//ssock=uis_sock=lins_sock=-1;
+						log_done();ssock=uis_sock=lins_sock=-1;
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
 						}
-//						if(cls_init(CLS_L)) {
-//							write_log("cls_init error");
-//							exit(1);
-//						}
-//						sa.sin_family=AF_INET;
-//						sa.sin_port=htons(60178);
-//						rc=socket(AF_INET,SOCK_DGRAM,0);
-//					    	if(rc<0)write_log("can't create socket");
-//						    else {
-//							inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
-//							if(connect(rc,(struct sockaddr*)&sa,ss)<0)write_log("can't connect to server");
-//							    else {log_callback=vlogs;ssock=rc;}
-//						}
+
+//						ssock=cls_conn(CLS_LINE);
+//						if(ssock<0)write_log("can't connect to server: %s",str_error(errno));
+//						    else log_callback=vlogs;
 
 						if(is_ip)rc=tcp_call(rnode->host,&current->addr);
 						    else {
@@ -450,7 +396,7 @@ void daemon_mode()
 							case S_REDIAL:							
 								if(!(rc&S_ADDTRY))break;
 								if(is_bso()==1) {
-									bso_getstatus(&current->addr, &sts);
+									bso_getstatus(&current->addr,&sts);
 									if(++sts.try>=cfgi(CFG_MAX_FAILS)) {
 										sts.flags|=Q_UNDIAL;
 										sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
@@ -460,10 +406,10 @@ void daemon_mode()
 										sts.flags|=Q_WAITA;
 										sts.htime=t_set(cfgi(CFG_FAILS_HOLD_TIME)*60);
 									}
-									bso_setstatus(&current->addr, &sts);
+									bso_setstatus(&current->addr,&sts);
 								}
 								if(is_aso()==1) {
-									aso_getstatus(&current->addr, &sts);
+									aso_getstatus(&current->addr,&sts);
 									if(++sts.try>=cfgi(CFG_MAX_FAILS)) {
 										sts.flags|=Q_UNDIAL;
 										sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
@@ -473,15 +419,14 @@ void daemon_mode()
 										sts.flags|=Q_WAITA;
 										sts.htime=t_set(cfgi(CFG_FAILS_HOLD_TIME)*60);
 									}
-									aso_setstatus(&current->addr, &sts);
+									aso_setstatus(&current->addr,&sts);
 								}
 								break;
 						}
 						if(is_bso()==1)bso_unlocknode(&current->addr,LCK_x);
 						if(is_aso()==1)aso_unlocknode(&current->addr,LCK_x);
 						vidle();log_done();
-//						cls_done();
-//						if(ssock>=0)close(ssock);
+//						cls_close(ssock);
 						exit(rc);
 					}
 					if(chld<0) write_log("can't fork() caller!");
@@ -498,34 +443,34 @@ nlkil:				is_ip=0;bink=0;
 		t=time(NULL);
 		while((time(NULL)-t)<1) {
 			if((time(NULL)-t)<0)t=time(NULL);
-//			rc=cls_recv(buf,MSG_BUFFER-1,CLS_U,CLS_NOWAIT);
-//			FD_ZERO(&rfds);FD_ZERO(&efds);
-//			FD_SET(lins_sock,&rfds);
-//			FD_SET(lins_sock,&efds);
-//			FD_SET(uis_sock,&rfds);
-//			FD_SET(uis_sock,&efds);
-//			uis=ui_clients;
-//			rc=MAX(lins_sock,uis_sock);
-//			while(uis) {
-//				rc=MAX(rc,uis->sock);
-//				FD_SET(uis->sock,&rfds);
-//				FD_SET(uis->sock,&efds);
-//				uis=uis->next;
-//			}
-//			tv.tv_sec=0;
-//			tv.tv_usec=200;
-//			rc=select(rc+1,&rfds,NULL,&efds,&tv);
-//			if(rc>0) {
-//				if(FD_ISSET(rfds,lins_sock)) {
-//					rc=recv(lins_sock,buf,MSG_BUFFER-1,0);
-//				}
-				
-			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
-			if(rc<=0) {
-				struct timeval tv = {0,200};
-				select(0,NULL,NULL,NULL,&tv);
-			} else
 
+/*			rc=cls_recv(buf,MSG_BUFFER-1,CLS_U,CLS_NOWAIT);
+			FD_ZERO(&rfds);FD_ZERO(&efds);
+			FD_SET(lins_sock,&rfds);
+			FD_SET(lins_sock,&efds);
+			FD_SET(uis_sock,&rfds);
+			FD_SET(uis_sock,&efds);
+			uis=ui_clients;
+			rc=MAX(lins_sock,uis_sock);
+			while(uis) {
+				rc=MAX(rc,uis->sock);
+				FD_SET(uis->sock,&rfds);
+				FD_SET(uis->sock,&efds);
+				uis=uis->next;
+			}
+			tv.tv_sec=0;
+			tv.tv_usec=200;
+			rc=select(rc+1,&rfds,NULL,&efds,&tv);
+			if(rc>0) {
+				if(FD_ISSET(rfds,lins_sock)) {
+					rc=recv(lins_sock,buf,MSG_BUFFER-1,0);
+				}*/
+
+/**/			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
+/**/			if(rc<=0) {
+/**/				struct timeval tv = {0,200};
+/**/				select(0,NULL,NULL,NULL,&tv);
+/**/			} else
 
 			if(rc>=5) {
 				chld=*((int *)buf+1);
@@ -543,7 +488,7 @@ nlkil:				is_ip=0;bink=0;
 				case QR_QUIT:
 					sendrpkt(0,chld,"");
 
-					msgctl(qipcr_msg, IPC_RMID, 0);
+/**/					msgctl(qipcr_msg,IPC_RMID,0);
 
 					if(is_bso()==1)bso_done();
 					if(is_aso()==1)aso_done();
@@ -553,10 +498,9 @@ nlkil:				is_ip=0;bink=0;
 					log_done();
 					qqreset();sline("");title("");
 					qsendpkt(QC_QUIT,QLNAME,"",1);
-					qipc_done();
-//					cls_done();
-//					if(lins_sock>=0){shutdown(lins_sock,3);close(lins_sock);}
-//					if(uis_sock>=0){shutdown(uis_sock,3);close(uis_sock);}
+/**/					qipc_done();
+//					cls_shutd(lins_sock);
+//					cls_shutd(uis_sock);
 					exit(0);
 				case QR_CONF:
 					write_log("trying to reread configs by request...");
@@ -607,7 +551,7 @@ nlkil:				is_ip=0;bink=0;
 						if(is_bso()==1) {
 							rc=bso_poll(&fa,rc);
 							bso_unlocknode(&fa,LCK_t);
-							bso_getstatus(&fa, &sts);
+							bso_getstatus(&fa,&sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
 								write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
@@ -617,7 +561,7 @@ nlkil:				is_ip=0;bink=0;
 						if(is_aso()==1) {
 							if(is_bso()!=1)rc=aso_poll(&fa,rc);
 							aso_unlocknode(&fa,LCK_t);
-							aso_getstatus(&fa, &sts);
+							aso_getstatus(&fa,&sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
 								if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
@@ -629,14 +573,13 @@ nlkil:				is_ip=0;bink=0;
 						write_log("can't create poll for %s!",ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't create poll for %s",ftnaddrtoa(&fa));
 					}
-				    }
-				    break;
+				    } break;
 				case QR_KILL: {
 					int locked=0;
 					if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
 					if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 					if(locked) {
-						write_log("kill %s", ftnaddrtoa(&fa));
+						write_log("kill %s",ftnaddrtoa(&fa));
 						sendrpkt(0,chld,"");
 						simulate_send(&fa);
 						if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
@@ -646,8 +589,7 @@ nlkil:				is_ip=0;bink=0;
 						write_log("can't kill %s!",ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't kill %s",ftnaddrtoa(&fa));
 					}
-				    }
-				    break;
+				    } break;
 				case QR_STS:
 					p=buf+10+strlen(buf+9);
 					rc=1;res=0;set=0;
@@ -669,24 +611,24 @@ nlkil:				is_ip=0;bink=0;
 					}
 					if(rc) {
 						if(is_bso()==1) {
-							bso_getstatus(&fa, &sts);
+							bso_getstatus(&fa,&sts);
 							sts.flags|=set;sts.flags&=~res;p++;
 							if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
 							    else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));
 							if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
 							if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
 							if(res&Q_UNDIAL) sts.try=0;
-							bso_setstatus(&fa, &sts);
+							bso_setstatus(&fa,&sts);
 						}
 						if(is_aso()==1) {
-							aso_getstatus(&fa, &sts);
+							aso_getstatus(&fa,&sts);
 							sts.flags|=set;sts.flags&=~res;p++;
 							if(is_bso()!=1){if(rc!=2)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
 								else write_log("hold %s for %d min (new status: [%s])",ftnaddrtoa(&fa),*(unsigned*)p,sts_str(sts.flags));}
 							if(set&Q_WAITA&&!(res&Q_ANYWAIT))sts.htime=t_set((rc==2?*(unsigned*)p:cfgi(CFG_WAITHRQ))*60);
 							if(set&Q_UNDIAL) sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
 							if(res&Q_UNDIAL) sts.try=0;
-							aso_setstatus(&fa, &sts);
+							aso_setstatus(&fa,&sts);
 						}
 						sendrpkt(0,chld,"");
 						do_rescan=1;
@@ -706,12 +648,12 @@ nlkil:				is_ip=0;bink=0;
 							p+=strlen(p)+1;
 						}
 						sendrpkt(0,chld,"");
-						if(is_bso()==1)rc=bso_request(&fa, sl);
-						else if(is_aso()==1)rc=aso_request(&fa, sl);
+						if(is_bso()==1)rc=bso_request(&fa,sl);
+						else if(is_aso()==1)rc=aso_request(&fa,sl);
 						slist_kill(&sl);
 						if(is_bso()==1) {
 							bso_unlocknode(&fa,LCK_t);
-							bso_getstatus(&fa, &sts);
+							bso_getstatus(&fa,&sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
 								write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
@@ -720,7 +662,7 @@ nlkil:				is_ip=0;bink=0;
 						}
 						if(is_aso()==1) {
 							aso_unlocknode(&fa,LCK_t);
-							aso_getstatus(&fa, &sts);
+							aso_getstatus(&fa,&sts);
 							if(sts.flags&Q_IMM) {
 								sts.flags&=~Q_IMM;
 								if(is_bso()!=1)write_log("changing status of %s to [%s]",ftnaddrtoa(&fa),sts_str(sts.flags));
@@ -732,8 +674,7 @@ nlkil:				is_ip=0;bink=0;
 						write_log("can't lock node %s!",ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
 					}
-				    }
-				    break;
+				    } break;
 				case QR_SEND: {
 					int locked=0;
 					p=buf+9+strlen(buf+9)+1;
@@ -767,41 +708,40 @@ nlkil:				is_ip=0;bink=0;
 						write_log("can't lock node %s!",ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
 					}
-				    }
-				    break;
+				    } break;
 				case QR_INFO:
 					rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
 					switch(rc) {
-					case 0:
+					    case 0:
 						if(rnode) {
-							write_log("returned info about %s (%s)",rnode->name, ftnaddrtoa(&fa));
-							sendrpkt(0, chld, "%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
-									 ftnaddrtoa(&fa), 0,
-									 rnode->name, 0, rnode->place, 0,
-									 rnode->sysop, 0, rnode->phone, 0,
-									 rnode->flags, 0, rnode->speed, 0
+							write_log("returned info about %s (%s)",rnode->name,ftnaddrtoa(&fa));
+							sendrpkt(0,chld,"%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
+									 ftnaddrtoa(&fa),0,
+									 rnode->name,0,rnode->place,0,
+									 rnode->sysop,0,rnode->phone,0,
+									 rnode->flags,0,rnode->speed,0
 								);
 							nlkill(&rnode);
 						} else {
 							write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
-							sendrpkt(1, chld, "%s not found in nodelist!",ftnaddrtoa(&fa));
+							sendrpkt(1,chld,"%s not found in nodelist!",ftnaddrtoa(&fa));
 						}
 						break;
-					case 1:
+					    case 1:
 						write_log("can't query nodelist, index error");
-						sendrpkt(1, chld, "can't query nodelist, index error");
+						sendrpkt(1,chld,"can't query nodelist, index error");
 						break;
-					case 2:
+					    case 2:
 						write_log("can't query nodelist, nodelist error");
-						sendrpkt(1, chld, "can't query nodelist, nodelist error");
+						sendrpkt(1,chld,"can't query nodelist, nodelist error");
 						break;
-					case 3:
+					    case 3:
 						write_log("index is older than the list, need recompile");
-						sendrpkt(1, chld, "index is older than the list, need recompile");
+						sendrpkt(1,chld,"index is older than the list, need recompile");
 						break;
-					default:
+					    default:
 						write_log("nodelist query error!");
-						sendrpkt(1, chld, "nodelist query error!");
+						sendrpkt(1,chld,"nodelist query error!");
 						break;
 					}
 					break;
@@ -819,7 +759,7 @@ nlkil:				is_ip=0;bink=0;
 					sendrpktwait(0,chld,"%c",0);
 					break;
 				default:
-					write_log("got unsupported packet type: %c", C0(buf[8]));
+					write_log("got unsupported packet type: %c",C0(buf[8]));
 				}
 			}
 		}

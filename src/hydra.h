@@ -4,11 +4,10 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.h,v 1.3 2004/01/10 09:24:40 sisoft Exp $ */
+/* $Id: hydra.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
 #ifndef __HYDRA_H__
 #define __HYDRA_H__
 #include "mailer.h"
-
 
 enum boolean { false, true };
 typedef int boolean;
@@ -137,15 +136,12 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define HTXI_OPTIONS  (0x0L)
 
 /* HYDRA Prototypes */
-void hydra_init (dword want_options, boolean originator, int hmod, int rxwin, int txwin);
-void hydra_deinit (void);
-int  hydra_file   (char *txpathname, char *txalias);
-boolean hydra_devfree (void);
-boolean hydra_devsend (char *dev, byte *data, word len);
-boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
-
-/* end of hydra.h */
-
+extern void hydra_init (dword want_options, boolean originator, int hmod, int rxwin, int txwin);
+extern void hydra_deinit (void);
+extern int  hydra_file   (char *txpathname, char *txalias);
+extern boolean hydra_devfree (void);
+extern boolean hydra_devsend (char *dev, byte *data, word len);
+extern boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
 extern boolean hdxsession;
 
 #endif

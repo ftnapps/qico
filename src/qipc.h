@@ -1,4 +1,7 @@
-/* $Id: qipc.h,v 1.3 2004/01/10 09:24:40 sisoft Exp $ */
+/* $Id: qipc.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
+
+/*must be removed*/
+
 #ifndef __QIPC_H__
 #define __QIPC_H__
 #include "mailer.h"

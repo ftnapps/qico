@@ -1,7 +1,10 @@
 /**********************************************************
  * SysV ipc transfer for work qcc
- * $Id: qipc.c,v 1.4 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: qipc.c,v 1.5 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
+
+/*must be removed*/
+
 #include "headers.h"
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -76,7 +79,7 @@ int qrecvpkt(char *str)
 	}
 	rc=msgrcv(qipc_msg,str,MSG_BUFFER-1,getpid(),IPC_NOWAIT);
 	if(rc<5||!str[8])return 0;
-//	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]);
+/*	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]); */
 	return 1;
 }
 

@@ -1,20 +1,15 @@
-/**********************************************************
- * File: xmem.h
- * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
- * 
- * $Id: xmem.h,v 1.4 2001/03/20 19:52:08 lev Exp $
- **********************************************************/
+/* $Id: xmem.h,v 1.3 2004/01/12 21:41:56 sisoft Exp $ */
 #ifndef __XMEM_H__
 #define __XMEM_H__
 
-void *xmalloc(size_t size);
-void *xcalloc(size_t number, size_t size);
-void *xrealloc(void *ptr, size_t size);
-char *xstrdup(char *str);
+extern void *xmalloc(size_t size);
+extern void *xcalloc(size_t number, size_t size);
+extern void *xrealloc(void *ptr, size_t size);
+extern char *xstrdup(char *str);
 #define xfree(p) do { if(p) free(p); p = NULL; } while(0)
 
 
-char *restrcpy(char **dst, char *src);
-char *restrcat(char **dst, char *src);
+extern char *restrcpy(char **dst, char *src);
+extern char *restrcat(char **dst, char *src);
 
 #endif
