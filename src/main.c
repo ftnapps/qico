@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.18 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: main.c,v 1.19 2004/02/11 12:44:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -20,6 +20,8 @@
 #include "byteop.h"
 #include "clserv.h"
 #include "tty.h"
+
+char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 
 static void usage(char *ex)
 {
@@ -61,7 +63,6 @@ void stopit(int rc)
 
 RETSIGTYPE sigerr(int sig)
 {
-	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig,SIG_DFL);
 	if(BSO)bso_done();
 	if(ASO)aso_done();

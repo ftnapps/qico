@@ -1,3 +1,10 @@
+2004-02-10 15:08  sisoft
+
+	* Changes, TODO, src/freq.c, src/queue.c:
+
+	fix boxes queue scan.
+	fix freqs.
+	
 2004-02-09 04:05  sisoft
 
 	* Changes, configure.in, qico.conf.sample, src/aso.c, src/binkp.c,
