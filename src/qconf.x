@@ -1,4 +1,4 @@
-protorder,C_STR,char *,0,"RHZ1"
+protorder,C_STR,char *,0,"JHZ1"
 mailonly,C_STR,char *,0,NULL
 zmh,C_STR,char *,0,NULL
 freqtime,C_STR,char *,0,NULL
