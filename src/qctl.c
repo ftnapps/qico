@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.14 2001/03/20 19:53:15 lev Exp $
+ * $Id: qctl.c,v 1.15 2001/04/07 09:26:43 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -262,11 +262,16 @@ int main(int argc, char *argv[])
 		}
 		return getanswer();
 	case QR_STS:
-		xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-		len=strlen(argv[optind])+10;
-		xstrcpy(buf+len, str, MSG_BUFFER-len);
-		msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);
-		return getanswer();
+		if(optind<argc) {
+			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
+			len=strlen(argv[optind])+10;
+			xstrcpy(buf+len, str, MSG_BUFFER-len);
+			msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);
+			return getanswer();
+		} else {
+			usage(argv[0]);
+			return 1;
+		}
 	case QR_REQ:
 		for(str=buf+9;optind<argc;optind++) {
 			xstrcpy(str, argv[optind], MSG_BUFFER-(str-(char*)buf));
