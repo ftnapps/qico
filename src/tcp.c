@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.5 2000/11/26 13:26:42 lev Exp $
+ * $Id: tcp.c,v 1.6 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -77,7 +77,9 @@ int opentcp(char *name)
 
 void closetcp(void)
 {
+#ifdef HAVE_SHUTDOWN	
   shutdown(0,2);
+#endif  
   signal(SIGPIPE,SIG_DFL);
 }
 

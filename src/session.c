@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.18 2001/02/16 10:43:41 aaz Exp $
+ * $Id: session.c,v 1.19 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -643,7 +643,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		}
 	}
 	while(--freq_pktcount) {
-		sprintf(s,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);
+		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
 		if(fexist(s)) lunlink(s);
 	}
 	if(cfgs(CFG_AFTERSESSION)) {

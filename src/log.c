@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.9 2001/02/16 11:36:02 aaz Exp $
+ * $Id: log.c,v 1.10 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -91,10 +91,15 @@ void write_log(char *fmt, ...)
 	
 	tt=time(NULL);t=localtime(&tt);
 	strftime(str, 20, "%d %b %y %H:%M:%S", t);
-	sprintf(str+18, " %s[%d]: ", log_tty?log_tty:"", getpid());
+	sprintf(str+18, " %s[%ld]: ", log_tty?log_tty:"", (long)getpid());
 	va_start(args, fmt);
 	p=str+strlen(str);
+#ifdef HAVE_VSNPRINTF
 	vsnprintf(p, MAX_STRING-1, fmt, args);
+#else
+	/* to be replaced with some emulation vsnprintf!!! */
+	vsprintf(p, fmt, args);
+#endif	
 	va_end(args);
 	if(log_callback) log_callback(str);
 	switch(log_type) {

@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.22 2001/02/16 10:43:41 aaz Exp $
+ * $Id: ftn.c,v 1.23 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -224,13 +224,13 @@ unsigned long filesize(char *fname)
 
 int lockpid(char *pidfn)
 {
-	FILE *f;pid_t pid;
+	FILE *f;long pid;
 	char tmpname[MAX_PATH], *p;
 	int rc;
 
 	f=fopen(pidfn, "rt");
 	if(f) {
-		fscanf(f, "%d", &pid);
+		fscanf(f, "%ld", &pid);
 		fclose(f);
 		if(kill(pid, 0)&&(errno==ESRCH)) unlink(pidfn);
 		else return 0;
@@ -239,9 +239,9 @@ int lockpid(char *pidfn)
 #ifndef LOCKSTYLE_OPEN
 	strcpy(tmpname, pidfn);
 	p=strrchr(tmpname, '/');if(!p) p=tmpname;
-	sprintf(tmpname+(p-tmpname), "/QTEMP.%d", getpid());
+	sprintf(tmpname+(p-tmpname), "/QTEMP.%ld", (long)getpid());
 	if ((f=fopen(tmpname,"w")) == NULL) return 0;
-	fprintf(f,"%10d\n",getpid());
+	fprintf(f,"%10ld\n",(long)getpid());
 	fclose(f);
 	rc=link(tmpname,pidfn);
 	unlink(tmpname);
@@ -249,7 +249,7 @@ int lockpid(char *pidfn)
 #else
 	rc=open(pidfn,O_WRONLY|O_CREAT|O_EXCL,0644);
 	if(rc<0) return 0;
-	sprintf(tmpname,"%10d\n",getpid());
+	sprintf(tmpname,"%10ld\n",(long)getpid());
 	write(rc,tmpname,strlen(tmpname));
 	close(rc);
 #endif
@@ -258,11 +258,11 @@ int lockpid(char *pidfn)
 	
 int islocked(char *pidfn)
 {
-	FILE *f;pid_t pid;
+	FILE *f;long pid;
 
 	f=fopen(pidfn, "rt");
 	if(f) {
-		fscanf(f, "%d", &pid);
+		fscanf(f, "%ld", &pid);
 		fclose(f);
 		if(kill(pid, 0)&&(errno==ESRCH)) unlink(pidfn);
 		else return pid;
@@ -444,14 +444,6 @@ char *xstrcat(char **to, char *from)
 	strcat(*to, from);
 	return *to;
 }
-
-#ifndef HAS_BASENAME
-char *basename (const char *filename)
-{
-  char *p = strrchr (filename, '/');
-  return p ? p + 1 : (char *) filename;
-}                                                                               
-#endif
 
 int fexist(char *s)
 {

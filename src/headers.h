@@ -2,7 +2,7 @@
  * File: headers.h
  * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.2 2001/02/15 20:31:45 lev Exp $
+ * $Id: headers.h,v 1.3 2001/02/16 14:45:56 aaz Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,6 +34,8 @@
 #	endif
 #endif
 
+
+#include "replace.h"
 #include "types.h"
 #include "ftn.h"
 #include "qcconst.h"
