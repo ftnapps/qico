@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.7 2003/10/05 17:48:57 sisoft Exp $
+ * $Id: qcc.c,v 1.8 2003/10/08 01:26:48 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -1404,12 +1404,12 @@ int main(int argc,char **argv)
 				break;
 			case 'h':
 				strncpy(buf+9,slots[currslot]->tty,16);
-				if(!(slots[currslot]->opt&3/*MO_IFC|MO_BINKP*/))
+				if(!(slots[currslot]->opt&(MO_IFC|MO_BINKP)))
 					ipccmd(buf,QR_HANGUP,strlen(buf+9)+10);
 				ipccmdslot(buf,QR_HANGUP,9);
 				break;
 			case 'c':
-				if((slots[currslot]->opt&4/*MO_CHAT*/)&&slots[currslot]->session) {
+				if((slots[currslot]->opt&MO_CHAT)&&slots[currslot]->session) {
 					buf[9]=5;
 					ipccmdslot(buf,QR_CHAT,10);
 				} else xbeep();

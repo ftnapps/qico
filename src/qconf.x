@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.8 2003/09/23 12:55:54 sisoft Exp $
+#* $Id: qconf.x,v 1.9 2003/10/08 01:26:48 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -95,6 +95,7 @@ pollflavor,C_STR,char *,0,"N"
 port,C_STRL,slist_t *,1,NULL
 progname,C_STR,char *,0,NULL
 protorder,C_STR,char *,0,"JHZ1C"
+proxy,C_STR,char *,0,NULL
 qstoutbound,C_PATH,char *,0,NULL
 realmincps,C_YESNO,int,0,"yes"
 recodetable,C_PATH,char *,0,NULL

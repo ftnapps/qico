@@ -1,6 +1,6 @@
 /**********************************************************
  * for exchange with qcc
- * $Id: qcconst.h,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: qcconst.h,v 1.4 2003/10/08 01:26:48 sisoft Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -18,6 +18,10 @@ typedef struct {
 #include "opts.h"
 
 #define MSG_BUFFER 2048
+
+#define MO_IFC		1
+#define MO_BINKP	2
+#define MO_CHAT		4
 
 #define Q_CHARS		"NHDCIRUdrxw"
 #define Q_COLORS	{7,3,1,2,2,7,4,7,6,6,6}
