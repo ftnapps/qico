@@ -1,9 +1,9 @@
 /**********************************************************
  * common definitions
- * $Id: defs.h,v 1.4 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: defs.h,v 1.5 2004/02/19 23:36:39 sisoft Exp $
  **********************************************************/
-#ifndef __CONSTQWE_H__
-#define __CONSTQWE_H__
+#ifndef __DEFS_H__
+#define __DEFS_H__
 
 #define TRUE	1
 #define FALSE	0

@@ -1,3 +1,9 @@
+2004-02-17 14:23  sisoft
+
+	* src/: call.c, emsi.c, flagexp.y, flaglex.l:
+
+	try to fix emsi.
+	
 2004-02-15 04:22  sisoft
 
 	* Changes, qico.conf.sample, src/config.c, src/flagexp.y,

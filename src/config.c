@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.8 2004/02/15 01:22:25 sisoft Exp $
+ * $Id: config.c,v 1.9 2004/02/19 23:36:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -9,144 +9,143 @@ extern int flagexp(char *expr,int strict);
 static slist_t *condlist=NULL;
 static char *curcond=NULL;
 
-static int getstr(char **to, char *from)
+static int getstr(char **to,char *from)
 {
 	*to=xstrdup(from);
 	return 1;
 }
 
-static int getpath(char **to, char *from)
+static int getpath(char **to,char *from)
 {
-	if(strcspn(from, "*[]?<>|")!=strlen(from)) return 0;
-	if(from[strlen(from)-1]=='/') chop(from,1);
+	if(strcspn(from,"*[]?<>|")!=strlen(from))return 0;
+	if(from[strlen(from)-1]=='/')chop(from,1);
    	*to=xstrdup(from);
 	return 1;
 }
 
-static int getlong(int *to, char *from)
+static int getlong(int *to,char *from)
 {
-	if(strspn(from, "0123456789 \t")!=strlen(from)) return 0;
-	*to=atol(from);return 1;
+	if(strspn(from,"0123456789 \t")!=strlen(from))return 0;
+	*to=atol(from);
+	return 1;
 }
 
-static int getoct(int *to, char *from)
+static int getoct(int *to,char *from)
 {
-	if(strspn(from, "01234567 \t")!=strlen(from)) return 0;
-	*to=strtol(from, (char **)NULL, 8);return 1;
+	if(strspn(from,"01234567 \t")!=strlen(from))return 0;
+	*to=strtol(from,(char**)NULL,8);
+	return 1;
 }
 
-static int getaddrl(falist_t **to, char *from)
+static int getaddrl(falist_t **to,char *from)
 {
 	ftnaddr_t ta;
-	if(!parseftnaddr(from, &ta, &DEFADDR, 0)) return 0;
-	if(!DEFADDR.z) {
-		DEFADDR.z=ta.z;DEFADDR.n=ta.n;
-	}
-	falist_add(to, &ta);
+	if(!parseftnaddr(from,&ta,&DEFADDR,0))return 0;
+	if(!DEFADDR.z) {DEFADDR.z=ta.z;DEFADDR.n=ta.n;}
+	falist_add(to,&ta);
 	return 1;
 }
 
-static int getfasl(faslist_t **to, char *from)
+static int getfasl(faslist_t **to,char *from)
 {
-	ftnaddr_t ta;char *p;
-	if(!parseftnaddr(from, &ta, &DEFADDR, 0)) return 0;
-	if(!DEFADDR.z) {
-		DEFADDR.z=ta.z;DEFADDR.n=ta.n;
-	}
-	p=strchr(from, ' ');if(!p) return 0;
-	while(*p==' ') p++;
-	faslist_add(to, p, &ta);
+	char *p;
+	ftnaddr_t ta;
+	if(!parseftnaddr(from,&ta,&DEFADDR,0)) return 0;
+	if(!DEFADDR.z) {DEFADDR.z=ta.z;DEFADDR.n=ta.n;}
+	p=strchr(from,' ');if(!p)return 0;
+	while(*p==' ')p++;
+	faslist_add(to,p,&ta);
 	return 1;
 }
 
-static int getyesno(int *to, char *from)
+static int getyesno(int *to,char *from)
 {
-	if(tolower(*from)=='y' || *from=='1' || tolower(*from)=='t') *to=1;
-	else *to=0;
+	if(tolower(*from)=='y'||*from=='1'||tolower(*from)=='t')*to=1;
+	    else *to=0;
 	return 1;
 }
 
-static int getstrl(slist_t **to, char *from)
+static int getstrl(slist_t **to,char *from)
 {
-	slist_add(to, from);
+	slist_add(to,from);
 	return 1;
 }
 
-static int setvalue(cfgitem_t *ci, char *t, int type)
+static int setvalue(cfgitem_t *ci,char *t,int type)
 {
 	switch(type) {
-	case C_STR:     return getstr(&ci->value.v_char, t);
-	case C_PATH:    return getpath(&ci->value.v_char, t);
-	case C_STRL:    return getstrl(&ci->value.v_sl, t);
-	case C_ADRSTRL: return getfasl(&ci->value.v_fasl, t);
-	case C_ADDRL:   return getaddrl(&ci->value.v_al, t);
-	case C_INT:     return getlong(&ci->value.v_int, t);
-	case C_OCT:     return getoct(&ci->value.v_int, t);
-	case C_YESNO:   return getyesno(&ci->value.v_int, t);
+	case C_STR:	return getstr(&ci->value.v_char,t);
+	case C_PATH:	return getpath(&ci->value.v_char,t);
+	case C_STRL:	return getstrl(&ci->value.v_sl,t);
+	case C_ADRSTRL:	return getfasl(&ci->value.v_fasl,t);
+	case C_ADDRL:	return getaddrl(&ci->value.v_al,t);
+	case C_INT:	return getlong(&ci->value.v_int,t);
+	case C_OCT:	return getoct(&ci->value.v_int,t);
+	case C_YESNO:	return getyesno(&ci->value.v_int,t);
 	}
 	return 0;
 }
 
 int cfgi(int i)
 {
-	cfgitem_t *ci, *cn=((void *)0);
+	cfgitem_t *ci,*cn=((void*)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition,0)==1)
-			return  cci=ci->value.v_int;
-		if(!ci->condition) cn=ci;
+		if(ci->condition&&flagexp(ci->condition,0)==1)
+			return cci=ci->value.v_int;
+		if(!ci->condition)cn=ci;
 	}
-	return  cci =cn->value. v_int;
+	return cci=cn->value.v_int;
 }
 
 char *cfgs(int i)
 {
-	cfgitem_t *ci, *cn=((void *)0);
+	cfgitem_t *ci,*cn=((void*)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition,0))
-			return  ccs=ci->value.v_char;
-		if(!ci->condition) cn=ci;
+		if(ci->condition&&flagexp(ci->condition,0))
+			return ccs=ci->value.v_char;
+		if(!ci->condition)cn=ci;
 	}
-	return  ccs=cn->value.v_char;
+	return ccs=cn->value.v_char;
 }
 slist_t *cfgsl(int i)
 {
-	cfgitem_t *ci, *cn=((void *)0);
+	cfgitem_t *ci,*cn=((void*)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition,0))
-			return ccsl =ci->value.v_sl;
-		if(!ci->condition) cn=ci;
+		if(ci->condition&&flagexp(ci->condition,0))
+			return ccsl=ci->value.v_sl;
+		if(!ci->condition)cn=ci;
 	}
 	return ccsl=cn->value.v_sl;
 }
 
 faslist_t *cfgfasl(int i)
 {
-	cfgitem_t *ci, *cn=((void *)0);
+	cfgitem_t *ci,*cn=((void*)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition,0))
+		if(ci->condition&&flagexp(ci->condition,0))
 			return ccfasl=ci->value.v_fasl;
-		if(!ci->condition) cn=ci;
+		if(!ci->condition)cn=ci;
 	}
 	return ccfasl=cn->value.v_fasl;
 }
 
 falist_t *cfgal(int i)
 {
-	cfgitem_t *ci, *cn=((void *)0);
+	cfgitem_t *ci,*cn=((void*)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition,0))
-			return ccal =ci->value.v_al;
-		if(!ci->condition) cn=ci;
+		if(ci->condition&&flagexp(ci->condition,0))
+			return ccal=ci->value.v_al;
+		if(!ci->condition)cn=ci;
 	}
-	return ccal =cn->value.v_al;
+	return ccal=cn->value.v_al;
 }
 
 int readconfig(char *cfgname)
 {
-	int rc, i;
+	int rc,i;
 	cfgitem_t *ci;
 	rc=parseconfig(cfgname);
-	if(!rc) return 0;
+	if(!rc)return 0;
 	for(i=0;i<CFG_NNN;i++) {
 		if(!configtab[i].found) {
 			if(configtab[i].required) {
@@ -154,13 +153,11 @@ int readconfig(char *cfgname)
 						configtab[i].keyword);
 				rc=0;
 			} else {
-				ci=xcalloc(1, sizeof(cfgitem_t));
+				ci=xcalloc(1,sizeof(cfgitem_t));
 				if(configtab[i].def_val)
-					setvalue(ci,configtab[i].def_val ,
-							 configtab[i].type);
-				else
-					memset(&ci->value, 0, sizeof(ci->value));
-				ci->condition=NULL;configtab[i].found=1;
+				    setvalue(ci,configtab[i].def_val,configtab[i].type);
+				else memset(&ci->value,0,sizeof(ci->value));
+				ci->condition=NULL;
 				ci->next=NULL;
 				configtab[i].items=ci;
 			}
@@ -169,79 +166,108 @@ int readconfig(char *cfgname)
 	return rc;
 }
 
+int parsekeyword(char *kw,char *arg,int line)
+{
+	int i=0,rc=1;
+	cfgitem_t *ci;
+	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
+	DEBUG(('C',2,"parse: '%s', '%s' [%d] on line %d",kw,arg,i,line));
+	if(configtab[i].keyword) {
+		for(ci=configtab[i].items;ci;ci=ci->next)
+			if(ci->condition==curcond)break;
+		if(!ci) {
+			ci=xcalloc(1,sizeof(cfgitem_t));
+			ci->condition=curcond;
+			ci->next=configtab[i].items;
+			configtab[i].items=ci;
+		}
+		if(setvalue(ci,arg,configtab[i].type)) {
+			if(!curcond)configtab[i].found=1;
+		} else {
+			xfree(ci);
+			write_log("line %d: can't parse '%s %s'",line,kw,arg);
+			rc=0;
+		}
+	} else {
+		write_log("line %d: unknown keyword '%s'",line,kw);
+		rc=0;
+	}
+	return rc;
+}
+
 int parseconfig(char *cfgname)
 {
 	FILE *f;
-	char s[MAX_STRING], *p, *t, *k;
-	int i,line=0,rc=1;
+	char s[MAX_STRING],*p,*t,*k;
+	int line=0,rc=1;
 	slist_t *cc;
-	cfgitem_t *ci;
 	f=fopen(cfgname, "rt");
 	if(!f) {
 		fprintf(stderr,"can't open config '%s': %s\n",cfgname,strerror(errno));
 		return 0;
 	}
 	curcond=NULL;
-	while(fgets(s, MAX_STRING, f)) {
-		line++;
-		p=s;strtr(p, '\t', ' ');
-		while(*p==' ') p++;
-		if(*p && *p!='#' && *p!='\n' && *p!=';') {
-			t=strchr(p, ' ');
-			if(!t) t=strchr(p, '\n');
-			if(!t) t=strchr(p, '\r');
-			if(!t) t=strchr(p, 0);
+	while(fgets(s,MAX_STRING,f)) {
+		line++;p=s;
+		strtr(p,'\t',' ');
+		while(*p==' ')p++;
+		if(*p&&*p!='#'&&*p!='\n'&&*p!=';') {
+			t=strchr(p,' ');
+			if(!t)t=strchr(p,'\n');
+			if(!t)t=strchr(p,'\r');
+			if(!t)t=strchr(p,0);
 			*t=0;t++;
-			while(*t==' ') t++;
-			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--) *k=0;
-			i=0;
-			if(!strcasecmp(p, "include")) {
+			while(*t==' ')t++;
+			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
+			if(!strcasecmp(p,"include")) {
 				if(!strncmp(cfgname,t,MAX_STRING)) {
-					write_log("%d: include itself -> infinity loop",line);
+					write_log("line %d: include itself -> infinity loop",line);
 					rc=0;
 				} else if(!parseconfig(t)) {
-					write_log("%d: was errors parsing included file %s",line, p);
+					write_log("line %d: was errors parsing included file '%s'",line,p);
 					rc=0;
 				}
-			} else if(!strcasecmp(p, "if"))	{
-				if(curcond)write_log("%d: warn: 'if' without 'endif' for previous 'if'!",line);
+			} else if(!strcasecmp(p,"if"))	{
+				if(curcond)write_log("line %d: warn: 'if' without 'endif' for previous 'if'!",line);
+				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
+				if(*k==':') {
+					*k++=0;
+					if(*(k-2)==' ')*(k-2)=0;
+					while(*k==' ')k++;
+					for(p=k;*p&&*p!=' ';p++);
+					*p++=0;
+					while(*p==' ')p++;
+					if(!*p) {
+						write_log("line %d: inline if-expression witout keyword");
+						rc=0;k=NULL;
+					}
+				} else k=NULL;
 				if(flagexp(t,1)<0) {
-					write_log("%d: can't parse expression '%s'",line,t);
+					write_log("line %d: can't parse expression '%s'",line,t);
 					rc=0;
 				} else {
-					cc=slist_add(&condlist, t);
+					cc=slist_add(&condlist,t);
 					curcond=cc->str;
 				}
-			} else if(!strcasecmp(p, "endif")) {
+				if(k&&curcond) {
+					rc=parsekeyword(k,p,line);
+					curcond=NULL;
+				}
+			} else if(!strcasecmp(p,"else")) {
 				if(!curcond) {
-					write_log("%d: misplaced 'endif' without 'if'!", line);
+					write_log("line %d: misplaced 'else' without 'if'!",line);
+					rc=0;
+				} else {
+					snprintf(s,MAX_STRING,"! ( %s )",curcond);
+					cc=slist_add(&condlist,s);
+					curcond=cc->str;
+				}
+			} else if(!strcasecmp(p,"endif")) {
+				if(!curcond) {
+					write_log("line %d: misplaced 'endif' without 'if'!",line);
 					rc=0;
 				} else curcond=NULL;
-			} else {
-				while(configtab[i].keyword && strcasecmp(configtab[i].keyword, p))
-					i++;
-				if(configtab[i].keyword) {
-					for(ci=configtab[i].items;ci;ci=ci->next)
-						if(ci->condition==curcond) break;
-					if(!ci) {
-						ci=xcalloc(1, sizeof(cfgitem_t));
-						ci->condition=curcond;
-						ci->next=configtab[i].items;
-						configtab[i].items=ci;
-					}
-					if(setvalue(ci, t, configtab[i].type)) {
-						if(!curcond) configtab[i].found=1;
-					} else {
-						xfree(ci);
-						write_log("%d: can't parse '%s %s'",  line, p, t);
-						rc=0;
-					}
-				} else {
-					write_log("%d: unknown keyword '%s'", line, p);
-					rc=0;
-				}
-			}
-
+			} else rc=parsekeyword(p,t,line);
 		}
 	}
 	fclose(f);
@@ -252,44 +278,45 @@ int parseconfig(char *cfgname)
 #ifdef NEED_DEBUG
 void dumpconfig()
 {
+	int i;
 	char buf[MAX_STRING];
 	cfgitem_t *c;
-	int i;
 	slist_t *sl;
 	falist_t *al;
 	faslist_t *fasl;
-
 	for(i=0;i<CFG_NNN;i++) {
-		write_log("*** %s, type %d, required %d, found %d",
+		write_log("conf: %s, type=%d, need=%d, found=%d",
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
-			snprintf(buf,MAX_STRING,"  when '%s': ", c->condition);
+			xstrcpy(buf,"conf:   ",MAX_STRING);
+			if(c->condition)snprintf(buf+8,MAX_STRING,"if %s: ",c->condition);
+			    else xstrcat(buf,"default: ",MAX_STRING);
 			switch(configtab[i].type) {
-			case C_PATH:
-			case C_STR:
-				snprintf(buf,MAX_STRING,"%s'%s'", buf,c->value.v_char);break;
-			case C_STRL:
+			    case C_PATH:
+			    case C_STR:
+				snprintf(buf+strlen(buf),MAX_STRING,"'%s'",c->value.v_char);break;
+			    case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
-					snprintf(buf,MAX_STRING,"%s'%s',",buf,sl->str);
-				snprintf(buf,MAX_STRING,"%s%%",buf);
+					snprintf(buf+strlen(buf),MAX_STRING,"'%s', ",sl->str);
+				xstrcat(buf,"%",MAX_STRING);
 				break;
-			case C_ADRSTRL:
+			    case C_ADRSTRL:
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					snprintf(buf,MAX_STRING,"%s%s '%s',",buf,ftnaddrtoa(&fasl->addr), fasl->str);
-				snprintf(buf,MAX_STRING,"%s%%",buf);
+					snprintf(buf+strlen(buf),MAX_STRING,"%s '%s', ",ftnaddrtoa(&fasl->addr), fasl->str);
+				xstrcat(buf,"%",MAX_STRING);
 				break;
-			case C_ADDRL:
+			    case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					snprintf(buf,MAX_STRING,"%s%s,",buf,ftnaddrtoa(&al->addr));
-				snprintf(buf,MAX_STRING,"%s%%",buf);
+					snprintf(buf+strlen(buf),MAX_STRING,"%s, ",ftnaddrtoa(&al->addr));
+				xstrcat(buf,"%",MAX_STRING);
 				break;
-			case C_INT:     snprintf(buf,MAX_STRING,"%s%d", buf, c->value.v_int);break;
-			case C_OCT:     snprintf(buf,MAX_STRING,"%s%o", buf, c->value.v_int);break;
-			case C_YESNO:   snprintf(buf,MAX_STRING,"%s%s", buf, c->value.v_int?"yes":"no");break;
+			    case C_INT:     snprintf(buf+strlen(buf),MAX_STRING,"%d",c->value.v_int);break;
+			    case C_OCT:     snprintf(buf+strlen(buf),MAX_STRING,"%o",c->value.v_int);break;
+			    case C_YESNO:   snprintf(buf+strlen(buf),MAX_STRING,"%s",c->value.v_int?"yes":"no");break;
 			}
+			write_log("%s",buf);
 		}
-		write_log("%s",buf);
 	}
 }
 #endif
@@ -297,30 +324,30 @@ void dumpconfig()
 void killconfig()
 {
 	int i;
-	cfgitem_t *c, *t;
+	cfgitem_t *c,*t;
 	slist_kill(&condlist);
 	for(i=0;i<CFG_NNN;i++) {
 		c=configtab[i].items;
 		while(c) {
 			t=c->next;
 			switch(configtab[i].type) {
-			case C_PATH:
-			case C_STR:
-				if(c->value.v_char) xfree(c->value.v_char);
+			    case C_PATH:
+			    case C_STR:
+				if(c->value.v_char)xfree(c->value.v_char);
 				else c->value.v_char=NULL;
 				break;
-			case C_STRL:
+			    case C_STRL:
 				slist_kill(&c->value.v_sl);
 				break;
-			case C_ADRSTRL:
+			    case C_ADRSTRL:
 				faslist_kill(&c->value.v_fasl);
 				break;
-			case C_ADDRL:
+			    case C_ADDRL:
 				falist_kill(&c->value.v_al);
 				break;
-			case C_OCT:
-			case C_INT:
-			case C_YESNO:
+			    case C_OCT:
+			    case C_INT:
+			    case C_YESNO:
 				c->value.v_int=0;
 				break;
 			}

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: daemon.c,v 1.16 2004/02/19 23:36:39 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -653,7 +653,7 @@ void daemon_mode()
 						log_done();ssock=uis_sock=lins_sock=-1;
 						log_callback=NULL;xsend_cb=NULL;
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-							fprintf(stderr,"can't init log %s!",ccs);
+							fprintf(stderr,"can't init log %s!\n",ccs);
 							exit(S_BUSY);
 						}
 						DEBUG(('I',4,"connecting to daemon"));
@@ -672,7 +672,7 @@ void daemon_mode()
 							rc=do_call(&current->addr,rnode->phone,port);
 						}
 						log_done();hld=0;
-						if(!log_init(cfgs(CFG_MASTERLOG),NULL))fprintf(stderr,"can't init log %s.%s!",ccs,port);
+						if(!log_init(cfgs(CFG_MASTERLOG),NULL))fprintf(stderr,"can't init log %s.%s!\n",ccs,port);
 						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
 							if(BSO) {
 								bso_getstatus(&current->addr,&sts);
