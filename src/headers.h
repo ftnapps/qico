@@ -2,7 +2,7 @@
  * File: headers.h
  * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.10 2001/05/25 18:39:57 lev Exp $
+ * $Id: headers.h,v 1.11 2001/05/25 19:16:07 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,7 +45,7 @@
 #endif
 
 #ifndef HAVE_EIDRM
-#	define EIDRM			82
+#	define EIDRM			EINVAL
 #endif
 
 #ifndef HAVE_GETSID
