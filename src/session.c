@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.15 2001/01/16 16:08:57 lev Exp $
+ * $Id: session.c,v 1.16 2001/02/02 09:07:33 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -32,7 +32,7 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 		if(rnode && rnode->options&O_HAT) return;
 		break;
 	default:
-		if(rnode && rnode->options&(O_HXT|O_HAT)) return;
+		if(rnode && rnode->options&(O_HXT|O_HAT) && rem && *rem) return;
 		break;
 	}
 	for(t=fl;*t && ((*t)->type<=type || !sort);t=&((*t)->next));
