@@ -1,6 +1,6 @@
 #############################################################################
 
-VERSION = 0.48.0
+VERSION = 0.49.0pre1
 
 # install directory
 BINDIR  = /usr/local/bin
@@ -70,5 +70,5 @@ YACC    = yacc
 #LIBS=-lutil
 
 #
-# $Id: CONFIG,v 1.8 2000/09/21 12:30:59 lev Exp $
+# $Id: CONFIG,v 1.9 2000/09/25 11:24:39 lev Exp $
 #
