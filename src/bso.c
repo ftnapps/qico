@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.18 2001/04/10 07:26:15 lev Exp $
+ * $Id: bso.c,v 1.19 2001/04/24 19:15:54 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -292,7 +292,7 @@ int bso_attach(ftnaddr_t *adr, int flv, slist_t *files)
 	slist_t *fl;
 	FILE *f;
 	bso_flon(adr,flv);
-		f=mdfopen(bso_flon(adr,flv),"at");
+	f=mdfopen(bso_flon(adr,flv),"at");
 	if(f) {
 		for(fl=files;fl;fl=fl->next) 
 			fprintf(f,"%s\n",fl->str);
