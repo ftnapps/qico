@@ -12,7 +12,8 @@ speed,C_INT,int,0,"300"
 address,C_ADDRL,falist_t *,1,NULL
 nlpath,C_PATH,char *,1,NULL
 nodelist,C_STRL,slist_t *,1,NULL
-outbound,C_PATH,char *,1,NULL
+asooutbound,C_PATH,char *,0,NULL
+bsooutbound,C_PATH,char *,0,NULL
 log,C_PATH,char *,1,NULL
 masterlog,C_PATH,char *,1,NULL
 port,C_STRL,slist_t *,1,NULL

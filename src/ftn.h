@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.31 2003/02/25 21:22:59 cyrilm Exp $
+ * $Id: ftn.h,v 1.32 2003/05/29 07:44:47 cyrilm Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -255,8 +255,30 @@ extern void killconfig(void);
 #ifdef NEED_DEBUG
 extern void dumpconfig();
 #endif
+/* aso.c */
+extern char *aso_tmp;
+extern int is_aso();
+extern int aso_init(char *asopath, int def_zone);
+extern void aso_done(void);
+extern char *aso_name(ftnaddr_t *fa);
+extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
+extern int aso_flavor(char fl);
+extern char *aso_pktn(ftnaddr_t *fa, int fl);
+extern char *aso_flon(ftnaddr_t *fa, int fl);
+extern char *aso_bsyn(ftnaddr_t *fa);
+extern char *aso_reqn(ftnaddr_t *fa);
+extern char *aso_stsn(ftnaddr_t *fa);
+extern int aso_locknode(ftnaddr_t *adr);
+extern int aso_unlocknode(ftnaddr_t *adr);
+extern int aso_attach(ftnaddr_t *adr, int flv, slist_t *files);
+extern int aso_request(ftnaddr_t *adr, slist_t *files);
+extern int aso_rmstatus(ftnaddr_t *adr);
+extern int aso_setstatus(ftnaddr_t *fa, sts_t *st);
+extern int aso_getstatus(ftnaddr_t *fa, sts_t *st);
+extern int aso_poll(ftnaddr_t *fa, int flavor);
 /* bso.c */
 extern char *bso_tmp;
+extern int is_bso();
 extern int bso_init(char *bsopath, int def_zone);
 extern void bso_done(void);
 extern char *bso_name(ftnaddr_t *fa);

@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.20 2003/01/25 18:21:42 cyrilm Exp $
+ * $Id: bso.c,v 1.21 2003/05/29 07:44:47 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -10,13 +10,26 @@
 
 char *bso_base, *bso_tmp;
 static int bso_base_len, bso_tmp_len;
-#ifndef AMIGA4D
 char *p_domain;
 int bso_defzone=2;
+
+int is_bso() {
+	if(bso_tmp != NULL) {
+		return 1;
+	} else {
+		return 0;
+	}
+
+}
 
 int bso_init(char *bsopath, int def_zone)
 {
 	char *p;
+	if(bsopath == NULL) {
+		bso_base = NULL;
+		bso_tmp = NULL;
+		return 0;
+	}
 	p=strrchr(bsopath, '/');
 	if(!p) return 0;
 	else p_domain=xstrdup(p+1);
@@ -126,75 +139,6 @@ int bso_rmstatus(ftnaddr_t *adr)
 	rmdirs(bso_tmp);
 	return 1;
 }
-
-
-#else
-
-int bso_init(char *bsopath, int def_zone)
-{
-	bso_base=xstrdup(bsopath);
-	bso_base_len = strlen(bso_base)+1;
-	bso_tmp_len = bso_base_len+50;
-	bso_tmp=xmalloc(bso_tmp_len);
-	return 1;
-}
-
-void bso_done()
-{
-	xfree(bso_base);
-	xfree(bso_tmp);
-}
-
-char *bso_name(ftnaddr_t *fa)
-{
-	snprintf(bso_tmp, bso_tmp_len, "%s/%d.%d.%d.%d.", bso_base,
-			fa->z, fa->n, fa->f, fa->p);
-	return bso_tmp;
-}
-
-
-
-int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
-{
-	struct dirent *dez;
-	char *p;
-	ftnaddr_t a;
-	DIR *dz;
-	char fn[MAX_PATH];
-
-	dz=opendir(bso_base);if(!dz) return 0;
-	while((dez=readdir(dz))) {
-		p=strrchr(dez->d_name, '.');
-		if(!p) continue;
-		*p=0;sscanf(dez->d_name, "%hd.%hd.%hd.%hd",
-					&a.z, &a.n, &a.f, &a.p);
-		snprintf(fn, MAX_PATH, "%s/%s.%s", bso_base, dez->d_name,p+1);
-		if(!strcasecmp(p+2, "lo"))
-			each(fn, &a, T_ARCMAIL, bso_flavor(p[1]));
-		if(!strcasecmp(p+2, "ut"))
-			each(fn, &a, T_NETMAIL, bso_flavor(p[1]));	
-		if(!strcasecmp(p+1, "req"))
-			each(fn, &a, T_REQ, F_REQ);	
-	}	
-		
-	closedir(dz);
-	return 1;
-}
-
-int bso_unlocknode(ftnaddr_t *adr)
-{
-	lunlink(bso_bsyn(adr));
-	return 1;
-}
-
-int bso_rmstatus(ftnaddr_t *adr)
-{
-	lunlink(bso_stsn(adr));
-	return 1;
-}
-
-
-#endif
 
 
 int bso_flavor(char fl)

@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.10 2001/05/18 20:06:40 lev Exp $
+ * $Id: queue.c,v 1.11 2003/05/29 07:44:48 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -174,26 +174,40 @@ int q_rescan(qitem_t **curr)
 {
 	sts_t sts;
 	qitem_t *q, **p;
+	int rescanned = 0;
 
 	for(q=q_queue;q;q=q->next) {
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
 	
 	qqreset();
-	if(!bso_rescan(q_each)) return 0;
+	if(is_bso() == 1) rescanned |= bso_rescan(q_each);
+	if(is_aso() == 1) rescanned |= aso_rescan(q_each);
+	if(!rescanned) return 0;
 	rescan_boxes();
 	p=&q_queue;
 	while((q=*p)) {
 		if(!q->touched) {
 			*p=q->next;if(q==*curr) *curr=*p;xfree(q);
 		} else {
-			bso_getstatus(&q->addr, &sts);
-			q->flv|=sts.flags;q->try=sts.try;
-			if(sts.htime>time(NULL))
-				q->onhold=sts.htime;
-			else
-				q->flv&=~Q_ANYWAIT;
-			qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			if(is_bso() == 1) {
+				bso_getstatus(&q->addr, &sts);
+				q->flv|=sts.flags;q->try=sts.try;
+				if(sts.htime>time(NULL))
+					q->onhold=sts.htime;
+				else
+					q->flv&=~Q_ANYWAIT;
+				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			}
+			if(is_aso() == 1) {
+				aso_getstatus(&q->addr, &sts);
+				q->flv|=sts.flags;q->try=sts.try;
+				if(sts.htime>time(NULL))
+					q->onhold=sts.htime;
+				else
+					q->flv&=~Q_ANYWAIT;
+				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+			}
 			p=&((*p)->next);
 		}
 	}
