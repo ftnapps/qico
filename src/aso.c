@@ -1,24 +1,18 @@
 /**********************************************************
- * File: aso.c
- * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * aso management
- * $Id: aso.c,v 1.1 2003/05/29 07:44:47 cyrilm Exp $
+ * $Id: aso.c,v 1.2 2003/07/23 10:45:27 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-#define STS_EXT "qst"
+char *aso_base,*aso_tmp,*aso_base_sts;
+static int aso_base_len,aso_tmp_len,aso_base_len_sts;
 
-char *aso_base, *aso_tmp;
-static int aso_base_len, aso_tmp_len;
-
-int is_aso() {
-	if(aso_tmp != NULL) {
-		return 1;
-	} else {
-		return 0;
-	}
-	
+int is_aso()
+{
+	if(aso_tmp!=NULL)return 1;
+	    else return 0;
 }
+
 int aso_init(char *asopath, int def_zone)
 {
 	if(asopath == NULL) {
@@ -27,7 +21,9 @@ int aso_init(char *asopath, int def_zone)
 		return 0;
 	}
 	aso_base=xstrdup(asopath);
+	aso_base_sts=xstrdup(cfgs(CFG_QSTOUTBOUND)?ccs:asopath);
 	aso_base_len = strlen(aso_base)+1;
+	aso_base_len_sts=strlen(aso_base_sts)+1;
 	aso_tmp_len = aso_base_len+50;
 	aso_tmp=xmalloc(aso_tmp_len);
 	return 1;
@@ -35,6 +31,7 @@ int aso_init(char *asopath, int def_zone)
 
 void aso_done()
 {
+	xfree(aso_base_sts);
 	xfree(aso_base);
 	xfree(aso_tmp);
 }
@@ -45,8 +42,6 @@ char *aso_name(ftnaddr_t *fa)
 			fa->z, fa->n, fa->f, fa->p);
 	return aso_tmp;
 }
-
-
 
 int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 {
@@ -81,11 +76,13 @@ int aso_unlocknode(ftnaddr_t *adr)
 	return 1;
 }
 
+/*
 int aso_rmstatus(ftnaddr_t *adr)
 {
 	lunlink(aso_stsn(adr));
 	return 1;
 }
+*/
 
 int aso_flavor(char fl)
 {
@@ -166,10 +163,12 @@ char *aso_reqn(ftnaddr_t *fa)
 
 char *aso_stsn(ftnaddr_t *fa)
 {
-	aso_name(fa);xstrcat(aso_tmp, STS_EXT, aso_tmp_len);
+	char *asob=aso_base;
+	aso_base=aso_base_sts;
+	aso_name(fa);aso_base=asob;
+	xstrcat(aso_tmp,"qst",aso_tmp_len);
 	return aso_tmp;
 }
-
 						
 int aso_locknode(ftnaddr_t *adr)
 {

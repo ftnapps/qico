@@ -1,9 +1,4 @@
-/**********************************************************
- * File: ftn.h
- * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: ftn.h,v 1.32 2003/05/29 07:44:47 cyrilm Exp $
- **********************************************************/
+/* $Id: ftn.h,v 1.3 2003/07/23 10:45:27 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -81,10 +76,10 @@ typedef struct _faslist_t {
 } faslist_t;
 
 typedef struct {
-    falist_t *addrs;
+	falist_t *addrs;
 	char *name, *place, *sysop, *phone, *wtime, *flags, *pwd, *mailer;
-    int options, speed, realspeed, netmail, files, haswtime, hidnum,
-		type, holded;
+	int options, speed, realspeed, netmail, files, haswtime, hidnum,
+		type, holded, chat;
 	long int time, starttime;
 	char *tty;
 } ninfo_t;
@@ -183,7 +178,7 @@ typedef struct {
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
-extern char *ftnaddrtoia(ftnaddr_t *a);
+//extern char *ftnaddrtoia(ftnaddr_t *a);
 extern void falist_add(falist_t **l, ftnaddr_t *a);
 extern void falist_kill(falist_t **l);
 extern slist_t *slist_add(slist_t **l, char *s);
@@ -193,6 +188,10 @@ extern void faslist_kill(faslist_t **l);
 extern void strlwr(char *s);
 extern void strupr(char *s);
 extern void strtr(char *s, char a, char b);
+extern unsigned char todos(unsigned char c);
+extern unsigned char tokoi(unsigned char c);
+extern void stodos(unsigned char *str);
+extern void stokoi(unsigned char *str);
 extern char *chop(char *s, int n);
 extern unsigned long filesize(char *fname);
 extern int lockpid(char *pidfn);
@@ -204,8 +203,9 @@ extern int mkdirs(char *name);
 extern void rmdirs(char *name);
 extern FILE *mdfopen(char *fn, char *pr);
 extern char *engms[];
-extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn);
+extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn,unsigned attr);
 extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
+extern void closeqpkt(FILE *f,ftnaddr_t *fa);
 #ifndef HAVE_SETPROCTITLE
 extern void setargspace(int argc, char **argv, char **envp);
 extern void setproctitle(char *str);
@@ -213,6 +213,7 @@ extern void setproctitle(char *str);
 extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
+extern int xfnmatch(char *pattern,char *name,int flags);
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
@@ -282,7 +283,7 @@ extern int is_bso();
 extern int bso_init(char *bsopath, int def_zone);
 extern void bso_done(void);
 extern char *bso_name(ftnaddr_t *fa);
-extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int));
+extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int, int),int rslow);
 extern int bso_flavor(char fl);
 extern char *bso_pktn(ftnaddr_t *fa, int fl);
 extern char *bso_flon(ftnaddr_t *fa, int fl);
@@ -301,6 +302,9 @@ extern int bso_poll(ftnaddr_t *fa, int flavor);
 extern void (*log_callback)(char *str);
 extern int log_init(char *, char *);
 extern void write_log(char *fmt, ...);
+extern int chatlog_init(char *remname,ftnaddr_t *remaddr,int side);
+extern void chatlog_write(char *text,int side);
+extern void chatlog_done();
 #ifdef NEED_DEBUG
 extern int facilities_levels[256];
 extern void parse_log_levels();
@@ -318,7 +322,7 @@ extern void log_done(void);
 /* queue.c */
 extern qitem_t *q_queue;
 extern qitem_t *q_find(ftnaddr_t *fa);
-extern int q_rescan(qitem_t **curr);
+extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
 
@@ -335,9 +339,11 @@ extern int whattype(char *fn);
 extern int lunlink(char *s);
 extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
+extern char *qver(int what);
+extern int istic(char *fn);
 
 /* gmtoff.c */
-extern time_t gmtoff(time_t tt);
+extern time_t gmtoff(time_t tt,int mode);
 
 /* main.c */
 extern void to_dev_null();
