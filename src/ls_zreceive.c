@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.12 2001/03/10 19:50:18 lev Exp $
+ * $Id: ls_zreceive.c,v 1.13 2001/03/20 15:02:36 lev Exp $
  **********************************************************/
 /*
 
@@ -311,6 +311,7 @@ int ls_zdonereceiver()
 	int hlen;
 	int retransmit = 1;
 	DEBUG(('Z',1,"ls_zdonereceiver"));
+	xfree(rxbuf);
 	do {
 		if (retransmit) {
 			ls_storelong(ls_txHdr,0);

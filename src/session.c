@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.21 2001/03/17 10:20:03 lev Exp $
+ * $Id: session.c,v 1.22 2001/03/20 15:02:37 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -39,12 +39,12 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 		break;
 	}
 	for(t=fl;*t && ((*t)->type<=type || !sort);t=&((*t)->next));
-	q=(flist_t *)malloc(sizeof(flist_t));
+	q=(flist_t *)xmalloc(sizeof(flist_t));
 	q->next=*t;*t=q;
 	q->kill=kill;q->loff=off;
 	if(rnode && (rnode->options&O_FNC) && rem) {
-	    q->sendas=strdup(fnc(rem));
-	    sfree(rem);
+	    q->sendas=xstrdup(fnc(rem));
+	    xfree(rem);
 	} else q->sendas=rem;
 	q->lo=lo;q->tosend=loc;
 	q->type=type;
@@ -86,14 +86,14 @@ void floflist(flist_t **fl, char *flon)
 					}
 				}
 				if(map && strchr(map, 'S')) strtr(p,'\\','/');
-				fp=strdup(p);l=strrchr(fp, '/');if(l) l++;else l=fp;
+				fp=xstrdup(p);l=strrchr(fp, '/');if(l) l++;else l=fp;
 				if(map && strchr(map, 'U')) strupr(l);
 				if(map && strchr(map, 'L')) strlwr(l);
 				
 				fn=strrchr(p, '/');if(fn) fn++;else fn=p;
 				mapname(fn, map);
 				
-				addflist(fl, fp, strdup(fn), str[0], off, f, 1);
+				addflist(fl, fp, xstrdup(fn), str[0], off, f, 1);
 				
 				if(!stat(fp,&sb)) {
 					totalf+=sb.st_size;totaln++;
@@ -101,7 +101,7 @@ void floflist(flist_t **fl, char *flon)
 			}		
 			off=ftell(f);
 		}
-		addflist(fl, strdup(flon), NULL, '^', -1, f, 1);
+		addflist(fl, xstrdup(flon), NULL, '^', -1, f, 1);
 	}
 }
 
@@ -115,14 +115,14 @@ int boxflist(flist_t **fl, char *path)
 	if(!d) return 0;
 	else {
 		while((de=readdir(d))) {
-			p=malloc(strlen(path)+2+strlen(de->d_name));
+			p=xmalloc(strlen(path)+2+strlen(de->d_name));
 			sprintf(p,"%s/%s", path, de->d_name);
 			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
 				addflist(fl, p,
-						 strdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
+						 xstrdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
 						 '^', 0, NULL, 1);
 				totalf+=sb.st_size;totaln++;
-			} else sfree(p);
+			} else xfree(p);
 		}
 		closedir(d);
 	}
@@ -140,13 +140,13 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			sprintf(str, "%08lx.pkt", sequencer());
-			addflist(fl, strdup(bso_tmp), strdup(str), '^', 0, NULL, 1);
+			addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 1);
 			totalm+=sb.st_size;totaln++;
 		}
 	
 	if(!stat(bso_reqn(fa), &sb)) {
 		sprintf(str, "%04x%04x.req", fa->n, fa->f);
-		addflist(fl, strdup(bso_tmp), strdup(str), ' ', 0, NULL, 1);
+		addflist(fl, xstrdup(bso_tmp), xstrdup(str), ' ', 0, NULL, 1);
 		totalf+=sb.st_size;totaln++;
 	}
 	
@@ -192,7 +192,7 @@ void flexecute(flist_t *fl)
 			}
 			fseek(fl->lo, fl->loff, SEEK_SET);
 			fwrite(&cmt, 1, 1, fl->lo);
-			sfree(fl->sendas);
+			xfree(fl->sendas);
 		}
  	} else if(fl->sendas) {
 		switch(fl->kill) {
@@ -204,7 +204,7 @@ void flexecute(flist_t *fl)
 			else write_log("can't truncate %s!", fl->tosend);
 			break;
 		}
-		sfree(fl->sendas);
+		xfree(fl->sendas);
 	}
 }
 
@@ -220,10 +220,10 @@ void flkill(flist_t **l, int rc)
 			fclose((*l)->lo);
 		}
 		if((*l)->type==IS_REQ && rc && !(*l)->sendas) lunlink((*l)->tosend);
-		sfree((*l)->sendas);
-		sfree((*l)->tosend);
+		xfree((*l)->sendas);
+		xfree((*l)->tosend);
 		t=(*l)->next;
-		sfree(*l);*l=t;
+		xfree(*l);*l=t;
 	}	
 }
 
@@ -392,7 +392,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		}
 		mydat=emsi_makedat(calladdr, totalm, totalf, O_PUA,
 						   cfgs(CFG_PROTORDER), NULL, 1);
-		rc=emsi_send(mode, mydat);sfree(mydat);
+		rc=emsi_send(mode, mydat);xfree(mydat);
 		if(rc<0) return S_REDIAL;
 		rc=emsi_recv(mode, rnode);
 		if(rc<0) return S_REDIAL;
@@ -480,7 +480,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		if(!pr[0]) emsi_lo|=P_NCP;
 		mydat=emsi_makedat(&rnode->addrs->addr, totalm, totalf, emsi_lo,
 						   pr, NULL, !(emsi_lo&O_BAD));
-		rc=emsi_send(0, mydat);sfree(mydat);
+		rc=emsi_send(0, mydat);xfree(mydat);
 		if(rc<0) {
 			flkill(&fl,0);
 			return S_REDIAL;

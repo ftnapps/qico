@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.9 2001/03/10 19:50:17 lev Exp $
+ * $Id: freq.c,v 1.10 2001/03/20 15:02:35 lev Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -54,7 +54,7 @@ int freq_ifextrp(slist_t *reqs)
 		p=strrchr(s,' ');
 		if(p) *p++=0;else p=s;
 		DEBUG(('S',1,"sending '%s' as '%s'", s, p));
-		addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL,0);
+		addflist(&fl, xstrdup(s), xstrdup((p!=s)?p:basename(s)), ' ',0,NULL,0);
 		got=1;
 	}
 	fclose(f);lunlink(fn);
@@ -83,9 +83,9 @@ int freq_ifextrp(slist_t *reqs)
 			cfgs(CFG_VERSION)  == NULL ? version  :	cfgs(CFG_VERSION),
 			cfgs(CFG_OSNAME)   == NULL ? osname   : cfgs(CFG_OSNAME));
 		closepkt(g, ma, s, cfgs(CFG_STATION));
-		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);p=strdup(s);
+		sprintf(s,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);p=xstrdup(s);
 		sprintf(s,"%08lx.pkt", sequencer());
-		addflist(&fl, p, strdup(s), '^',0,NULL,0);
+		addflist(&fl, p, xstrdup(s), '^',0,NULL,0);
 		freq_pktcount++;
 	}
 	sprintf(fn,"/tmp/qrep.%04lx",(long)getpid());

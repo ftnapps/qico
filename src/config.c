@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.6 2001/03/10 19:50:17 lev Exp $
+ * $Id: config.c,v 1.7 2001/03/20 15:02:34 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -20,7 +20,7 @@ falist_t *ccal;
 
 int getstr(char **to, char *from)
 {
-	*to=strdup(from);
+	*to=xstrdup(from);
 	return 1;
 }
 
@@ -28,7 +28,7 @@ int getpath(char **to, char *from)
 {
 	if(strcspn(from, "*[]?<>|")!=strlen(from)) return 0;
 	if(from[strlen(from)-1]=='/') chop(from,1);
-   	*to=strdup(from);
+   	*to=xstrdup(from);
 	return 1;
 }
 
@@ -181,7 +181,7 @@ int readconfig(char *cfgname)
 						configtab[i].keyword);
 				rc=0;
 			} else {
-				ci=calloc(1, sizeof(cfgitem_t));
+				ci=xcalloc(1, sizeof(cfgitem_t));
 				if(configtab[i].def_val)
 					setvalue(ci,configtab[i].def_val ,
 							 configtab[i].type);
@@ -249,7 +249,7 @@ int parseconfig(char *cfgname)
 					for(ci=configtab[i].items;ci;ci=ci->next)
 						if(ci->condition==curcond) break;
 					if(!ci) {
-						ci=calloc(1, sizeof(cfgitem_t));
+						ci=xcalloc(1, sizeof(cfgitem_t));
 						ci->condition=curcond;
 						ci->next=configtab[i].items;
 						configtab[i].items=ci;
@@ -257,7 +257,7 @@ int parseconfig(char *cfgname)
 					if(setvalue(ci, t, configtab[i].type)) {
 						if(!curcond) configtab[i].found=1;
 					} else {
-						sfree(ci);
+						xfree(ci);
 						write_log("%d: can't parse '%s %s'",  line, p, t);
 						rc=0;
 					}
@@ -328,7 +328,7 @@ void killconfig()
 			switch(configtab[i].type) {
 			case C_PATH:    
 			case C_STR:	
-				if(c->value.v_char) sfree(c->value.v_char);
+				if(c->value.v_char) xfree(c->value.v_char);
 				else c->value.v_char=NULL;
 				break;
 			case C_STRL:
@@ -346,7 +346,7 @@ void killconfig()
 				c->value.v_int=0;
 				break;
 			}
-			sfree(c);
+			xfree(c);
 			c=t;
 		}
 		configtab[i].items=NULL;

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.23 2001/03/10 19:50:17 lev Exp $
+ * $Id: emsi.c,v 1.24 2001/03/20 15:02:34 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -22,7 +22,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 				   unsigned long files, int lopt, char *protos,
 				   falist_t *adrs, int showpwd)	
 {
-	char *dat=calloc(EMSI_BUF,1), tmp[1024], *p;int c;
+	char *dat=xcalloc(EMSI_BUF,1), tmp[1024], *p;int c;
 	falist_t *cs;ftnaddr_t *ba;
 	time_t tm=time(NULL);
 	
@@ -162,7 +162,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 			if(!falist_find(dat->addrs, &fa)) falist_add(&dat->addrs,&fa);
 	p=emsi_tok(&t,"{}");
 	if(!p) return 0;
-	xstrcpy(&dat->pwd,p);
+	restrcpy(&dat->pwd,p);
 	emsi_dcds(dat->pwd);
 	p=emsi_tok(&t,"{}");
 	if(!p) return 0;
@@ -174,41 +174,41 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	if(!p) return 0;
 	p=emsi_tok(&t,"{}");
 	if(!p) return 0;
-	xstrcpy(&dat->mailer,p);
+	restrcpy(&dat->mailer,p);
 	p=emsi_tok(&t,"{}");
 	if(!p) return 0;
-	xstrcat(&dat->mailer,"-");
-	xstrcat(&dat->mailer, p);
+	restrcat(&dat->mailer,"-");
+	restrcat(&dat->mailer, p);
 	p=emsi_tok(&t,"{}");
 	if(!p) return 0;
-	xstrcat(&dat->mailer,"/");
-	xstrcat(&dat->mailer, p);
+	restrcat(&dat->mailer,"/");
+	restrcat(&dat->mailer, p);
 	emsi_dcds(dat->mailer);
 
 	dat->options|=emsi_parsecod(lcod, ccod);
 	DEBUG(('E',1,"emsi codes %s/%s",lcod,ccod));
 
-	sfree(dat->wtime);
+	xfree(dat->wtime);
 	while((p=emsi_tok(&t,"{}"))) {
 		if(!strcmp(p, "IDENT")) {
 			p=emsi_tok(&t,"{}");
 			if(!p) return 0;
 			s=emsi_tok(&p, "[]");
-			xstrcpy(&dat->name, s);
+			restrcpy(&dat->name, s);
 			emsi_dcds(dat->name);
 			s=emsi_tok(&p, "[]");
-			xstrcpy(&dat->place, s);
+			restrcpy(&dat->place, s);
 			emsi_dcds(dat->place);
 			s=emsi_tok(&p, "[]");
-			xstrcpy(&dat->sysop, s);
+			restrcpy(&dat->sysop, s);
 			emsi_dcds(dat->sysop);
 			s=emsi_tok(&p, "[]");
-			xstrcpy(&dat->phone, s);
+			restrcpy(&dat->phone, s);
 			emsi_dcds(dat->phone);
  			s=emsi_tok(&p, "[]"); 
  			if(s) sscanf(s,"%d",&dat->speed); 
  			s=emsi_tok(&p, "[]"); 
- 			xstrcpy(&dat->flags, s); 
+ 			restrcpy(&dat->flags, s); 
 			emsi_dcds(dat->flags);
 		} else if(!strcmp(p, "TRAF")) {
 			p=emsi_tok(&t,"{}");
@@ -217,7 +217,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 		} else if(!strcmp(p, "OHFR")) {
 			p=emsi_tok(&t,"{}");
 			if(!p) return 0;
-			xstrcpy(&dat->wtime, p);
+			restrcpy(&dat->wtime, p);
 		} else if(!strcmp(p, "MOH#")) {
 			p=emsi_tok(&t, "{}");
 			if(!p) return 0;

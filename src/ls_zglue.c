@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.10 2001/03/10 19:50:18 lev Exp $
+ * $Id: ls_zglue.c,v 1.11 2001/03/20 15:02:36 lev Exp $
  **********************************************************/
 /*
 
@@ -85,8 +85,8 @@ int zmodem_sendinit(int canzap) {
 /* Done sending */
 int zmodem_senddone()
 {
-	if(txbuf) sfree(txbuf);
 	DEBUG(('Z',1,"zmodem_senddone"));
+	xfree(txbuf);
 	return ls_zdonesender();
 }
 

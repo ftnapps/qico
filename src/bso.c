@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.13 2001/03/11 20:15:26 lev Exp $
+ * $Id: bso.c,v 1.14 2001/03/20 15:02:34 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -18,19 +18,19 @@ int bso_init(char *bsopath, int def_zone)
 	char *p;
 	p=strrchr(bsopath, '/');
 	if(!p) return 0;
-	else p_domain=strdup(p+1);
+	else p_domain=xstrdup(p+1);
 	*p=0;
-	bso_base=strdup(bsopath);
-	bso_tmp=malloc(strlen(bso_base)+50);
+	bso_base=xstrdup(bsopath);
+	bso_tmp=xmalloc(strlen(bso_base)+50);
 	bso_defzone=def_zone;
 	return 1;
 }
 
 void bso_done()
 {
-	sfree(bso_base);
-	sfree(p_domain);
-	sfree(bso_tmp);
+	xfree(bso_base);
+	xfree(p_domain);
+	xfree(bso_tmp);
 }
 
 char *bso_name(ftnaddr_t *fa)
@@ -129,15 +129,15 @@ int bso_rmstatus(ftnaddr_t *adr)
 
 int bso_init(char *bsopath, int def_zone)
 {
-	bso_base=strdup(bsopath);
-	bso_tmp=malloc(strlen(bso_base)+30);
+	bso_base=xstrdup(bsopath);
+	bso_tmp=xmalloc(strlen(bso_base)+30);
 	return 1;
 }
 
 void bso_done()
 {
-	sfree(bso_base);
-	sfree(bso_tmp);
+	xfree(bso_base);
+	xfree(bso_tmp);
 }
 
 char *bso_name(ftnaddr_t *fa)

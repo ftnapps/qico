@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.8 2001/03/10 19:50:20 lev Exp $
+ * $Id: zsend.c,v 1.9 2001/03/20 15:02:37 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -364,7 +364,7 @@ again:
 int zmodem_sendinit(int canzap)
 {
  	PUTSTR("rz\r"); 
-	txbuf=malloc(canzap?8193:1025);
+	txbuf=xmalloc(canzap?8193:1025);
 	stohdr(0L);
 	txblklen=128;rxoptions=0;
 	do zshhdr(4, ZRQINIT, Txhdr);
@@ -405,11 +405,11 @@ int zmodem_senddone()
 			PUTCHAR('O');PUTCHAR('O');/* FLUSH(); */
 		case ZCAN:
 		case TIMEOUT:
-			sfree(txbuf);
+			xfree(txbuf);
 			return OK;
 		case ERROR:
 		case RCDO:
-			sfree(txbuf);
+			xfree(txbuf);
 			return RCDO;
 		}
 	}
