@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.16 2004/06/22 08:28:30 sisoft Exp $
+ * $Id: tty.c,v 1.17 2004/07/07 08:58:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -13,6 +13,7 @@
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
 			"read error","write error","timeout","close error",
 				"can't lock port","can't set/get flags"};
+char canistr[]={24,24,24,24,24,24,24,24,24,24,8,8,8,8,8,8,8,8,8,8,0};
 static struct termios savetios;
 #define IN_MAXBUF 16384
 static unsigned char in_buffer[IN_MAXBUF];
@@ -506,8 +507,6 @@ void tty_purgeout() {
 	out_bufpos=0;
 	tcflush(STDOUT_FILENO,TCOFLUSH);
 }
-
-char canistr[]={24,24,24,24,24,24,24,24,24,24,8,8,8,8,8,8,8,8,8,8,0};
 
 int tty_gets(char *what,size_t n,int timeout)
 {
