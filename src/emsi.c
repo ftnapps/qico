@@ -1,19 +1,18 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.6 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: emsi.c,v 1.7 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
 
 #define EMSI_BUF 65536
 	
-char *emsireq="**EMSI_REQA77E";
-char *emsiack="**EMSI_ACKA490";
-char *emsiinq="**EMSI_INQC816";
-char *emsinak="**EMSI_NAKEEC3";
-char *emsidat="**EMSI_DAT";
-
-int chat_need=-1,chatmy=-1;
+static char *emsireq="**EMSI_REQA77E";
+static char *emsiack="**EMSI_ACKA490";
+static char *emsiinq="**EMSI_INQC816";
+static char *emsinak="**EMSI_NAKEEC3";
+static char *emsidat="**EMSI_DAT";
+static int chat_need=-1,chatmy=-1;
 
 char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int lopt,
 				    char *protos,falist_t *adrs,int showpwd)	
@@ -90,7 +89,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 	return dat;
 }
 
-char *emsi_tok(char **b, char *kc)
+static char *emsi_tok(char **b, char *kc)
 {
 	char *p=*b,*t;
 	int st=0;
@@ -116,7 +115,7 @@ char *emsi_tok(char **b, char *kc)
 }
 
 
-int hexdcd(char d,char c)
+static int hexdcd(char d,char c)
 {
 	c=tolower(c);d=tolower(d);
 	if(c>='a'&&c<='f')c-=('a'-10);
@@ -126,7 +125,7 @@ int hexdcd(char d,char c)
 	return(c*16+d);
 }
 
-void emsi_dcds(char *s)
+static void emsi_dcds(char *s)
 {
 	unsigned char *d=(unsigned char*)s,t;
 	while((t=*s)) {
@@ -344,7 +343,7 @@ int emsi_recv(int mode,ninfo_t *rememsi)
 				*p = 0;
 				sscanf(emsidathdr+10,"%04X",&emsidatlen);
 				emsidatgot = 0;
-				emsidatlen += 4; /* CRC on the ned of EMSI_DAT is 4 bytes long */
+				emsidatlen += 4; /* CRC on the end of EMSI_DAT is 4 bytes long */
 				DEBUG(('E',1,"Got start of EMSI_DAT, length is %d",emsidatlen));
 			}
 			if(t_exp(t2)) {
@@ -456,7 +455,6 @@ int emsi_parsecod(char *lcod, char *ccod)
 	return o;
 }
 
-
 char *findpwd(ftnaddr_t *a)
 {
 	faslist_t *cf;
@@ -465,5 +463,3 @@ char *findpwd(ftnaddr_t *a)
 			return cf->str;
 	return NULL;
 }
-
-

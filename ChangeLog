@@ -1,3 +1,9 @@
+2003-10-14 22:44  sisoft
+
+	* src/ftn.h:
+
+	fix crash due to empty domain.
+	
 2003-10-14 03:04  sisoft
 
 	* Changes, FAQ, README, qico.conf.sample:

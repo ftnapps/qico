@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.13 2003/10/05 15:01:19 sisoft Exp $
+ * $Id: session.c,v 1.14 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -200,7 +200,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 
 void flexecute(flist_t *fl)
 {
-	char cmt='~', str[MAX_STRING];
+	char cmt='~', str[MAX_STRING],*q;
 	FILE *f;int rem;
 
 	DEBUG(('S',2,"Execute file: '%s', sendas: '%s', kill: '%c' fromLO: %s, offset: %d",
@@ -238,6 +238,14 @@ void flexecute(flist_t *fl)
 			break;
 		}
 		xfree(fl->sendas);
+		if(cfgi(CFG_RMBOXES)) {
+			q=strrchr(fl->tosend,'/');
+			if(q&&q!=fl->tosend) {
+				*q=0;
+				rmdir(fl->tosend);
+				*q='/';
+			}
+		}
 	}
 }
 
@@ -301,12 +309,17 @@ int receivecb(char *fn)
 		    else if(ph.phType!=2)write_log("packet don't 2+ format");
 			else {
 			    while(fread(&mh,sizeof(mh),1,f)==1) {
-				while(fgetc(f)>0);i=0;
+				i=0;while(fgetc(f)>0&&i<30)i++;i=0;
+				if(i>=30)break;
 				while((a=fgetc(f))>0&&i<36)to[i++]=a;
+				if(i>=36)break;
 				to[i]=0;i=0;
 				while((a=fgetc(f))>0&&i<36)from[i++]=a;
-				from[i]=0;
-				while(fgetc(f)>0);while(fgetc(f)>0);
+				if(i>=32)break;
+				from[i]=0;i=0;
+				while(fgetc(f)>0&&i<72)i++;
+				if(i>=72)break;
+				while(fgetc(f)>0);
 				write_log(" *msg:%d from: \"%s\", to: \"%s\"",n++,from,to);
 			    }
 		}
@@ -315,7 +328,7 @@ int receivecb(char *fn)
 	return 0;
 }
 
-int wazoosend(int zap)
+static int wazoosend(int zap)
 {
 	flist_t *l;
 	int rc,ticskip=0;
@@ -345,7 +358,7 @@ int wazoosend(int zap)
 	return 0;
 }
 
-int wazoorecv(int zap)
+static int wazoorecv(int zap)
 {
 	int rc;
 	write_log("wazoo receive");
@@ -355,7 +368,7 @@ int wazoorecv(int zap)
 	return 0;
 }
 
-int hydra(int mode, int hmod, int rh1)
+static int hydra(int mode, int hmod, int rh1)
 {
 	flist_t *l;
 	int rc=XFER_OK,ticskip=0;
@@ -633,7 +646,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	return S_OK;
 }
 
-void sessalarm(int sig)
+static void sessalarm(int sig)
 {
 	signal(SIGALRM, SIG_DFL);
 	write_log("session limit of %d minutes is over",cfgi(CFG_MAXSESSION));
@@ -651,7 +664,8 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 	rnode->realspeed=effbaud=speed;rnode->starttime=0;
 	if(!mode) rnode->options|=O_INB;
 	if(is_ip) rnode->options|=O_TCP;
-	runtoss=0;bzero(&ndefaddr,sizeof(ndefaddr));
+	runtoss=0;
+	memset(&ndefaddr,0,sizeof(ndefaddr));
 	if(calladdr)ADDRCPY(ndefaddr,(*calladdr));
 
 	rc=cfgi(CFG_MINSPEED);

@@ -1,11 +1,14 @@
-/* $Id: TodayFixes,v 1.9 2003/10/14 18:44:05 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.10 2004/01/10 09:24:39 sisoft Exp $ */
 ---
-fix crash due to empty domain.
+add keyword 'rmboxes' - remove empty fileboxes.
+again fix poorly remove outbound dir.
+change faq q about gdb. 
+support for additional info in .qst's for ND mode.
+more fixes..
 .
 previous:
 ---
-cosmetical.
-something...
+fix crash due to empty domain.
 .
 
 ps: в связи с временным отсутствием фидошки,

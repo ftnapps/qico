@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.8 2003/10/14 18:44:05 sisoft Exp $ */
+/* $Id: ftn.h,v 1.9 2004/01/10 09:24:40 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -175,8 +175,16 @@ typedef struct {
 } pktmhdr_t;
 
 typedef struct {
+	int flags;
+	char *name;
+	size_t size;
+	time_t time;
+} bp_status_t;
+
+typedef struct {
 	int try, flags;
 	time_t htime, utime;
+	bp_status_t bp;
 } sts_t;
 
 /* ftn.c */
@@ -243,14 +251,6 @@ extern char *ccs;
 extern slist_t *ccsl;
 extern faslist_t *ccfasl;
 extern falist_t *ccal;
-extern int getstr(char **to, char *from);
-extern int getpath(char **to, char *from);
-extern int getlong(int *to, char *from);
-extern int getaddrl(falist_t **to, char *from);
-extern int getfasl(faslist_t **to, char *from);
-extern int getyesno(int *to, char *from);
-extern int getstrl(slist_t **to, char *from);
-extern int setvalue(cfgitem_t *ci, char *t, int type);
 extern int cfgi(int i);
 extern char *cfgs(int i);
 extern slist_t *cfgsl(int i);

@@ -1,15 +1,15 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.8 2003/10/02 15:18:00 sisoft Exp $
+ * $Id: ftn.c,v 1.9 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
 #include <fnmatch.h>
 
-// domain name for translate ftn addr to inet addr.
+/* domain name for translate ftn addr to inet addr. */
 #define DOMAIN ".fidonet.net"
 
-unsigned long seq=0xFFFFFFFF;
+static unsigned long seq=0xFFFFFFFF;
 
 int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 {
@@ -341,7 +341,6 @@ int has_addr(ftnaddr_t *a, falist_t *l)
 	return 0;
 }
 
-/*
 int touch(char *fn)
 {
 	FILE *f=fopen(fn, "a");
@@ -350,7 +349,7 @@ int touch(char *fn)
  		return 1;
  	}
  	return 0;
-} */
+}
 
 int mkdirs(char *name)
 {
@@ -366,11 +365,12 @@ int mkdirs(char *name)
 void rmdirs(char *name)
 {
 	int rc=0;
-	char *q;
+	char *q,*t;
 	q=strrchr(name,'/');
-	while(q && q!=name && !rc) {
-		*q=0;rc=rmdir(name);/* write_log("rmdir %s", name); */
-		q=strrchr(name,'/');*q='/';
+	while(q&&q!=name&&!rc) {
+		*q=0;rc=rmdir(name);
+		t=strrchr(name,'/');
+		*q='/';q=t;
 	}
 }
 
@@ -402,7 +402,6 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,char *subj, 
 	pkthdr_t ph;pktmhdr_t mh;
 	time_t tim=time(NULL);
 	struct tm *t=localtime(&tim);
-
 	f=fopen(fn,"w");
 	if(!f) return NULL;
 	memset(&ph,0, sizeof(ph));
@@ -531,8 +530,6 @@ int fexist(char *s)
 	struct stat sb;
 	return !stat(s, &sb) &&	S_ISREG(sb.st_mode);
 }
-
-char dos_allowed[]="-!~$()_";
 
 int dosallowin83(int c)
 {

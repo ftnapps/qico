@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.9 2003/10/08 16:45:12 sisoft Exp $
+ * $Id: tcp.c,v 1.10 2004/01/10 09:24:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -34,7 +34,7 @@ int base64(char *data,int size,char *p)
 	return(p-s);
 }
 
-int http_conn(char *name)
+static int http_conn(char *name)
 {
 	time_t t1;
 	int rc,i;
@@ -54,7 +54,7 @@ int http_conn(char *name)
 	PUTBLK((unsigned char*)buf,i);
 	t1=t_set(cfgi(CFG_HSTIMEOUT));
 	for(i=0;i<H_BUF;i++) {
-		while((rc=GETCHAR(0))==TIMEOUT&&!t_exp(t1))getipcm();
+		while((rc=GETCHAR(0))==TIMEOUT&&!t_exp(t1))getevt();
 		if(rc==RCDO||tty_hangedup) {
 			write_log("got hangup");
 			return 1;

@@ -1,30 +1,22 @@
-/**********************************************************
- * File: hydra.c
- * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
- * hydra implmentation
- * $Id: hydra.c,v 1.21 2003/03/10 15:58:04 cyrilm Exp $
- **********************************************************/
 /*=============================================================================
-
                        The HYDRA protocol was designed by
                  Arjen G. Lentz, LENTZ SOFTWARE-DEVELOPMENT and
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
-
  =============================================================================*/
+/* $Id: hydra.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $ */
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
-#include "qipc.h"
 #include "hydra.h"
 #include "byteop.h"
 
 #define SLONG 4 /* sizeof(long) */
-#define SWORD 2 /* sizeof(long) */
+#define SWORD 2 /* sizeof(word) */
 
 #ifdef NEED_DEBUG
 
-char *hstates[]={
+static char *hstates[]={
 "HTX_DONE",
 "HTX_START",
 "HTX_SWAIT",
@@ -42,7 +34,7 @@ char *hstates[]={
 "HTX_END",      
 "HTX_ENDACK"};
 
-char *hpkts[]={
+static char *hpkts[]={
 "HPKT_START",
 "HPKT_INIT",
 "HPKT_INITACK",
@@ -61,10 +53,7 @@ char *hpkts[]={
 
 #endif
 
-unsigned long chattimer, lasttimer;
-unsigned long chatfill;
-int hydra_modifier;
-
+static int hydra_modifier;
 
 #define crc16block crc16prp
 #define crc32block crc32
@@ -79,7 +68,6 @@ typedef long               h_timer;
 #define h_timer_running(t) (t != 0L)
 #define h_timer_expired(t) (time(NULL) > (t))
 #define h_timer_reset()    (0L)
-
 
 /* HYDRA's memory ---------------------------------------------------------- */
 static  int     originator;
@@ -96,8 +84,6 @@ static  byte   *txbufin;                        /* read data from disk here  */
 static  byte                    rxdle;          /* count of received H_DLEs  */
 static  byte                    rxpktformat;    /* format of pkt receiving   */
 static  word                    rxpktlen;       /* length of last packet     */
-/*CYRILM:static*/
-word    txmaxblklen;                    /* max block length allowed  */
 static  long    txlastack;                      /* last dataack received     */
 static  long    txoffset,       rxoffset;       /* offset in file we begun   */
 static  h_timer txtimer,        rxtimer;        /* retry timers              */
@@ -125,14 +111,18 @@ static struct _h_flags h_flags[] = {
 	{ NULL , 0x0L         }
 };
 
-
 /*---------------------------------------------------------------------------*/
+
 static void hydra_msgdev (byte *data, word len)
 {       /* text is already NUL terminated by calling func hydra_devrecv() */
 	len = len;
-	write_log("HM: %s",data);
+	write_log("HydraMsg: %s",data);
 }/*hydra_msgdev()*/
 
+static void h_devrecv(byte *data,word len)
+{
+	c_devrecv(data,len);
+}
 
 /*---------------------------------------------------------------------------*/
 static  word    devtxstate;                     /* dev xmit state            */
@@ -150,33 +140,32 @@ struct _h_dev {
 
 static  struct _h_dev h_dev[] = {
 	{ "MSG", hydra_msgdev },                /* internal protocol msg     */
-	{ "CON", NULL         },                /* text to console (chat)    */
+	{ "CON", h_devrecv    },                /* text to console (chat)    */
 	{ "PRN", NULL         },                /* data to printer           */
 	{ "ERR", NULL         },                /* text to error output      */
 	{ NULL , NULL         }
 };
 
-
 /*---------------------------------------------------------------------------*/
+
 boolean hydra_devfree (void)
 {
 	if (devtxstate || !(txoptions & HOPT_DEVICE) || txstate >= HTX_END)
 		return (false);                      /* busy or not allowed       */
-	else
+	    else
 		return (true);                       /* allowed to send a new pkt */
 }/*hydra_devfree()*/
 
-
 /*---------------------------------------------------------------------------*/
-boolean hydra_devsend (char *dev, byte *data, word len)
+
+boolean hydra_devsend(char *dev, byte *data, word len)
 {
-	if (!dev || !data || !len || !hydra_devfree())
-		return (false);
+	if (!dev || !data || !len|| !hydra_devfree())return (false);
 
 	xstrcpy(devtxdev,dev,H_FLAGLEN+1);
 	strupr(devtxdev);
 	devtxbuf = data;
-	devtxlen = (len > H_MAXBLKLEN(hydra_modifier))? H_MAXBLKLEN(hydra_modifier) : len;
+	devtxlen=(len>H_MAXBLKLEN(hydra_modifier))?H_MAXBLKLEN(hydra_modifier):len;
 
 	devtxid++;
 	devtxtimer   = h_timer_reset();
@@ -302,7 +291,10 @@ static void txpkt (register word len, int type)
 	byte    format;
 	static char hexdigit[] = "0123456789abcdef";
 
+	getevt();
+
 	DEBUG(('H',1,"txpkt %s (%c) len=%d", hpkts[type-'A'], type, len));
+	if(type==HPKT_DEVDATA)DEBUG(('H',3,"devdata: %s",txbufin+8));
 	txbufin[len++] = type;
 
 	switch (type) {
@@ -443,6 +435,8 @@ static int rxpkt (void)
 
 /*  	if (keyabort()) */
 /*  		return (H_SYSABORT); */
+
+	getevt();
 
 	p = rxbufptr;
 
@@ -606,6 +600,10 @@ static int rxpkt (void)
 
 	rxbufptr = p;
 
+	if(!chattimer&&txstate==HTX_REND&&rxstate==HRX_DONE) {
+		chattimer=-1L;
+		return(HPKT_IDLE);
+	}
 	if (h_timer_running(braindead) && h_timer_expired(braindead)) {
 		return (H_BRAINTIME);
 	}
@@ -635,16 +633,13 @@ static void hydra_status (boolean xmit)
 	}
 }/*hydra_status()*/
 
-
-
-
 /*---------------------------------------------------------------------------*/
 void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwin)
 {
 	hydra_modifier=hmod;
 	
-	txbuf=xmalloc(H_BUFLEN(hydra_modifier));
-	rxbuf=xmalloc(H_BUFLEN(hydra_modifier));
+	txbuf=xmalloc(H_BUFLEN(hydra_modifier)+1);
+	rxbuf=xmalloc(H_BUFLEN(hydra_modifier)+1);
 
 	txbufin  = txbuf + ((H_MAXBLKLEN(hmod) + H_OVERHEAD + 5) * 2);
 	rxbufmax = rxbuf + H_MAXPKTLEN(hmod);
@@ -678,10 +673,6 @@ void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwi
 
 	write_log("hydra %s-directional mode session",hdxlink ? "uni" : "bi");
 
-/*          hydra_devfunc("CON",hydra_remotechat); */
-
-	chattimer = -1L;
-
 	rxwindow = rxwin;
 	txwindow = txwin;
 }/*hydra_init()*/
@@ -706,6 +697,8 @@ int hydra_file(char *txpathname, char *txalias)
 	size_t rxfsize;
 	unsigned long hydra_txwindow=txwindow,hydra_rxwindow=rxwindow;
 	struct stat statf;
+
+	rxstatus=0;
 
 	if(txpathname)
 		if(!(txfd=txopen(txpathname, txalias))) return XFER_SKIP;
@@ -807,6 +800,7 @@ int hydra_file(char *txpathname, char *txalias)
 				off=strlen((char *)txbufin)+1;
 				xstrcpy((char *)txbufin+off,sendf.fname,1024-off);
 				i=strlen(sendf.fname)+strlen((char *)txbufin)+2;
+/*				hydra_status(true); */
 			} else {
 				if (!txretries) {
 /* 					write_log("hydra: End of batch"); */
@@ -1006,9 +1000,11 @@ int hydra_file(char *txpathname, char *txalias)
 						p = (char *) rxbuf;
 						sscanf(p,"%08lx",&revstamp);
 						p += 8;
-						if ((q = strchr(p,',')) != NULL) *q = ' ';
-						if ((q = strchr(p,',')) != NULL) *q = '/';
 						DEBUG(('H',1,"other end hydra is %s, rev %u",p,revstamp));
+						if((q=strchr(p,','))!=NULL)*q='-';
+						if(strchr(p,' ')>q)*strchr(p,' ')='/';
+						if((q=strchr(p,','))!=NULL)*q='/';
+						if(strncasecmp(rnode->mailer,p,strlen(p)))write_log("hydra remote mailer: %s",p);
 						put_flags((char *) rxbuf,h_flags,rxoptions,1024);
 						if (txwindow || rxwindow)
 							write_log("hydra link options: %s [%d/%d]",rxbuf,
@@ -1078,9 +1074,10 @@ int hydra_file(char *txpathname, char *txalias)
 						}
 						qpfrecv();
 					}
-				} else if (rxstate == HRX_DONE)
+				} else if (rxstate == HRX_DONE) /*{*/
 					rxpos = (!rxbuf[0]) ? 0L : H_SUSPEND;
-
+/*					hydra_status(false);
+				} */
 				STORE32(txbufin, rxpos);
 				txpkt(4,HPKT_FINFOACK);
 				break;
@@ -1133,8 +1130,19 @@ int hydra_file(char *txpathname, char *txalias)
 			case HPKT_DATA:
 				if (rxstate == HRX_DATA) {
 					int gotpos=FETCH32(rxbuf);
-					if (gotpos != rxpos ||
-						gotpos < 0L) {
+					if(rxstatus) {
+						rxpos=((rxstatus==RX_SUSPEND)?H_SUSPEND:H_SKIP);
+						rxclose(&rxfd,(rxstatus==RX_SUSPEND)?FOP_SUSPEND:FOP_SKIP);
+						rxretries=1;
+						rxsyncid++;
+						STORE32(txbufin,rxpos);
+						STORE32(txbufin+4,0L);
+						STORE32(txbufin+8,rxsyncid);
+						txpkt(12,HPKT_RPOS);
+						rxtimer=h_timer_set(timeout);
+						break;
+					}
+					if(gotpos!=rxpos||gotpos<0L) {
 						if (gotpos <= rxlastsync) {
 							rxtimer = h_timer_reset();
 							rxretries = 0;
@@ -1168,7 +1176,8 @@ int hydra_file(char *txpathname, char *txalias)
 							else if (i <=1024) i = 1024;
 							else if (i <=2048) i = 2048;
 							else if (i <=4096) i = 4096;
-							else               i = 8192;
+							else if (i <=8192) i = 8192;              
+							else 		   i = 16384;
 
 							if (hydra_modifier == 8 && i > 8192)
 								i = 8192;
@@ -1264,8 +1273,8 @@ int hydra_file(char *txpathname, char *txalias)
 						txpos = FETCH32(rxbuf);
 						if (txpos < 0L) {
 							if (txfd) {
-								sline("hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
-								DEBUG(('H',1,"hydra: %s %s",txpos==-1?"suspending":(txpos==-2?"skipping":"strange skipping"),sendf.fname));
+								sline("hydra: %s %s",txpos==H_SUSPEND?"suspending":(txpos==H_SKIP?"skipping":"strange skipping"),sendf.fname);
+								DEBUG(('H',1,"hydra: %s %s",txpos==H_SUSPEND?"suspending":(txpos==H_SKIP?"skipping":"strange skipping"),sendf.fname));
 								txclose(&txfd, txpos==H_SUSPEND?FOP_SUSPEND:FOP_SKIP);
 								txstate = HTX_EOF;
 							}
@@ -1283,7 +1292,8 @@ int hydra_file(char *txpathname, char *txalias)
 						else if (txblklen <= 512) txblklen =  512;
 						else if (txblklen <=1024) txblklen = 1024;
 						else if (txblklen <=4096) txblklen = 4096;
-						else                      txblklen = 8192;
+						else if (txblklen <=8192) txblklen = 8192;
+						else                      txblklen = 16384;
 						
 						if (hydra_modifier == 8 && txblklen > 8192)
 							txblklen = 8192;
@@ -1355,7 +1365,8 @@ int hydra_file(char *txpathname, char *txalias)
 							else if (i <= 512) i =  512;
 							else if (i <=1024) i = 1024;
 							else if (i <=4096) i = 4096;
-							else               i = 8192;
+							else if (i <=8192) i = 8192;
+							else               i = 16384;
 
 							if (hydra_modifier == 8 && i > 8192)
 								i = 8192;
@@ -1412,10 +1423,10 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_END:
 				/* special for chat, other side wants to quit */
-/* 				if (chattimer > 0L && txstate == HTX_REND) { */
-/* 					chattimer = -3L; */
-/* 					break; */
-/* 				} */
+ 				if (chattimer > 0L && txstate == HTX_REND) {
+ 					chattimer = -3L;
+ 					break;
+ 				}
 
 				if (txstate == HTX_END || txstate == HTX_ENDACK) {
 					txpkt(0,HPKT_END);
@@ -1476,7 +1487,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HTX_XDATA:
 				if (rxstate && hdxlink) {
-					write_log("HM: %s",hdxmsg);
+					write_log("HydraMsg: %s",hdxmsg);
 					hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
 
 					txtimer = h_timer_set(H_IDLE);
@@ -1497,8 +1508,8 @@ int hydra_file(char *txpathname, char *txalias)
 			case HTX_REND:
 				if (!rxstate && !devtxstate) {
                                 /* special for chat, braindead will protect */
-/*  					if (chattimer > 0L) break; */
-/*  					if (chattimer == 0L) chattimer = -3L; */
+  					if (chattimer > 0L) break;
+  					if (chattimer == 0L) chattimer = -3L;
 
 					txtimer = h_timer_reset();
 					txretries = 0;

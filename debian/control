@@ -1,0 +1,27 @@
+Source: qico
+Section: net
+Priority: optional
+Maintainer: Stepan A. Pologov <sisoft@bk.ru>
+Standards-Version: 3.2.1
+
+Package: qico
+Architecture: any
+Depends: qctl, ${shlibs:Depends}
+Suggests: qcc
+Description: ftn compatible mailer with many features.
+ ftn compatible mailer with many features,
+ such as: dynamic configuation, color ncurses frontend,
+ chat, outbound manager. supported emsi and binkp
+ protocols over modem and(or) tcp/ip.
+
+Package: qcc
+Architecture: any
+Depends: qico, ${shlibs:Depends}
+Description: ncurses frontend for qico ftn mailer.
+ ncurses frontend for qico ftn mailer.
+
+Package: qctl
+Architecture: any
+Depends: qico, ${shlibs:Depends}
+Description: console tool for qico ftn mailer.
+ console tool for qico ftn mailer.
