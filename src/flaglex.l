@@ -2,7 +2,7 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.3 2000/10/17 16:44:40 lev Exp $
+ * $Id: flaglex.l,v 1.4 2000/11/01 10:43:20 lev Exp $
  **********************************************************/
 %{
 
@@ -181,12 +181,12 @@ int chkaddr(char *str)
 
 	if (!parseftnaddr(str, &addr, &DEFADDR, 1))	{
 #ifdef Y_DEBUG
-		log("unparsable address \"%s\" in expression",str);
+		write_log("unparsable address \"%s\" in expression",str);
 #endif	
 		return 0;
 	}
 #ifdef Y_DEBUG
-	log("chkaddr: does spec %s match remote address ?",
+	write_log("chkaddr: does spec %s match remote address ?",
 		ftnaddrtoa(&addr));
 #endif	
 	if(!rnode) return 0;
@@ -224,7 +224,7 @@ char *str;
 	else day=-4;
 
 #ifdef Y_DEBUG
-	log("chkday: does day %d match spec %d ?",now->tm_wday,day);
+	write_log("chkday: does day %d match spec %d ?",now->tm_wday,day);
 #endif
 	if (day >= 0) dayok=(now->tm_wday == day);
 	else switch (day)
@@ -234,7 +234,7 @@ char *str;
 	case -1: dayok=1; break;
 	default: 
 #ifdef Y_DEBUG
-                log("bad day specified!",day);
+                write_log("bad day specified!",day);
 #endif	
                 dayok=0; break;
 	}
@@ -249,12 +249,12 @@ char *str;
 	if (sscanf(str,"%02d%02d-%02d%02d",&h1,&m1,&h2,&m2) != 4)
 	{
 #ifdef Y_DEBUG
-		log("invalid time string \"%s\" in expression",str);
+		write_log("invalid time string \"%s\" in expression",str);
 #endif	
 		return 0;
 	}
 #ifdef Y_DEBUG	
-	log("chktime: is %02d:%02d between %02d:%02d and %02d:%02d ?",
+	write_log("chktime: is %02d:%02d between %02d:%02d and %02d:%02d ?",
 		now->tm_hour,now->tm_min,h1,m1,h2,m2);
 #endif
 	cur=now->tm_hour*60+now->tm_min;

@@ -2,7 +2,7 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.4 2000/10/17 16:44:40 lev Exp $
+ * $Id: flagexp.y,v 1.5 2000/11/01 10:43:20 lev Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -96,7 +96,7 @@ gapstring	: GAPSTR
 /* 	int i; */
 
 /* #ifdef Y_DEBUG	 */
-/* 	log("match: %d",fl); */
+/* 	write_log("match: %d",fl); */
 /* #endif */
 /* 	if (fl == -1) */
 /* 	{ */
@@ -114,7 +114,7 @@ gapstring	: GAPSTR
 static int logic(int e1, int op,int e2)
 {
 #ifdef Y_DEBUG
-	log("logic: %d %d %d",e1,op,e2);
+	write_log("logic: %d %d %d",e1,op,e2);
 #endif
 	switch (op)
 	{
@@ -123,7 +123,7 @@ static int logic(int e1, int op,int e2)
 	case XOR:	return(e1 ^ e2);
 	default:
 #ifdef Y_DEBUG
-		log("Parser: internal error: invalid logical operator");
+		write_log("Parser: internal error: invalid logical operator");
 #endif
 		return 0;
 	}
@@ -132,7 +132,7 @@ static int logic(int e1, int op,int e2)
 static int checkspeed(int op, int speed, int real)
 {
 #ifdef Y_DEBUG
-	log("check%sspeed: %d %d",real?"real":"",op,speed);
+	write_log("check%sspeed: %d %d",real?"real":"",op,speed);
 #endif
 	if(!rnode) return 0;
 	switch (op)
@@ -145,7 +145,7 @@ static int checkspeed(int op, int speed, int real)
 	case LE:	return(real?rnode->realspeed:rnode->speed <= speed);
 	default:
 #ifdef Y_DEBUG
-		log("Parser: internal error: invalid arithmetic operator");
+		write_log("Parser: internal error: invalid arithmetic operator");
 #endif
 		return 0;
 	}
@@ -154,7 +154,7 @@ static int checkspeed(int op, int speed, int real)
 static int checkphone(void)
 {
 #ifdef Y_DEBUG
-	log("checkphone: \"%s\"",yytext);
+	write_log("checkphone: \"%s\"",yytext);
 #endif
 	if(!rnode) return 0;
 	if(rnode->phone == NULL) return 0;
@@ -165,7 +165,7 @@ static int checkphone(void)
 static int checkcid(void)
 {
 #ifdef Y_DEBUG
-	log("checkcid: \"%s\"",yytext);
+	write_log("checkcid: \"%s\"",yytext);
 #endif
 	if(strncasecmp(yytext,getenv("CALLER_ID"),strlen(yytext)) == 0) return 1;
 	else return 0;
@@ -174,7 +174,7 @@ static int checkcid(void)
 static int checkport(void)
 {
 #ifdef Y_DEBUG
-	log("checkport: \"%s\"",yytext);
+	write_log("checkport: \"%s\"",yytext);
 #endif
 	if(!rnode || !rnode->tty) return 0;
 	if(!fnmatch(yytext,rnode->tty,FNM_NOESCAPE|FNM_PATHNAME)) 
@@ -186,7 +186,7 @@ static int checkfile(void)
 {
 	struct stat sb;
 #ifdef Y_DEBUG
-	log("checkfile: \"%s\"",yytext);
+	write_log("checkfile: \"%s\"",yytext);
 #endif
 	if(!stat(yytext,&sb))
 		return 1;
@@ -202,7 +202,7 @@ int flagexp(char *expr)
 	char *p;
 
 #ifdef Y_DEBUG
-	log("check expression \"%s\"",expr);
+	write_log("check expression \"%s\"",expr);
 #endif
 	time(&tt);now=localtime(&tt);
 	p=strdup(expr);
@@ -214,13 +214,13 @@ int flagexp(char *expr)
 	flxpres=0;
 	if(yyparse()) {
 #ifdef Y_DEBUG
- 		log("could not parse expression \"%s\", assume `false'",expr); 
+ 		write_log("could not parse expression \"%s\", assume `false'",expr); 
 #endif
 		free(p);
 		return -1;
 	}
 #ifdef Y_DEBUG
-	log("checking result is \"%s\"",flxpres?"true":"false");
+	write_log("checking result is \"%s\"",flxpres?"true":"false");
 #endif
 	free(p);
 	return flxpres;
@@ -229,7 +229,7 @@ int flagexp(char *expr)
 static int yyerror(char *s)
 {
 #ifdef Y_DEBUG
-	log("parser error: %s",s);
+	write_log("parser error: %s",s);
 #endif
 	return 0;
 }

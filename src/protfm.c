@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.7 2000/11/01 10:29:24 lev Exp $
+ * $Id: protfm.c,v 1.8 2000/11/01 10:43:21 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -63,7 +63,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 
 	for(i=cfgsl(CFG_AUTOSKIP);i;i=i->next) 
 		if(!fnmatch(i->str, bn, FNM_PATHNAME)) {
-			log(weskipstr,recvf.fname);
+			write_log(weskipstr,recvf.fname);
 			return FOP_SKIP;
 		}
 	
@@ -71,12 +71,12 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	if(stat(p, &sb)) 
 		if(mkdirs(p) && errno!=EEXIST) {
 			write_log("can't make directory %s: %s", p, strerror(errno));
-			log(wesusstr,recvf.fname);
+			write_log(wesusstr,recvf.fname);
 			return FOP_SUSPEND;
 		}
 	sprintf(p, "%s/%s", ccs, bn);
 	if(!stat(p, &sb) && sb.st_size==rsize) {
-		log(weskipstr,recvf.fname);
+		write_log(weskipstr,recvf.fname);
 		return FOP_SKIP;
 	}
 	
@@ -86,7 +86,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 			*f=fopen(p, "ab");
 			if(!*f) {
 				write_log("can't open file %s for writing!", p);
-				log(wesusstr,recvf.fname);
+				write_log(wesusstr,recvf.fname);
 				return FOP_SUSPEND;
 			}
 			recvf.foff=recvf.soff=ftell(*f);
@@ -97,7 +97,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	*f=fopen(p, "wb");
 	if(!*f) {
 		write_log("can't open file %s for writing!", p);
-		log(wesusstr,recvf.fname);
+		write_log(wesusstr,recvf.fname);
 		return FOP_SUSPEND;
 	}
 	recvf.foff=recvf.soff=0;
