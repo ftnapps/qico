@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.8 2000/11/01 10:29:25 lev Exp $
+ * $Id: session.c,v 1.9 2000/11/08 20:31:45 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -134,7 +134,7 @@ int boxflist(flist_t **fl, char *path)
 
 void makeflist(flist_t **fl, ftnaddr_t *fa)
 {
-	int fls[]={F_CRSH, F_DIR, F_NORM, F_HOLD}, i;
+	int fls[]={F_IMM, F_CRSH, F_DIR, F_NORM, F_HOLD}, i;
 	char str[MAX_PATH];
 	struct stat sb;
 	faslist_t *j;
@@ -142,7 +142,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 #ifdef S_DEBUG	
 	write_log("mkflist %s", ftnaddrtoa(fa));
 #endif	
-	for(i=0;i<4;i++)
+	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			sprintf(str, "%08lx.pkt", sequencer());
 			addflist(fl, strdup(bso_tmp), strdup(str), '^', 0, NULL, 1);
@@ -155,7 +155,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 		totalf+=sb.st_size;totaln++;
 	}
 	
-	for(i=0;i<4;i++) floflist(fl, bso_flon(fa, fls[i]));
+	for(i=0;i<5;i++) floflist(fl, bso_flon(fa, fls[i]));
 
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
 		if(ADDRCMP((*fa),j->addr)) {

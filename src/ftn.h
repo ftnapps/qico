@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.9 2000/11/01 10:36:11 lev Exp $
+ * $Id: ftn.h,v 1.10 2000/11/08 20:31:44 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -23,6 +23,7 @@
 #define F_HOLD 2
 #define F_DIR  3
 #define F_CRSH 4
+#define F_IMM  5
 
 #define T_UNKNOWN 0
 #define T_ARCMAIL 1
