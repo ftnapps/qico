@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.11 2001/05/29 19:13:34 lev Exp $
+ * $Id: qnlc.c,v 1.12 2001/07/24 13:57:09 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -174,7 +174,7 @@ int compile_nodelists()
 			xfree(ies);
 			write_log("can't write to index!");
 			fclose(idx);
-			sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+			snprintf(fn,MAX_PATH,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 			return 0;
 		}
 		xfree(ies);
