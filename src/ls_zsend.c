@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.18 2003/03/10 15:58:09 cyrilm Exp $
+ * $Id: ls_zsend.c,v 1.19 2003/04/06 14:39:22 cyrilm Exp $
  **********************************************************/
 /*
 
@@ -211,7 +211,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
    Return packet type -- ZRPOS, ZSKIP, ZFERR, ZABORT or ZFIN (may be any error, too) */
 int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 {
-	char finfolen;
+	int finfolen;
 	int trys = 0;
 	int retransmit = 1;
 	int rc;
