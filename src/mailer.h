@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.12 2002/04/10 12:25:56 lev Exp $
+ * $Id: mailer.h,v 1.13 2003/03/10 15:58:10 cyrilm Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -88,7 +88,7 @@ extern int hexdcd(char c);
 extern void emsi_dcds(char *s);
 extern int emsi_parsedat(char *str, ninfo_t *dat);
 extern void emsi_log(ninfo_t *e);
-extern int emsi_send(int mode, char *dat);
+extern int emsi_send(int mode, unsigned char *dat);
 extern int emsi_recv(int mode, ninfo_t *rememsi);
 extern int emsi_init(int mode);
 extern int emsi_parsecod(char *lcod, char *ccod);
@@ -138,7 +138,7 @@ extern byte txlastc;
 #define GETCHAR(t) tty_getc(t)
 #define GETCHART(t) tty_getc_timed(t)
 #define PUTCHAR(c) tty_putc(c)
-#define PUTSTR(s) tty_put(s, strlen(s))
+#define PUTSTR(s) tty_put(s, strlen((char *)s))
 #define HASDATA(t) tty_hasdata(t,0)
 #define UHASDATA(t) tty_hasdata(0,t)
 #define HASDATAT(t) tty_hasdata_timed(t)
@@ -147,7 +147,7 @@ extern byte txlastc;
 #define PURGEALL() {tty_purge();tty_purgeout();}
 #define CARRIER() (!tty_hangedup)
 #define PUTBLK(bl, size) tty_put(bl,size)
-#define CANCEL() tty_put(canistr, strlen(canistr))
+#define CANCEL() tty_put((unsigned char*)canistr, strlen(canistr))
 #define BUFCHAR(c) tty_bufc(c)
 #define BUFFLUSH() tty_bufflush()
 #define BUFCLEAR() tty_bufclear()

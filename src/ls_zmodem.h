@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.16 2001/03/25 15:38:21 lev Exp $
+ * $Id: ls_zmodem.h,v 1.17 2003/03/10 15:58:08 cyrilm Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -170,8 +170,8 @@
 /* ZModem state */
 
 /* Common variables */
-extern char ls_txHdr[];			/* Sended header */
-extern char ls_rxHdr[];			/* Receiver header */
+extern byte ls_txHdr[];			/* Sended header */
+extern byte ls_rxHdr[];			/* Receiver header */
 extern int ls_GotZDLE;			/* We seen DLE as last character */
 extern int ls_GotHexNibble;		/* We seen one hex digit as last character */
 extern int ls_Protocol;			/* Plain/ZedZap/DirZap and other options */
@@ -202,13 +202,13 @@ typedef struct _ZFILEINFO {
 } ZFILEINFO;
 
 /* Functions */
-int ls_zsendbhdr(int frametype, int len, char *hdr);
-int ls_zsendhhdr(int frametype, int len, char *hdr);
-int ls_zrecvhdr(char *hdr, int *hlen, int timeout);
+int ls_zsendbhdr(int frametype, int len, byte *hdr);
+int ls_zsendhhdr(int frametype, int len, byte *hdr);
+int ls_zrecvhdr(byte *hdr, int *hlen, int timeout);
 
-int ls_zsenddata(char *data, int len, int frame);
-int ls_zrecvdata16(char *data, int *len, int timeout);
-int ls_zrecvdata32(char *data, int *len, int timeout);
+int ls_zsenddata(byte *data, int len, int frame);
+int ls_zrecvdata16(byte *data, int *len, int timeout);
+int ls_zrecvdata32(byte *data, int *len, int timeout);
 #define ls_zrecvdata(data,len,timeout,crc32) ((crc32)?ls_zrecvdata32(data,len,timeout):ls_zrecvdata16(data,len,timeout))
 
 void ls_sendchar(int c);
@@ -219,7 +219,7 @@ int ls_readhex(int *timeout);
 int ls_readzdle(int *timeout);
 int ls_readcanned(int *timeout);
 
-void ls_storelong(char *buf, long l);
+void ls_storelong(byte *buf, long l);
 long ls_fetchlong(unsigned char *buf);
 
 /* Top-level functions */

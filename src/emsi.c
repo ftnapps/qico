@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.30 2002/04/10 12:25:56 lev Exp $
+ * $Id: emsi.c,v 1.31 2003/03/10 15:58:04 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -237,7 +237,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 }
 
 
-int emsi_send(int mode, char *dat)
+int emsi_send(int mode, unsigned char *dat)
 {
 	time_t t1, t2;
 	int tries=0, got=0, ch;
@@ -297,12 +297,12 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 		if(!mode) {
 			sline("Sending EMSI_REQ (%d)...", tries);
 			DEBUG(('E',1,"Sending EMSI_REQ (%d)...", tries));
-			PUTSTR(emsireq);PUTCHAR('\r');
+			PUTSTR((unsigned char*)emsireq);PUTCHAR('\r');
 			t1=t_set(20);
 		} else if(tries>1) {
 			sline("Sending EMSI_NAK...");
 			DEBUG(('E',1,"Sending EMSI_NAK (%d)...", tries));
-			PUTSTR(emsinak);PUTCHAR('\r');
+			PUTSTR((unsigned char*)emsinak);PUTCHAR('\r');
 			t1=t_set(20);
 		}
 
@@ -330,8 +330,8 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 					if(ch) {
 						sline("Sending EMSI_ACK...");
 						DEBUG(('E',1,"Sending EMSI_ACK"));
-						PUTSTR(emsiack);PUTCHAR('\r');
-						PUTSTR(emsiack);PUTCHAR('\r');
+						PUTSTR((unsigned char*)emsiack);PUTCHAR('\r');
+						PUTSTR((unsigned char*)emsiack);PUTCHAR('\r');
 						return OK;
 					} else break;
 				}
@@ -388,7 +388,7 @@ int emsi_init(int mode)
 				if(strstr(str, emsireq)) {
             		sline("Received EMSI_REQ, sending EMSI_INQ...");
 					DEBUG(('E',1,"Got EMSI_REQ"));
-					PUTSTR(emsiinq);PUTCHAR('\r');
+					PUTSTR((unsigned char*)emsiinq);PUTCHAR('\r');
 					return OK;
 				} else {
 					str[79]=0;
@@ -405,10 +405,10 @@ int emsi_init(int mode)
 				if(tries > 10) return TIMEOUT;
 				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
 				DEBUG(('E',1,"Sending EMSI_INQ (Try %d of %d)...",tries,10));
-				PUTSTR(emsiinq);
+				PUTSTR((unsigned char*)emsiinq);
 				PUTCHAR('\r');
 				if (cfgi(CFG_STANDARDEMSI)) {
-					PUTSTR(emsiinq);
+					PUTSTR((unsigned char*)emsiinq);
 					PUTCHAR('\r');
 				}
 			}
@@ -418,7 +418,7 @@ int emsi_init(int mode)
 	t1=t_set(HS_TIMEOUT);
 	sline("Sending EMSI_REQ...");
 	DEBUG(('E',1,"Sending EMSI_REQ"));
-	PUTSTR(emsireq);PUTCHAR('\r');
+	PUTSTR((unsigned char*)emsireq);PUTCHAR('\r');
 	sline("Waiting for EMSI_INQ...");
 	DEBUG(('E',1,"Waiting for EMSI_INQ"));
 	ch=tty_expect(emsiinq, HS_TIMEOUT);

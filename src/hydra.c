@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.20 2003/02/25 21:23:00 cyrilm Exp $
+ * $Id: hydra.c,v 1.21 2003/03/10 15:58:04 cyrilm Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -431,7 +431,7 @@ static void txpkt (register word len, int type)
 		}
 	}
 
-	PUTBLK((char *) txbuf,(word) (out - txbuf));
+	PUTBLK(txbuf,(word) (out - txbuf));
 }/*txpkt()*/
 
 	
@@ -766,7 +766,7 @@ int hydra_file(char *txpathname, char *txalias)
 		switch (txstate) {
 			/*---------------------------------------------------------*/
 		case HTX_START:
-			PUTBLK(autostr,(int) strlen(autostr));
+			PUTBLK((unsigned char*)autostr,(int) strlen(autostr));
 			txpkt(0,HPKT_START);
 			txtimer = h_timer_set(H_START);
 			txstate = HTX_SWAIT;

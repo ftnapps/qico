@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.14 2003/01/20 08:35:05 cyrilm Exp $
+ * $Id: qipc.c,v 1.15 2003/03/10 15:58:12 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -173,9 +173,11 @@ void title(char *str, ...)
 	vsprintf(lin, str, args);
 	va_end(args);
 	qsendpkt(QC_TITLE, QLNAME, lin, strlen(lin)+1);
+	if(cfgi(CFG_USEPROCTITLE)) {
 #ifdef HAVE_LIBUTIL
 	setproctitle("%s", lin);
 #else
 	setproctitle(lin);
 #endif
+	}
 }

@@ -2,7 +2,7 @@
  * File: tty.h
  * Created at Thu Jul 15 16:16:17 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.h,v 1.5 2003/01/22 07:50:12 cyrilm Exp $
+ * $Id: tty.h,v 1.6 2003/03/10 15:58:14 cyrilm Exp $
  **********************************************************/
 #ifndef __TTY_H__
 #define __TTY_H__
@@ -48,8 +48,8 @@ extern int tty_cooked(void);
 extern int tty_close(void);
 extern int tty_unblock(void);
 extern int tty_block();
-extern int tty_put(char *buf, int size);
-extern int tty_get(char *buf, int size, int *timeout);
+extern int tty_put(unsigned char *buf, int size);
+extern int tty_get(unsigned char *buf, int size, int *timeout);
 extern int tty_bufc(char ch);
 extern int tty_bufflush();
 extern void tty_bufclear();

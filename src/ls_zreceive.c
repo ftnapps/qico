@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.15 2001/03/23 20:46:26 lev Exp $
+ * $Id: ls_zreceive.c,v 1.16 2003/03/10 15:58:08 cyrilm Exp $
  **********************************************************/
 /*
 
@@ -16,7 +16,7 @@
 #include "ls_zmodem.h"
 #include "qipc.h"
 
-static char ls_rxAttnStr[LSZ_MAXATTNLEN+1] = "";
+static unsigned char ls_rxAttnStr[LSZ_MAXATTNLEN+1] = "";
 
 /* Init receiver, preapre to receive files (initialize timeouts too!) */
 int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
@@ -48,7 +48,7 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 }
 
 /* Internal function -- receive ZCRCW frame in 10 trys, send ZNAK/ZACK */
-int ls_zrecvcrcw(char *buf, int *len)
+int ls_zrecvcrcw(byte *buf, int *len)
 {
 	int trys = 0;
 	int rc;
@@ -133,7 +133,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			if(!rc) { 		/* Everything is OK */
 				ls_storelong(ls_txHdr,1L);
 				ls_zsendhhdr(ZACK,4,ls_txHdr);
-				xstrcpy(ls_rxAttnStr,rxbuf,LSZ_MAXATTNLEN+1);
+				xstrcpy((char *)ls_rxAttnStr,(char *)rxbuf,LSZ_MAXATTNLEN+1);
 				ls_rxAttnStr[LSZ_MAXATTNLEN] = '\x00';
 				if(ls_rxHdr[LSZ_F0]&LSZ_TXWNTESCCTL) ls_Protocol |= LSZ_OPTESCAPEALL;
 				if(ls_rxHdr[LSZ_F0]&LSZ_TXWNTESC8) ls_Protocol |= LSZ_OPTESC8;
@@ -145,9 +145,9 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			DEBUG(('Z',2,"ls_zrecvfinfo: ZFILE"));
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK, decode frame */
-				xstrcpy(f->name,rxbuf,MAX_PATH);
+				xstrcpy(f->name,(char *)rxbuf,MAX_PATH);
 				f->name[MAX_PATH-1] = '\x00';
-				if(sscanf(rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
+				if(sscanf((char *)rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
 					DEBUG(('Z',1,"ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1));
 					f->filesleft = -1;
 				}
