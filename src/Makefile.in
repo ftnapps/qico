@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.16 2001/05/21 20:01:10 lev Exp $
+# $Id: Makefile.in,v 1.17 2001/05/25 18:54:47 lev Exp $
 #
 
 prefix  = @prefix@
@@ -64,7 +64,7 @@ qcc:	$(QCCOBJS)
 	$(CC) $(CFLAGS) -o qcc $(QCCOBJS) $(QCLIBS) $(LIBS)
 
 qctl:	$(QCTLOBJS)
-	$(CC) $(CFLAGS) -o qctl $(QCTLOBJS) $(DLIBS)
+	$(CC) $(CFLAGS) -o qctl $(QCTLOBJS) $(LIBS)
 
 qconf.c: qconf.x qconf.h
 	$(AWK) -F, -f x2c.awk qconf.x > qconf.c
