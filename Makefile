@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.1 2000/07/18 12:37:16 lev Exp $
+# $Id: Makefile,v 1.2 2000/07/18 14:37:40 lev Exp $
 #
 include	CONFIG
 
@@ -25,7 +25,7 @@ install:
 
 release: clean
 	mkdir qico-$(VERSION)
-	cp -rf src stuff Makefile CONFIG Changes README COPYING FAQ qico-$(VERSION)/
+	cp -rf src stuff Makefile CONFIG Changes README LICENSE FAQ qico-$(VERSION)/
 	rm -f qico-$(VERSION)/src/TAGS
 	cp qico.conf qico-$(VERSION)/qico.conf
 	tar -chf - qico-$(VERSION) | gzip -f -9 > $(DIST)
