@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.39 2001/03/02 15:57:58 lev Exp $
+ * $Id: main.c,v 1.40 2001/03/02 16:02:35 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -600,7 +600,7 @@ void daemon_mode()
 					break;
 				case QR_QUEUE:
 					sinfo = q_queue;
-					do {
+					if (sinfo) do {
 						sendrpktwait(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu",
 							(char)1,
 							ftnaddrtoa(&sinfo->addr),(char)0,

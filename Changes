@@ -8,6 +8,7 @@ Version 0.49.7
   работы.
 - Теперь значение по-умолчанию для пути к конфигу (если не указан параметр
   --with-config для configure) ${prefix}/etc/qico.conf, а не /etc/ftn/qico.conf
+- bugfix: Демон не падает, если его просят прислать (`qctl -o') пустую очередь.
 - bugfix: Работают холды после сессий с флагами H*.
   (Patch from Sir Raorn <raorn@binec.ru>).
 - bugfix: В новом ZModem'е поправлены skip и refuse на начале файла.
