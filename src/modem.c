@@ -1,6 +1,6 @@
 /**********************************************************
  * work with modem
- * $Id: modem.c,v 1.3 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: modem.c,v 1.4 2004/06/02 13:20:08 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -158,7 +158,7 @@ int alive()
 			 cfgsl(CFG_MODEMBUSY),cfgs(CFG_MODEMRINGING),
 			 cfgi(CFG_MAXRINGS),2,NULL,0);
 #ifdef NEED_DEBUG
-	if(rc!=MC_OK)DEBUG(('M',3,"alive: failed, rc=%d",rc));
+	if(rc!=MC_OK)DEBUG(('M',3,"alive: failed, rc=%d [%s]",rc,mcs[rc]));
 #endif
 	return rc;
 }
@@ -182,7 +182,7 @@ int hangup()
 		tty_purge();
 	}
 #ifdef NEED_DEBUG
-	if(rc!=MC_OK)DEBUG(('M',3,"hangup: failed, rc=%d",rc));
+	if(rc!=MC_OK)DEBUG(('M',3,"hangup: failed, rc=%d [%s]",rc,mcs[rc]));
 #endif
 	return rc;
 }
@@ -219,7 +219,7 @@ static int reset()
 					  cfgsl(CFG_MODEMERROR),cfgsl(CFG_MODEMBUSY),
 					  cfgs(CFG_MODEMRINGING),cfgi(CFG_MAXRINGS),
 					  cfgi(CFG_WAITRESET),NULL,0);
-	if(rc!=MC_OK) write_log("modem reset failed [%s]",mcs[rc]);
+	if(rc!=MC_OK) write_log("modem reset failed, rc=%d [%s]",rc,mcs[rc]);
 	return rc;
 }
 
@@ -250,7 +250,7 @@ int mdm_dial(char *phone,char *port)
 			sline("RING found..");
 			sleep(2);
 			execsh("killall -USR1 mgetty vgetty >/dev/null 2>&1");
-		} else sline("Call failed");
+		} else sline("Call failed (%s)",mcs[rc]);
 		return rc;
 	}
 	write_log("*** %s",conn);

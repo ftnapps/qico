@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.19 2004/06/01 01:12:49 sisoft Exp $
+ * $Id: config.c,v 1.20 2004/06/02 13:20:08 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -248,8 +248,7 @@ int parseconfig(char *cfgname)
 	char s[MAX_STRING*2],*p,*t,*k;
 	int line=0,rc=1;
 	slist_t *cc;
-	f=fopen(cfgname, "rt");
-	if(!f) {
+	if(!(f=fopen(cfgname,"rt"))) {
 		write_log("can't open config file '%s': %s",cfgname,strerror(errno));
 		return 0;
 	}
@@ -260,16 +259,19 @@ contl:		line++;p=s;
 		if(*p&&*p!='#'&&*p!='\n'&&*p!=';'&&(*p!='/'||p[1]!='/')) {
 			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
 			if(*t=='\\'&&t>p&&*(t-1)==' ') {
-				fgets(t,MAX_STRING*2-(t-p),f);
-				for(k=t;*k==' '||*k=='\t';k++);
+				do if(!fgets(t,MAX_STRING*2-(t-p),f))*t=0;
+				while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
+				for(k=t;*k==' ';k++);
 				if(k>t)xstrcpy(t,k,strlen(k));
 				goto contl;
 			}
-			t=strchr(p,' ');
-			if(!t)t=strchr(p,'\n');
-			if(!t)t=strchr(p,'\r');
-			if(!t)t=strchr(p,0);
-			*t=0;t++;
+			if(*p!='{') {
+				t=strchr(p,' ');
+				if(!t)t=strchr(p,'\n');
+				if(!t)t=strchr(p,'\r');
+				if(!t)t=strchr(p,0);
+				*t++=0;
+			} else t=p+1;
 			while(*t==' ')t++;
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
 			if(!strcasecmp(p,"include")) {
@@ -280,7 +282,7 @@ contl:		line++;p=s;
 					write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
 					rc=0;
 				}
-			} else if(!strcasecmp(p,"if"))	{
+			} else if(*p=='{'||!strcasecmp(p,"if")) {
 				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
 				if(*k==':'&&k[1]==' ') {
 					*k++=0;
@@ -293,6 +295,7 @@ contl:		line++;p=s;
 						write_log("%s:%d: inline <if>-expression witout arguments",cfgname,line);
 						rc=0;k=NULL;
 					}
+					if(*(p+strlen(p)-1)=='}')*(p+strlen(p)-1)=0;
 				} else k=NULL;
 				cc=slist_add(&condlist,t);
 				if(flagexp(cc,1)<0) {
@@ -309,11 +312,11 @@ contl:		line++;p=s;
 					rc=0;
 				} else {
 					k=slist_dell(&curcond);
-					snprintf(s,MAX_STRING,"not(%s)",k);
+					snprintf(s,MAX_STRING*2,"not(%s)",k);
 					cc=slist_add(&condlist,s);
 					slist_addl(&curcond,cc->str);
 				}
-			} else if(!strcasecmp(p,"endif")) {
+			} else if(*p=='}'||!strcasecmp(p,"endif")) {
 				if(!curcond) {
 					write_log("%s:%d: misplaced <endif> without <if>",cfgname,line);
 					rc=0;
@@ -350,8 +353,10 @@ void dumpconfig()
 			} else xstrcat(buf,"default: ",LARGE_STRING);
 			switch(configtab[i].type) {
 			    case C_PATH:
-			    case C_STR:
-				snprintf(buf+strlen(buf),LARGE_STRING,"'%s'",c->value.v_char);break;
+			    case C_STR:	  snprintf(buf+strlen(buf),LARGE_STRING,"'%s'",c->value.v_char);break;
+			    case C_INT:   snprintf(buf+strlen(buf),LARGE_STRING,"%d",c->value.v_int);break;
+			    case C_OCT:   snprintf(buf+strlen(buf),LARGE_STRING,"%o",c->value.v_int);break;
+			    case C_YESNO: snprintf(buf+strlen(buf),LARGE_STRING,"%s",c->value.v_int?"yes":"no");break;
 			    case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
 					snprintf(buf+strlen(buf),LARGE_STRING,"'%s', ",sl->str);
@@ -367,9 +372,6 @@ void dumpconfig()
 					snprintf(buf+strlen(buf),LARGE_STRING,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
 				xstrcat(buf,"%",LARGE_STRING);
 				break;
-			    case C_INT:     snprintf(buf+strlen(buf),LARGE_STRING,"%d",c->value.v_int);break;
-			    case C_OCT:     snprintf(buf+strlen(buf),LARGE_STRING,"%o",c->value.v_int);break;
-			    case C_YESNO:   snprintf(buf+strlen(buf),LARGE_STRING,"%s",c->value.v_int?"yes":"no");break;
 			}
 			write_log("%s",buf);
 		}
@@ -383,14 +385,11 @@ void killconfig()
 	cfgitem_t *c,*t;
 	slist_kill(&condlist);
 	for(i=0;i<CFG_NNN;i++) {
-		c=configtab[i].items;
-		while(c) {
-			t=c->next;
+		for(c=configtab[i].items;c;c=t) {
 			switch(configtab[i].type) {
 			    case C_PATH:
 			    case C_STR:
-				if(c->value.v_char)xfree(c->value.v_char);
-				else c->value.v_char=NULL;
+				xfree(c->value.v_char);
 				break;
 			    case C_STRL:
 				slist_kill(&c->value.v_sl);
@@ -408,8 +407,8 @@ void killconfig()
 				break;
 			}
 			slist_killn(&c->condition);
+			t=c->next;
 			xfree(c);
-			c=t;
 		}
 		configtab[i].items=NULL;
 		configtab[i].found=0;

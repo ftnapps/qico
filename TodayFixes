@@ -1,8 +1,10 @@
-/* $Id: TodayFixes,v 1.74 2004/06/01 01:12:45 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.75 2004/06/02 13:20:06 sisoft Exp $ */
 ---
-add support for recursive <if>-expressions and conditional includes.
+fix multiline defines in config.
+add support for change if--endif to {--} blocks (see conf.sample).
 .
 previous:
 ---
-manage files.
+add files qslib.[ch].
+add support for recursive <if>-expressions and conditional includes.
 .

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.28 2004/05/29 23:34:45 sisoft Exp $
+ * $Id: daemon.c,v 1.29 2004/06/02 13:20:08 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -91,13 +91,10 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 
 int daemon_xsend(int sock,char *buf,size_t len)
 {
-	cls_cl_t *uis=cl;
-	if(!uis)return len;
-	while(uis) {
-		if(uis->type=='e'&&(!tosend||tosend==uis->sock))
-		    if(xsend(uis->sock,buf,len)<0)DEBUG(('I',1,"can't send to client %d (fd=%d): %s",uis->id,uis->sock,strerror(errno)));
-		uis=uis->next;
-	}
+	cls_cl_t *uis;
+	for(uis=cl;uis;uis=uis->next)
+	    if(uis->type=='e'&&(!tosend||tosend==uis->sock))
+		if(xsend(uis->sock,buf,len)<0)DEBUG(('I',1,"can't send to client %d (fd=%d): %s",uis->id,uis->sock,strerror(errno)));
 	return len;
 }
 
@@ -746,8 +743,7 @@ nlkil:				is_ip=0;bink=0;
 					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
 				    }
 				}
-				uis=cl;uit=NULL;
-				while(uis) {
+				for(uis=cl,uit=NULL;uis;uit=uis,uis=uis->next)
 					if(FD_ISSET(uis->sock,&rfds)) {
 						rc=xrecv(uis->sock,buf,MSG_BUFFER-1,1);
 						if(!rc||(rc<0&&errno==ECONNRESET)) {
@@ -767,9 +763,6 @@ nlkil:				is_ip=0;bink=0;
 						if(rc>0)DEBUG(('I',8,"client %d: recv %d bytes",uis->id,rc));
 						if(rc>1)daemon_evt(uis->sock,buf,rc,1);
 					}
-					uit=uis;
-					uis=uis->next;
-				}
 				if(FD_ISSET(uis_sock,&rfds)) {
 					for(uis=cl;uis&&uis->next;uis=uis->next);
 					uit=xmalloc(sizeof(cls_cl_t));

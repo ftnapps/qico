@@ -1,3 +1,16 @@
+2004-06-01 05:14  sisoft
+
+	* src/: qslib.c, qslib.h:
+
+	add files qslib.[ch].
+	add support for recursive <if>-expressions and conditional includes.
+
+2004-06-01 05:12  sisoft
+
+	* Changes, src/config.c, src/flagexp.y, src/tools.h:
+
+	add support for recursive <if>-expressions and conditional includes.
+
 2004-05-31 17:19  sisoft
 
 	* src/: Makefile.am, byteop.h, gmtoff.c, headers.h, qcc.c, qctl.c,
