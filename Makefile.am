@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2004/06/07 18:50:51 sisoft Exp $
+# $Id: Makefile.am,v 1.10 2004/06/19 22:31:57 sisoft Exp $
 AUTOMAKE_OPTIONS = foreign dist-bzip2 1.5
 
 SUBDIRS = src stuff debian
@@ -9,3 +9,5 @@ distclean-hook:
 
 deb: debian/rules debian/control
 	debian/rules binary
+
+.PHONY: deb
