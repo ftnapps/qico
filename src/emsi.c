@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.3 2001/02/03 12:05:15 lev Exp $
+ * $Id: emsi.c,v 1.5.2.4 2001/02/08 19:44:44 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -260,7 +260,7 @@ int emsi_send(int mode, char *dat)
 	t1=t_set(60);
 	while(1) {
 		sline("Sending EMSI_DAT");
-		PUTSTR(dat);
+		PUTSTR(dat); PUTCHAR('\r');
 		tries++;
 		if(tries>10) return TIMEOUT;
 		t2=t_set(20);got=0;p=str;
