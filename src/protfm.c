@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.17 2004/03/27 21:38:41 sisoft Exp $
+ * $Id: protfm.c,v 1.18 2004/04/09 09:51:33 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -80,7 +80,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
-	if(whattype(name)==IS_PKT&&rsize==60)return FOP_SKIP;
+	if(whattype(name)==IS_PKT&&(rsize==60||!rsize)&&cfgi(CFG_KILLBADPKT))return FOP_SKIP;
 	rc=skipiftic;skipiftic=0;
 	if(rc&&istic(bn)&&cfgi(CFG_AUTOTICSKIP)) {
 		write_log(rc==FOP_SKIP?weskipstr:wesusstr,recvf.fname,"auto");
@@ -232,7 +232,7 @@ FILE *txopen(char *tosend, char *sendas)
 		write_log("can't find file %s!", tosend);
 		return NULL;
 	}
-	if(whattype(sendas)==IS_PKT&&sb.st_size==60&&cfgi(CFG_KILLBADPKT))return NULL;
+	if(whattype(sendas)==IS_PKT&&sb.st_size==60)return NULL;
 	xfree(sendf.fname);
  	sendf.fname=xstrdup(sendas);
 	sendf.ftot=sb.st_size;

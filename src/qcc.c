@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.32 2004/03/27 21:38:41 sisoft Exp $
+ * $Id: qcc.c,v 1.33 2004/04/09 09:51:33 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -626,7 +626,7 @@ static void delslot(int slt)
 static int inputstr(char *str,char *name,int mode)
 {
 	WINDOW *iw;
-	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms,tmp;
+	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms,tmp,yp;
 	struct tm *tt;time_t tim;
 	struct timeval tv;fd_set rfds;
 	memset(str,0,MAX_STRING);
@@ -634,7 +634,8 @@ static int inputstr(char *str,char *name,int mode)
 	ms=mode?(mode==1?40:5):(MAX_STRING-2);
 	if(ms<strlen(name))ms=strlen(name)+1;
 	if((ms+2)>COL)ms=COL-2;vl=ms-1;
-	iw=newwin(3,ms+2,LINES/2-2,COL/2-ms/2);
+	yp=LINES/2-2;if(yp<=MH)yp=MH+1;
+	iw=newwin(3,ms+2,yp,COL/2-ms/2);
 	wbkgd(iw,COLOR_PAIR(8)|' ');
 	wattron(iw,COLOR_PAIR(9));
 	wborder(iw,ACS_VLINE,ACS_VLINE,ACS_HLINE,ACS_HLINE,ACS_ULCORNER,ACS_URCORNER,ACS_LLCORNER,ACS_LRCORNER);
@@ -844,8 +845,10 @@ static int inputstr(char *str,char *name,int mode)
 		}
 	}
 	delwin(iw);
-	attrset(COLOR_PAIR(2));
-	mvhline(MH+1,1,ACS_HLINE,COL);
+	if(yp==MH+1) {
+		attrset(COLOR_PAIR(2));
+		mvhline(MH+1,1,ACS_HLINE,COL);
+	}
 	refresh();edm=0;freshall();
 	freshhelp();wnoutrefresh(whelp);
 	return(*(char*)str);
@@ -1278,6 +1281,9 @@ int main(int argc,char **argv)
 		ch=getch();
 		if(ch==0x1b)ch=getch();
 		if(ch==ERR)continue;
+#ifdef KEY_RESIZE
+		if(ch==KEY_RESIZE)continue;
+#endif
 		if(ch==('L'-'@')) {
 			draw_screen();
 			freshall();
