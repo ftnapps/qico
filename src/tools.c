@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.7 2004/03/06 12:50:56 sisoft Exp $
+ * $Id: tools.c,v 1.8 2004/03/20 16:04:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -274,10 +274,10 @@ int isdos83name(char *fn)
 	return(f&&ec<2&&el<4&&nl<9&&(!lc||!uc));
 }
 
-#ifdef HAVE_STATFS
+#if defined(HAVE_STATFS) && defined(STATFS_HAVE_F_BAVAIL)
 #define STAT_V_FS statfs
 #else
-#ifdef HAVE_STATVFS
+#if defined(HAVE_STATVFS) && defined(STATVFS_HAVE_F_BAVAIL)
 #define STAT_V_FS statvfs
 #else
 #undef STAT_V_FS

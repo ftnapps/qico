@@ -1,6 +1,6 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.7 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: headers.h,v 1.8 2004/03/20 16:04:16 sisoft Exp $
  **********************************************************/
 #include <config.h>
 
@@ -28,9 +28,7 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif

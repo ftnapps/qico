@@ -1,15 +1,13 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.28 2004/03/15 01:19:30 sisoft Exp $
+ * $Id: qcc.c,v 1.29 2004/03/20 16:04:16 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -247,13 +245,19 @@ static void draw_screen()
 	attrset(COLOR_PAIR(2));
 	mvvline(1,0,ACS_VLINE,LINES-3);
 	mvvline(1,COL+1,ACS_VLINE,LINES-3);
+	mvaddch(MH+1,0,ACS_LTEE);
+	mvaddch(MH+1,COL+1,ACS_RTEE);
+	mvaddch(0,0,ACS_ULCORNER);
+	mvaddch(0,1,ACS_HLINE);
+	mvaddch(0,COL+1,ACS_URCORNER);
+	mvaddch(0,COL,ACS_HLINE);
+	mvaddch(LINES-2,1,'[');
+	mvaddch(LINES-2,0,ACS_LLCORNER);
+	mvaddch(LINES-2,COL,']');
+	mvaddch(LINES-2,COL+1,ACS_LRCORNER);
 	mvhline(MH+1,1,ACS_HLINE,COL);
-	mvaddch(MH+1,0,ACS_LTEE);mvaddch(MH+1,COL+1,ACS_RTEE);
-	mvaddch(0,0,ACS_ULCORNER);mvaddch(0,1,ACS_HLINE);
-	mvaddch(0,COL+1,ACS_URCORNER);mvaddch(0,COL,ACS_HLINE);
-	mvaddch(LINES-2,1,'[');mvaddch(LINES-2,0,ACS_LLCORNER);
-	mvaddch(LINES-2,COL,']');mvaddch(LINES-2,COL+1,ACS_LRCORNER);
-	attron(COLOR_PAIR(8));mvhline(LINES-1,0,' ',COLS);
+	attron(COLOR_PAIR(8));
+	mvhline(LINES-1,0,' ',COLS);
 	refresh();
 }
 

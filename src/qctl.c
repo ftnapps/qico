@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.14 2004/02/26 23:55:25 sisoft Exp $
+ * $Id: qctl.c,v 1.15 2004/03/20 16:04:16 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -18,9 +18,7 @@
 #else
 #include <varargs.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #include <signal.h>
 #include <ctype.h>
 #ifdef HAVE_SYS_STAT_H
