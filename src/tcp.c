@@ -1,6 +1,6 @@
 /**********************************************************
  * tcp open
- * $Id: tcp.c,v 1.5 2003/09/23 13:07:04 sisoft Exp $
+ * $Id: tcp.c,v 1.6 2003/10/02 15:18:00 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -41,8 +41,7 @@ int opentcp(char *name)
 		write_log("can't resolve ip for %s",name);
 		return 0;
 	}
-	sline("Connecting to %s:%d",
-		  inet_ntoa(server.sin_addr),(int)ntohs(server.sin_port));
+	sline("Connecting to %s:%d",inet_ntoa(server.sin_addr),(int)ntohs(server.sin_port));
 	signal(SIGPIPE,tty_sighup);
 	if ((fd=socket(AF_INET,SOCK_STREAM,0))<0) {
 		write_log("cannot create socket: %s",strerror(errno));

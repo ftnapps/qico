@@ -1,95 +1,120 @@
+2003-09-24 01:48  sisoft
+
+	* README, src/binkp.c:
+
+	fix binkp loop.
+	
+2003-09-23 17:07  sisoft
+
+	* ChangeLog, src/tcp.c:
+
+	fix run ./qico -bi.
+	
 2003-09-23 16:55  sisoft
 
 	* Changes, qico.conf.sample, src/binkp.c, src/binkp.h, src/call.c,
 	src/emsi.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/ftn.h,
 	src/globals.c, src/globals.h, src/log.c, src/ls_zmodem.c,
 	src/mailer.h, src/main.c, src/nodelist.c, src/qcc.c, src/qcconst.h,
-	src/qconf.x, src/qipc.c, src/session.c, src/tcp.c: fix loglevel Y. 
-	change keyword 'subst'.  'domain' - default domain for binkp. 
-	perse domain part of addresses (only for binkp).  add if-expression
-	'connstr'.  daemon may calls to ip-nodes.  new file flag:
-	nodial.tcpip - can't call via ip.  add 'p' opt for binkpopt:
-	disable plain auth.
+	src/qconf.x, src/qipc.c, src/session.c, src/tcp.c:
 
+	fix loglevel Y.
+	change keyword 'subst'.
+	'domain' - default domain for binkp.
+	perse domain part of addresses (only for binkp).
+	add if-expression 'connstr'.
+	daemon may calls to ip-nodes.
+	new file flag: nodial.tcpip - can't call via ip.
+	add 'p' opt for binkpopt: disable plain auth.
+	
 2003-09-16 15:09  sisoft
 
-	* ChangeLog: branching done.
+	* ChangeLog:
 
+	branching done.
+	
 2003-09-16 15:05  sisoft
 
-	* .cvs2cl, Changes, README, configure.in: release 0.49.12si stable
-	version.  current version 0.50si
+	* .cvs2cl, Changes, README, configure.in:
 
-2003-09-16 15:04  sisoft
-
-	* .cvs2cl, ChangeLog, src/binkp.c, src/binkp.h, src/md5.c: remove
-	not needed files.
-
-2003-09-16 15:01  sisoft
-
-	* .cvsignore, ChangeLog, Changes, FAQ, README, configure.in,
-	qico.conf.sample, src/Makefile.am, src/flaglex.l, src/globals.c,
-	src/globals.h, src/mailer.h, src/main.c, src/qconf.x,
-	src/session.c, src/tcp.c: remove binkp.  release stable version
-	0.49.12si.
-
+	release 0.49.12si stable version.
+	current version 0.50si
+	
 2003-09-16 14:05  sisoft
 
-	* src/: binkp.c, queue.c: add flavor N to defbsoflv.
+	* src/: binkp.c, queue.c:
 
+	add flavor N to defbsoflv.
+	
 2003-09-14 20:45  sisoft
 
 	* ChangeLog, Changes, qico.conf.sample, src/binkp.c, src/qconf.x,
-	src/queue.c, src/session.c, src/tty.c: add keyword 'defboxflv' -
-	default longbox flavor.  small change in binkp.  more accurate
-	loglevel M9.
+	src/queue.c, src/session.c, src/tty.c:
 
+	add keyword 'defboxflv' - default longbox flavor.
+	small change in binkp.
+	more accurate loglevel M9.
+	
 2003-09-13 19:31  sisoft
 
-	* ChangeLog, qico.conf.sample, src/binkp.c, src/ftn.c: fix binkp.
+	* ChangeLog, qico.conf.sample, src/binkp.c, src/ftn.c:
 
+	fix binkp.
+	
 2003-09-12 23:16  sisoft
 
-	* src/: binkp.c, session.c: fix ASO. tnx for Michael Kulinich for
-	patch.
+	* src/: binkp.c, session.c:
 
+	fix ASO. tnx for Michael Kulinich for patch.
+	
 2003-09-12 22:24  sisoft
 
-	* src/binkp.c: some fixes in binkp.
+	* src/binkp.c:
 
+	some fixes in binkp.
+	
 2003-09-09 01:17  sisoft
 
-	* src/: aso.c, bso.c, queue.c: fix ASO and BSO scan in one
-	directory. add fool-shield.
+	* src/: aso.c, bso.c, queue.c:
 
+	fix ASO and BSO scan in one directory. add fool-shield.
+	
 2003-09-08 00:27  sisoft
 
 	* ChangeLog, Changes, FAQ, README, qico.conf.sample, src/qconf.x:
-	fix descriptions in config sample. add Q in faq. add keyword
-	`binkpopt`.
 
+	fix descriptions in config sample. add Q in faq. add keyword `binkpopt`.
+	
 2003-09-07 13:34  sisoft
 
-	* src/: aso.c, emsi.c, ftn.h, queue.c: fix ASO rescan. fix
-	something in emsi.
+	* src/: aso.c, emsi.c, ftn.h, queue.c:
 
+	fix ASO rescan. fix something in emsi.
+	
 2003-09-03 01:00  sisoft
 
-	* ChangeLog, Changes, src/emsi.c: fix in emsi.
+	* ChangeLog, Changes, src/emsi.c:
 
+	fix in emsi.
+	
 2003-09-01 23:12  sisoft
 
-	* Changes, README, src/queue.c, src/session.c: add work with
-	longbox in zone.net.node.point.flavour format.
+	* Changes, README, src/queue.c, src/session.c:
 
+	add work with longbox in zone.net.node.point.flavour format.
+	
 2003-08-28 17:42  sisoft
 
-	* src/: binkp.c, binkp.h, md5.c: really add binkp files.
+	* src/: binkp.c, binkp.h, md5.c:
 
+	really add binkp files.
+	
 2003-08-25 21:28  sisoft
 
-	* ChangeLog, README, configure.in: correct my email address.
+	* ChangeLog, README, configure.in:
 
+	correct my email address.
+	
 2003-08-25 19:27  sisoft
 
 	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,
@@ -97,60 +122,79 @@
 	src/crc.h, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
 	src/globals.c, src/globals.h, src/mailer.h, src/main.c,
 	src/protfm.c, src/qcc.c, src/qconf.x, src/session.c, src/tcp.c,
-	src/tty.c, src/types.h: write my emsi, if loglevel E greather 1. 
-	add keyword 'sendonly': HAT in emsi if enabled.  fix set node to
-	hold HRQ after failure session.  fix reset wait call timer.  fix
-	LST flag on outbound calls.  fix in emsi: send \r until receive
-	anything.  more informative loglevel M.  remove CR's from crc.h and
-	types.h.  add files: binkp.c, binkp.h, md5.c.  correct other files
-	for support binkp protocol.  describe more info about 'qctl -f'. 
-	added binkp protocol. be happy, but worry. ;) warn: binkp for test
-	mode only, use on your risk.  add -b opt for qico: binkp if
-	enabled, else ifcico.  add keyword 'domain': domain name for binkp.
-	 add if-expression 'binkp': true, if binkp session established. 
-	add debug level 'B' - binkp.  qcc: print 'empty queue' string, if
-	queue really empty.  fix 'holdout' keyword.  todo:qcc: add ctrl+l
-	combination for refresh screen.  don't send and recv mail-poll's
-	(pkt's with 60 bytes).
+	src/tty.c, src/types.h:
 
+	write my emsi, if loglevel E greather 1.
+	add keyword 'sendonly': HAT in emsi if enabled.
+	fix set node to hold HRQ after failure session.
+	fix reset wait call timer.
+	fix LST flag on outbound calls.
+	fix in emsi: send \r until receive anything.
+	more informative loglevel M.
+	remove CR's from crc.h and types.h.
+	add files: binkp.c, binkp.h, md5.c.
+	correct other files for support binkp protocol.
+	describe more info about 'qctl -f'.
+	added binkp protocol. be happy, but worry. ;)
+	warn: binkp for test mode only, use on your risk.
+	add -b opt for qico: binkp if enabled, else ifcico.
+	add keyword 'domain': domain name for binkp.
+	add if-expression 'binkp': true, if binkp session established.
+	add debug level 'B' - binkp.
+	qcc: print 'empty queue' string, if queue really empty.
+	fix 'holdout' keyword.
+	todo:qcc: add ctrl+l combination for refresh screen.
+	don't send and recv mail-poll's (pkt's with 60 bytes).
+	
 2003-07-25 01:50  sisoft
 
 	* Changes, README, src/aso.c, src/bso.c, src/ftn.h, src/main.c,
-	src/session.c: add work with .csy busy flags, change work with .bsy
-	flags.
+	src/session.c:
 
+	add work with .csy busy flags, change work with .bsy flags.
+	
 2003-07-24 20:48  sisoft
 
-	* ChangeLog: add ChangeLog.
+	* ChangeLog:
 
+	add ChangeLog.
+	
 2003-07-24 20:46  sisoft
 
-	* .cvs2cl, .cvsignore: foo
+	* .cvs2cl, .cvsignore:
 
+	foo
+	
 2003-07-24 15:53  sisoft
 
-	* Changes, qico.conf.sample, src/ftn.c, src/log.c: fix %F macro. 
-	add loglevels X: sent debug log to qcc.
+	* Changes, qico.conf.sample, src/ftn.c, src/log.c:
 
+	fix %F macro.
+	add loglevels X: sent debug log to qcc.
+	
 2003-07-24 15:30  sisoft
 
-	* src/session.c: fix 'holdout' func.
+	* src/session.c:
 
+	fix 'holdout' func.
+	
 2003-07-24 00:33  sisoft
 
-	* Changes, qico.conf.sample, src/qconf.x, src/session.c: add
-	keyword 'holdout': hold files with 'hold' status on outgoing calls.
+	* Changes, qico.conf.sample, src/qconf.x, src/session.c:
 
+	add keyword 'holdout': hold files with 'hold' status on outgoing calls.
+	
 2003-07-23 14:45  sisoft
 
 	* Changes, TODO, qico.conf.sample, src/aso.c, src/ftn.c, src/ftn.h,
 	src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/session.c:
-	add func 'sent file' to qcc.  add keyword 'autohold <files>':
-	automatically hold these files.  add macro '%F', '%N', '%E' in
-	,atch filename's and char '!' as NOT expr.  fix rename files with
-	'b' map*.  add keyword 'killbadpkt': kill partially received
-	packets.
 
+	add func 'sent file' to qcc.
+	add keyword 'autohold <files>': automatically hold these files.
+	add macro '%F', '%N', '%E' in ,atch filename's and char '!' as NOT expr.
+	fix rename files with 'b' map*.
+	add keyword 'killbadpkt': kill partially received packets.
+	
 2003-07-14 21:54  sisoft
 
 	* Changes, FAQ, Makefile.am, README, TODO, configure.in,
@@ -167,8 +211,10 @@
 	src/qnlc.c, src/queue.c, src/replace.h, src/session.c, src/tcp.c,
 	src/tty.c, src/tty.h, src/types.h, src/ver.c.in, src/ver.h,
 	src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
-	src/xstr.h: tipa new version. ;)
+	src/xstr.h:
 
+	tipa new version. ;)
+	
 2003-07-13 01:26  sisoft
 
 	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
@@ -190,28 +236,7 @@
 	src/xstr.h, stuff/.cvsignore, stuff/Makefile.am, stuff/ftn,
 	stuff/fts-0001, stuff/onchat, stuff/qico.stat, stuff/qico.xpm,
 	stuff/qst_hist.lnk, stuff/qst_hist.ses, stuff/sfreq,
-	stuff/synctime, stuff/tossing: Initial revision
+	stuff/synctime, stuff/tossing:
 
-2003-07-13 01:26  sisoft
-
-	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
-	compile, configure.in, qico.conf.sample, stamp-h.in,
-	src/.cvsignore, src/Makefile.am, src/basename.c, src/bso.c,
-	src/byteop.h, src/call.c, src/charset.h, src/config.c, src/crc.c,
-	src/crc.h, src/defs.h, src/emsi.c, src/execsh.c, src/flagexp.y,
-	src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h, src/getsid.c,
-	src/globals.c, src/globals.h, src/gmtoff.c, src/headers.h,
-	src/hydra.c, src/hydra.h, src/janus.c, src/janus.h, src/log.c,
-	src/ls_zglue.c, src/ls_zmodem.c, src/ls_zmodem.h,
-	src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h, src/main.c,
-	src/malloc.c, src/memcmp.c, src/nodelist.c, src/opts.h,
-	src/protfm.c, src/qcc.c, src/qcconst.h, src/qconf.x, src/qctl.c,
-	src/qipc.c, src/qipc.h, src/qnlc.c, src/queue.c, src/replace.h,
-	src/session.c, src/strcspn.c, src/strsep.c, src/tcp.c, src/tty.c,
-	src/tty.h, src/types.h, src/usleep.c, src/ver.c.in, src/ver.h,
-	src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
-	src/xstr.h, stuff/.cvsignore, stuff/Makefile.am, stuff/ftn,
-	stuff/fts-0001, stuff/onchat, stuff/qico.stat, stuff/qico.xpm,
-	stuff/qst_hist.lnk, stuff/qst_hist.ses, stuff/sfreq,
-	stuff/synctime, stuff/tossing: Initial cvs
-
+	Initial revision
+	

@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.7 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: ftn.c,v 1.8 2003/10/02 15:18:00 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -668,6 +668,7 @@ char *mapname(char *fn, char *map, size_t size)
 	    default:
 		break;
 	}
+	if(bink)strtr(fn,' ','_');
 	DEBUG(('S',3,"mapex: '%s'",fn));
 	return fn;
 }	

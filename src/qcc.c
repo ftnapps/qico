@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.5 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: qcc.c,v 1.6 2003/10/02 15:18:00 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -181,7 +181,7 @@ int  qclrs[Q_MAXBIT]=Q_COLORS;
 
 void usage(char *ex)
 {
-	printf("qcc-%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
+	printf("qcc%s copyright (c) pavel kurnosoff, 1999-2000, chng by sisoft\\trg'2003\n"
 	       "usage: %s [options]\n"
 	       "-n           disable sound (noise)\n"
 #ifdef NEED_DEBUG
@@ -301,7 +301,7 @@ void freshhelp()
 		wattroff(whelp,A_BOLD);
 	}
 	wattron(whelp,COLOR_PAIR(10));
-	mvwprintw(whelp,0,COL-4-strlen(version),"qcc-%s",version);
+	mvwprintw(whelp,0,COL-3-strlen(version),"qcc%s",version);
 }
 
 void freshhdr()
