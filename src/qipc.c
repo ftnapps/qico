@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.18 2004/03/27 21:38:41 sisoft Exp $
+ * $Id: qipc.c,v 1.19 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LIBUTIL_H
@@ -60,6 +60,19 @@ void vlog(char *str,...)
 	vsnprintf(lin,MAX_STRING-1,str,args);
 	va_end(args);
 	qsendpkt(QC_LOGIT,QLNAME,lin,strlen(lin)+1);
+}
+
+void sendrpkt(char what,int sock,char *fmt,...)
+{
+	int rc;
+	char buf[MSG_BUFFER];
+	va_list args;
+	STORE16(buf,0);
+	buf[2]=what;
+	va_start(args,fmt);
+	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
+	va_end(args);
+	if(xsend(sock,buf,rc+4)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
 
 void sline(char *str,...)

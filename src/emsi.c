@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.21 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: emsi.c,v 1.22 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -237,13 +237,13 @@ int emsi_send(int mode,unsigned char *dat)
 	char str[MAX_STRING],*p=str;
 
 	memset(str,0,MAX_STRING);
-	t1=t_set(60);
+	t1=t_set(cfgi(CFG_HSTIMEOUT));
 	while(1) {
 		tries++;
+		if(tries>10)return TIMEOUT;
 		sline("Sending EMSI_DAT");
 		DEBUG(('E',1,"Sending EMSI_DAT (%d)",tries));
 		PUTSTR(dat);PUTCHAR('\r');
-		if(tries>10)return TIMEOUT;
 		t2=t_set(20);got=0;p=str;
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
@@ -283,7 +283,8 @@ int emsi_recv(int mode,ninfo_t *rememsi)
 	int tries,got=0,ch,emsidatlen=0,emsidatgot=-1;
 	time_t t1,t2;
 	char str[EMSI_BUF],*p=str,*emsidathdr;
-	t1=t_set(20);t2=t_set(60);tries=0;
+	tries=0;t1=t_set(20);
+	t2=t_set(cfgi(CFG_HSTIMEOUT));
 	while(1) {
 		tries++;
 		if(tries>10)return TIMEOUT;
@@ -405,13 +406,12 @@ int emsi_init(int mode)
 		}
 		return OK;
 	}
-	t1=t_set(cfgi(CFG_HSTIMEOUT));
 	sline("Sending EMSI_REQ...");
 	DEBUG(('E',1,"Sending EMSI_REQ"));
 	PUTSTR((unsigned char*)emsireq);PUTCHAR('\r');
 	sline("Waiting for EMSI_INQ...");
 	DEBUG(('E',1,"Waiting for EMSI_INQ"));
-	ch=tty_expect(emsiinq,cci);
+	ch=tty_expect(emsiinq,20);
 	return ch;
 }
 

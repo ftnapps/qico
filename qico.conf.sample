@@ -1,7 +1,7 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.53si $Id: qico.conf.sample,v 1.36 2004/06/02 13:20:06 sisoft Exp $
+#for 0.53si $Id: qico.conf.sample,v 1.37 2004/06/05 06:49:13 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
@@ -51,6 +51,8 @@
 #                              ex.: 'port ttyS?'
 # + phone <substr>           - remote's phone begins with <substr>
 #                              ex.: 'phone 7-812-'
+# + mailer <substring>       - remote's mailer name includes <substring>
+#                              ex.: 'mailer KittenMail'
 # + cid <caller_id>          - $CALLER_ID's value begins with <caller_id>
 #                              ex.: cid 12345
 # + speed <comp> <value>     - remote's speed is <comp> <value>
@@ -72,14 +74,17 @@
 #                              Jan-Dec, Any
 #                              ex.: 'date Any10-13, Feb, Mar1-30
 # + file <full-path>         - file <full-path> present
-#                              ex. 'file /var/fido/flags/flag'
+#                              ex.: 'file /var/fido/flags/flag'
+# + exec <prog[,args]>       - <prog> return 0 (true). all spaces in <prog>
+#                              string might be change to commas.
+#                              ex.: 'exec /bin/ping,-c,1,-i,1,myhost.com'
 # + connstr <substring>      - connect string includes <substring>
-#                              ex. 'connstr LAP-M'
+#                              ex.: 'connstr LAP-M'
 # + host <host>              - where <host> is remote host or ip-addr.
-#                              ex. 'host foo.bar.com'
+#                              ex.: 'host foo.bar.com'
 # + sfree <value> <comp> <path> - free disk space on <path> path 
 #                              is <comp> <value> (in KBytes).
-#                              ex. 'sfree < 100 /mnt/dos'
+#                              ex.: 'sfree < 100 /mnt/dos'
 # + <flag>                   - where flag can be:
 #                                - 'list[ed]' (without '')
 #                                - 'prot[ected]'
@@ -467,17 +472,17 @@ binkpopt	MRBCT
 ;chathallostr	| * Hi, %s, that's good?|
 
 # Send window for ZModem (in bytes). 0 -- streamed mode.
-ztxwin          0
+;ztxwin          0
 
 # Receive window for ZModem (in bytes). 0 -- streamed mode.
 # May be ignored by remote
-zrxwin          0
+;zrxwin          0
 
 # Send window for Hydra (in bytes). 0 -- streamed mode.
-htxwin          0
+;htxwin          0
 
 # Receive window for Hydra (in bytes). 0 -- streamed mode.
-hrxwin          0
+;hrxwin          0
 
 # suspend files with status 'hold' on outgoing calls.
 holdout		no
@@ -680,7 +685,7 @@ mapin	lkr
 ; or addr 1:2345/7845.16 : protorder Z1
 
 # he has stupid big /etc/issue ;)
-if addr 1:2345/678 : showintro no
+//if addr 1:2345/678 : showintro no
 
 # security violation
 {bad

@@ -1,6 +1,6 @@
 /**********************************************************
  * outbound management
- * $Id: aso.c,v 1.11 2004/05/29 23:34:45 sisoft Exp $
+ * $Id: aso.c,v 1.12 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -380,7 +380,7 @@ int asoflist(flist_t **fl,ftnaddr_t *fa,int mode)
 		addflist(fl,xstrdup(tmp),xstrdup(str),' ',0,NULL,1);
 		totalf+=sb.st_size;totaln++;
 	}
-	if(bso_base&&!stat(aso_reqn(ASO,fa),&sb)) {
+	if(aso_base&&!stat(aso_reqn(ASO,fa),&sb)) {
 		snprintf(str,MAX_STRING,"%04x%04x.req",fa->n,fa->f);
 		addflist(fl,xstrdup(tmp),xstrdup(str),' ',0,NULL,1);
 		totalf+=sb.st_size;totaln++;

@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.11 2004/05/27 18:50:03 sisoft Exp $ */
+/* $Id: hydra.c,v 1.12 2004/06/05 06:49:13 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
 #include "crc.h"
@@ -12,56 +12,48 @@
 
 #ifdef NEED_DEBUG
 static char *hstates[]={
-"HTX_DONE",
-"HTX_START",
-"HTX_SWAIT",
-"HTX_INIT",
-"HTX_INITACK",
-"HTX_RINIT",
-"HTX_FINFO",
-"HTX_FINFOACK",
-"HTX_XDATA",
-"HTX_DATAACK",
-"HTX_XWAIT",
-"HTX_EOF",
-"HTX_EOFACK",
-"HTX_REND",
-"HTX_END",
-"HTX_ENDACK"};
-
+	"HTX_DONE",
+	"HTX_START",
+	"HTX_SWAIT",
+	"HTX_INIT",
+	"HTX_INITACK",
+	"HTX_RINIT",
+	"HTX_FINFO",
+	"HTX_FINFOACK",
+	"HTX_XDATA",
+	"HTX_DATAACK",
+	"HTX_XWAIT",
+	"HTX_EOF",
+	"HTX_EOFACK",
+	"HTX_REND",
+	"HTX_END",
+	"HTX_ENDACK"
+};
 static char *hpkts[]={
-"HPKT_START",
-"HPKT_INIT",
-"HPKT_INITACK",
-"HPKT_FINFO",
-"HPKT_FINFOACK",
-"HPKT_DATA",
-"HPKT_DATAACK",
-"HPKT_RPOS",
-"HPKT_EOF",
-"HPKT_EOFACK",
-"HPKT_END",
-"HPKT_IDLE",
-"HPKT_DEVDATA",
-"HPKT_DEVDACK"
+	"HPKT_START",
+	"HPKT_INIT",
+	"HPKT_INITACK",
+	"HPKT_FINFO",
+	"HPKT_FINFOACK",
+	"HPKT_DATA",
+	"HPKT_DATAACK",
+	"HPKT_RPOS",
+	"HPKT_EOF",
+	"HPKT_EOFACK",
+	"HPKT_END",
+	"HPKT_IDLE",
+	"HPKT_DEVDATA",
+	"HPKT_DEVDACK"
 };
 #endif
 
 static int hydra_modifier;
 
-#define crc16block crc16prp
-#define crc32block crc32
-
 /* HYDRA Some stuff to aid readability of the source and prevent typos ----- */
-#define h_crc16test(crc)   (((crc) == 0xf0b8     ) ? 1 : 0)
-#define h_crc32test(crc)   (((crc) == 0xdebb20e3L) ? 1 : 0)
+#define h_crc16test(crc)   ((crc) == CTC16PRP_TEST)
+#define h_crc32test(crc)   ((crc) == CRC32_TEST)
 #define h_uuenc(c)         (((c) & 0x3f) + '!')
 #define h_uudec(c)         (((c) - '!') & 0x3f)
-typedef long               h_timer;
-#define h_timer_set(t)     (time(NULL) + (t))
-#define h_timer_running(t) (t != 0L)
-#define h_timer_expired(t) (time(NULL) > (t))
-#define h_timer_reset()    (0L)
 
 /* HYDRA's memory ---------------------------------------------------------- */
 static  int     originator;
@@ -73,14 +65,14 @@ static  char   *pktprefix  = "";
 static  char   *autostr    = "hydra\r";
 
 static  char    txpktprefix[H_PKTPREFIX + 1];   /* pkt prefix str they want  */
-static  h_timer                 braindead;      /* braindead timer           */
+static  time_t                  braindead;      /* braindead timer           */
 static  byte   *txbufin;                        /* read data from disk here  */
 static  byte                    rxdle;          /* count of received H_DLEs  */
 static  byte                    rxpktformat;    /* format of pkt receiving   */
 static  word                    rxpktlen;       /* length of last packet     */
 static  long    txlastack;                      /* last dataack received     */
 static  long    txoffset,       rxoffset;       /* offset in file we begun   */
-static  h_timer txtimer,        rxtimer;        /* retry timers              */
+static  time_t  txtimer,        rxtimer;        /* retry timers              */
 static  long                    rxlastsync;     /* filepos last sync retry   */
 static  word    txgoodneeded;                   /* to send before larger blk */
 static  word    txgoodbytes;                    /* no. sent at this blk size */
@@ -120,7 +112,7 @@ static void h_devrecv(byte *data,word len)
 
 /*---------------------------------------------------------------------------*/
 static  word    devtxstate;                     /* dev xmit state            */
-static  h_timer devtxtimer;                     /* dev xmit retry timer      */
+static  time_t  devtxtimer;                     /* dev xmit retry timer      */
 static  word    devtxretries;                   /* dev xmit retry counter    */
 static  long    devtxid,        devrxid;        /* id of last devdata pkt    */
 static  char    devtxdev[H_FLAGLEN + 1];        /* xmit device ident flag    */
@@ -162,13 +154,13 @@ boolean hydra_devsend(char *dev, byte *data, word len)
 	devtxlen=(len>H_MAXBLKLEN(hydra_modifier))?H_MAXBLKLEN(hydra_modifier):len;
 
 	devtxid++;
-	devtxtimer   = h_timer_reset();
+	devtxtimer   = t_reset();
 	devtxretries = 0;
 	devtxstate   = HTD_DATA;
 
 	/* special for chat, only prolong life if our side keeps typing! */
 	if (chattimer > 1 && !strcmp(devtxdev,"CON") && txstate == HTX_REND)
-		braindead = h_timer_set(H_BRAINDEAD);
+		braindead = t_set(H_BRAINDEAD);
 
 	return (true);
 }/*hydra_devsend()*/
@@ -283,7 +275,6 @@ static void txpkt (register word len, int type)
 	register word  c, n;
 	boolean crc32b = false;
 	byte    format;
-	static char hexdigit[] = "0123456789abcdef";
 
 	getevt();
 
@@ -320,11 +311,11 @@ static void txpkt (register word len, int type)
 
 
 	if (crc32b) {
-		dword crc = (~crc32block((char *) txbufin,len)) & 0xffffffff;
+		dword crc = (~crc32((char *) txbufin,len)) & 0xffffffff;
 		STORE32(txbufin+len,crc);
 		len+=4;
 	} else {
-		word crc = (~crc16block((char *) txbufin,len)) & 0xffff;
+		word crc = (~crc16prp((char *) txbufin,len)) & 0xffff;
 		STORE16(txbufin+len,crc);
 		len+=2;
 	}
@@ -340,8 +331,8 @@ static void txpkt (register word len, int type)
 		for (; len > 0; len--, in++) {
 			if (*in & 0x80) {
 				*out++ = '\\';
-				*out++ = hexdigit[((*in) >> 4) & 0x0f];
-				*out++ = hexdigit[(*in) & 0x0f];
+				*out++ = hexdigits[((*in) >> 4) & 0x0f];
+				*out++ = hexdigits[(*in) & 0x0f];
 			}
 			else if (*in < 32 || *in == 127) {
 				*out++ = H_DLE;
@@ -535,7 +526,7 @@ static int rxpkt (void)
 						c = H_NOPKT;
 						break;
 					}
-					n = h_crc32test(crc32block((char *) rxbuf,rxpktlen));
+					n = h_crc32test(crc32((char *) rxbuf,rxpktlen));
 					rxpktlen -= 4;  /* remove CRC-32 */
 				}
 				else {
@@ -543,7 +534,7 @@ static int rxpkt (void)
 						c = H_NOPKT;
 						break;
 					}
-					n = h_crc16test(crc16block((char *) rxbuf,rxpktlen));
+					n = h_crc16test(crc16prp((char *) rxbuf,rxpktlen));
 					rxpktlen -= 2;  /* remove CRC-16 */
 				}
 
@@ -593,13 +584,13 @@ static int rxpkt (void)
 		chattimer=0;
 		return(HPKT_IDLE);
 	}
-	if (h_timer_running(braindead) && h_timer_expired(braindead)) {
+	if (t_runn(braindead) && t_exp(braindead)) {
 		return (H_BRAINTIME);
 	}
-	if (h_timer_running(txtimer) && h_timer_expired(txtimer)) {
+	if (t_runn(txtimer) && t_exp(txtimer)) {
 		return (H_TXTIME);
 	}
-	if (h_timer_running(devtxtimer) && h_timer_expired(devtxtimer)) {
+	if (t_runn(devtxtimer) && t_exp(devtxtimer)) {
 		return (H_DEVTXTIME);
 	}
 
@@ -702,13 +693,13 @@ int hydra_file(char *txpathname, char *txalias)
 		rxoptions = HRXI_OPTIONS;
 		rxdle     = 0;
 		rxbufptr  = NULL;
-		rxtimer   = h_timer_reset();
+		rxtimer   = t_reset();
 
 		devtxid    = devrxid = 0L;
-		devtxtimer = h_timer_reset();
+		devtxtimer = t_reset();
 		devtxstate = HTD_DONE;
 
-		braindead = h_timer_set(H_BRAINDEAD);
+		braindead = t_set(H_BRAINDEAD);
 	} else txstate = HTX_FINFO;
 
 	/*-------------------------------------------------------------------*/
@@ -716,7 +707,7 @@ int hydra_file(char *txpathname, char *txalias)
 	txstart  = 0L;
 	txsyncid = 0L;
 
-	txtimer   = h_timer_reset();
+	txtimer   = t_reset();
 	txretries = 0;
 
 	/*-------------------------------------------------------------------*/
@@ -732,7 +723,7 @@ int hydra_file(char *txpathname, char *txalias)
 				p += H_FLAGLEN + 1;
 				memcpy(p,devtxbuf,devtxlen);
 				txpkt(4 + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
-				devtxtimer = h_timer_set(timeout);
+				devtxtimer = t_set(timeout);
 				devtxstate = HTD_DACK;
 			}
 			break;
@@ -750,7 +741,7 @@ int hydra_file(char *txpathname, char *txalias)
 		case HTX_START:
 			PUTBLK((unsigned char*)autostr,(int) strlen(autostr));
 			txpkt(0,HPKT_START);
-			txtimer = h_timer_set(H_START);
+			txtimer = t_set(H_START);
 			txstate = HTX_SWAIT;
 			break;
 
@@ -773,7 +764,7 @@ int hydra_file(char *txpathname, char *txalias)
 			txoptions = HTXI_OPTIONS;
 			txpkt((word) (((byte *) p) - txbufin), HPKT_INIT);
 			txoptions = rxoptions;
-			txtimer = h_timer_set(timeout / 2);
+			txtimer = t_set(timeout / 2);
 			txstate = HTX_INITACK;
 			break;
 
@@ -799,7 +790,7 @@ int hydra_file(char *txpathname, char *txalias)
 				i=1;
 			}
 			txpkt(i, HPKT_FINFO);
-			txtimer = h_timer_set(txretries ? timeout / 2 : timeout);
+			txtimer = t_set(txretries ? timeout / 2 : timeout);
 			txstate = HTX_FINFOACK;
 			break;
 
@@ -834,7 +825,7 @@ int hydra_file(char *txpathname, char *txalias)
 				}
 
 				if (txwindow && (txpos >= (txlastack + txwindow))) {
-					txtimer = h_timer_set(txretries ? timeout / 2 : timeout);
+					txtimer = t_set(txretries ? timeout / 2 : timeout);
 					txstate = HTX_DATAACK;
 				}
 
@@ -850,7 +841,7 @@ int hydra_file(char *txpathname, char *txalias)
 		case HTX_EOF:
 			STORE32(txbufin,txpos);
 			txpkt(4,HPKT_EOF);
-			txtimer = h_timer_set(txretries ? timeout / 2 : timeout);
+			txtimer = t_set(txretries ? timeout / 2 : timeout);
 			txstate = HTX_EOFACK;
 			break;
 
@@ -858,7 +849,7 @@ int hydra_file(char *txpathname, char *txalias)
 		case HTX_END:
 			txpkt(0,HPKT_END);
 			txpkt(0,HPKT_END);
-			txtimer = h_timer_set(timeout / 2);
+			txtimer = t_set(timeout / 2);
 			txstate = HTX_ENDACK;
 			break;
 
@@ -900,7 +891,7 @@ int hydra_file(char *txpathname, char *txalias)
 			case H_TXTIME:
 				if (txstate == HTX_XWAIT || txstate == HTX_REND) {
 					txpkt(0,HPKT_IDLE);
-					txtimer = h_timer_set(H_IDLE);
+					txtimer = t_set(H_IDLE);
 					break;
 				}
 
@@ -913,7 +904,7 @@ int hydra_file(char *txpathname, char *txalias)
 
 				sline("hydra: Timeout - Retry %u",txretries);
 				DEBUG(('H',1,"hydra: Timeout - Retry %u",txretries));
-				txtimer = h_timer_reset();
+				txtimer = t_reset();
 
 				switch (txstate) {
 				case HTX_SWAIT:    txstate = HTX_START; break;
@@ -937,17 +928,17 @@ int hydra_file(char *txpathname, char *txalias)
 				sline("HD: Timeout - Retry %u",devtxretries);
 				DEBUG(('H',1,"HD: Timeout - Retry %u",devtxretries));
 
-				devtxtimer = h_timer_reset();
+				devtxtimer = t_reset();
 				devtxstate = HTD_DATA;
 				break;
 
 				/*---------------------------------------------------*/
 			case HPKT_START:
 				if (txstate == HTX_START || txstate == HTX_SWAIT) {
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_INIT;
-					braindead = h_timer_set(H_BRAINDEAD);
+					braindead = t_set(H_BRAINDEAD);
 				}
 				break;
 
@@ -1014,8 +1005,8 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_INITACK:
 				if (txstate == HTX_INIT || txstate == HTX_INITACK) {
-					braindead = h_timer_set(H_BRAINDEAD);
-					txtimer = h_timer_reset();
+					braindead = t_set(H_BRAINDEAD);
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_RINIT;
 				}
@@ -1024,7 +1015,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_FINFO:
 				if (rxstate == HRX_FINFO) {
-					braindead = h_timer_set(H_BRAINDEAD);
+					braindead = t_set(H_BRAINDEAD);
 					if (!rxbuf[0]) {
 /* 						write_log("HR: End of batch"); */
 						qpreset(0);
@@ -1053,7 +1044,7 @@ int hydra_file(char *txpathname, char *txalias)
 						case FOP_OK:
 							rxoffset = rxpos = ftell(rxfd);
 							rxstart = 0L;
-							rxtimer = h_timer_reset();
+							rxtimer = t_reset();
 							rxretries = 0;
 							rxlastsync = 0L;
 							rxsyncid = 0L;
@@ -1074,14 +1065,14 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_FINFOACK:
 				if (txstate == HTX_FINFO || txstate == HTX_FINFOACK) {
-					braindead = h_timer_set(H_BRAINDEAD);
+					braindead = t_set(H_BRAINDEAD);
 					txretries = 0;
 					if (!txfd) {
-						txtimer = h_timer_set(H_IDLE);
+						txtimer = t_set(H_IDLE);
 						txstate = HTX_REND;
 					}
 					else {
-						txtimer = h_timer_reset();
+						txtimer = t_reset();
 						txpos = FETCH32(rxbuf);
 						if (txpos >= 0L) {
 							txoffset = txpos;
@@ -1128,18 +1119,18 @@ int hydra_file(char *txpathname, char *txalias)
 						STORE32(txbufin+4,0L);
 						STORE32(txbufin+8,rxsyncid);
 						txpkt(12,HPKT_RPOS);
-						rxtimer=h_timer_set(timeout);
+						rxtimer=t_set(timeout);
 						break;
 					}
 					if(gotpos!=rxpos||gotpos<0L) {
 						if (gotpos <= rxlastsync) {
-							rxtimer = h_timer_reset();
+							rxtimer = t_reset();
 							rxretries = 0;
 						}
 						rxlastsync = FETCH32(rxbuf);
 
-						if (!h_timer_running(rxtimer) ||
-							h_timer_expired(rxtimer)) {
+						if (!t_runn(rxtimer) ||
+							t_exp(rxtimer)) {
 							if (rxretries > 4) {
 								if (txstate < HTX_REND &&
 									!originator && !hdxlink) {
@@ -1184,11 +1175,11 @@ int hydra_file(char *txpathname, char *txalias)
 							STORE32(txbufin+4, i);
 							STORE32(txbufin+8, rxsyncid);
 							txpkt(3 * 4,HPKT_RPOS);
-							rxtimer = h_timer_set(timeout);
+							rxtimer = t_set(timeout);
 						}
 					}
 					else { char tmp[255];
-						braindead = h_timer_set(H_BRAINDEAD);
+						braindead = t_set(H_BRAINDEAD);
 						rxpktlen -= 4;
 						rxblklen = rxpktlen;
 						snprintf(tmp, 255, "%s/tmp/%s", ccs, recvf.fname);
@@ -1200,7 +1191,7 @@ int hydra_file(char *txpathname, char *txalias)
 						 rxsyncid++;
 						 STORE32(txbufin, rxpos);
 						 txpkt(4,HPKT_RPOS);
-						 rxtimer = h_timer_set(timeout);
+						 rxtimer = t_set(timeout);
 						 break;
 						}
 						if (fwrite(rxbuf + 4,rxpktlen,1,rxfd) != 1) {
@@ -1214,12 +1205,12 @@ int hydra_file(char *txpathname, char *txalias)
 							STORE32(txbufin+4, 0L);
 							STORE32(txbufin+8, rxsyncid);
 							txpkt(3 * 4,HPKT_RPOS);
-							rxtimer = h_timer_set(timeout);
+							rxtimer = t_set(timeout);
 							if (errno==ENOSPC) return XFER_ABORT;
 							break;
 						}
 						rxretries = 0;
-						rxtimer = h_timer_reset();
+						rxtimer = t_reset();
 						rxlastsync = rxpos;
  						rxpos += rxpktlen;
 						if (rxwindow) {
@@ -1245,7 +1236,7 @@ int hydra_file(char *txpathname, char *txalias)
 							(txpos < (txlastack + txwindow))) {
 							txstate = HTX_XDATA;
 							txretries = 0;
-							txtimer = h_timer_reset();
+							txtimer = t_reset();
 						}
 					}
 				}
@@ -1259,7 +1250,7 @@ int hydra_file(char *txpathname, char *txalias)
 					if (FETCH32(rxbuf+8) != txsyncid) {
 						txsyncid = FETCH32(rxbuf+8);
 						txretries = 1;
-						txtimer = h_timer_reset();
+						txtimer = t_reset();
 						txpos = FETCH32(rxbuf);
 						if (txpos < 0L) {
 							if (txfd) {
@@ -1328,17 +1319,17 @@ int hydra_file(char *txpathname, char *txalias)
 					if (FETCH32(rxbuf) < 0L) {
 						rxclose(&rxfd, FOP_SKIP);
 						rxstate = HRX_FINFO;
-						braindead = h_timer_set(H_BRAINDEAD);
+						braindead = t_set(H_BRAINDEAD);
 					}
 					else if (FETCH32(rxbuf) != rxpos) {
 						if (FETCH32(rxbuf) <= rxlastsync) {
-							rxtimer = h_timer_reset();
+							rxtimer = t_reset();
 							rxretries = 0;
 						}
 						rxlastsync = FETCH32(rxbuf);
 
-						if (!h_timer_running(rxtimer) ||
-							h_timer_expired(rxtimer)) {
+						if (!t_runn(rxtimer) ||
+							t_exp(rxtimer)) {
 							if (++rxretries > H_RETRIES) {
 								write_log("HR: too many errors");
 								txstate = HTX_DONE;
@@ -1373,7 +1364,7 @@ int hydra_file(char *txpathname, char *txalias)
 							STORE32(txbufin+4, i);
 							STORE32(txbufin+8, rxsyncid);
 							txpkt(3 * 4,HPKT_RPOS);
-							rxtimer = h_timer_set(timeout);
+							rxtimer = t_set(timeout);
 						}
 					}
 					else {
@@ -1381,7 +1372,7 @@ int hydra_file(char *txpathname, char *txalias)
 						rxclose(&rxfd, FOP_OK);
 						hydra_status(false);
 						rxstate = HRX_FINFO;
-						braindead = h_timer_set(H_BRAINDEAD);
+						braindead = t_set(H_BRAINDEAD);
 					}/*skip/badeof/eof*/
 				}/*rxstate==HRX_DATA*/
 
@@ -1392,7 +1383,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_EOFACK:
 				if (txstate == HTX_EOF || txstate == HTX_EOFACK) {
-					braindead = h_timer_set(H_BRAINDEAD);
+					braindead = t_set(H_BRAINDEAD);
 					if(txfd) {
 						txclose(&txfd, FOP_OK);
 						return (XFER_OK);
@@ -1404,12 +1395,12 @@ int hydra_file(char *txpathname, char *txalias)
 			case HPKT_IDLE:
 				if (txstate == HTX_XWAIT) {
 					hdxlink = false;
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_XDATA;
 				}
 				else if (txstate >= HTX_FINFO && txstate < HTX_REND)
-					braindead = h_timer_set(H_BRAINDEAD);
+					braindead = t_set(H_BRAINDEAD);
 				break;
 
 				/*---------------------------------------------------*/
@@ -1443,7 +1434,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_DEVDACK:
 				if (devtxstate && (devtxid == FETCH32(rxbuf))) {
-					devtxtimer = h_timer_reset();
+					devtxtimer = t_reset();
 					devtxstate = HTD_DONE;
 				}
 				break;
@@ -1461,7 +1452,7 @@ int hydra_file(char *txpathname, char *txalias)
 			case HTX_START:
 			case HTX_SWAIT:
 				if (rxstate == HRX_FINFO) {
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_INIT;
 				}
@@ -1470,7 +1461,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HTX_RINIT:
 				if (rxstate == HRX_FINFO) {
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_FINFO;
 				}
@@ -1481,7 +1472,7 @@ int hydra_file(char *txpathname, char *txalias)
 				if (rxstate && hdxlink) {
 					write_log("HydraMsg: %s",hdxmsg);
 					hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
-					txtimer = h_timer_set(H_IDLE);
+					txtimer = t_set(H_IDLE);
 					txstate = HTX_XWAIT;
 				}
 				break;
@@ -1489,7 +1480,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HTX_XWAIT:
 				if (!rxstate) {
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_XDATA;
 				}
@@ -1501,7 +1492,7 @@ int hydra_file(char *txpathname, char *txalias)
                                 /* special for chat, braindead will protect */
   					if (chattimer > 1) break;
   					chattimer = 0;
-					txtimer = h_timer_reset();
+					txtimer = t_reset();
 					txretries = 0;
 					txstate = HTX_END;
 				}

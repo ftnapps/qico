@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.16 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: flaglex.l,v 1.17 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -43,8 +43,7 @@ int yyBUFL;
 
 #include "flagexp.h"
 #include "headers.h"
-extern ftnaddr_t ndefaddr;
-static int flagfor(char *);
+static int flagfor(char*);
 static int chkaddr(char*);
 static int chktime(char*);
 static int chkdate(char*);
@@ -58,6 +57,7 @@ ConnStr		[Cc][Oo][Nn][Nn][Ss][Tt][Rr]
 Speed		[Ss][Pp][Ee][Ee][Dd]
 Sfree		[Ss][Ff][Rr][Ee][Ee]
 Phone		[Pp][Hh][Oo][Nn][Ee]
+Mailer		[Mm][Aa][Ii][Ll][Ee][Rr]
 Time		[Tt][Ii][Mm][Ee]
 iTime		[Ii][Tt][Ii][Mm][Ee]
 Address		[Aa][Dd][Dd][Rr]([Ee][Ss][Ss])?
@@ -65,6 +65,7 @@ Port    	[Pp][Oo][Rr][Tt]
 Date    	[Dd][Aa][Tt][Ee]
 Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
 Cid     	[Cc][Ii][Dd]
+Exec		[Ee][Xx][Ee][Cc]
 File		[Ff][Ii][Ll][Ee]
 Line		[Ll][Ii][Nn][Ee]
 Sun		[Ss][Uu]([Nn])?
@@ -116,8 +117,9 @@ Pathstr		\/([^\/]+\/)*[^\/]+
 Timestr		{Dow}({iHour}{Minute}\-{iHour}{Minute})?
 Hour        	(([0-1]?[0-9])|(2[0-3]))
 Gapstr      	(([0-7].)?{Hour}:{Minute}\-{Hour}:{Minute}|(([0-7].)?{Hour}\-{Hour})|([0-7].{Hour}:{Minute}\-[0-7].{Hour}:{Minute})|([0-7].{Hour}\-[0-7].{Hour})|CM|T[a-xA-X][a-xA-X])
-Addrstr		(({Decimal}|\*):)?(({Decimal}|\*)\/)?({Numeric}|\*)(.({Numeric}|\*))?(@({Ident}|\*))?
+Addrstr		(({Decimal}|{Asterisk}):)?(({Decimal}|{Asterisk})\/)?({Numeric}|{Asterisk})(.({Numeric}|{Asterisk}))?(@({Ident}|{Asterisk}))?
 Datestr         {Month}({Day}-{Day})?
+Anystr		[^ \t\n]+
 %%
 {Blank}		;
 {Decimal}	{yylval=strtol(yytext,NULL,0);return(NUMBER);}
@@ -145,16 +147,19 @@ Datestr         {Month}({Day}-{Day})?
 {Sfree}		{yylval=SFREE;return(SFREE);}
 {Line}		{yylval=FLLINE;return(FLLINE);}
 {File}		{yylval=FLFILE;return(FLFILE);}
+{Exec}		{yylval=FLEXEC;return(FLEXEC);}
 {Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
 {Phone}		{yylval=PHONE;return(PHONE);}
 {Cid}		{yylval=CID;return(CID);}
 {Host}		{yylval=HOST;return(HOST);}
 {Port}		{yylval=PORT;return(PORT);}
+{Mailer}	{yylval=MAILER;return(MAILER);}
 {Time}		{yylval=TIME;return(TIME);}
 {iTime}		{yylval=ITIME;return(ITIME);}
 {Address}	{yylval=ADDRESS;return(ADDRESS);}
 {Ident}		{yylval=flagfor(yytext);return(IDENT);}
 {Addrstr}	{yylval=chkaddr(yytext);return(ADDRSTR);}
+{Anystr}	{yylval=ANYSTR;return(ANYSTR);}
 %%
 
 static int flagfor(char *str)
