@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.49 2001/04/13 16:40:42 lev Exp $
+ * $Id: main.c,v 1.50 2001/04/13 20:24:56 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -191,6 +191,7 @@ void daemon_mode()
 	time_t t;
 	ftnaddr_t fa;
 	slist_t *sl;
+	int mailonly;
 
 	if(getppid()!=1) {
 		signal(SIGTTOU, SIG_IGN);
@@ -257,6 +258,7 @@ void daemon_mode()
 			c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 			t_dial=0;
 			dable=0;
+			mailonly=checktimegaps(cfgs(CFG_MAILONLY))||checktimegaps(cfgs(CFG_ZMH));
 
 			port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));			
 			if(!port || !q_queue) dable=1;
@@ -286,7 +288,8 @@ void daemon_mode()
 				if(falist_find(cfgal(CFG_ADDRESS), &current->addr) ||
 					f&Q_UNDIAL ||
 					!havestatus(f,CFG_CALLONFLAVORS) ||
-					needhold(f,w)) {
+					needhold(f,w) ||
+					(mailonly && !current->pkts)) {
 					current=current->next;
 					if(!current) current=q_queue;
 					i=i->next;
