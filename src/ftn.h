@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.8 2000/10/12 20:32:42 lev Exp $
+ * $Id: ftn.h,v 1.9 2000/11/01 10:36:11 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -278,7 +278,7 @@ extern int bso_getstatus(ftnaddr_t *fa, sts_t *st);
 /* log.c */
 extern void (*log_callback)(char *str);
 extern int log_init(char *, char *);
-extern void log(char *fmt, ...);
+extern void write_log(char *fmt, ...);
 extern void log_done(void);
 /* queue.c */
 extern qitem_t *q_queue;
