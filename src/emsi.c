@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.18 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: emsi.c,v 1.19 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -118,26 +118,17 @@ static char *emsi_tok(char **b, char *kc)
 	return p;
 }
 
-
-static int hexdcd(char d,char c)
-{
-	c=tolower(c);d=tolower(d);
-	if(c>='a'&&c<='f')c-=('a'-10);
-	    else c-='0';
-	if(d>='a'&&d<='f')d-=('a'-10);
-	    else d-='0';
-	return(c*16+d);
-}
-
 static void emsi_dcds(char *s)
 {
-	unsigned char *d=(unsigned char*)s,t;
+	char *d=s,t;
 	while((t=*s)) {
 		if(t=='}'||t==']')t=*++s;
-		*d=tokoi((t=='\\')?(hexdcd(*++s,*++s)):((t<32)?'.':t));
+		if(t!='\\')*d=C0(t);
+		else *d=hexdcd(s[1],s[2]),s+=2;
 		s++;d++;
 	}
 	*d=0;
+	recode_to_local(d);
 }
 
 int emsi_parsedat(char *str, ninfo_t *dat)
@@ -446,7 +437,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "NRQ")) { o|=O_NRQ;continue;}
 		if(!strcmp(p, "FNC")) { o|=O_FNC;continue;}
 		if(!strcmp(p, "XMA")) { o|=O_XMA;continue;}
-		DEBUG(('E',2,"unknown emsidat proto flag: '%s'",p));
+		DEBUG(('E',3,"unknown emsidat proto flag: '%s'",p));
 	}
 	q=lcod;
 	while((p=strsep(&q, ","))) {
@@ -457,7 +448,8 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "HAT")) { o|=O_HAT;continue;}
 		if(!strcmp(p, "HXT")) { o|=O_HXT;continue;}
 		if(!strcmp(p, "HRQ")) { o|=O_HRQ;continue;}
-		DEBUG(('E',2,"unknown emsidat traff flag: '%s'",p));
+		if(!strcmp(p, "8N1")) continue;
+		DEBUG(('E',3,"unknown emsidat traff flag: '%s'",p));
 	}
 	return o;
 }

@@ -224,6 +224,18 @@ defperm		0644
 # use setproctitle()
 ;useproctitle	no
 
+# Recode table for convert from local to transport (remote) charset.
+# define to 'none' for disable, or 'internal' for internal KOI8-R -> CP866.
+# may specify filename for using your own tables in format: "<from> <to>",
+# where 'from' and 'to' decimal or hex (prefixed with 0x) digits, one per line.
+# also you may use prefix 'revert' for format "<to> <from>".
+;remotecp internal
+;remotecp /etc/ftn/koi8r_866.cp
+
+# Recode table for convert from transport to local charset (see remotecp).
+# convert CP866 -> KOI8-R if 'internal' specified. default: none.
+;localcp revert /etc/ftn/koi8r_866.cp
+
 ###############################################################################
 ### modem and dialing parameters ##############################################
 ###############################################################################
@@ -447,9 +459,6 @@ binkpopt	MRBCT
 # macro: '|' = <cr>, '$' = <bell>, '%s' = <remote sysop name>.
 ;chathallostr	| * Hi, %s, that's good?|
 
-# Recode text messages for remote in 866 codepage. need for Russia.
-remoterecode	yes
-
 # Send window for ZModem (in bytes). 0 -- streamed mode.
 ztxwin          0
 
@@ -549,6 +558,9 @@ freqfrom       	Freq Processor
 # freq report "Subj:" line
 freqsubj       	File Request Report
 
+# recode reports and packet headers to transport charset.
+recodepkts	yes
+
 ###############################################################################
 ### filenames mapping rules ###################################################
 ###############################################################################
@@ -581,14 +593,15 @@ freqsubj       	File Request Report
 #   O - convert other DOS-like names to upper case
 #   o - convert other DOS-like names to lower case
 #       DOS-like name is 8.3 name with single (upper or lower) case.
-#   k - recode all filenames from CP866 codepage to KOI8-R
-#   c - recode all filenames from KOI8-R codepage to CP866
+#   k - recode filenames to local charset.
+#   c - recode filenames to tranport charset.
+#   r - recode filenames in *.req files (freq's).
 
 # outgoing files names conversion
-mapout 	bSc
+mapout 	bScr
 
 # incoming files names conversion
-mapin	lk
+mapin	lkr
 
 ###############################################################################
 ### substs #######################################################(changed!!!)#
@@ -685,5 +698,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.30 2004/03/15 01:19:30 sisoft Exp $
+# $Id: qico.conf.sample,v 1.31 2004/03/24 17:50:01 sisoft Exp $
 ###############################################################################

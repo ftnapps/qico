@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.8 2004/03/20 16:04:16 sisoft Exp $
+ * $Id: tools.c,v 1.9 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -38,32 +38,86 @@ void strtr(char *s,char a,char b)
 	}
 }
 
-unsigned char todos(unsigned char c)
+static int initcharset(char *name,unsigned char *tab)
 {
-	if(cfgi(CFG_REMOTERECODE)&&c>=128)c=tab_koidos[c-128];
-	return c;
+	FILE *f;
+	int rev=0;
+	unsigned i,c;
+	char buf[MAX_STRING];
+	//write_log("init_charset: '%s' %p",name,tab);
+	if(!name||!strcasecmp(name,"none"))return -1;
+	if(!strcasecmp(name,"internal"))return 1;
+	if(!strncasecmp(name,"revert",6)) {
+		rev=1;name+=6;
+		while(*name==' '||*name=='\t')name++;
+		if(!*name)return -1;
+	}
+	if(!(f=fopen(name,"r"))) {
+		write_log("can't open recode file '%s': %s",name,strerror(errno));
+		return -1;
+	}
+	memset(tab,0,128);
+	while(fgets(buf,MAX_STRING,f)) {
+		if(!isdigit(*buf))continue;
+		if(*buf=='0'&&buf[1]=='x') {
+			//write_log("hb_s '%s'",buf);
+			if(sscanf(buf,"0x%x 0x%x",&i,&c)!=2)continue;
+			//write_log("hb_d %d %d",i,c);
+		} else {
+			//write_log("db_s '%s'",buf);
+			if(sscanf(buf,"%u %u",&i,&c)!=2)continue;
+			//write_log("db_d %d %d",i,c);
+		}
+		if(rev) { rev=i;i=c;c=rev; }
+		if(c>255||i<128||i>255)continue;
+		//write_log("ctab: %d=%d",i,c);
+		tab[i-128]=c;
+	}
+	for(rev=0;rev<128;rev++)if(!tab[rev])tab[rev]=rev+128;
+	fclose(f);
+	return 1;
 }
 
-unsigned char tokoi(unsigned char c)
+void recode_to_remote(char *s)
 {
-	if(cfgi(CFG_REMOTERECODE)&&c>=128)c=tab_doskoi[c-128];
-	return c;
+	static int loaded=0;
+	if(!loaded||!s)loaded=initcharset(cfgs(CFG_REMOTECP),ctab_remote);
+	if(loaded==1&&s) {
+		while(*s) {
+			if((unsigned char)*s>=128)
+				*s=ctab_remote[(unsigned char)*s-128];
+			s++;
+		}
+	}
 }
 
-void stodos(unsigned char *s)
+void recode_to_local(char *s)
 {
-	while(s&&*s){*s=todos(*s);s++;}
-}
-
-void stokoi(unsigned char *s)
-{
-	while(s&&*s){*s=tokoi(*s);s++;}
+	static int loaded=0;
+	if(!loaded||!s)loaded=initcharset(cfgs(CFG_LOCALCP),ctab_local);
+	if(loaded==1&&s) {
+		while(*s) {
+			if((unsigned char)*s>=128)
+				*s=ctab_local[(unsigned char)*s-128];
+			s++;
+		}
+	}
 }
 
 void chop(char *s,int n)
 {
 	char *p=strchr(s,0);
 	while(p&&n--)*--p=0;
+}
+
+int hexdcd(char d,char c)
+{
+	c=tolower(c);d=tolower(d);
+	if(c>='a'&&c<='f')c-=('a'-10);
+	    else c-='0';
+	if(d>='a'&&d<='f')d-=('a'-10);
+	    else d-='0';
+	return(c*16+d);
 }
 
 void strbin2hex(char *s,const unsigned char *bptr,size_t blen)
@@ -290,7 +344,7 @@ size_t getfreespace(const char *path)
 	if(!STAT_V_FS(path,&sfs)) {
 		if(sfs.f_bsize>=1024)return((sfs.f_bsize/1024L)*sfs.f_bavail);
 		    else return(sfs.f_bavail/(1024L/sfs.f_bsize));
-	} else write_log("can't statfs '%s'",path);
+	} else write_log("can't statfs '%s': %s",path,strerror(errno));
 #endif
 	return(~0L);
 }
@@ -300,13 +354,13 @@ void to_dev_null()
 	int fd;
 	close(STDIN_FILENO);close(STDOUT_FILENO);close(STDERR_FILENO);
 	fd=open(devnull,O_RDONLY);
-	if(dup2(fd,STDIN_FILENO)!=STDIN_FILENO){write_log("reopening of stdin failed");exit(-1);}
+	if(dup2(fd,STDIN_FILENO)!=STDIN_FILENO){write_log("reopening of stdin failed: %s",strerror(errno));exit(-1);}
 	if(fd!=STDIN_FILENO)close(fd);
 	fd=open(devnull,O_WRONLY|O_APPEND|O_CREAT,0600);
-	if(dup2(fd,STDOUT_FILENO)!=STDOUT_FILENO){write_log("reopening of stdout failed");exit(-1);}
+	if(dup2(fd,STDOUT_FILENO)!=STDOUT_FILENO){write_log("reopening of stdout failed: %s",strerror(errno));exit(-1);}
 	if(fd!=STDOUT_FILENO)close(fd);
 	fd=open(devnull,O_WRONLY|O_APPEND|O_CREAT,0600);
-	if(dup2(fd,STDERR_FILENO)!=STDERR_FILENO){write_log("reopening of stderr failed");exit(-1);}
+	if(dup2(fd,STDERR_FILENO)!=STDERR_FILENO){write_log("reopening of stderr failed: %s",strerror(errno));exit(-1);}
 	if(fd!=STDERR_FILENO)close(fd);
 }
 

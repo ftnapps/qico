@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.16 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: qipc.c,v 1.17 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LIBUTIL_H
@@ -26,7 +26,10 @@ void qsendpkt(char what,char *line,char *buff,size_t len)
 		}
 	}
 	memcpy(buf+4+strlen(line),buff,len);
-	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
+	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0) {
+		if(errno==ECONNREFUSED)xsend_cb=NULL;
+		DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
+	}
 }
 
 size_t qrecvpkt(char *str)
@@ -34,7 +37,10 @@ size_t qrecvpkt(char *str)
 	int rc;
 	if(!xsend_cb)return 0;
 	rc=xrecv(ssock,str,MSG_BUFFER-1,0);
-	if(rc<0&&errno!=EAGAIN)DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
+	if(rc<0&&errno!=EAGAIN) {
+		if(errno==ECONNREFUSED)xsend_cb=NULL;
+		DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
+	}
 	if(rc<3||!str[2])return 0;
 	str[rc]=0;
 	return rc;

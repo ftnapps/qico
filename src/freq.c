@@ -1,6 +1,6 @@
 /***************************************************************************
  * File request support
- * $Id: freq.c,v 1.7 2004/02/10 12:08:39 sisoft Exp $
+ * $Id: freq.c,v 1.8 2004/03/24 17:50:04 sisoft Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -21,7 +21,7 @@ int freq_ifextrp(slist_t *reqs)
 		return 0;
 	}
 	while(reqs) {
-		stokoi((unsigned char*)reqs->str);
+		if(strchr(cfgs(CFG_MAPIN),'r'))recode_to_local(reqs->str);
 		DEBUG(('R',1,"requested '%s'",reqs->str));
 		fprintf(f,"%s\n",reqs->str);
 		reqs=reqs->next;
@@ -72,7 +72,7 @@ int freq_ifextrp(slist_t *reqs)
 		while(*p=='\r'||*p=='\n')*p--=0;
 		p=strrchr(ss,' ');
 		if(p)*p++=0;else p=ss;
-		DEBUG(('R',1,"sending '%s' as '%s'%s",ss,p,kil?" and kill":""));
+		DEBUG(('R',1,"sending '%s' as '%s'%s",ss,(p!=s)?p:basename(s),kil?" and kill":""));
 		addflist(&fl,xstrdup(ss),xstrdup((p!=s)?p:basename(s)),kil?'^':' ',0,NULL,0);
 	}
 	fclose(f);lunlink(fn);
@@ -88,7 +88,7 @@ int freq_ifextrp(slist_t *reqs)
 		while(fgets(s,MAX_PATH-1,f)) {
 			p=s+strlen(s)-1;
 			while(*p=='\r'||*p=='\n')*p--=0;
-			stodos((unsigned char*)s);
+			if(cfgi(CFG_RECODEPKTS))recode_to_remote(s);
 			fputs(s,g);fputc('\r',g);
 		}
 		fclose(f);

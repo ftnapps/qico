@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.15 2004/03/09 23:11:57 sisoft Exp $
+#* $Id: qconf.x,v 1.16 2004/03/24 17:50:04 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -54,6 +54,7 @@ inbound,C_PATH,char *,1,NULL
 jrxwin,C_INT,int,0,"0"
 jtxwin,C_INT,int,0,"0"
 killbadpkt,C_YESNO,int,0,"no"
+localcp,C_PATH,char *,0,"none"
 lockdir,C_PATH,char *,1,NULL
 log,C_PATH,char *,1,NULL
 loglevels,C_STR,char *,0,""
@@ -98,8 +99,8 @@ protorder,C_STR,char *,0,"JHZ1C"
 proxy,C_STR,char *,0,NULL
 qstoutbound,C_PATH,char *,0,NULL
 realmincps,C_YESNO,int,0,"yes"
-recodetable,C_PATH,char *,0,NULL
-remoterecode,C_YESNO,int,0,"no"
+recodepkts,C_YESNO,int,0,"yes"
+remotecp,C_PATH,char *,0,"none"
 rescanperiod,C_INT,int,0,"300"
 rmboxes,C_YESNO,int,0,"no"
 rootdir,C_PATH,char *,0,NULL

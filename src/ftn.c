@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.19 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: ftn.c,v 1.20 2004/03/24 17:50:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -214,8 +214,9 @@ char *strip8(char *s)
 	int i=0;
 	unsigned char t;
 	char buf[MAX_STRING+1],*ss=s;
+	if(*s)recode_to_remote(s);
 	while(*s&&i<MAX_STRING) {
-		t=todos(*s);
+		t=*s;
 		if(t>127) {
 			buf[i++]='\\';
 			buf[i++]=t/16+((t/16)>9?'a'-10:'0');
@@ -238,7 +239,7 @@ int has_addr(ftnaddr_t *a,falist_t *l)
 	return 0;
 }
 
-char *engms[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+char *engms[13]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Any"};
 
 int showpkt(char *fn)
 {
@@ -315,9 +316,13 @@ FILE *openpktmsg(ftnaddr_t *fa,ftnaddr_t *ta,char *from,char *to,char *subj,char
 	mh.pmType=H2I16(2);
 	fwrite(&mh,sizeof(mh),1,f);
 	fprintf(f,"%02d %3s %02d  %02d:%02d:%02d%c",t->tm_mday,engms[t->tm_mon],t->tm_year%100,t->tm_hour,t->tm_min,t->tm_sec,0);
-	stodos((unsigned char*)to);
-	if(attr<128){stodos((unsigned char*)subj);
-	stodos((unsigned char*)from);}
+	if(cfgi(CFG_RECODEPKTS)) {
+		recode_to_remote(to);
+		if(attr<128) {
+			recode_to_remote(subj);
+			recode_to_remote(from);
+		}
+	}
 	fwrite(to,strlen(to)+1,1,f);
 	fwrite(from,strlen(from)+1,1,f);
 	fwrite(subj,strlen(subj)+1,1,f);
@@ -331,7 +336,7 @@ FILE *openpktmsg(ftnaddr_t *fa,ftnaddr_t *ta,char *from,char *to,char *subj,char
 
 void closepkt(FILE *f,ftnaddr_t *fa,char *tear,char *orig)
 {
-	stodos((unsigned char*)orig);
+	if(cfgi(CFG_RECODEPKTS))recode_to_remote(orig);
 	fprintf(f,"--- %s\r * Origin: %s (%s)\r%c%c%c",tear,orig,ftnaddrtoa(fa),0,0,0);
 	fclose(f);
 }
@@ -394,8 +399,8 @@ char *mapname(char *fn,char *map,size_t size)
 	char *l;
 	if(!map)return fn;
 	DEBUG(('S',3,"map : '%s', infname: '%s'",map,fn));
-	if(strchr(map,'c'))stodos((unsigned char*)fn);
-	if(strchr(map,'k'))stokoi((unsigned char*)fn);
+	if(strchr(map,'c'))recode_to_remote(fn);
+	if(strchr(map,'k'))recode_to_local(fn);
 	if(strchr(map,'d')) {
 		if((l=strrchr(fn,'.'))) {
 			strtr(fn,'.','_');

@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.9 2004/02/13 22:29:01 sisoft Exp $
+# $Id: Makefile.am,v 1.10 2004/03/24 17:50:03 sisoft Exp $
 sbin_PROGRAMS = qico
 bin_PROGRAMS = qctl @QCC@
 EXTRA_PROGRAMS = qcc
@@ -25,6 +25,5 @@ qcc_LDFLAGS = @QCCLIBS@
 
 AM_YFLAGS = -d
 
-qconf.c: qconf.h
-qconf.h: qconf.x x2c.awk
+qconf.h qconf.c: qconf.x x2c.awk
 	${AWK} -F, -f x2c.awk qconf.x
