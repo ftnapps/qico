@@ -423,6 +423,8 @@ htxwin          0
 # Receive window for Hydra (in bytes). 0 -- streamed mode.
 hrxwin          0
 
+# hold files with status 'hold' on outgoing calls.		       (NEW!!!)
+holdout		no
 
 # show intro (received before EMSI_REQ) lines in log
 showintro      	yes
@@ -619,5 +621,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+# $Id: qico.conf.sample,v 1.4 2003/07/23 20:33:27 sisoft Exp $
 ###############################################################################
