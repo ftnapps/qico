@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.7 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: session.c,v 1.8 2003/09/01 19:12:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -142,7 +142,7 @@ int boxflist(flist_t **fl, char *path)
 void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 {
 	int fls[]={F_IMM, F_CRSH, F_DIR, F_NORM, F_HOLD}, i;
-	char str[MAX_PATH];
+	char str[MAX_PATH],*flv="hdicfn";
 	struct stat sb;
 	faslist_t *j;
 
@@ -170,7 +170,12 @@ void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 		}
 
 	if(cfgs(CFG_LONGBOXPATH)) {
-		snprintf(str, MAX_STRING, "%s/%d.%d.%d.%d", ccs, fa->z, fa->n, fa->f, fa->p); 
+		while(*flv) {
+			snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d.%c",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p,*flv); 
+			boxflist(fl, str);
+			flv++;
+		}
+		snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p); 
 		boxflist(fl, str);
 	}
 }
