@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.31 2001/01/21 09:21:56 lev Exp $
+ * $Id: main.c,v 1.32 2001/01/21 18:11:33 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -582,13 +582,13 @@ void daemon_mode()
 				case QR_QUEUE:
 					sinfo = q_queue;
 					do {
-						sendrpkt(0,chld,"%c%s%c%d%c%d%c%d%c%d%c",
-							1,
-							ftnaddrtoa(&sinfo->addr),0,
-							sinfo->pkts,0,
-							q_sum(sinfo)+sinfo->reqs,0,
-                            sinfo->try,0,
-                            sinfo->flv,0);
+						sendrpkt(0,chld,"%c%s%c%lu%c%lu%c%lu%c%lu%c",
+							(char)1,
+							ftnaddrtoa(&sinfo->addr),(char)0,
+							(unsigned long)sinfo->pkts,(char)0,
+							(unsigned long)q_sum(sinfo)+sinfo->reqs,(char)0,
+							(unsigned long)sinfo->try,(char)0,
+							(unsigned long)sinfo->flv,(char)0);
 					} while ((sinfo = sinfo->next));
 					sendrpkt(0,chld,"%c",0);
 					break;
