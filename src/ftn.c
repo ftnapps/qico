@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.8 2000/08/13 21:10:01 lev Exp $
+ * $Id: ftn.c,v 1.9 2000/08/16 01:12:21 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -476,7 +476,7 @@ char dos_allowed[]="-!~$()_";
 
 int dosallowin83(int c)
 {
-	static char dos_allow[] = "!@#$%^&()~`'-_{}.";
+	static char dos_allow[] = "!@#$%^&()~`'-_{}";
 
 	if((c >= 'a' && c <= 'z') ||
 		(c >= 'A' && c <= 'Z') ||
@@ -601,7 +601,7 @@ int isdos83name(char *fn)
     nl=el=ec=uc=lc=0;
     f=1;
     while(*p) {
-    	if(!dosallowin83(*p)) {
+    	if(!dosallowin83(*p) && ('.'!=*p)) {
     		f=0;
     		break;
     	}
