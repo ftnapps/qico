@@ -6,6 +6,8 @@
 
 #undef CURS_HAVE_MVVLINE
 
+#undef CURS_HAVE_WRESIZE
+
 #define MAX_PATH 256
 
 #define MAX_NODELIST 32
