@@ -1,3 +1,13 @@
+2004-03-15 04:19  sisoft
+
+	* Changes, FAQ, README, qico.conf.sample, debian/control,
+	debian/qcc.8, debian/qico.8, src/clserv.c, src/clserv.h, src/qcc.c:
+
+	apply ispell to docs.
+	work on old systems with simple recv() implementation.
+	in qcc: fix resize terminal.
+	in qcc: add key 'ctrl+l' for refresh screen.
+	
 2004-03-10 02:11  sisoft
 
 	* Changes, qico.conf.sample, src/daemon.c, src/main.c, src/qconf.x:
