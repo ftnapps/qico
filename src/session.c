@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.36 2003/03/06 19:50:23 cyrilm Exp $
+ * $Id: session.c,v 1.37 2003/03/10 15:58:13 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -377,7 +377,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 {
 	int rc, emsi_lo=0, proto;
 	unsigned long nfiles;
-	char *mydat, *t, pr[2];
+	unsigned char *mydat;
+	char *t, pr[2];
 	falist_t *pp = NULL;
 	qitem_t *q = NULL;
 
@@ -390,7 +391,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			totalm=q->pkts;
 			totalf=q_sum(q)+q->reqs;
 		}
-		mydat=emsi_makedat(calladdr, totalm, totalf, O_PUA,
+		mydat=(unsigned char*)emsi_makedat(calladdr, totalm, totalf, O_PUA,
 						   cfgs(CFG_PROTORDER), NULL, 1);
 		rc=emsi_send(mode, mydat);xfree(mydat);
 		if(rc<0) return S_REDIAL;
@@ -480,7 +481,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='1';emsi_lo|=P_ZMODEM;break;}
 		}
 		if(!pr[0]) emsi_lo|=P_NCP;
-		mydat=emsi_makedat(&rnode->addrs->addr, totalm, totalf, emsi_lo,
+		mydat=(unsigned char*)emsi_makedat(&rnode->addrs->addr, totalm, totalf, emsi_lo,
 						   pr, NULL, !(emsi_lo&O_BAD));
 		rc=emsi_send(0, mydat);xfree(mydat);
 		if(rc<0) {

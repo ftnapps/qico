@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.17 2001/03/23 20:46:26 lev Exp $
+ * $Id: ls_zsend.c,v 1.18 2003/03/10 15:58:09 cyrilm Exp $
  **********************************************************/
 /*
 
@@ -37,11 +37,11 @@ int ls_zsendsinit(char *attstr)
 
 	if (attstr)  {
 		if (strlen(attstr) > LSZ_MAXATTNLEN-1) attstr[LSZ_MAXATTNLEN-1] = '\x00';
-		xstrcpy(txbuf,attstr,1024);
+		xstrcpy((char *)txbuf,attstr,1024);
 	} else {
 		txbuf[0] = '\x00';
 	}
-	l = strlen(txbuf) + 1;
+	l = strlen((char *)txbuf) + 1;
 
 	do {
 		if(retransmit) {
@@ -117,7 +117,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	ls_SerialNum = 1;
     
 	/* Why we need to send this? Old, good times... */
-	PUTSTR("rz\r");
+	PUTSTR((unsigned char*)"rz\r");
 	do {
 		if(retransmit) {
 			/* Send first ZRQINIT (do we need it?) */
@@ -216,7 +216,7 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 	int retransmit = 1;
 	int rc;
 	int hlen;
-	char *p;
+	byte *p;
 	int crc = LSZ_INIT_CRC32;
 	int c;
 	int cnt;
@@ -226,11 +226,11 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 	DEBUG(('Z',1,"ls_zsendfinfo: %s, %d, %d, %d, %d, %d",f->name,f->size,f->mtime,sernum,f->filesleft,f->bytesleft));
 
 	txbuf[0] = '\x00';
-	xstrcpy(txbuf,f->name,1024);
+	xstrcpy((char *)txbuf,f->name,1024);
 	p = txbuf + strlen(f->name);
 	*p = '\x00'; p++;
-	snprintf(p,1024-(p-(char*)txbuf+1),"%ld %lo %o %o %ld %ld",f->size,f->mtime,(int)0,(int)sernum,f->filesleft,f->bytesleft);
-	finfolen = strlen(txbuf) + strlen(p) + 2;
+	snprintf((char *)p,1024-(p-txbuf+1),"%ld %lo %o %o %ld %ld",f->size,f->mtime,(int)0,(int)sernum,f->filesleft,f->bytesleft);
+	finfolen = strlen((char *)txbuf) + strlen((char *)p) + 2;
 
 	do {
 		if(retransmit) {

@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.18 2003/02/25 21:23:05 cyrilm Exp $
+ * $Id: ls_zmodem.c,v 1.19 2003/03/10 15:58:05 cyrilm Exp $
  **********************************************************/
 /*
 
@@ -17,8 +17,8 @@
 #include "qipc.h"
 
 /* Common variables */
-char ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
-char ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
+byte ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
+byte ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
 int ls_GotZDLE;				/* We seen DLE as last character */
 int ls_GotHexNibble;		/* We seen one hex digit as last character */
 int ls_Protocol;			/* Plain/ZedZap/DirZap and other options */
@@ -89,7 +89,7 @@ static char HEX_DIGITS[] = "0123456789abcdef";
 /* Functions */
 
 /* Send binary header. Use proper CRC, send var. len. if could */
-int ls_zsendbhdr(int frametype, int len, char *hdr)
+int ls_zsendbhdr(int frametype, int len, byte *hdr)
 {
 	long crc = LSZ_INIT_CRC;
 	int type;
@@ -133,7 +133,7 @@ int ls_zsendbhdr(int frametype, int len, char *hdr)
 }
 
 /* Send HEX header. Use CRC16, send var. len. if could */
-int ls_zsendhhdr(int frametype, int len, char *hdr)
+int ls_zsendhhdr(int frametype, int len, byte *hdr)
 {
 	long crc = LSZ_INIT_CRC16;
 	int n;
@@ -164,13 +164,13 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	ls_sendhex(crc >> 8);
 	ls_sendhex(crc & 0xff);
 	BUFCHAR(CR);
-	BUFCHAR(LF|0x80);
+	BUFCHAR(LF|(char)0x80);
 	if(frametype != ZACK && frametype != ZFIN) BUFCHAR(XON);
 	/* Clean buffer, do real send */
 	return BUFFLUSH();
 }
 
-int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
+int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
 {
 	static enum rhSTATE {
 		rhInit,				/* Start state */
@@ -371,7 +371,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 }
 
 /* Send data block, with CRC16 and framing */
-int ls_zsenddata(char *data, int len, int frame)
+int ls_zsenddata(byte *data, int len, int frame)
 {
 	long crc;
 
@@ -412,7 +412,7 @@ int ls_zsenddata(char *data, int len, int frame)
 }
 
 /* Receive data subframe with CRC16, return frame type or error (may be -- timeout) */
-int ls_zrecvdata16(char *data, int *len, int timeout)
+int ls_zrecvdata16(byte *data, int *len, int timeout)
 {
 	int c;
 	int got = 0;					/* Bytes total got */
@@ -470,7 +470,7 @@ int ls_zrecvdata16(char *data, int *len, int timeout)
 }
 
 /* Receive data subframe with CRC32, return frame type or error (may be -- timeout) */
-int ls_zrecvdata32(char *data, int *len, int timeout)
+int ls_zrecvdata32(byte *data, int *len, int timeout)
 {
 	int c;
 	int got = 0;					/* Bytes total got */
@@ -675,7 +675,7 @@ int ls_readcanned(int *timeout)
 }
 
 /* Store long integer (4 bytes) in buffer, as it must be stored in header */
-void ls_storelong(char *buf, long l)
+void ls_storelong(byte *buf, long l)
 {
 	l=LTOI(l);
 	buf[LSZ_P0] = (l)&0xff;

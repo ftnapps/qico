@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.21 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: tty.c,v 1.22 2003/03/10 15:58:13 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -397,7 +397,7 @@ int tty_block()
 	return ME_OK;
 }
 
-int tty_put(char *buf, int size)
+int tty_put(byte *buf, int size)
 {
 	int rc;
 
@@ -410,7 +410,7 @@ int tty_put(char *buf, int size)
 	return OK;
 }
 		
-int tty_get(char *buf, int size, int *timeout)
+int tty_get(byte *buf, int size, int *timeout)
 {
 	fd_set rfds, efds, wfds;
 	struct timeval tv;
@@ -463,7 +463,7 @@ int tty_bufflush()
 void tty_bufclear() { out_bufpos = 0; }
 
 
-int tty_putc(char ch) { return tty_put(&ch, 1); }
+int tty_putc(char ch) { return tty_put((byte *)&ch, 1); }
 
 
 int tty_getc(int timeout)

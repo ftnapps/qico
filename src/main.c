@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.68 2003/02/07 16:05:52 cyrilm Exp $
+ * $Id: main.c,v 1.69 2003/03/10 15:58:11 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -685,7 +685,8 @@ void getsysinfo()
 void answer_mode(int type)
 {
 	int rc, spd;char *cs;
-	struct sockaddr_in sa;int ss=sizeof(sa);
+	struct sockaddr_in sa;
+	socklen_t ss=sizeof(sa);
 	sts_t sts;
 
 	/* Change our root, if we are asked for */ 
