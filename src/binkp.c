@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.25 2004/02/22 21:33:03 sisoft Exp $
+ * $Id: binkp.c,v 1.26 2004/02/23 01:02:11 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -45,13 +45,12 @@ static int msgr(char *buf)
 		if(c&0x80)d=0; else d=1;
 		c&=0x7f;len=c<<8;
 		t1=t_set(60);
-		while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getevt();
+		while((c=GETCHAR(1))==TIMEOUT&&!t_exp(t1))getevt();
 		if(c<0||t_exp(t1))return c;
 		if(opt_cr==O_YES)update_keys(key_in,c^=decrypt_byte(key_in));
 		len+=c&0xff;
 		for(i=0;i<len;i++) {
-			t1=t_set(50);
-			while((c=GETCHAR(2))==TIMEOUT&&!t_exp(t1))getevt();
+			while((c=GETCHAR(1))==TIMEOUT&&!t_exp(t1))getevt();
 			if(c<0||t_exp(t1))return c;
 			if(opt_cr==O_YES)update_keys(key_in,c^=decrypt_byte(key_in));
 			rxbuf[i]=c;

@@ -1,4 +1,10 @@
-/* $Id: TodayFixes,v 1.39 2004/02/22 21:33:01 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.40 2004/02/23 01:02:11 sisoft Exp $ */
+---
+add short aliases for weekdays (su,mo,tu...).
+add aliases 'or','no[t]','xor','and' for same symbols (|!^&).
+add support for multiline breaking (line must end on " \").
+.
+previous:
 ---
 in qcc: fix crash on terminals wider 127 columns.
 fix unnecessary error '..too slow'.
@@ -6,11 +12,4 @@ fix domains in binkp.
 add domain parts to addresses in emsi.
 truncate Changes file.
 TODO removed, as unusable.
-.
-previous:
----
-fix config dumping.
-add keyword 'else'.
-add support for inline if-expressions.
-add alias 'addr' for expression 'address'.
 .
