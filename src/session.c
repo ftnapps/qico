@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.2.2.1 2000/11/08 20:28:38 lev Exp $
+ * $Id: session.c,v 1.2.2.2 2000/12/12 11:27:59 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -283,7 +283,10 @@ int receivecb(char *fn)
 			while(*p=='\r' || *p=='\n') *p--=0;
 			fputs(s,g);fputc('\r',g);
 		}
-		sprintf(s, "%s-%s/%s", progname, version, osname);
+		sprintf(s, "%s-%s/%s",
+			cfgs(CFG_PROGNAME) == NULL ? progname :	cfgs(CFG_PROGNAME),
+			cfgs(CFG_VERSION)  == NULL ? version  :	cfgs(CFG_VERSION),
+			cfgs(CFG_OSNAME)   == NULL ? osname   : cfgs(CFG_OSNAME));
 		closepkt(g, ma, s, cfgs(CFG_STATION));
 		sprintf(s,"/tmp/qrep.%04x",getpid());lunlink(s);
 		sprintf(s,"/tmp/qpkt.%04x",getpid());p=strdup(s);
