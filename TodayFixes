@@ -1,10 +1,9 @@
-/* $Id: TodayFixes,v 1.44 2004/03/06 14:53:34 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.45 2004/03/08 22:02:42 sisoft Exp $ */
 ---
-improve BP_VER message parsing.
-increase binkp temp buffer (for support lots akas).
+stable version 0.52 forking. current=0.53.
 .
 previous:
 ---
-set rts/cts flow control for tty's on linux.
-fix directory tree creating.
+improve BP_VER message parsing.
+increase binkp temp buffer (for support lots akas).
 .

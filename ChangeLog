@@ -1,3 +1,11 @@
+2004-03-06 17:53  sisoft
+
+	* Changes, qico.conf.sample, src/binkp.c, src/binkp.h,
+	src/config.c:
+
+	improve BP_VER message parsing.
+	increase binkp temp buffer (for support lots akas).
+	
 2004-03-06 15:50  sisoft
 
 	* Changes, README, configure.in, debian/init.d, debian/rules,

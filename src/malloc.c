@@ -15,14 +15,16 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
+/* $Id: malloc.c,v 1.3 2004/03/08 22:02:43 sisoft Exp $ */
 /* written by Jim Meyering */
 
-#if HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
+
 #undef malloc
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 
 char *malloc ();
 

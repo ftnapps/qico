@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.51si-cvs],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.51si-cvs])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.16 2004/03/06 12:50:56 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.17 2004/03/08 22:02:42 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -25,7 +25,7 @@ AC_HEADER_SYS_WAIT
 AC_HEADER_TIOCGWINSZ
 AM_SYS_POSIX_TERMIOS
 AC_CHECK_HEADERS([stddef.h arpa/inet.h fcntl.h locale.h netdb.h netinet/in.h])
-AC_CHECK_HEADERS([string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h])
+AC_CHECK_HEADERS([string.h sys/cdefs.h sys/ioctl.h sys/socket.h sys/time.h syslog.h])
 AC_CHECK_HEADERS([termios.h unistd.h utime.h libutil.h libgen.h sys/param.h])
 AC_CHECK_HEADERS([errno.h sys/vfs.h sys/statfs.h sys/statvfs.h sys/mount.h])
 
@@ -270,11 +270,11 @@ int main(void) {
     f=fopen("ac_xtst/ac","w");
     if(!f) goto bad;
     fclose(f);
-    usleep(120000L);
+    usleep(100000L);
     if(!done) goto bad;
     done=0;
     unlink("ac_xtst/ac");
-    usleep(120000L);
+    usleep(100000L);
     if(done) rc=0;
 bad:close(fd);
     rmdir("ac_xtst");
