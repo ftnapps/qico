@@ -1,9 +1,9 @@
-/* $Id: TodayFixes,v 1.34 2004/02/14 11:55:29 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.35 2004/02/14 15:58:53 sisoft Exp $ */
 ---
-fix segfault on session begin.
+fix binkp session closing with opened chat.
+in qcc: split input history into groups.
 .
 previous:
 ---
-fix updating stat scripts. ;)
-another src's correcting.
+fix segfault on session begin.
 .

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.23 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: qcc.c,v 1.24 2004/02/14 15:58:54 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -203,7 +203,6 @@ static char *m_header=NULL,*m_status=NULL;
 static WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 
 static int sock=-1;
-static int oldcurr=-1;
 
 static int hstlast=0;
 static char *hst[HSTMAX+1],*myaddr;
@@ -607,14 +606,12 @@ static int createslot(char *slt,char d)
 	}
 	slots[allslots]->wlog=newwin(LOGSIZE,COL,MH+2,1);
 	scrollok(slots[allslots]->wlog,TRUE);flash();
-	if(oldcurr>=0){currslot=oldcurr;oldcurr=-1;}
 	return allslots++;
 }
 
 static void delslot(int slt)
 {
 	allslots--;
-	oldcurr=currslot;
 	if(currslot==allslots||currslot==slt)currslot--;
 	delwin(slots[slt]->wlog);
 	xfree(slots[slt]->cl);
@@ -630,7 +627,7 @@ static void delslot(int slt)
 static int inputstr(char *str,char *name,int mode)
 {
 	WINDOW *iw;
-	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms;
+	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms,tmp;
 	struct tm *tt;time_t tim;
 	struct timeval tv;fd_set rfds;
 	memset(str,0,MAX_STRING);
@@ -737,32 +734,46 @@ static int inputstr(char *str,char *name,int mode)
 				fr=1;
 				break;
 			case KEY_PPAGE:
-				if(hstcurr&&hstlast)hstcurr=1;
+				if(hstcurr&&hstlast) {
+					tmp=hstcurr;
+					for(hstcurr=0;hstcurr<hstlast&&(*hst[hstcurr]!=mode+1);hstcurr++);
+					if(hstcurr==hstlast){hstcurr=tmp;xbeep();break;}
+					hstcurr++;
+				}
 			case KEY_UP:
 				if(hstlast&&hstcurr) {
 					if(!hst[HSTMAX]) {
-						hst[HSTMAX]=malloc(strlen(str)+1);
-						strcpy(hst[HSTMAX],str);
+						hst[HSTMAX]=malloc(strlen(str)+2);
+						strcpy(hst[HSTMAX]+1,str);
+						*hst[HSTMAX]=mode+1;
 					}
-					hstcurr--;
-					strcpy(str,hst[hstcurr]);
-					sp=sl=strlen(str);
-					if(sp>vl) {
-						cp=vl;
-						bp=sl-vl;
-					    } else {
-						cp=sl;
-						bp=0;
+					tmp=hstcurr;hstcurr--;
+					while(hstcurr&&(*hst[hstcurr]!=mode+1))hstcurr--;
+					if(*hst[hstcurr]==mode+1) {
+						strcpy(str,hst[hstcurr]+1);
+						sp=sl=strlen(str);
+						if(sp>vl) {
+							cp=vl;
+							bp=sl-vl;
+						    } else {
+							cp=sl;
+							bp=0;
+						}
+						fr=1;
+					} else {
+						hstcurr=tmp;
+						if(hstcurr==hstlast)xfree(hst[HSTMAX]);
+						xbeep();
 					}
-					fr=1;
 				} else xbeep();
 				break;
 			case KEY_DOWN:
 				if(hstcurr<hstlast) {
 					hstcurr++;
-					if(hst[hstcurr])strcpy(str,hst[hstcurr]);
+					while(hstcurr<hstlast&&hst[hstcurr]&&(*hst[hstcurr]!=mode+1))hstcurr++;
+					if(hst[hstcurr])strcpy(str,hst[hstcurr]+1);
 					    else {
-						strcpy(str,hst[HSTMAX]);
+						strcpy(str,hst[HSTMAX]+1);
 						xfree(hst[HSTMAX]);
 					}
 					sp=sl=strlen(str);
@@ -788,10 +799,13 @@ static int inputstr(char *str,char *name,int mode)
 				break;
 			case '\r': case '\n':
 				str[sl]=0;
-				if(*str&&strcmp(str,SAFE(hst[hstlast-(hstlast>0)]))) {
-					hst[hstlast]=(char*)malloc(strlen(str)+1);
+				tmp=hstlast?(hstlast-1):0;
+				while(tmp&&(*hst[tmp]!=mode+1))tmp--;
+				if(*str&&strlen(str)>1&&(!hst[tmp]||strcmp(str,hst[tmp]+1))) {
+					hst[hstlast]=(char*)malloc(strlen(str)+2);
 					if(hst[hstlast]) {
-						strcpy(hst[hstlast],str);
+						strcpy(hst[hstlast]+1,str);
+						*hst[hstlast]=mode+1;
 						hstlast++;
 						if(hstlast>=HSTMAX) {
 							xfree(hst[0]);
@@ -799,10 +813,10 @@ static int inputstr(char *str,char *name,int mode)
 							hstlast=HSTMAX-1;
 							hst[hstlast]=NULL;
 						}
-						hstcurr=hstlast;
 					}
 				}
 				xfree(hst[HSTMAX]);
+				hstcurr=hstlast;
 				getkey=fr=1;
 				break;
 			case 0x1b: case KEY_F(8):
@@ -1381,7 +1395,7 @@ int main(int argc,char **argv)
 			case 'k': case 'K':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que)break;
 				bf=getnode((ch=='k')?"Kill all files for (addr+'y'): ":"Kill all files for current addr? ('y'=yes, any other=no): ");
-				if(bf&&strchr("y",*bf)&&bf[1]) {
+				if(bf&&tolower(*bf)=='y'&&bf[1]) {
 					xstrcpy(buf+3,(ch=='k')?bf+1:que->addr,64);
 					xcmd(buf,QR_KILL,strlen(buf+3)+4);
 				}
