@@ -1,12 +1,8 @@
-/* $Id: TodayFixes,v 1.72 2004/05/31 13:15:37 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.73 2004/05/31 13:19:58 sisoft Exp $ */
 ---
-join files xstr,xmem,gtmoff,ver in qslib.
-fix internal setproctitle().
-in qcc/qctl: request password from user, if option '-w-' used.
-qcc: don't show real cmdline in 'ps' command.
+manage files.
 .
 previous:
 ---
-changes in config parser.
-merge aso and bso outbounds code.
+manage files.
 .

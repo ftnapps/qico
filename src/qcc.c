@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.42 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: qcc.c,v 1.43 2004/05/31 13:19:59 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -55,7 +55,6 @@
 #endif
 #include "replace.h"
 #include "types.h"
-#include "byteop.h"
 #include "qcconst.h"
 #include "qslib.h"
 #include "crc.h"
