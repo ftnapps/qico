@@ -2,7 +2,7 @@
  * File: janus.c
  * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol implementation
- * $Id: janus.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: janus.c,v 1.1.1.1.2.1 2001/03/30 07:19:12 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -30,7 +30,7 @@
 void janus()
 {
 	byte   pkttype;          /* Type of packet last received                   */
-	word   blklen;           /* Length of last data block sent                 */
+	int    blklen;           /* Length of last data block sent                 */
 	word   goodneeded;       /* # good blocks to send before upping txblklen   */
 	word   goodblks;         /* Number of good blocks sent at this block size  */
 	word   rpos_count;       /* Number of RPOS packets sent at this position   */
@@ -118,7 +118,7 @@ void janus()
 		case XSENDBLK:
 			*((long *)txbuf) = lasttx = txpos;
 			blklen = fread(txbuf+sizeof(txpos), txblklen, txfd);
-			if(blklen<1) {
+			if(blklen<0) {
 				log("read error");
 				goto giveup;
 			}
