@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.12 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: protfm.c,v 1.13 2004/02/14 15:58:54 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -217,7 +217,7 @@ int rxclose(FILE **f, int what)
 		break;
 	}
 	if(what==FOP_SKIP||what==FOP_SUSPEND)skipiftic=what;
-	recvf.start=0;
+	recvf.start=0;recvf.ftot=0;
 	rxstatus=0;
 	return what;
 }
@@ -271,7 +271,7 @@ int txclose(FILE **f, int what)
 		sendf.fname, sendf.foff, sendf.soff, cps, ss);
 	    else write_log("sent: %s, %d bytes, %d cps [%s]",
 		sendf.fname, sendf.foff, cps, ss);
-	sendf.foff=0;
+	sendf.foff=0;sendf.ftot=0;
 	sendf.start=0;
 	fclose(*f);*f=NULL;
 	return what;
@@ -284,7 +284,7 @@ void chatinit(int prot)
 	snprintf(hellostr+3,MAX_STRING-7,ccs,rnode->sysop);
 	stodos((unsigned char*)hellostr);
 	xstrcat(hellostr,"\05\05\05",MAX_STRING);
-	chattimer=-1L;
+	chattimer=0;
 	chatlg=0;
 	qsndbuflen=0;
 	*qsnd_buf=0;
@@ -348,7 +348,7 @@ int chatsend(unsigned char *str)
 	int i;
 	if(!str||!*str)return 0;
 	if(!c_devfree())return 1;
-	if(chattimer<1) {
+	if(chattimer<2) {
 		c_devsend((unsigned char*)hellostr,strlen(hellostr)+1);
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,0);
 		qchat("");
@@ -366,7 +366,7 @@ void c_devrecv(unsigned char *data,unsigned len)
 	int i;
 	if(!data||!*data||!len)return;
 	data[len]=0;
-	if(chattimer<1) {
+	if(chattimer<2) {
 		char *p;
 		if(len>5&&data[1]!=5&&(p=strstr(data," * "))&&strstr(p+3,"los"))return;
 		c_devsend((unsigned char*)hellostr,strlen(hellostr));
@@ -406,9 +406,9 @@ void getevt()
 					chatlg=0;chatprot=i;
 					xstrcat((char*)qsnd_buf,"\n * Chat closed\n",CHAT_BUF);
 					chatsend(qsnd_buf);
-					if(chattimer>0L)qlcerase();
+					if(chattimer>1)qlcerase();
 					qsndbuflen=0;
-					chattimer=0L;
+					chattimer=1;
 				}
 				break;
 		}

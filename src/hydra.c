@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.8 2004/02/13 22:29:01 sisoft Exp $ */
+/* $Id: hydra.c,v 1.9 2004/02/14 15:58:54 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
 #include "crc.h"
@@ -167,7 +167,7 @@ boolean hydra_devsend(char *dev, byte *data, word len)
 	devtxstate   = HTD_DATA;
 
 	/* special for chat, only prolong life if our side keeps typing! */
-	if (chattimer > 0L && !strcmp(devtxdev,"CON") && txstate == HTX_REND)
+	if (chattimer > 1 && !strcmp(devtxdev,"CON") && txstate == HTX_REND)
 		braindead = h_timer_set(H_BRAINDEAD);
 
 	return (true);
@@ -589,8 +589,8 @@ static int rxpkt (void)
 
 	rxbufptr = p;
 
-	if(!chattimer&&txstate==HTX_REND&&rxstate==HRX_DONE) {
-		chattimer=-1L;
+	if(chattimer<2&&txstate==HTX_REND&&rxstate==HRX_DONE) {
+		chattimer=0;
 		return(HPKT_IDLE);
 	}
 	if (h_timer_running(braindead) && h_timer_expired(braindead)) {
@@ -1002,7 +1002,7 @@ int hydra_file(char *txpathname, char *txalias)
 							write_log("hydra link options: %s",rxbuf);
 					}
 
-					chattimer = (rxoptions & HOPT_DEVICE) ? 0L : -2L;
+					chattimer = (rxoptions & HOPT_DEVICE) ? 0 : 1;
 
 					txoptions = rxoptions;
 					rxstate = HRX_FINFO;
@@ -1415,8 +1415,8 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HPKT_END:
 				/* special for chat, other side wants to quit */
- 				if (chattimer > 0L && txstate == HTX_REND) {
- 					chattimer = -3L;
+ 				if (chattimer > 1 && txstate == HTX_REND) {
+ 					chattimer = 0;
  					break;
  				}
 
@@ -1499,8 +1499,8 @@ int hydra_file(char *txpathname, char *txalias)
 			case HTX_REND:
 				if (!rxstate && !devtxstate) {
                                 /* special for chat, braindead will protect */
-  					if (chattimer > 0L) break;
-  					if (chattimer == 0L) chattimer = -3L;
+  					if (chattimer > 1) break;
+  					chattimer = 0;
 					txtimer = h_timer_reset();
 					txretries = 0;
 					txstate = HTX_END;

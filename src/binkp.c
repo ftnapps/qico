@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.23 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: binkp.c,v 1.24 2004/02/14 15:58:54 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -483,7 +483,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	t1=t_set(BP_TIMEOUT);
 	mes=0;cls=0;
 	DEBUG(('B',1,"established binkp ver %d session. nr=%d,nd=%d,md=%d,mb=%d,cr=%d,cht=%d",bp_ver,opt_nr,opt_nd,opt_md,opt_mb,opt_cr,opt_cht));
-	while(((sent_eob<2||recv_eob<2)||(opt_cht==O_YES&&!t_exp(chattimer)))&&!t_exp(t1)) {
+	while(((sent_eob<2||recv_eob<2)||(opt_cht==O_YES&&chattimer>1&&!t_exp(chattimer)))&&!t_exp(t1)) {
 		if(!send_file&&sent_eob<2&&!txfd&&!nofiles) {
 			DEBUG(('B',2,"find files"));
 			if(lst&&lst!=fl)lst=lst->next;
@@ -587,6 +587,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 						} else {
 							msgs(BPM_GOT,tmp,NULL);mes++;
 						}
+						qpfrecv();
 					}
 				}
 			} else DEBUG(('B',1,"ignore received data block"));
@@ -598,7 +599,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			cls=1;recv_eob=0;
 			if(recv_file) {
 				rxclose(&rxfd,FOP_OK);
-				recv_file=0;
+				recv_file=0;qpfrecv();
 			}
 			if(f_pars(tmp,&fname,&fsize,&ftime,&foffs)) {
 				msgs(BPM_ERR,"FILE: ","unparsable arguments");
@@ -642,9 +643,13 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			DEBUG(('B',3,"got: M_%s",mess[rc]));
 			DEBUG(('B',4,"mes=%d, sent_eob=%d, recv_eob=%d",mes,sent_eob,recv_eob));
 			t1=t_set(BP_TIMEOUT);
+			if(chattimer&&sent_eob==2&&recv_eob==2) {
+				opt_cht=O_NO;
+				break;
+			}
 			if(recv_file) {
 				rxclose(&rxfd,FOP_OK);
-				recv_file=0;
+				recv_file=0;qpfrecv();
 			}
 			recv_eob++;
 			if(!lst&&nofiles) {
@@ -673,7 +678,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					txclose(&txfd,(rc==BPM_GOT)?FOP_SKIP:FOP_SUSPEND);
 					if(rc==BPM_GOT)flexecute(lst);
 					ticskip=(rc==BPM_GOT)?1:2;
-					send_file=0;
+					send_file=0;qpfsend();
 					break;
 				}
 				if(wait_got&&sendf.fname&&!strncasecmp(fname,sendf.fname,MAX_PATH) &&
@@ -683,6 +688,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					txclose(&txfd,(rc==BPM_GOT)?FOP_OK:FOP_SUSPEND);
 					if(rc==BPM_GOT)flexecute(lst);
 					ticskip=(rc==BPM_GOT)?0:2;
+					qpfsend();
 				} else write_log("got M_%s for unknown file",mess[rc]);
 			} else DEBUG(('B',1,"unparsable fileinfo"));
 			break;
@@ -730,7 +736,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		}
 		check_cps();
 	}
-	if(t_exp(t1)) {
+	if(chattimer&&sent_eob==2&&recv_eob==2) {
+		DEBUG(('S',4,"binkp chat autoclosed (%s)",t_exp(chattimer)?"timeout":"hangup"));
+		msgs(BPM_EOB,NULL,NULL);
+	} else if(t_exp(t1)) {
 		DEBUG(('B',1,"BinkP session timeout (%d)",BP_TIMEOUT));
 		msgs(BPM_ERR,"Session timeout",NULL);
 		if(send_file)txclose(&txfd,FOP_ERROR);

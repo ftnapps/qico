@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.13 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: log.c,v 1.14 2004/02/14 15:58:54 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -302,12 +302,12 @@ void chatlog_done()
 		fwrite(str,strlen(str)-1,1,cpkt);
 		closeqpkt(cpkt,adr);
 		snprintf(str,MAX_STRING,"%s/%s",cfgs(CFG_INBOUND),basename(pktname));
-		if(rename(pktname,str))write_log("can't rename %s to %s: %d",pktname,str,strerror(errno));
+		if(rename(pktname,str))write_log("can't rename %s to %s: %s",pktname,str,strerror(errno));
 		    else chmod(str,cfgi(CFG_DEFPERM));
 	}
 	if(lemail) {
 		fclose(lemail);
-		snprintf(str,MAX_STRING*2-1,"mail -s chatlog %s </tmp/qlemail.%04lx",cfgs(CFG_CHATTOEMAIL),(long)getpid());
+		snprintf(str,MAX_STRING*2-1,"mail -s chatlog %s < /tmp/qlemail.%04lx",cfgs(CFG_CHATTOEMAIL),(long)getpid());
 		execsh(str);
 		lunlink(strrchr(str,'<')+1);
 	}

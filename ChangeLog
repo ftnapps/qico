@@ -1,3 +1,9 @@
+2004-02-14 14:55  sisoft
+
+	* src/tools.c:
+
+	fix segfault on session begin.
+	
 2004-02-14 01:29  sisoft
 
 	* FAQ, README, src/Makefile.am, src/binkp.c, src/binkp.h,
