@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.13 2001/03/10 19:50:19 lev Exp $
+ * $Id: ls_zsend.c,v 1.14 2001/03/17 19:42:22 lev Exp $
  **********************************************************/
 /*
 
@@ -371,6 +371,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		DEBUG(('Z',1,"ls_zsendfile: Seek to %d error",txpos));
 		return LSZ_ERROR;
 	}
+	sendf.soff=txpos;
 
 	/* Send file data */
 	if(ls_txWinSize) {
