@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.17 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: config.c,v 1.18 2004/05/29 23:34:45 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -217,7 +217,7 @@ contl:		line++;p=s;
 		while(*p==' ')p++;
 		if(*p&&*p!='#'&&*p!='\n'&&*p!=';'&&(*p!='/'||p[1]!='/')) {
 			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
-			if(*t=='\\'&&*(t-1)==' ') {
+			if(*t=='\\'&&t>p&&*(t-1)==' ') {
 				fgets(t,MAX_STRING*2-(t-p),f);
 				for(k=t;*k==' '||*k=='\t';k++);
 				if(k>t)xstrcpy(t,k,strlen(k));
@@ -231,16 +231,21 @@ contl:		line++;p=s;
 			while(*t==' ')t++;
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
 			if(!strcasecmp(p,"include")) {
-				if(!strncmp(cfgname,t,MAX_STRING)) {
-					write_log("%s:%d: include itself -> infinity loop",cfgname,line);
+				if(curcond) {
+					write_log("%s:%d: found <include> inside <if>-expression",cfgname,line);
 					rc=0;
-				} else if(!parseconfig(t)) {
-					write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
-					rc=0;
+				} else {
+					if(!strncmp(cfgname,t,MAX_STRING)) {
+						write_log("%s:%d: <include> including itself -> infinity loop",cfgname,line);
+						rc=0;
+					} else if(!parseconfig(t)) {
+						write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
+						rc=0;
+					}
 				}
 			} else if(!strcasecmp(p,"if"))	{
 				if(curcond) {
-					write_log("%s:%d: second <if> before <endif>",cfgname,line);
+					write_log("%s:%d: found second <if> before <endif>",cfgname,line);
 					rc=0;
 				}
 				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
@@ -252,7 +257,7 @@ contl:		line++;p=s;
 					*p++=0;
 					while(*p==' ')p++;
 					if(!*p) {
-						write_log("%s:%d: inline <if>-expression witout argument",cfgname,line);
+						write_log("%s:%d: inline <if>-expression witout arguments",cfgname,line);
 						rc=0;k=NULL;
 					}
 				} else k=NULL;
@@ -272,7 +277,7 @@ contl:		line++;p=s;
 					write_log("%s:%d: misplaced <else> without <if>",cfgname,line);
 					rc=0;
 				} else {
-					snprintf(s,MAX_STRING,"! ( %s )",curcond);
+					snprintf(s,MAX_STRING,"not(%s)",curcond);
 					cc=slist_add(&condlist,s);
 					curcond=cc->str;
 				}
@@ -286,7 +291,7 @@ contl:		line++;p=s;
 	}
 	fclose(f);
 	if(curcond) {
-		write_log("%s:%d: unclosed last <if>",cfgname,line);
+		write_log("%s:%d: last <if>-expression unclosed",cfgname,line);
 		rc=0;
 	}
 	return rc;
@@ -296,7 +301,7 @@ contl:		line++;p=s;
 void dumpconfig()
 {
 	int i;
-	char buf[MAX_STRING*16];
+	char buf[LARGE_STRING];
 	cfgitem_t *c;
 	slist_t *sl;
 	falist_t *al;
@@ -306,31 +311,31 @@ void dumpconfig()
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
-			xstrcpy(buf,"conf:   ",MAX_STRING*16);
-			if(c->condition)snprintf(buf+8,MAX_STRING*16,"if %s: ",c->condition);
-			    else xstrcat(buf,"default: ",MAX_STRING*16);
+			xstrcpy(buf,"conf:   ",LARGE_STRING);
+			if(c->condition)snprintf(buf+8,LARGE_STRING,"if %s: ",c->condition);
+			    else xstrcat(buf,"default: ",LARGE_STRING);
 			switch(configtab[i].type) {
 			    case C_PATH:
 			    case C_STR:
-				snprintf(buf+strlen(buf),MAX_STRING*16,"'%s'",c->value.v_char);break;
+				snprintf(buf+strlen(buf),LARGE_STRING,"'%s'",c->value.v_char);break;
 			    case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
-					snprintf(buf+strlen(buf),MAX_STRING*16,"'%s', ",sl->str);
-				xstrcat(buf,"%",MAX_STRING*16);
+					snprintf(buf+strlen(buf),LARGE_STRING,"'%s', ",sl->str);
+				xstrcat(buf,"%",LARGE_STRING);
 				break;
 			    case C_ADRSTRL:
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					snprintf(buf+strlen(buf),MAX_STRING*16,"%s '%s', ",fasl->addr.d?ftnaddrtoda(&fasl->addr):ftnaddrtoa(&fasl->addr),fasl->str);
-				xstrcat(buf,"%",MAX_STRING*16);
+					snprintf(buf+strlen(buf),LARGE_STRING,"%s '%s', ",fasl->addr.d?ftnaddrtoda(&fasl->addr):ftnaddrtoa(&fasl->addr),fasl->str);
+				xstrcat(buf,"%",LARGE_STRING);
 				break;
 			    case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					snprintf(buf+strlen(buf),MAX_STRING*16,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
-				xstrcat(buf,"%",MAX_STRING*16);
+					snprintf(buf+strlen(buf),LARGE_STRING,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
+				xstrcat(buf,"%",LARGE_STRING);
 				break;
-			    case C_INT:     snprintf(buf+strlen(buf),MAX_STRING*16,"%d",c->value.v_int);break;
-			    case C_OCT:     snprintf(buf+strlen(buf),MAX_STRING*16,"%o",c->value.v_int);break;
-			    case C_YESNO:   snprintf(buf+strlen(buf),MAX_STRING*16,"%s",c->value.v_int?"yes":"no");break;
+			    case C_INT:     snprintf(buf+strlen(buf),LARGE_STRING,"%d",c->value.v_int);break;
+			    case C_OCT:     snprintf(buf+strlen(buf),LARGE_STRING,"%o",c->value.v_int);break;
+			    case C_YESNO:   snprintf(buf+strlen(buf),LARGE_STRING,"%s",c->value.v_int?"yes":"no");break;
 			}
 			write_log("%s",buf);
 		}

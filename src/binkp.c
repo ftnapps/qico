@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.36 2004/05/27 18:50:02 sisoft Exp $
+ * $Id: binkp.c,v 1.37 2004/05/29 23:34:45 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -226,9 +226,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			rc=0;
 			DEBUG(('B',3,"state: auth (%d)",txstate));
 			title("%sbound session %s",mode?"Out":"In",ftnaddrtoa(&rnode->addrs->addr));
-			if(BSO)for(pp=rnode->addrs;pp;pp=pp->next)
-				rc+=bso_locknode(&pp->addr,LCK_s);
-			if(ASO)for(pp=rnode->addrs;pp;pp=pp->next)
+			for(pp=rnode->addrs;pp;pp=pp->next)
 				rc+=aso_locknode(&pp->addr,LCK_s);
 			if(!rc) {
 				log_rinfo(rnode);
@@ -480,8 +478,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
 	recvf.ttot=rnode->netmail+rnode->files;
 	effbaud=rnode->speed;lst=fl;
-	if(BSO)bso_getstatus(&rnode->addrs->addr,&sts);
-	    else if(ASO)aso_getstatus(&rnode->addrs->addr,&sts);
+	aso_getstatus(&rnode->addrs->addr,&sts);
 	sline("Binkp session");
 	t1=t_set(BP_TIMEOUT);
 	mes=0;cls=0;

@@ -1,9 +1,7 @@
-/* $Id: globals.h,v 1.7 2004/02/13 22:29:01 sisoft Exp $ */
+/* $Id: globals.h,v 1.8 2004/05/29 23:34:49 sisoft Exp $ */
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
-extern char *aso_tmp;
-extern char *bso_tmp;
 extern char *ccs;
 extern char *configname;
 extern char *connstr;

@@ -1,11 +1,9 @@
 /**********************************************************
  * global variables
- * $Id: globals.c,v 1.8 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: globals.c,v 1.9 2004/05/29 23:34:45 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-char *aso_tmp=NULL;
-char *bso_tmp=NULL;
 char *ccs;
 char *configname=CONFIG;
 char *connstr=NULL;

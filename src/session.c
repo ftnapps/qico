@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.30 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: session.c,v 1.31 2004/05/29 23:34:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -52,57 +52,7 @@ void addflist(flist_t **fl,char *loc,char *rem,char kill,off_t off,FILE *lo,int 
 	q->type=type;
 }
 
-void floflist(flist_t **fl,char *flon)
-{
-	FILE *f;
-	off_t off;
-	char *p,str[MAX_PATH+1],*l,*m,*map=cfgs(CFG_MAPOUT),*fp,*fn;
-	slist_t *i;
-	struct stat sb;
-	int len;
-	DEBUG(('S',2,"Add LO '%s'",flon));
-	if(!stat(flon, &sb))if((f=fopen(flon,"r+b"))) {
-		off=ftell(f);
-		while(fgets(str,MAX_PATH,f)) {
-			p=strrchr(str,'\r');
-			if(!p)p=strrchr(str,'\n');
-			if(p)*p=0;
-			if(!*str)continue;
-			p=str;
-			switch(*p) {
-			    case '~': break;
-			    case '^': /* kill */
-			    case '#': /* trunc */
-				p++;
-			    default:
-				for(i=cfgsl(CFG_MAPPATH);i;i=i->next) {
-					for(l=i->str;*l&&*l!=' ';l++);
-					for(m=l;*m==' ';m++);
-					len=l-i->str;
-					if(!*l||!*m)write_log("bad mapping '%s'",i->str);
-					    else if(!strncasecmp(i->str,p,len)) {
-						memmove(p+strlen(m),p+len,strlen(p+len)+1);
-						memcpy(p,m,strlen(m));
-					}
-				}
-				if(map&&strchr(map,'S'))strtr(p,'\\','/');
-				fp=xstrdup(p);l=basename(fp);
-				if(map&&strchr(map,'L'))strlwr(l);
-				else if(map&&strchr(map,'U'))strupr(l);
-				fn=basename(p);
-    				mapname(fn,map,MAX_PATH-(fn-str)-1);
-				addflist(fl,fp,xstrdup(fn),str[0],off,f,1);
-				if(!stat(fp,&sb)) {
-					totalf+=sb.st_size;totaln++;
-				}
-			}
-			off=ftell(f);
-		}
-		addflist(fl,xstrdup(flon),NULL,'^',-1,f,1);
-	}
-}
-
-int boxflist(flist_t **fl,char *path)
+static int boxflist(flist_t **fl,char *path)
 {
 	DIR *d;
 	struct dirent *de;
@@ -130,37 +80,10 @@ int boxflist(flist_t **fl,char *path)
 
 void makeflist(flist_t **fl,ftnaddr_t *fa,int mode)
 {
-	int fls[]={F_IMM,F_CRSH,F_DIR,F_NORM,F_HOLD},i;
-	char str[MAX_PATH],*flv="hdicf";
-	struct stat sb;
 	faslist_t *j;
+	char str[MAX_PATH],*flv="hdicf";
 	DEBUG(('S',1,"Make filelist for %s",ftnaddrtoa(fa)));
-	for(i=0;i<5;i++) {
-		if(BSO&&!stat(bso_pktn(fa,fls[i]),&sb)) {
-			snprintf(str,MAX_STRING,"%08lx.pkt",sequencer());
-			addflist(fl,xstrdup(bso_tmp),xstrdup(str),'^',0,NULL,0);
-			totalm+=sb.st_size;totaln++;
-		}
-		if(ASO&&!stat(aso_pktn(fa,fls[i]),&sb)) {
-			snprintf(str,MAX_STRING,"%08lx.pkt",sequencer());
-			addflist(fl,xstrdup(aso_tmp),xstrdup(str),'^',0,NULL,0);
-			totalm+=sb.st_size;totaln++;
-		}
-	}
-	if(BSO&&!stat(bso_reqn(fa),&sb)) {
-		snprintf(str,MAX_STRING,"%04x%04x.req",fa->n,fa->f);
-		addflist(fl,xstrdup(bso_tmp),xstrdup(str),' ',0,NULL,1);
-		totalf+=sb.st_size;totaln++;
-	}
-	if(ASO&&!stat(aso_reqn(fa),&sb)) {
-		snprintf(str,MAX_STRING,"%04x%04x.req",fa->n,fa->f);
-		addflist(fl,xstrdup(aso_tmp),xstrdup(str),' ',0,NULL,1);
-		totalf+=sb.st_size;totaln++;
-	}
-	for(i=0;i<(5-(cfgi(CFG_HOLDOUT)==1&&mode));i++) {
-		if(BSO)floflist(fl,bso_flon(fa,fls[i]));
-		if(ASO)floflist(fl,aso_flon(fa,fls[i]));
-	}
+	asoflist(fl,fa,mode);
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next)
 		if(addr_cmp(fa,&j->addr)) {
 			if(!boxflist(fl,j->str))write_log("can't open filebox '%s'",j->str);
@@ -409,8 +332,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		else title("Inbound session %s",ftnaddrtoa(&rnode->addrs->addr));
 	}
 	log_rinfo(rnode);
-	if(BSO)for(pp=rnode->addrs;pp;pp=pp->next)bso_locknode(&pp->addr,LCK_s);
-	if(ASO)for(pp=rnode->addrs;pp;pp=pp->next)aso_locknode(&pp->addr,LCK_s);
+	for(pp=rnode->addrs;pp;pp=pp->next)aso_locknode(&pp->addr,LCK_s);
 	if(mode) {
 		if(!has_addr(calladdr,rnode->addrs)) {
 			write_log("remote isn't %s",ftnaddrtoa(calladdr));
@@ -628,8 +550,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 		write_log("unsupported session type! (%d)",type);
 		return S_REDIAL|S_ADDTRY;
 	}
-	if(BSO)for(pp=rnode->addrs;pp;pp=pp->next)bso_unlocknode(&pp->addr,LCK_x);
-	if(ASO)for(pp=rnode->addrs;pp;pp=pp->next)aso_unlocknode(&pp->addr,LCK_x);
+	for(pp=rnode->addrs;pp;pp=pp->next)aso_unlocknode(&pp->addr,LCK_x);
 	if((rnode->options&O_NRQ&&!cfgi(CFG_IGNORENRQ))||rnode->options&O_HRQ)rc|=S_HOLDR;
 	if(rnode->options&O_HXT)rc|=S_HOLDX;
 	if(rnode->options&O_HAT)rc|=S_HOLDA;
