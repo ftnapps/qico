@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.16 2003/01/17 09:02:55 cyrilm Exp $
+ * $Id: qctl.c,v 1.17 2003/01/17 12:23:13 cyrilm Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -62,7 +62,7 @@ int getanswer()
 	
 	signal(SIGALRM, timeout);
 	alarm(1);
-	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
+/*	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0); */
 	if(rc<4) return 1;
 	if(buf[4]) fprintf(stderr, "%s\n", buf+5);
 	signal(SIGALRM, SIG_DFL);
@@ -110,7 +110,7 @@ int getnodeinfo()
 	
 	signal(SIGALRM, timeout);
 	alarm(5);
-	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
+/*	rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0); */
 	if(rc<4) return 1;
 	if(buf[4]) {
 		fprintf(stderr, "%s\n", buf+5);
@@ -141,7 +141,7 @@ int getqueueinfo()
 	do {
 		signal(SIGALRM, timeout);
 		alarm(5);
-		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
+/*		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);*/
 		alarm(0);
 		if(rc<4) return 1;
 		if(buf[4]) {
@@ -225,6 +225,7 @@ int main(int argc, char *argv[])
 	}
 
 
+/*
 	if((qipc_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
 		fprintf(stderr, "can't get key\n");
 		return 1;
@@ -233,7 +234,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "can't get message queue, may be there's no daemon: %s\n",strerror(errno));
 		return 1;
 	}
-	
+*/	
 	*((int *)buf)=1;
 	*((int *)buf+1)=getpid();
 	buf[8]=action;
@@ -242,12 +243,12 @@ int main(int argc, char *argv[])
 	case QR_QUIT:
 	case QR_SCAN:
 	case QR_CONF:
-		msgsnd(qipc_msg, buf, 9, 0);
+/*		msgsnd(qipc_msg, buf, 9, 0);*/
 		return getanswer();
 	case QR_INFO:
 		if(optind<argc) {
 			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
-			msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
+/*			msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);*/
 			return getnodeinfo();
 		} else {
 			usage(argv[0]);
@@ -258,7 +259,7 @@ int main(int argc, char *argv[])
 		while(optind<argc){
 			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
   		    buf[10+strlen(buf+9)]=flv;
-			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);
+/*			msgsnd(qipc_msg, buf, strlen(argv[optind++])+11, 0);*/
 		}
 		return getanswer();
 	case QR_STS:
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
 			xstrcpy(buf+9, argv[optind], MSG_BUFFER-9);
 			len=strlen(argv[optind])+10;
 			xstrcpy(buf+len, str, MSG_BUFFER-len);
-			msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);
+/*			msgsnd(qipc_msg, buf, len+strlen(str)+1, 0);*/
 			return getanswer();
 		} else {
 			usage(argv[0]);
@@ -278,7 +279,7 @@ int main(int argc, char *argv[])
 			str+=strlen(str)+1;
 		}
 		xstrcpy(str, "", 2);str+=2;
-		msgsnd(qipc_msg, buf, str-buf, 0);
+/*		msgsnd(qipc_msg, buf, str-buf, 0);*/
 		return getanswer();
 	case QR_SEND:
 		str=buf+9;
@@ -297,10 +298,10 @@ int main(int argc, char *argv[])
 			str+=strlen(str)+1;
 		}
 		xstrcpy(str, "", 2);str+=2;
-		msgsnd(qipc_msg, buf, str-buf, 0);
+/*		msgsnd(qipc_msg, buf, str-buf, 0);*/
 		return getanswer();
 	case QR_QUEUE:
-		msgsnd(qipc_msg, buf, 9, 0);
+/*		msgsnd(qipc_msg, buf, 9, 0);*/
 		return getqueueinfo();
 	default:
 		usage(argv[0]);
