@@ -1,11 +1,10 @@
-/* $Id: TodayFixes,v 1.49 2004/03/17 21:28:44 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.50 2004/03/20 16:04:16 sisoft Exp $ */
 ---
-fix autoopening chat with TheBrake.
+try to fix compile under Solaris.
+fix [n]curses library detection.
+fix stat[v]fs struct detection.
 .
 previous:
 ---
-apply ispell to docs.
-work on old systems with simple recv() implementation.
-in qcc: fix resize terminal.
-in qcc: add key 'ctrl+l' for refresh screen.
+fix autoopening chat with TheBrake.
 .
