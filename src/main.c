@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.24 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: main.c,v 1.25 2004/03/27 21:38:40 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -135,7 +135,7 @@ static void answer_mode(int type)
 		if(cs&&spd)write_log("*** CONNECT %s",cs);
 		    else {
 			write_log("*** CONNECT Unknown");
-			spd=300;
+			spd=DEFAULT_SPEED;
 		}
 	}
 	if((cs=getenv("CALLER_ID"))&&strcasecmp(cs,"none")&&strlen(cs)>3)write_log("caller-id: %s",cs);

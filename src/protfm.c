@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.16 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: protfm.c,v 1.17 2004/03/27 21:38:41 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -76,7 +76,8 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
  	recvf.start=time(NULL);
 	xfree(recvf.fname);
  	recvf.fname=xstrdup(bn);
-	recvf.mtime=rtime;recvf.ftot=rsize;
+	recvf.mtime=rtime-gmtoff(recvf.start,1);
+	recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
 	if(whattype(name)==IS_PKT&&rsize==60)return FOP_SKIP;
@@ -227,16 +228,17 @@ FILE *txopen(char *tosend, char *sendas)
 	FILE *f;
 	struct stat sb;
 	int prevcps = (sendf.start&&(time(NULL)-sendf.start>2))?sendf.cps:effbaud/10;
-
 	if(stat(tosend, &sb)) {
 		write_log("can't find file %s!", tosend);
 		return NULL;
 	}
-	if(whattype(sendas)==IS_PKT&&sb.st_size==60)return NULL;
+	if(whattype(sendas)==IS_PKT&&sb.st_size==60&&cfgi(CFG_KILLBADPKT))return NULL;
 	xfree(sendf.fname);
  	sendf.fname=xstrdup(sendas);
-	sendf.ftot=sb.st_size;sendf.mtime=sb.st_mtime;
-	sendf.foff=sendf.soff=0;sendf.start=time(NULL);
+	sendf.ftot=sb.st_size;
+	sendf.foff=sendf.soff=0;
+	sendf.start=time(NULL);
+	sendf.mtime=sb.st_mtime+gmtoff(sendf.start,1);
 	if(sendf.toff+sb.st_size > sendf.ttot) sendf.ttot+=sb.st_size;
 	sendf.nf++;if(sendf.nf>sendf.allf) sendf.allf++;
 	f=fopen(tosend, "rb");

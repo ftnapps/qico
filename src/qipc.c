@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.17 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: qipc.c,v 1.18 2004/03/27 21:38:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LIBUTIL_H
@@ -137,7 +137,7 @@ void qpproto(char type,pfile_t *pf)
 	STORE32(p,pf->stot);INC32(p);
 	STORE32(p,pf->start);INC32(p);
 	STORE32(p,pf->mtime);INC32(p);
-	xstrcpy((char*)p,pf->fname?pf->fname:"",MSG_BUFFER-(p-buf));
+	xstrcpy((char*)p,SS(pf->fname),MSG_BUFFER-(p-buf));
 	p+=strlen((char*)p)+1;
 	qsendpkt(type,QLNAME,(char*)buf,p-buf);
 }

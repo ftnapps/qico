@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.29 2004/03/06 14:53:35 sisoft Exp $
+ * $Id: binkp.c,v 1.30 2004/03/27 21:38:40 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -23,13 +23,13 @@ static int datas(byte *buf,word len)
 static int msgs(int msg,char *t1,char *t2)
 {
 	unsigned len=1;
-	DEBUG(('B',2,"msgs M_%s '%s%s'",mess[msg],t1?t1:"",t2?t2:""));
+	DEBUG(('B',2,"msgs M_%s '%s%s'",mess[msg],SS(t1),SS(t2)));
 	if(t1)len+=strlen(t1);
 	if(t2)len+=strlen(t2);
 	if(len>0x7fff)len=0x7fff;
 	*txbuf=((len>>8)&0x7f)|0x80;
 	txbuf[1]=len&0xff;txbuf[2]=msg;
-	snprintf((char*)(txbuf+3),len,"%s%s",t1?t1:"",t2?t2:"");
+	snprintf((char*)(txbuf+3),len,"%s%s",SS(t1),SS(t2));
 	return(datas(txbuf,(word)(len+2)));
 }
 

@@ -1,6 +1,6 @@
 /**********************************************************
  * safety work with memory
- * $Id: xmem.c,v 1.3 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: xmem.c,v 1.4 2004/03/27 21:38:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -44,7 +44,7 @@ char *xstrdup(char *str)
 char *restrcpy(char **dst, char *src)
 {
 	xfree(*dst);
-	return *dst=xstrdup(src?src:"");
+	return *dst=xstrdup(SS(src));
 }
 
 char *restrcat(char **dst, char *src)

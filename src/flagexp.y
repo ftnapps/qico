@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.11 2004/03/21 10:42:42 sisoft Exp $
+ * $Id: flagexp.y,v 1.12 2004/03/27 21:38:40 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
 %token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS FLLINE
@@ -182,7 +182,7 @@ static int checkphone(void)
 static int checkcid(void)
 {
 	char *cid = getenv("CALLER_ID");
-	if(!cid||strlen(cid?cid:"")<4) cid = "none";
+	if(!cid||strlen(cid)<4) cid = "none";
 	DEBUG(('Y',2,"checkcid: \"%s\" <-> \"%s\"",yytext,cid));
 	if(!strncasecmp(yytext,cid,strlen(yytext))) return 1;
 	return 0;
