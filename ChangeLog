@@ -1,3 +1,14 @@
+2004-05-30 03:34  sisoft
+
+	* Changes, src/Makefile.am, src/aso.c, src/binkp.c, src/bso.c,
+	  src/call.c, src/config.c, src/daemon.c, src/ftn.h, src/globals.c,
+	  src/globals.h, src/log.c, src/mailer.h, src/main.c, src/queue.c,
+	  src/session.c, src/tools.h, stuff/Makefile.am, stuff/ftn,
+	  stuff/freebsd/distinfo:
+
+	changes in config parser.
+	merge aso and bso outbounds code.
+
 2004-05-29 15:56  sisoft
 
 	* Makefile.am, src/execsh.c:

@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.13 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: tools.c,v 1.14 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -19,6 +19,10 @@
 
 static unsigned long seq=0xFFFFFFFF;
 static char *hexdigits="0123456789abcdef";
+char *engms[13]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
+				    "Sep","Oct","Nov","Dec","Any"};
+char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
+		"KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 
 static int initcharset(char *name,unsigned char *tab)
 {
@@ -353,37 +357,6 @@ int randper(int base,int diff)
 {
 	return base-diff+(int)(diff*2.0*rand()/(RAND_MAX+1.0));
 }
-
-#ifndef HAVE_SETPROCTITLE
-extern char **environ;
-static char *cmdstr=NULL;
-static char *cmdstrend=NULL;
-
-void setargspace(int argc,char **argv,char **envp)
-{
-	int i=0;
-	cmdstr=argv[0];
-	while(envp[i])i++;
-	environ=xmalloc(sizeof(char*)*(i+1));
-	i=0;
-	while(envp[i]) {
-		environ[i]=xstrdup(envp[i]);
-		i++;
-	}
-	environ[i]=NULL;
-	cmdstrend=argv[0]+strlen(argv[0]);
-	for(i=1;i<argc;i++)if(cmdstrend+1==argv[i])cmdstrend=argv[i]+strlen(argv[i]);
-	for(i=0;envp[i];i++)if(cmdstrend+1==envp[i])cmdstrend=envp[i]+strlen(envp[i]);
-}
-
-void setproctitle(char *str)
-{
-	char *p;
-	if(!cmdstr)return;
-	for(p=cmdstr;p<cmdstrend&&*str;p++,str++)*p=*str;
-	while(p<cmdstrend)*p++=' ';
-}
-#endif
 
 int execsh(char *cmd)
 {

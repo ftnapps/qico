@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.11 2004/05/29 23:34:50 sisoft Exp $ */
+/* $Id: tools.h,v 1.12 2004/05/31 13:15:39 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -12,8 +12,6 @@
 #define C_ADRSTRL 8
 #define C_STRL    9
 #define C_OCT     10
-
-#define LARGE_STRING (MAX_STRING*16)
 
 typedef struct _cfgitem_t {
 	char *condition;
@@ -34,19 +32,8 @@ typedef struct {
 	char *def_val;
 } cfgstr_t;
 
-#ifndef WEXITSTATUS
-#define WEXITSTATUS(stat_val) ((unsigned)(stat_val)>>8)
-#endif
-#ifndef MAX
-#define MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-#ifndef MIN
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-#define C0(c) (((c)>=' ')?(c):'.')
-#define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define SIZEC(x) (((x)<1024)?'b':'k')
-
+extern char *engms[];
+extern char *sigs[];
 extern void recode_to_remote(char *str);
 extern void recode_to_local(char *str);
 extern int hexdcd(char d,char c);
@@ -70,10 +57,6 @@ extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
 extern char *qver(int what);
 extern int istic(char *fn);
-#ifndef HAVE_SETPROCTITLE
-extern void setargspace(int argc,char **argv,char **envp);
-extern void setproctitle(char *str);
-#endif
 extern int execsh(char *cmd);
 extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
 /* config.c */
@@ -110,8 +93,6 @@ extern void write_debug_log(unsigned char facility,int level,char *fmt,...);
 #define DEBUG(all)
 #endif
 extern void log_done(void);
-/* gmtoff.c */
-extern time_t gmtoff(time_t tt,int mode);
 /* main.c */
 extern RETSIGTYPE sigerr(int sig);
 extern void stopit(int rc);

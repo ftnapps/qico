@@ -1,6 +1,6 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.9 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: headers.h,v 1.10 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include <config.h>
 
@@ -57,8 +57,7 @@
 #include "replace.h"
 #include "types.h"
 #include "defs.h"
-#include "xmem.h"
-#include "xstr.h"
+#include "qslib.h"
 #include "ftn.h"
 #include "tools.h"
 #include "byteop.h"
@@ -66,4 +65,3 @@
 #include "globals.h"
 #include "qconf.h"
 #include "qipc.h"
-#include "ver.h"

@@ -1,12 +1,12 @@
 /**********************************************************
  * work with modem
- * $Id: modem.c,v 1.2 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: modem.c,v 1.3 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
 #include "tty.h"
 
-static char *mcs[]={"ok","fail","error","busy","no dialtone","ring"};
+static char *mcs[]={"ok","fail","error","busy","no dialtone","ring","bad"};
 
 int modem_sendstr(char *cmd)
 {

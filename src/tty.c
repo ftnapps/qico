@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.13 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: tty.c,v 1.14 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
@@ -22,8 +22,6 @@ static int in_bufpos=0, in_bufmax=0;
 #define OUT_MAXBUF       16384
 static unsigned char out_buffer[OUT_MAXBUF];
 static int out_bufpos=0;
-
-extern char *sigs[];
 
 RETSIGTYPE tty_sighup(int sig)
 {

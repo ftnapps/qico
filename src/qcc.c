@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.41 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: qcc.c,v 1.42 2004/05/31 13:15:39 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -57,11 +57,9 @@
 #include "types.h"
 #include "byteop.h"
 #include "qcconst.h"
-#include "xstr.h"
-#include "xmem.h"
+#include "qslib.h"
 #include "crc.h"
 #include "clserv.h"
-#include "ver.h"
 
 /* number of lines for queue. (up window of screen) */
 #define MAXMH 10
@@ -80,8 +78,6 @@
 /* set to 1 for debug */
 #define QDEBUG 0
 
-#define SIZEC(x) (((x)<1024)?'b':'k')
-#define SIZES(x) (((x)<1024)?(x):((x)/1024))
 #define xbeep() if(!beepdisable){beep();}
 
 typedef struct {
@@ -119,7 +115,6 @@ typedef struct _qslot_t {
 	struct _qslot_t *next,*prev;
 } qslot_t;
 
-extern time_t gmtoff(time_t tt,int mode);
 static RETSIGTYPE sigwinch(int sig);
 static int getmessages(char *bbx);
 
@@ -1184,7 +1179,7 @@ static int getmessages(char *bbx)
 	return(bbx?1:(type==QC_QUEUE));
 }
 
-int main(int argc,char **argv)
+int main(int argc,char **argv,char **envp)
 {
 	int len,ch,rc;
 	struct tm *tt;
@@ -1195,6 +1190,9 @@ int main(int argc,char **argv)
 	struct timeval tv;
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
+#endif
+#ifndef HAVE_SETPROCTITLE
+	setargspace(argc,argv,envp);
 #endif
  	while((c=getopt(argc,argv,"hnvP:a:w:"))!=-1) {
 		switch(c) {
@@ -1216,13 +1214,18 @@ int main(int argc,char **argv)
 				usage(argv[0]);
 		}
 	}
+	setproctitle(
+#ifdef HAVE_LIBUTIL
+	    "%s",
+#endif
+	    "qico control center");
 	signal(SIGPIPE,SIG_IGN);
 	signal(SIGHUP,sighup);
 	signal(SIGTERM,sighup);
 	signal(SIGSEGV,sighup);
 	sock=cls_conn(CLS_UI,port,addr);
 	if(sock<0) {
-		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
+		fprintf(stderr,"can't connect to server: %s.\n",strerror(errno));
 		return 1;
 	}
 #ifdef HAVE_SETLOCALE
@@ -1240,7 +1243,17 @@ int main(int argc,char **argv)
 	alarm(0);
 	signal(SIGALRM, SIG_IGN);
 	if(strcmp(buf,"qs-noauth")) {
-		if(!pwd) {
+		if(pwd&&*pwd=='-'&&!pwd[1]) {
+			xfree(pwd);
+			pwd=getpass("password: ");
+			if(!pwd) {
+				fprintf(stderr,"getpass() error: %s.\n",strerror(errno));
+				cls_close(sock);
+				return 1;
+			}
+			pwd=xstrdup(pwd);
+		}
+		if(!pwd||(pwd&&!*pwd)) {
 			fprintf(stderr,"can't connect: password required.\n");
 			cls_close(sock);
 			return 1;
@@ -1256,7 +1269,7 @@ int main(int argc,char **argv)
 	tim=time(NULL)+6;buf[2]=1;
 	while(getmessages(buf)>0&&time(NULL)<tim);
 	if(buf[2]||time(NULL)>=tim) {
-		fprintf(stderr,"can't connect: %s\n",buf+3);
+		fprintf(stderr,"can't connect: %s.\n",buf+3);
 		cls_close(sock);
 		return 1;
 	}
