@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.10 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: qcc.c,v 1.11 2004/01/13 09:43:00 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -93,7 +93,7 @@ typedef struct _qslot_t {
 
 void sigwinch(int sig);
 void sighup(int sig);
-/**/void ipcrcvtimeout(int sig);
+void xrcvtimeout(int sig);
 extern time_t gmtoff(time_t tt,int mode);
 int getmessages();
 
@@ -847,11 +847,12 @@ rei:	zone=strtoul(myaddr,&nm,10);
 	return ou;
 }
 
-/**/void ipcrcvtimeout(int sig)
-/**/{
-/**/	signal(SIGALRM,SIG_DFL);
+void ipcrcvtimeout(int sig)
+{
+	signal(SIGALRM,SIG_DFL);
 /**/	mylog("Error: can't send ipc message, may be daemon is die?");
-/**/}
+//	mylog("Error: can't get answer from server");
+}
 
 int xcmd(char *buf,int cmd,int len)
 {
@@ -859,11 +860,13 @@ int xcmd(char *buf,int cmd,int len)
 	*((int*)buf+1)=getpid();
 	buf[8]=cmd;
 /**/	msgsnd(qipc_msgqq,buf,len,0);
-/**/	signal(SIGALRM,ipcrcvtimeout);
-/**/	alarm(3);
+//	if(xsend(sock,buf,len)<0)return -1;
+	signal(SIGALRM,ipcrcvtimeout);
+	alarm(3);
 /**/	if(msgrcv(qipc_msgqq,buf,MSG_BUFFER-1,getpid(),0)<4)return -1;
-/**/	signal(SIGALRM,SIG_DFL);
-/**/	alarm(0);
+//	if(xrecv(sock,buf,MSG_BUFFER-1,1)<4)return -1;
+	signal(SIGALRM,SIG_DFL);
+	alarm(0);
 	return buf[4];
 }
 
@@ -872,6 +875,7 @@ void xcmdslot(char *buf,int cmd,int len)
 	*(long*)buf=slots[currslot]->pid;
 	buf[8]=cmd;
 /**/	msgsnd(qipc_msg,buf,len,0);
+//	xsend(sock,buf,len);
 }
 
 void printinfo(char *addr,int what,char *buf)
@@ -911,6 +915,7 @@ int getmessages()
 	unsigned char *data,*p;
 	memset(buf,0,MSG_BUFFER);
 /**/	rc=msgrcv(qipc_msg,buf,MSG_BUFFER-1,1,IPC_NOWAIT);
+//	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
 	if(rc>=13) {
 		len=FETCH32(buf+4);
 		pid=FETCH32(buf+8);

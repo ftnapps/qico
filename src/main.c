@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.11 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: main.c,v 1.12 2004/01/13 09:43:00 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <locale.h>
@@ -55,9 +55,9 @@ void stopit(int rc)
 	write_log("exiting with rc=%d",rc);
 	log_done();
 /**/	qipc_done();
-	cls_close(ssock);
-	cls_shutd(lins_sock);
-	cls_shutd(uis_sock);
+//	cls_close(ssock);
+//	cls_shutd(lins_sock);
+//	cls_shutd(uis_sock);
 	exit(rc);
 }
 
@@ -74,9 +74,9 @@ void sigerr(int sig)
 	tty_close();
 	qqreset();sline("");title("");
 /**/	qipc_done();
-	cls_close(ssock);
-	cls_shutd(lins_sock);
-	cls_shutd(uis_sock);
+//	cls_close(ssock);
+//	cls_shutd(lins_sock);
+//	cls_shutd(uis_sock);
 	switch(sig) {
 	    case SIGSEGV:
 	    case SIGFPE:
@@ -252,7 +252,6 @@ static int force_call(ftnaddr_t *fa,int line,int flags)
 	rc=do_call(fa,rnode->phone,port);
 	return rc;
 }
-                                                                              
 
 int main(int argc,char *argv[],char *envp[])
 {

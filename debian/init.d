@@ -1,6 +1,5 @@
 #!/bin/sh
-#
-#
+# initscript for qico.
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DAEMON=/usr/sbin/qico
@@ -17,7 +16,11 @@ case "$1" in
     ;;
   stop)
     echo -n "Stopping FTN services: "
-    start-stop-daemon --stop --verbose --exec $DAEMON
+    if [ -f $QCTL ]; then
+	$QCTL -q
+    else
+	start-stop-daemon --stop --verbose --exec $DAEMON
+    fi
     echo "qico"
     ;;
   reload)
@@ -29,7 +32,11 @@ case "$1" in
     ;;
   restart|force-reload)
     echo -n "Restarting FTN services: "
-    start-stop-daemon --stop --verbose --exec $DAEMON
+    if [ -f $QCTL ]; then
+	$QCTL -q
+    else
+	start-stop-daemon --stop --verbose --exec $DAEMON
+    fi
     sleep 1
     start-stop-daemon --start --verbose --exec $DAEMON
     echo "qico"
