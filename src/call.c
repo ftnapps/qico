@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.8 2003/01/25 18:18:33 cyrilm Exp $
+ * $Id: call.c,v 1.9 2003/03/26 09:35:54 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -29,20 +29,18 @@ int hangup()
 {
 	slist_t *hc;
 	int rc=MC_FAIL;
-	int to=cfgi(CFG_WAITRESET);
+	int to=t_set(cfgi(CFG_WAITRESET));
 	int t1;
 
 	if(!cfgsl(CFG_MODEMHANGUP)) return MC_OK; 
 	write_log("hanging up...");
 
-	while(rc!=MC_OK && to>0) {
+	while(rc!=MC_OK && t_exp(to>0)) {
 		for(hc=cfgsl(CFG_MODEMHANGUP);hc;hc=hc->next) {
-			t1=t_start();
 			rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
 				cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
 				cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
-				to, NULL, 0);
-			to-=t_time(t1);
+				t_rest(to), NULL, 0);
 		}
 		sleep(1);
 		tty_purge();
