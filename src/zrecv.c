@@ -2,7 +2,7 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.2 2000/07/18 12:56:19 lev Exp $
+ * $Id: zrecv.c,v 1.3 2000/08/06 21:05:34 lev Exp $
  **********************************************************/
 
 #include <sys/types.h>
@@ -273,7 +273,9 @@ nxthdr:
 				 *  a timeout because the eof might have gone
 				 *  out before we sent our zrpos.
 				 */
-				rxretries = 0;  goto nxthdr;
+				rxretries = 0;
+				PUTSTR(Attn);
+				continue;
 			}
 			if (will_skip) rxclose (&rxfd, FOP_SKIP);
 			else rxclose(&rxfd, FOP_OK);
