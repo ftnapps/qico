@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.18 2003/01/17 09:02:55 cyrilm Exp $
+ * $Id: qcc.c,v 1.19 2003/01/20 08:35:05 cyrilm Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -12,8 +12,8 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
-/* #include <sys/ipc.h> */
-/* #include <sys/msg.h> */
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <time.h>
@@ -454,7 +454,7 @@ int main(int argc, char **argv)
 	char buf[MSG_BUFFER], *data, c, *p;
 	time_t tim;
 	struct tm *tt;
-/*	key_t qipc_key;*/
+	key_t qipc_key;
 	int lastfirst=1, lastpos=1;
 #ifdef CURS_HAVE_WRESIZE		
 	struct winsize size;
@@ -471,7 +471,6 @@ int main(int argc, char **argv)
 		}
 	}
 		
-/* Connect
 	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) {
 		fprintf(stderr, "can't create ipc key\n");
 		return 0;
@@ -480,7 +479,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "can't create message queue (may be there's another qcc is running?)\n");
 		return 0;
 	}
-*/
+
 	initscreen();
 	currslot=-1;
 	allslots=0;
@@ -512,9 +511,7 @@ int main(int argc, char **argv)
 		tv.tv_usec=5000;
 		rc=select(1, &rfds, NULL, NULL, &tv);
 		bzero(buf, MSG_BUFFER);
-/* Recieve
 		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
-*/
 		if(rc>=13) {
 			len=FETCH32(buf+4);
 			pid=FETCH32(buf+8);
@@ -731,8 +728,6 @@ int main(int argc, char **argv)
 	}
 	donescreen();
 	
-/* Disconnect
 	msgctl(qipc_msg, IPC_RMID, 0);
-*/
 	return 0;
 }
