@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.39 2004/05/26 07:46:13 sisoft Exp $
+ * $Id: qcc.c,v 1.40 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -1252,7 +1252,7 @@ int main(int argc,char **argv)
 	buf[3]='e';/*events*/
 	memcpy(buf+4,digest,16);
 	snprintf(buf+20,MSG_BUFFER-21,"qcc-%s",version);
-	xcmd(buf,QR_STYPE,strlen(buf+3)+20);
+	xcmd(buf,QR_STYPE,strlen(buf+20)+20);
 	tim=time(NULL)+6;buf[2]=1;
 	while(getmessages(buf)>0&&time(NULL)<tim);
 	if(buf[2]||time(NULL)>=tim) {
@@ -1476,7 +1476,7 @@ int main(int argc,char **argv)
 				bf=buf+len+4;
 				*bf++=(ch=='S')?'N':ch;*bf++=0;
 				if(inputstr(bf,"Full file name: ",0)) {
-					if(access(bf,R_OK)==-1)write_log("warn: can't access file '%s'!",bf);
+					if(access(bf,R_OK)==-1)write_log("warn: can't access file '%s'",bf);
 					while(*bf++)if(*bf==' ')*bf='?';
 					xcmd(buf,QR_SEND,7+len+strlen(buf+len+6));
 				}

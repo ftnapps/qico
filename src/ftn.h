@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.16 2004/05/24 03:21:36 sisoft Exp $ */
+/* $Id: ftn.h,v 1.17 2004/05/27 18:50:03 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -177,10 +177,10 @@ extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
 extern int xfnmatch(char *pattern,char *name,int flags);
 extern char *findpwd(ftnaddr_t *a);
-
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
+extern char *nlerr[];
 extern int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl);
 extern int is_listed(falist_t *addr, char *nlpath, int needall);
 extern void phonetrans(char **pph, slist_t *phtr);
@@ -195,6 +195,7 @@ extern int can_dial(ninfo_t *nl, int ct);
 extern int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs);
 extern void nlfree(ninfo_t *nl);
 extern void nlkill(ninfo_t **nl);
+extern int compile_nodelists();
 /* aso.c */
 #define ASO (aso_tmp)
 extern int aso_init(char *asopath, int def_zone);
@@ -240,9 +241,5 @@ extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
 extern off_t q_sum(qitem_t *q);
 extern void qsendqueue();
-/* call.c */
-extern int hangup();
-extern int stat_collect();
-int do_call(ftnaddr_t *fa, char *phone, char *port);
 
 #endif

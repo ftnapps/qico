@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.35 2004/05/26 07:46:13 sisoft Exp $
+ * $Id: binkp.c,v 1.36 2004/05/27 18:50:02 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -232,14 +232,14 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				rc+=aso_locknode(&pp->addr,LCK_s);
 			if(!rc) {
 				log_rinfo(rnode);
-				write_log("can't lock outbound for %s!",ftnaddrtoa(mode?remaddr:&rnode->addrs->addr));
+				write_log("can't lock outbound for %s",ftnaddrtoa(mode?remaddr:&rnode->addrs->addr));
 				msgs(BPM_BSY,"All addresses are busy");
 				rc=S_REDIAL;goto failed;
 			}
 			if(mode) {
 				if(!has_addr(remaddr,rnode->addrs)) {
 					log_rinfo(rnode);
-					write_log("remote isn't %s!",ftnaddrtoa(remaddr));
+					write_log("remote isn't %s",ftnaddrtoa(remaddr));
 					msgs(BPM_ERR,"Sorry, you are not who I need");
 					rc=S_FAILURE;goto failed;
 				}
@@ -258,7 +258,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				for(pp=cfgal(CFG_ADDRESS);pp;pp=pp->next)
 					if(has_addr(&pp->addr,rnode->addrs)) {
 		    				log_rinfo(rnode);
-						write_log("remote also has %s!",ftnaddrtoa(&pp->addr));
+						write_log("remote also has %s",ftnaddrtoa(&pp->addr));
 						msgs(BPM_ERR,"Sorry, you also has one of my aka's");
 						rc=S_FAILURE;goto failed;
 					}

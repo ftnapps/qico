@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.16 2004/05/19 09:52:13 sisoft Exp $
+ * $Id: config.c,v 1.17 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -150,7 +150,7 @@ int readconfig(char *cfgname)
 	for(i=0;i<CFG_NNN;i++) {
 		if(!configtab[i].found) {
 			if(configtab[i].required) {
-				write_log("required keyword '%s' not defined!",configtab[i].keyword);
+				write_log("required keyword '%s' not defined",configtab[i].keyword);
 				rc=0;
 			} else {
 				ci=xcalloc(1,sizeof(cfgitem_t));
@@ -207,7 +207,7 @@ int parseconfig(char *cfgname)
 	slist_t *cc;
 	f=fopen(cfgname, "rt");
 	if(!f) {
-		fprintf(stderr,"can't open config file '%s': %s\n",cfgname,strerror(errno));
+		write_log("can't open config file '%s': %s",cfgname,strerror(errno));
 		return 0;
 	}
 	curcond=NULL;
@@ -269,7 +269,7 @@ contl:		line++;p=s;
 				}
 			} else if(!strcasecmp(p,"else")) {
 				if(!curcond) {
-					write_log("%s:%d: misplaced <else> without <if>!",cfgname,line);
+					write_log("%s:%d: misplaced <else> without <if>",cfgname,line);
 					rc=0;
 				} else {
 					snprintf(s,MAX_STRING,"! ( %s )",curcond);

@@ -1,4 +1,4 @@
-/* $Id: tty.h,v 1.8 2004/03/21 10:42:42 sisoft Exp $ */
+/* $Id: tty.h,v 1.9 2004/05/27 18:50:03 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #ifdef HAVE_TERMIOS_H
@@ -40,6 +40,7 @@
 #define MC_BUSY 3
 #define MC_NODIAL 4
 #define MC_RING 5
+#define MC_BAD 6
 
 #define GETCHAR(t) tty_getc(t)
 #define GETCHART(t) tty_getc_timed(t)
@@ -81,6 +82,7 @@ extern speed_t tty_transpeed(int speed);
 extern int tty_local();
 extern int tty_nolocal();
 extern int tty_cooked();
+extern int tty_setdtr(int dtr);
 extern int tty_close();
 extern int tty_unblock();
 extern int tty_block();
@@ -100,12 +102,16 @@ extern char canistr[];
 extern int tty_gets(char *what, size_t size, int timeout);
 extern int tty_expect(char *what, int timeout);
 extern char *baseport(char *p);
+/* modem.c */
 extern int modem_sendstr(char *cmd);
 extern int modem_chat(char *cmd, slist_t *oks, slist_t *dns, slist_t *ers, slist_t *bys,
 					  char *ringing, int maxr, int timeout, char *rest, size_t restlen);
-extern int modem_stat(char *cmd, slist_t *oks, slist_t *ers,
-		  int timeout, char *stat, size_t stat_len);
-
+extern int alive();
+extern int hangup();
+extern int stat_collect();
+extern int mdm_dial(char *phone,char *port);
+extern void mdm_done();
+/* getsid.c */
 extern pid_t getsid(pid_t pid);
 
 #endif

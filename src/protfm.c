@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.19 2004/04/17 07:25:25 sisoft Exp $
+ * $Id: protfm.c,v 1.20 2004/05/27 18:50:03 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -229,7 +229,7 @@ FILE *txopen(char *tosend, char *sendas)
 	struct stat sb;
 	int prevcps = (sendf.start&&(time(NULL)-sendf.start>2))?sendf.cps:effbaud/10;
 	if(stat(tosend, &sb)) {
-		write_log("can't find file %s!", tosend);
+		write_log("can't find file %s", tosend);
 		return NULL;
 	}
 	if(whattype(sendas)==IS_PKT&&sb.st_size==60)return NULL;
@@ -309,7 +309,7 @@ void chatinit(int prot)
 			chatprot=P_JANUS;
 			break;
 		case 0:
-			if(bink)chatprot=P_NCP;
+			if(bink)chatprot=P_BINKP;
 	}
 }
 
@@ -324,7 +324,7 @@ int c_devfree()
 			rc=hydra_devfree();
 			break;
 #ifdef WITH_BINKP
-		case P_NCP:
+		case P_BINKP:
 			rc=bink_devfree();
 #endif
 	}
@@ -342,7 +342,7 @@ int c_devsend(unsigned char *str,unsigned len)
 			rc=hydra_devsend("CON",str,len);
 			break;
 #ifdef WITH_BINKP
-		case P_NCP:
+		case P_BINKP:
 			rc=bink_devsend(str,len);
 #endif
 	}

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.28 2004/05/17 22:29:04 sisoft Exp $
+ * $Id: main.c,v 1.29 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -109,7 +109,7 @@ static void answer_mode(int type)
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n",ccs);
-		exit(0);
+		exit(S_FAILURE);
 	}
 	signal(SIGINT,SIG_IGN);
 	signal(SIGTERM,sigerr);
@@ -126,7 +126,7 @@ static void answer_mode(int type)
 	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
 	if(!BSO&&!ASO) {
 		write_log("No outbound defined");
-		stopit(1);
+		stopit(S_FAILURE);
 	}
 
 	write_log("answering incoming call");vidle();
@@ -147,7 +147,7 @@ static void answer_mode(int type)
 	tty_nolocal();
 	rc=session(0,type,NULL,spd);
 	tty_local();
-	if(!is_ip&&!bink) {
+	if(!is_ip) {
 		hangup();
 		stat_collect();
 	}
@@ -174,88 +174,11 @@ static void answer_mode(int type)
 		log_done();
 		log_init(cfgs(CFG_LOG),rnode->tty);
 	}
-
 	title("Waiting...");
 	vidle();sline("");
 	if(BSO)bso_done();
 	if(ASO)aso_done();
 	stopit(rc);
-}
-
-static int force_call(ftnaddr_t *fa,int line,int flags)
-{
-	int rc;
-	char *port=NULL;
-	slist_t *ports=NULL;
-	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
-	switch(rc) {
-	    case 1:write_log("can't query nodelist, index error");break;
-	    case 2:write_log("can't query nodelist, nodelist error");break;
-	    case 3:write_log("index is older than the list, need recompile");break;
-	}
-	if(!rnode) {
-		rnode=xcalloc(1,sizeof(ninfo_t));
-		falist_add(&rnode->addrs,fa);
-		rnode->name=xstrdup("Unknown");
-		rnode->phone=xstrdup("");
-	}
-	rnode->tty=NULL;
-	ports=cfgsl(CFG_PORT);
-	if((flags&2)!=2) {
-		do {
-			if(!ports)exit(33);
-			port=tty_findport(ports,cfgs(CFG_NODIAL));
-			if(!port)exit(33);
-			if(rnode->tty)xfree(rnode->tty);
-			rnode->tty=xstrdup(baseport(port));
-			ports=ports->next;
-		} while(!checktimegaps(cfgs(CFG_CANCALL)));
-		if(!checktimegaps(cfgs(CFG_CANCALL)))exit(33);
-	} else {
-		if((port=tty_findport(ports,cfgs(CFG_NODIAL)))) {
-			rnode->tty=xstrdup(baseport(port));
-		} else {
-			cls_close(ssock);
-			exit(33);
-		}
-	}
-	if(!cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
-	if(line) {
-		applysubst(rnode,psubsts);
-		while(rnode->hidnum&&line!=rnode->hidnum&&applysubst(rnode,psubsts)&&rnode->hidnum!=1);
-		if(line!=rnode->hidnum) {
-			fprintf(stderr,"%s doesn't have line #%d\n",ftnaddrtoa(fa),line);
-			cls_close(ssock);
-			exit(0);
-		}
-		if(!can_dial(rnode,(flags&1)==1)) {
-			fprintf(stderr,"We should not call to %s #%d at this time\n",ftnaddrtoa(fa),line);
-			cls_close(ssock);
-			exit(0);
-		}
-	} else {
-		if (!find_dialable_subst(rnode,((flags&1)==1),psubsts)) {
-			fprintf(stderr,"We should not call to %s at this time\n",ftnaddrtoa(fa));
-			cls_close(ssock);
-			exit(0);
-		}
-	}
-	if(cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
-	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-		printf("can't open log %s!\n",ccs);
-		cls_close(ssock);
-		exit(0);
-	}
-	if(cfgs(CFG_RUNONCALL)) {
-		char buf[MAX_PATH];
-		snprintf(buf,MAX_PATH,"%s %s %s",ccs,ftnaddrtoa(fa),rnode->phone);
-		if((rc=execsh(buf)))write_log("exec '%s' returned rc=%d",buf,rc);
-	}
-	if(rnode->hidnum)
-	    write_log("calling %s #%d, %s (%s)",rnode->name,rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
-		else write_log("calling %s, %s (%s)",rnode->name,ftnaddrtoa(fa),rnode->phone);
-	rc=do_call(fa,rnode->phone,port);
-	return rc;
 }
 
 int main(int argc,char *argv[],char *envp[])
@@ -279,7 +202,8 @@ int main(int argc,char *argv[],char *envp[])
 				    case 'N': call_flags=0; break;
 				    case 'I': call_flags|=1; break;
 				    case 'A': call_flags|=2; break;
-				    default: write_log("unknown call option: %c", *optarg);exit(0);
+				    default:  write_log("unknown call option: %c", *optarg);
+					      exit(S_FAILURE);
 				}
 				str++;
 			}
@@ -300,7 +224,7 @@ int main(int argc,char *argv[],char *envp[])
 			if(!strncasecmp(optarg,"tsync",5))sesstype=SESSION_FTS0001;
 			if(!strncasecmp(optarg,"yoohoo",6))sesstype=SESSION_YOOHOO;
 #ifdef WITH_BINKP
-			if(!strncasecmp(optarg,"binkp",5)){sesstype=SESSION_BINKP;bink=1;}
+			if(!strncasecmp(optarg,"binkp",5))sesstype=SESSION_BINKP,bink=1;
 #endif
 			break;
 		    case 'n':
@@ -324,11 +248,11 @@ int main(int argc,char *argv[],char *envp[])
 	getsysinfo();ssock=lins_sock=uis_sock=-1;
 	if(!readconfig(configname)) {
 		write_log("there was some errors parsing '%s', aborting",configname);
-		exit(EXC_BADCONFIG);
+		exit(S_FAILURE);
 	}
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		write_log("can't open master log '%s'!",ccs);
-		exit(1);
+		write_log("can't open master log '%s'",ccs);
+		exit(S_FAILURE);
 	}
 #ifdef NEED_DEBUG
 	parse_log_levels();
@@ -346,15 +270,12 @@ int main(int argc,char *argv[],char *envp[])
 		}
 	}
 #endif
-	if(daemon==3) {
-		log_done();
-		exit(EXC_OK);
-	}
+	log_done();
+	if(daemon==3)exit(S_OK);
 	if(hostname||daemon==12) {
 		if(!parseftnaddr(argv[optind],&fa,&DEFADDR,0)) {
-			write_log("can't parse address '%s'!",argv[optind]);
-			log_done();
-			exit(1);
+			write_log("can't parse address '%s'",argv[optind]);
+			exit(S_FAILURE);
 		}
 		optind++;
 	}
@@ -364,8 +285,8 @@ int main(int argc,char *argv[],char *envp[])
 		xstrcpy(ip_id,"ipline",10);
 		rnode->tty=bink?"binkp":"tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-			write_log("can't open log %s!",ccs);
-			exit(1);
+			write_log("can't open log %s",ccs);
+			exit(S_FAILURE);
 		}
 		signal(SIGINT,sigerr);
 		signal(SIGTERM,sigerr);
@@ -381,24 +302,19 @@ int main(int argc,char *argv[],char *envp[])
 		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
 		if(!BSO&&!ASO) {
 			write_log("No outbound defined");
-			stopit(1);
+			stopit(S_FAILURE);
 		}
-		if(cfgs(CFG_RUNONCALL)) {
-			char buf[MAX_PATH];
-			snprintf(buf,MAX_PATH,"%s %s %s",ccs,ftnaddrtoa(&fa),hostname);
-			if((rc=execsh(buf)))write_log("exec '%s' returned rc=%d",buf,rc);
-		}
-		tcp_call(hostname,&fa);
+		rc=do_call(&fa,hostname,NULL);
 		if(BSO)bso_done();
 		if(ASO)aso_done();
-		stopit(0);
+		stopit(rc);
 	}
 	if(daemon==12) {
 		int locked=0;
 		if(optind<argc) {
 			if(1!=sscanf(argv[optind],"%d",&line)) {
 				write_log("can't parse line number '%s'!\n",argv[optind]);
-				exit(1);
+				exit(S_FAILURE);
 			}
 		} else line = 0;
 
@@ -412,7 +328,7 @@ int main(int argc,char *argv[],char *envp[])
 		if(!BSO&&!ASO) {
 			write_log("No outbound defined");
 			cls_close(ssock);
-			exit(1);
+			exit(S_FAILURE);
 		}
 		if(BSO)locked|=bso_locknode(&fa,LCK_c);
 		if(ASO)locked|=aso_locknode(&fa,LCK_c);
@@ -424,7 +340,7 @@ int main(int argc,char *argv[],char *envp[])
 			rc=force_call(&fa,line,call_flags);
 			if(BSO)bso_unlocknode(&fa,LCK_x);
 			if(ASO)aso_unlocknode(&fa,LCK_x);
-		} else rc=0;
+		} else rc=S_FAILURE;
 		if(rc&S_MASK)write_log("can't call to %s",ftnaddrtoa(&fa));
 		if(BSO)bso_done();
 		if(ASO)aso_done();
@@ -435,6 +351,5 @@ int main(int argc,char *argv[],char *envp[])
 	    case 0: answer_mode(sesstype); break;
 	    case 2: compile_nodelists(); break;
 	}
-	cls_close(ssock);
-	return 0;
+	return S_OK;
 }

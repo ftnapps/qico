@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.26 2004/05/26 07:46:13 sisoft Exp $
+ * $Id: daemon.c,v 1.27 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -162,7 +162,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	}
 	if(uis->type=='u') {
 		DEBUG(('I',1,"client %d: msg before auth",uis->id));
-		sendrpkt(1,chld,"need basic auth!");
+		sendrpkt(1,chld,"need basic auth");
 		return;
 	}
 	if(FETCH16(buf)) {
@@ -176,8 +176,8 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	if(buf[2]==QR_POLL||buf[2]==QR_REQ||buf[2]==QR_INFO||
 	    buf[2]==QR_SEND||buf[2]==QR_STS||buf[2]==QR_KILL) {
 		if(!parseftnaddr(buf+3, &fa, &DEFADDR, 0)) {
-			sendrpkt(1,chld,"can't parse address '%s'!", buf+3);
-			write_log("can't parse address '%s'!", buf+3);
+			sendrpkt(1,chld,"can't parse address '%s'", buf+3);
+			write_log("can't parse address '%s'", buf+3);
 			return;
 		}
 	}
@@ -281,7 +281,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			do_rescan=1;
 		    } else {
 			sendrpkt(1,chld,"can't create poll for %s",ftnaddrtoa(&fa));
-			write_log("can't create poll for %s!",ftnaddrtoa(&fa));
+			write_log("can't create poll for %s",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_KILL: {
@@ -298,7 +298,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			do_rescan=1;
 		    } else {
 			sendrpkt(1,chld,"can't kill %s",ftnaddrtoa(&fa));
-			write_log("can't kill %s!",ftnaddrtoa(&fa));
+			write_log("can't kill %s",ftnaddrtoa(&fa));
 			}
 		} break;
 	    case QR_STS:
@@ -388,7 +388,7 @@ skiprq:				p+=l+1;
 			do_rescan=1;
 		    } else {
 			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
-			write_log("can't lock node %s!",ftnaddrtoa(&fa));
+			write_log("can't lock node %s",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_SEND: {
@@ -423,7 +423,7 @@ skiprq:				p+=l+1;
 			do_rescan=1;
 		    } else {
 			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
-			write_log("can't lock node %s!",ftnaddrtoa(&fa));
+			write_log("can't lock node %s",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_INFO:
@@ -445,17 +445,9 @@ skiprq:				p+=l+1;
 				write_log("%s not found in nodelist",ftnaddrtoa(&fa));
 			}
 			break;
-		    case 1:
-			sendrpkt(1,chld,"can't query nodelist, index error");
-			write_log("can't query nodelist, index error");
-			break;
-		    case 2:
-			sendrpkt(1,chld,"can't query nodelist, nodelist error");
-			write_log("can't query nodelist, nodelist error");
-			break;
-		    case 3:
-			sendrpkt(1,chld,"index is older than the list, need recompile");
-			write_log("index is older than the list, need recompile");
+		    case 1: case 2: case 3:
+			sendrpkt(1,chld,nlerr[rc-1]);
+			write_log(nlerr[rc-1]);
 			break;
 		    default:
 			sendrpkt(1,chld,"nodelist query error");
@@ -505,11 +497,10 @@ void daemon_mode()
 		signal(SIGTTOU,SIG_IGN);
 		signal(SIGTTIN,SIG_IGN);
 		signal(SIGTSTP,SIG_IGN);
-		if((rc=fork())>0)exit(0);
+		if((rc=fork())>0)exit(S_OK);
 		if(rc<0) {
-			write_log("can't spawn daemon!");
-			fprintf(stderr,"can't spawn daemon!\n");
-			exit(1);
+			write_log("can't spawn daemon");
+			exit(S_FAILURE);
 		}
 	}
 	signal(SIGINT,sigerr);
@@ -519,20 +510,23 @@ void daemon_mode()
 	signal(SIGHUP,sighup);
 	signal(SIGPIPE,SIG_IGN);
 	if(cfgs(CFG_PIDFILE))if(!lockpid(ccs)) {
-		write_log("another daemon exists or can't create pid file!");
-		fprintf(stderr,"another daemon exists or can't create pid file!\n");
-		exit(1);
+		write_log("another daemon exists or can't create pid file");
+		exit(S_FAILURE);
+	}
+	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
+		write_log("can't open master log '%s'",ccs);
+		exit(S_FAILURE);
 	}
 	lins_sock=cls_conn(CLS_SERV_L,cfgs(CFG_SERVER),NULL);
 	if(lins_sock<0) {
 		write_log("can't create server_udp: %s",strerror(errno));
-		exit(1);
+		exit(S_FAILURE);
 	}
 	uis_sock=cls_conn(CLS_SERV_U,cfgs(CFG_SERVER),NULL);
 	if(uis_sock<0) {
 		write_log("can't create server_tcp: %s",strerror(errno));
 		cls_shutd(lins_sock);
-		exit(1);
+		exit(S_FAILURE);
 	}
 	log_callback=vlogs;xsend_cb=daemon_xsend;tosend=0;
 	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
@@ -540,7 +534,7 @@ void daemon_mode()
 	if(!BSO&&!ASO) {
 		write_log("No outbound defined");
 		cls_shutd(lins_sock);cls_shutd(uis_sock);
-		exit(1);
+		exit(S_FAILURE);
 	}
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
@@ -563,10 +557,9 @@ void daemon_mode()
 		if(do_rescan>1){t_rescan=rescanperiod-do_rescan;do_rescan=0;}
 		title("Queue manager [%d]",rescanperiod-t_rescan);
 		if(t_rescan>=rescanperiod||do_rescan) {
-			/*sline("Rescanning outbound...");*/
 			if(rnum<0)rnum=cfgi(CFG_LONGRESCAN)-1;
 			do_rescan=0;
-			if(!q_rescan(&current,!rnum--))write_log("can't rescan outbound!");
+			if(!q_rescan(&current,!rnum--))write_log("can't rescan outbound");
 			t_rescan=0;
 		}
 		sline("Waiting %d...",c_delay-t_dial);
@@ -617,13 +610,9 @@ void daemon_mode()
 					    i=i->next;
 					    continue;
 				}
-				rc=query_nodelist(&current->addr,cfgs(CFG_NLPATH),&rnode);
 				DEBUG(('Q',1,"querynl"));
-				switch(rc) {
-					case 1:write_log("can't query nodelist, index error");break;
-					case 2:write_log("can't query nodelist, nodelist error");break;
-					case 3:write_log("index is older than the list, need recompile");break;
-				}
+				rc=query_nodelist(&current->addr,cfgs(CFG_NLPATH),&rnode);
+				if(rc>0)write_log(nlerr[rc-1]);
 				if(!rnode) {
 					rnode=xcalloc(1,sizeof(ninfo_t));
 					falist_add(&rnode->addrs,&current->addr);
@@ -663,18 +652,14 @@ void daemon_mode()
 						log_done();ssock=uis_sock=lins_sock=-1;
 						log_callback=NULL;xsend_cb=NULL;
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-							fprintf(stderr,"can't init log %s!\n",ccs);
+							write_log("can't init log %s.%s",ccs,port);
 							exit(S_BUSY);
 						}
 						DEBUG(('I',4,"connecting to daemon"));
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
-						if(cfgs(CFG_RUNONCALL)) {
-							snprintf(buf,MSG_BUFFER,"%s %s %s",ccs,ftnaddrtoa(&current->addr),is_ip?rnode->host:rnode->phone);
-							if((rc=execsh(buf)))write_log("exec '%s' returned rc=%d",buf,rc);
-						}
-						if(is_ip)rc=tcp_call(rnode->host,&current->addr);
+						if(is_ip)rc=do_call(&current->addr,rnode->host,NULL);
 						    else {
 							if(rnode->hidnum) {
 								title("Calling %s #%d, %s",rnode->name,rnode->hidnum,ftnaddrtoa(&current->addr));
@@ -686,7 +671,7 @@ void daemon_mode()
 							rc=do_call(&current->addr,rnode->phone,port);
 						}
 						log_done();hld=0;
-						if(!log_init(cfgs(CFG_MASTERLOG),NULL))fprintf(stderr,"can't init log %s.%s!\n",ccs,port);
+						if(!log_init(cfgs(CFG_MASTERLOG),NULL))write_log("can't init master log %s",ccs);
 						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
 							if(BSO) {
 								bso_getstatus(&current->addr,&sts);
@@ -809,16 +794,16 @@ void daemon_mode()
 						}
 						if(BSO)bso_unlocknode(&current->addr,LCK_x);
 						if(ASO)aso_unlocknode(&current->addr,LCK_x);
-						vidle();log_done();
+						log_done();
 						cls_close(ssock);
 						exit(rc);
 					}
-					if(chld<0) write_log("can't fork() caller!");
+					if(chld<0) write_log("can't fork() caller");
 					c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 				} else current->flv&=~Q_DIAL;
 nlkil:				is_ip=0;bink=0;
-				nlkill(&rnode);
 				DEBUG(('Q',1,"nlkill"));
+				nlkill(&rnode);
 				current=current->next;
 				if(!current)current=q_queue;
 				i=i->next;

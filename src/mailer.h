@@ -1,22 +1,25 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.12 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: mailer.h,v 1.13 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
 #include "qcconst.h"
 
 #define P_NCP		0x0001
+#ifdef WITH_BINKP
+#define P_BINKP		0x0001
+#endif
 #define P_ZMODEM	0x0002
 #define P_ZEDZAP	0x0004
 #define P_DIRZAP	0x0008
 #define P_HYDRA		0x0010
 #define P_JANUS		0x0020
 #ifdef HYDRA8K16K
-#	define P_HYDRA4		0x0040
-#	define P_HYDRA8		0x0080
-#	define P_HYDRA16	0x0100
-#endif/*HYDRA8K16K*/
+#define P_HYDRA4	0x0040
+#define P_HYDRA8	0x0080
+#define P_HYDRA16	0x0100
+#endif
 #define P_MASK		0x01FF
 
 #define S_OK      0
@@ -60,21 +63,16 @@ typedef struct _flist_t {
 extern int zmodem_receive(char *m, int canzap);
 extern int zmodem_send(slist_t *, slist_t *);
 extern int zmodem_sendfile(char *tosend, char *sendas,
-					unsigned long *totalleft, unsigned long
-					*filesleft);
+			unsigned long *totalleft, unsigned long	*filesleft);
 extern int zmodem_sendinit(int canzap);
 extern int zmodem_senddone();
-/* differ */
-extern int session(int mode, int type, ftnaddr_t *calladdr, int speed);
-extern int compile_nodelists();
-extern int tcp_call(char *host, ftnaddr_t *fa);
 /* execsh.c */
 extern int execsh(char *cmd);
 extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
 /* emsi.c */
 extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
-						  unsigned long files, int lopt, char *protos,
-						  falist_t *adrs, int showpwd);
+			unsigned long files, int lopt, char *protos,
+						falist_t *adrs, int showpwd);
 extern int emsi_parsedat(char *str, ninfo_t *dat);
 extern void emsi_log(ninfo_t *e);
 extern int emsi_send(int mode, unsigned char *dat);
@@ -122,16 +120,19 @@ extern void flexecute(flist_t *fl);
 extern void addflist(flist_t **fl, char *loc, char *rem, char kill,
 					 off_t off, FILE *lo, int fromlo);
 extern void simulate_send(ftnaddr_t *fa);
+extern int session(int mode, int type, ftnaddr_t *calladdr, int speed);
 /* freq.c */
 extern int freq_ifextrp(slist_t *reqs);
 extern int freq_recv(char *fn);
+/* call.c */
+extern int do_call(ftnaddr_t *fa,char *site,char *port);
+extern int force_call(ftnaddr_t *fa,int line,int flags);
+/* tcp.c */
+extern int tcp_dial(ftnaddr_t *fa,char *host);
+extern void tcp_done(int fd);
 /* for chat */
 extern void chatinit(int prot);
 extern void c_devrecv(unsigned char *str,unsigned len);
 extern void getevt();
-/* md5.c */
-extern void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
-extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
-                  int challenge_length,unsigned char *digest);
 
 #endif

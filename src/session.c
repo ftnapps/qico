@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.29 2004/04/17 07:25:25 sisoft Exp $
+ * $Id: session.c,v 1.30 2004/05/27 18:50:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -79,7 +79,7 @@ void floflist(flist_t **fl,char *flon)
 					for(l=i->str;*l&&*l!=' ';l++);
 					for(m=l;*m==' ';m++);
 					len=l-i->str;
-					if(!*l||!*m)write_log("bad mapping '%s'!",i->str);
+					if(!*l||!*m)write_log("bad mapping '%s'",i->str);
 					    else if(!strncasecmp(i->str,p,len)) {
 						memmove(p+strlen(m),p+len,strlen(p+len)+1);
 						memcpy(p,m,strlen(m));
@@ -163,7 +163,7 @@ void makeflist(flist_t **fl,ftnaddr_t *fa,int mode)
 	}
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next)
 		if(addr_cmp(fa,&j->addr)) {
-			if(!boxflist(fl,j->str))write_log("can't open filebox '%s'!",j->str);
+			if(!boxflist(fl,j->str))write_log("can't open filebox '%s'",j->str);
 			break;
 		}
 	if(cfgs(CFG_LONGBOXPATH)) {
@@ -413,7 +413,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	if(ASO)for(pp=rnode->addrs;pp;pp=pp->next)aso_locknode(&pp->addr,LCK_s);
 	if(mode) {
 		if(!has_addr(calladdr,rnode->addrs)) {
-			write_log("remote isn't %s!",ftnaddrtoa(calladdr));
+			write_log("remote isn't %s",ftnaddrtoa(calladdr));
 			return S_FAILURE;
 		}
 		flkill(&fl,0);totalf=0;totalm=0;
@@ -423,7 +423,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	} else {
 		for(pp=cfgal(CFG_ADDRESS);pp;pp=pp->next)
 		    if(has_addr(&pp->addr,rnode->addrs)) {
-			write_log("remote also has %s!",ftnaddrtoa(&pp->addr));
+			write_log("remote also has %s",ftnaddrtoa(&pp->addr));
 			return S_FAILURE;
 		}
 		nfiles=0;rc=0;
@@ -438,7 +438,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 				rc=1;
 			}
 		}
-		if(!rc&&!(rnode->options&O_PWD))write_log("remote has been password for us!");
+		if(!rc&&!(rnode->options&O_PWD))write_log("remote has been password for us");
 		if(is_listed(rnode->addrs,cfgs(CFG_NLPATH),cfgi(CFG_NEEDALLLISTED)))rnode->options|=O_LST;
 		if(rc) {
 			emsi_lo|=O_BAD;

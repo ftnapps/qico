@@ -1,3 +1,11 @@
+2004-05-26 11:46  sisoft
+
+	* configure.in, src/binkp.c, src/crc.h, src/daemon.c, src/md5.c,
+	  src/qcc.c, src/qctl.c:
+
+	last fix for --with-config.
+	other small changes.
+
 2004-05-24 07:21  sisoft
 
 	* Changes, INSTALL, README, qico.conf.sample, debian/qctl.8,

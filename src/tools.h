@@ -1,9 +1,6 @@
-/* $Id: tools.h,v 1.8 2004/05/24 03:21:36 sisoft Exp $ */
+/* $Id: tools.h,v 1.9 2004/05/27 18:50:03 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
-
-#define EXC_OK 0
-#define EXC_BADCONFIG 1
 
 #define C_INT     1
 #define C_STR     2
