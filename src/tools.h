@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.14 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: tools.h,v 1.15 2004/06/09 22:25:50 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -48,7 +48,7 @@ extern int strhex2bin(unsigned char *binptr,const char *string);
 extern size_t filesize(char *fname);
 extern int lockpid(char *pidfn);
 extern int islocked(char *pidfn);
-extern unsigned long sequencer(void);
+extern unsigned long sequencer();
 extern int mkdirs(char *name);
 extern void rmdirs(char *name);
 extern FILE *mdfopen(char *fn,char *pr);
@@ -74,7 +74,7 @@ extern falist_t *cfgal(int i);
 extern int readconfig(char *cfgname);
 extern int parsekeyword(char *kw,char *arg,char *cfgname,int line);
 extern int parseconfig(char *cfgname);
-extern void killconfig(void);
+extern void killconfig();
 #ifdef NEED_DEBUG
 extern void dumpconfig();
 #endif
@@ -98,7 +98,7 @@ extern void write_debug_log(unsigned char facility,int level,char *fmt,...);
 #else
 #define DEBUG(all)
 #endif
-extern void log_done(void);
+extern void log_done();
 /* main.c */
 extern RETSIGTYPE sigerr(int sig);
 extern void stopit(int rc);

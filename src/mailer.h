@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.15 2004/05/29 23:34:49 sisoft Exp $
+ * $Id: mailer.h,v 1.16 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -123,5 +123,17 @@ extern void tcp_done(int fd);
 extern void chatinit(int prot);
 extern void c_devrecv(unsigned char *str,unsigned len);
 extern void getevt();
+/* perl.c */
+#ifdef WITH_PERL
+#define IFPerl(x) x
+extern unsigned short perl_flg;
+extern int perl_init(char *script,int mode);
+extern void perl_done(int rc);
+extern void perl_on_reload(int mode);
+extern void perl_on_std(int sub);
+extern int perl_on_log(char *str);
+#else
+#define IFPerl(x)
+#endif
 
 #endif

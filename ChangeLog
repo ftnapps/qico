@@ -1,3 +1,9 @@
+2004-06-08 15:11  sisoft
+
+	* Changes, qico.conf.sample, src/protfm.c, stuff/test.pl:
+
+	fix receiving files from last position after abort, not from begin.
+
 2004-06-07 22:50  sisoft
 
 	* Changes, Makefile.am, README, autogen.sh, configure.in,

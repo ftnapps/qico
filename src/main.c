@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.32 2004/06/07 18:51:14 sisoft Exp $
+ * $Id: main.c,v 1.33 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -52,7 +52,7 @@ static void usage(char *ex)
 void stopit(int rc)
 {
 	vidle();qqreset();
-	perl_done(0);
+	IFPerl(perl_done(0));
 	write_log("exiting with rc=%d",rc);
 	log_done();
 	cls_close(ssock);
@@ -67,7 +67,7 @@ RETSIGTYPE sigerr(int sig)
 	aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
 	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
-	perl_done(1);
+	IFPerl(perl_done(1));
 	log_done();
 	tty_close();
 	qqreset();sline("");title("");
@@ -115,7 +115,7 @@ static void answer_mode(int type)
 	signal(SIGSEGV,sigerr);
 	signal(SIGFPE,sigerr);
 	signal(SIGPIPE,SIG_IGN);
-	perl_init(cfgs(CFG_PERLFILE),0);
+	IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 	log_callback=NULL;xsend_cb=NULL;
 	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
@@ -279,7 +279,7 @@ int main(int argc,char **argv,char **envp)
 		signal(SIGTERM,sigerr);
 		signal(SIGSEGV,sigerr);
 		signal(SIGPIPE,SIG_IGN);
-		perl_init(cfgs(CFG_PERLFILE),0);
+		IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 		log_callback=NULL;xsend_cb=NULL;
 		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
@@ -318,7 +318,7 @@ int main(int argc,char **argv,char **envp)
 			signal(SIGTERM,sigerr);
 			signal(SIGSEGV,sigerr);
 			signal(SIGPIPE,SIG_IGN);
-			perl_init(cfgs(CFG_PERLFILE),0);
+			IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 			rc=force_call(&fa,line,call_flags);
 			aso_unlocknode(&fa,LCK_x);
 		} else rc=S_FAILURE;
