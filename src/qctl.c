@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.12 2001/02/17 13:26:41 lev Exp $
+ * $Id: qctl.c,v 1.13 2001/02/17 13:29:10 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	
+
 	if((qipc_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
 		fprintf(stderr, "can't get key\n");
 		return 1;
