@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.10 2001/01/04 18:26:49 lev Exp $
+ * $Id: main.c,v 1.4.2.11 2001/01/04 18:30:44 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -758,7 +758,11 @@ int main(int argc, char *argv[], char *envp[])
 	case 8:
 		rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
 		if(rc) {
-			log("%s: nodelist query error!", argv[0]);
+			switch(rc) {
+			case 1:log("can't query nodelist, index error");break;
+			case 2:log("can't query nodelist, nodelist error");break;
+			case 3:log("index is older than the list, need recompile");break;
+			}
 			break;
 		}
 		if(rnode) {
