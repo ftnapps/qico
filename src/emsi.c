@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: emsi.c,v 1.4 2003/09/02 21:00:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -270,11 +270,11 @@ int emsi_send(int mode,unsigned char *dat)
 					return OK;
 				}
 				if(!strncmp(str, emsireq, 14)) {
-					sline("Skipping EMSI_REQ");
-					DEBUG(('E',1,"Skipping EMSI_REQ"));
-					continue;
+					sline("Got another EMSI_REQ");
+					DEBUG(('E',1,"Got another EMSI_REQ, send EMSI_INQ (safe)"));
+					PUTSTR((unsigned char*)emsiinq);
+					break;
 				}
-				if(!strncmp(str,emsiack,7))break;
 			}
 			if(got)*p++=ch;
 			if((p-str)>=MAX_STRING) {
@@ -384,7 +384,7 @@ int emsi_init(int mode)
 				*p=0;p=str;got=0;
 				if(strstr(str, emsireq)) {
 	                		sline("Received EMSI_REQ, sending EMSI_INQ...");
-					DEBUG(('E',1,"Got EMSI_REQ"));
+					DEBUG(('E',1,"Got EMSI_REQ, sending EMSI_INQ.."));
 					PUTSTR((unsigned char*)emsiinq);PUTCHAR('\r');
 					return OK;
 				} else {
