@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations 
- * $Id: queue.c,v 1.3 2003/09/01 19:12:50 sisoft Exp $
+ * $Id: queue.c,v 1.4 2003/09/07 09:34:21 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -180,6 +180,7 @@ void rescan_boxes(int rslow)
 
 int q_rescan(qitem_t **curr,int rslow)
 {
+	int rc=0;
 	sts_t sts;
 	qitem_t *q,**p;
 
@@ -187,7 +188,9 @@ int q_rescan(qitem_t **curr,int rslow)
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
 	
-	if(!bso_rescan(q_each,rslow))return 0;
+	if(is_bso()==1)rc=bso_rescan(q_each,rslow);
+	if(is_aso()==1)rc+=aso_rescan(q_each,rslow);
+	if(!rc)return 0;
 	rescan_boxes(rslow);
 	p=&q_queue;
 	qqreset();

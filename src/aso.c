@@ -1,6 +1,6 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.3 2003/07/24 21:50:18 sisoft Exp $
+ * $Id: aso.c,v 1.4 2003/09/07 09:34:21 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -43,7 +43,7 @@ char *aso_name(ftnaddr_t *fa)
 	return aso_tmp;
 }
 
-int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
+int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow)
 {
 	struct dirent *dez;
 	char *p;
@@ -59,11 +59,11 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 					&a.z, &a.n, &a.f, &a.p);
 		snprintf(fn, MAX_PATH, "%s/%s.%s", aso_base, dez->d_name,p+1);
 		if(!strcasecmp(p+2, "lo"))
-			each(fn, &a, T_ARCMAIL, aso_flavor(p[1]));
+			each(fn, &a, T_ARCMAIL, aso_flavor(p[1]),rslow);
 		if(!strcasecmp(p+2, "ut"))
-			each(fn, &a, T_NETMAIL, aso_flavor(p[1]));	
+			each(fn, &a, T_NETMAIL, aso_flavor(p[1]),rslow);	
 		if(!strcasecmp(p+1, "req"))
-			each(fn, &a, T_REQ, F_REQ);	
+			each(fn, &a, T_REQ, F_REQ,rslow);	
 	}	
 		
 	closedir(dz);
