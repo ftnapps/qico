@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.10 2004/02/22 21:33:03 sisoft Exp $
+ * $Id: config.c,v 1.11 2004/02/23 01:02:11 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -199,7 +199,7 @@ int parsekeyword(char *kw,char *arg,int line)
 int parseconfig(char *cfgname)
 {
 	FILE *f;
-	char s[MAX_STRING],*p,*t,*k;
+	char s[MAX_STRING*2],*p,*t,*k;
 	int line=0,rc=1;
 	slist_t *cc;
 	f=fopen(cfgname, "rt");
@@ -208,11 +208,18 @@ int parseconfig(char *cfgname)
 		return 0;
 	}
 	curcond=NULL;
-	while(fgets(s,MAX_STRING,f)) {
-		line++;p=s;
+	while(fgets(s,MAX_STRING*2,f)) {
+contl:		line++;p=s;
 		strtr(p,'\t',' ');
 		while(*p==' ')p++;
 		if(*p&&*p!='#'&&*p!='\n'&&*p!=';') {
+			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
+			if(*t=='\\'&&*(t-1)==' ') {
+				fgets(t,MAX_STRING*2-(t-p),f);
+				for(k=t;*k==' '||*k=='\t';k++);
+				if(k>t)xstrcpy(t,k,strlen(k));
+				goto contl;
+			}
 			t=strchr(p,' ');
 			if(!t)t=strchr(p,'\n');
 			if(!t)t=strchr(p,'\r');

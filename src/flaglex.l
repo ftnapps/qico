@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.10 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: flaglex.l,v 1.11 2004/02/23 01:02:11 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -65,13 +65,13 @@ Port    	[Pp][Oo][Rr][Tt]
 Date    	[Dd][Aa][Tt][Ee]
 Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]
 Cid     	[Cc][Ii][Dd]
-Sun		[Ss][Uu][Nn]
-Mon		[Mm][Oo][Nn]
-Tue		[Tt][Uu][Ee]
-Wed		[Ww][Ee][Dd]
-Thu		[Tt][Hh][Uu]
-Fri		[Ff][Rr][Ii]
-Sat		[Ss][Aa][Tt]
+Sun		[Ss][Uu][Nn]?
+Mon		[Mm][Oo][Nn]?
+Tue		[Tt][Uu][Ee]?
+Wed		[Ww][Ee][Dd]?
+Thu		[Tt][Hh][Uu]?
+Fri		[Ff][Rr][Ii]?
+Sat		[Ss][Aa][Tt]?
 Any		[Aa][Nn][Yy]
 Wk		[Ww][Kk]
 We		[Ww][Ee]
@@ -94,13 +94,13 @@ Gt		\>
 Ge		\>=
 Lt		\<
 Le		\<=
-And		\&
-Or		\|
-Not		\!
-Xor		\^
+And		(\&)|([Aa][Nn][Dd])
+Or		(\|)|([Oo][Rr])
+Not		(\!)|([Nn][Oo][Tt]?)
+Xor		(\^)|([Xx][Oo][Rr])
 Lb		\(
 Rb		\)
-Comma		\,
+Comma		[\,\;]
 Asterisk	\*
 Dow		({Sun}|{Mon}|{Tue}|{Wed}|{Thu}|{Fri}|{Sat}|{Any}|{Wk}|{We})
 Month           ({Jan}|{Feb}|{Mar}|{Apr}|{May}|{Jun}|{Jul}|{Aug}|{Sep}|{Oct}|{Nov}|{Dec}|{Any})
@@ -257,13 +257,13 @@ static int chktime(char *str)
 	time_t tt;
 	time(&tt);now=localtime(&tt);
 
-	if (strncasecmp(str,"Sun",3) == 0) day=0;
-	else if (strncasecmp(str,"Mon",3) == 0) day=1;
-	else if (strncasecmp(str,"Tue",3) == 0) day=2;
-	else if (strncasecmp(str,"Wed",3) == 0) day=3;
-	else if (strncasecmp(str,"Thu",3) == 0) day=4;
-	else if (strncasecmp(str,"Fri",3) == 0) day=5;
-	else if (strncasecmp(str,"Sat",3) == 0) day=6;
+	if (strncasecmp(str,"Su",2) == 0) day=0;
+	else if (strncasecmp(str,"Mo",2) == 0) day=1;
+	else if (strncasecmp(str,"Tu",2) == 0) day=2;
+	else if (strncasecmp(str,"We",2) == 0) day=3;
+	else if (strncasecmp(str,"Th",2) == 0) day=4;
+	else if (strncasecmp(str,"Fr",2) == 0) day=5;
+	else if (strncasecmp(str,"Sa",2) == 0) day=6;
 	else if (strncasecmp(str,"Any",3) == 0) day=-1;
 	else if (strncasecmp(str,"Wk",2) == 0) day=-2;
 	else if (strncasecmp(str,"We",2) == 0) day=-3;

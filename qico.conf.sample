@@ -7,7 +7,8 @@
 # common config structure is similar to ifcico's:
 # <keyword> <value>
 # strings, beginning with '#' or ';' are comments and will be
-# ignored leading and trailing spaces and tabs will be stripped
+# ignored leading and trailing spaces and tabs will be stripped.
+# lines may be breaked by trailing character ' \' (perl style).
 # here is 3 types of parameters - string, integer and boolean.
 # for boolean 'y[es]','1','t[rue]' assumed as yes, all other - as no.
 #
@@ -37,8 +38,8 @@
 #
 # *last* matching condition will be used!!!
 # where <conditions> is expression with syntax similar to ifcico's one.
-# you can use round brackets, '|' (or), '&' (and), '^' (xor)
-# and '!' (not) operators, and some tokens:
+# you can use round brackets, '|' 'or', '&' 'and', '^' 'xor'
+# and '!' 'not' operators, and some tokens:
 #
 # + addr[ess] <addr_mask>    - remote has this address(s)
 #                              ex.: 'address 1:2345/*'
@@ -61,7 +62,7 @@
 # + itime <time>[,<time>...] - current time matching one of <time>s
 #                              <time> is <pfx>hhmm-hhmm, where <pfx> is
 #                              Any, Wk, Mon, Tue, Wed, Thu, Fri, Sat, Sun
-#                              ex.: 'time Wk2300-0700,Sat2100-0900,Sun'
+#                              ex.: 'itime Wk2300-0700,Sat2100-0900,Su'
 # + date <date>[,<date>...]  - current date matching one of <date>s
 #                              <date> is <mon>[dd-dd], where <mon> is
 #                              Jan-Dec, Any
@@ -649,9 +650,9 @@ mapin	lk
 ### some example conditions ###################################################
 ###############################################################################
 # they (or we? ;) have buggy hydra, so we will turn it off
-;if address 1:2345/7845.3 | address 1:2345/7845.15 | address 1:2345/7845.16
-; protorder Z1
-;endif
+;if address 1:2345/7845.3 \
+; | address 1:2345/7845.15 \
+; or addr 1:2345/7845.16 : protorder Z1
 
 # he has stupid big /etc/issue ;)
 ;if addr 1:2345/678 : showintro no
@@ -659,7 +660,7 @@ mapin	lk
 # security violation
 if bad
  flags	***BAD PASSWORD!***
- sysop	Check your security settings
+ sysop	Check your security settings!
  phone	Contact to sysop!
 endif
 
@@ -679,5 +680,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.26 2004/02/22 21:33:01 sisoft Exp $
+# $Id: qico.conf.sample,v 1.27 2004/02/23 01:02:11 sisoft Exp $
 ###############################################################################

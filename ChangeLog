@@ -1,3 +1,15 @@
+2004-02-23 00:33  sisoft
+
+	* Changes, TODO, qico.conf.sample, src/binkp.c, src/config.c,
+	src/emsi.c, src/ftn.h, src/qcc.c, src/session.c, src/xmem.h:
+
+	in qcc: fix crash on terminals wider 127 columns.
+	fix unnecessary error '..too slow'.
+	fix domains in binkp.
+	add domain parts to addresses in emsi.
+	truncate Changes file.
+	TODO removed, as unusable.
+	
 2004-02-20 02:36  sisoft
 
 	* Changes, FAQ, configure.in, qico.conf.sample, src/binkp.h,
