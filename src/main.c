@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.17 2000/11/01 10:29:24 lev Exp $
+ * $Id: main.c,v 1.18 2000/11/07 20:57:42 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -140,11 +140,6 @@ void sendrpkt(char what, pid_t pid, char *fmt, ...)
 	va_end(args);
 	msgsnd(qipcr_msg, buf, rc+6, IPC_NOWAIT);
 }	
-
-void alarmer(int i)
-{
-}
-
 
 char qchars[]=Q_CHARS;
 char *sts_str(int flags)
@@ -388,11 +383,13 @@ void daemon_mode()
 				i=i->next;
 			} 
 		}
-		signal(SIGALRM, alarmer);
-		alarm(1);
 		t=time(NULL);
 		while((time(NULL)-t)<1) {
-			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, 0);
+			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
+			if(rc<=0) {
+				struct timeval tv = {0,200};
+				select(0,NULL,NULL,NULL,&tv);
+			} else
 			if(rc>=5) {
 				chld=*((int *)buf+1);
 				rc=1;
@@ -586,7 +583,6 @@ void daemon_mode()
 				}
 			}
 		}
-		alarm(0);
 		t_dial++;t_rescan++;
 		if(do_rescan) t_dial=0;
 	}
