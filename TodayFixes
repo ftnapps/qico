@@ -1,8 +1,8 @@
-/* $Id: TodayFixes,v 1.88 2004/06/19 22:31:57 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.89 2004/06/20 18:50:50 sisoft Exp $ */
 ---
-fix timeouts.
+perl: fix error, if 'perlfile' undefined or not exist.
 .
 previous:
 ---
-perl: fix on_session and implement on_recv/end_recv/on_send/end_send hooks.
+fix timeouts.
 .
