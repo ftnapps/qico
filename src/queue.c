@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.9 2001/03/20 16:54:42 lev Exp $
+ * $Id: queue.c,v 1.10 2001/05/18 20:06:40 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -102,7 +102,7 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 	off_t total=0;
 	int len;
 	
-	if(!stat(name, &sb)) {
+	if(!stat(name, &sb)&&((sb.st_mode&S_IFMT)==S_IFDIR||(sb.st_mode&S_IFMT)==S_IFLNK)) {
 		if(sb.st_mtime!=*mtime) {
 			*mtime=sb.st_mtime;
 			d=opendir(name);
@@ -131,6 +131,7 @@ void rescan_boxes()
 	qitem_t *q;
 	DIR *d;struct dirent *de;
 	ftnaddr_t a;char *p;
+	char rev[25];
 	int len;
 
 	for(i=cfgfasl(CFG_FILEBOX);i;i=i->next) {
@@ -149,17 +150,20 @@ void rescan_boxes()
 			while((de=readdir(d))) 
 				if(sscanf(de->d_name, "%hd.%hd.%hd.%hd",
 						  &a.z, &a.n, &a.f, &a.p)==4) {
-					len=strlen(ccs)+2+strlen(de->d_name);
-					p=xmalloc(len);
-					snprintf(p,len,"%s/%s", ccs, de->d_name);
-					q=q_add(&a);
-					q_recountbox(p, &q->sizes[5], &q->times[5]); 
-					if(q->sizes[4]!=0) {
-						q->touched=1;
-						q->flv|=Q_HOLD;
-						q->what|=T_ARCMAIL;
+					snprintf(rev,25,"%hd.%hd.%hd.%hd",a.z,a.n,a.f,a.p);
+					if(!strcmp(de->d_name,rev)) {
+						len=strlen(ccs)+2+strlen(de->d_name);
+						p=xmalloc(len);
+						snprintf(p,len,"%s/%s", ccs, de->d_name);
+						q=q_add(&a);
+						q_recountbox(p, &q->sizes[5], &q->times[5]); 
+						if(q->sizes[5]!=0) {
+							q->touched=1;
+							q->flv|=Q_HOLD;
+							q->what|=T_ARCMAIL;
+						}
+						xfree(p);
 					}
-					xfree(p);
 				}
 			closedir(d);
 		} else write_log("can't open %s: %s", ccs, strerror(errno));
