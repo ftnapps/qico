@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.24 2000/11/26 13:17:34 lev Exp $
+ * $Id: main.c,v 1.25 2001/01/02 19:57:10 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -695,7 +695,7 @@ int force_call(ftnaddr_t *fa, int flags)
 	}
 
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-		 printf("can't open log %s!\n", ccs);
+		printf("can't open log %s!\n", ccs);
 		exit(0);
 	}
 
