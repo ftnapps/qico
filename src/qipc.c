@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.2 2000/10/12 19:13:17 lev Exp $
+ * $Id: qipc.c,v 1.3 2000/10/12 20:32:42 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,11 +17,11 @@
 #include "mailer.h"
 #include "qcconst.h"
 #include "globals.h"
-#ifdef FREE_BSD
+#ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif
 
-#ifdef MORDA
+#ifdef QCC
 
 int qipc_msg;
 key_t qipc_key;
@@ -168,7 +168,7 @@ void title(char *str, ...)
 	vsprintf(lin, str, args);
 	va_end(args);
 	qsendpkt(QC_TITLE, QLNAME, lin, strlen(lin)+1);
-#ifdef FREE_BSD
+#ifdef HAVE_LIBUTIL
 	setproctitle("%s", lin);
 #else
 	setproctitle(lin);

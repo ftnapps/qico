@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.11 2000/10/12 19:32:09 lev Exp $
+ * $Id: main.c,v 1.12 2000/10/12 20:32:42 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -712,7 +712,7 @@ int main(int argc, char *argv[], char *envp[])
 	int call_flags = 0;
 	char *str=NULL;
 
-#ifndef FREE_BSD
+#ifndef HAVE_LIBUTIL
 	setargspace(argv,envp);
 #endif
  	setlocale(LC_ALL, "");	 

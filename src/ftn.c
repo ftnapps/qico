@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.10 2000/10/12 18:19:29 lev Exp $
+ * $Id: ftn.c,v 1.11 2000/10/12 20:32:41 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -398,8 +398,7 @@ void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
 	fputc(0,f);fputc(0,f);fputc(0,f);fclose(f);
 }
 
-#ifndef FREE_BSD
-#ifdef PROCTITLE
+#ifndef HAVE_LIBUTIL
 /*
  * clobber argv so ps will show what we're doing.
  * (stolen from BSD ftpd where it was stolen from sendmail)
@@ -427,13 +426,7 @@ void setproctitle(char *str)
 	while (p < cmdstrend) *p++ = ' ';
 }
 
-#else
-
-void setargspace(char **argv, char **envp){}
-void setproctitle(char *str){}
-
 #endif
-#endif /* FREE_BSD */
 
 char *xstrcpy(char **to, char *from)
 {

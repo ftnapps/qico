@@ -2,7 +2,7 @@
  * File: qipc.h
  * Created at Sat Aug  7 22:05:35 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.h,v 1.2 2000/10/12 19:13:17 lev Exp $
+ * $Id: qipc.h,v 1.3 2000/10/12 20:32:42 lev Exp $
  **********************************************************/
 #ifndef __QIPC_H__
 #define __QIPC_H__
@@ -24,7 +24,7 @@ void qpproto(char type, pfile_t *pf);
 
 extern char *log_tty;
 #define QLNAME is_ip?ip_id:(log_tty?log_tty:"master")
-#ifdef MORDA
+#ifdef QCC
 #define qpfsend() qpproto(QC_SENDD, &sendf)
 #define qpfrecv() qpproto(QC_RECVD, &recvf)
 #define qereset() qsendpkt(QC_EMSID, QLNAME, "", 0)

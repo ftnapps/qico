@@ -2,7 +2,7 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.2 2000/07/18 12:50:33 lev Exp $
+ * $Id: flagexp.y,v 1.3 2000/10/12 20:32:41 lev Exp $
  **********************************************************/
 %token DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -30,6 +30,7 @@ static int checkspeed(int op, int speed, int real);
 static int checkphone(void);
 static int checkport(void);
 static int checkcid(void);
+static int checkfile(void);
 static int yyerror(char *s);
 
 %}

@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.7 2000/10/12 19:43:52 lev Exp $
+ * $Id: ftn.h,v 1.8 2000/10/12 20:32:42 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -211,7 +211,7 @@ extern FILE *mdfopen(char *fn, char *pr);
 extern char *engms[];
 extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn);
 extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
-#ifndef FREE_BSD
+#ifndef HAVE_LIBUTIL
 extern void setargspace(char **argv, char **envp);
 extern void setproctitle(char *str);
 #endif
