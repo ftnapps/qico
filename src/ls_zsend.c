@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.7 2001/01/04 11:44:33 lev Exp $
+ * $Id: ls_zsend.c,v 1.8 2001/01/06 14:51:38 lev Exp $
  **********************************************************/
 /*
 
@@ -116,7 +116,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	int zfins = 0;	/* ZFIN counter -- we will trust only MAY of them on this stage */
 
 #ifdef Z_DEBUG
-	write_log("ls_zinitsender: %x, %d, %d",protocol,baud,window);
+	write_log("ls_zinitsender: %08x, %d baud, %d bytes",protocol,baud,window);
 #endif
 
 	/* Set all options to requested state -- this may be alerted by other side */
@@ -658,6 +658,7 @@ int ls_zdonesender()
 			write_log("ls_zdonesender: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
 #endif
 			if(rc<0) return rc;
+			retransmit = 1;
 		}
 	} while (trys < 10);
 #ifdef Z_DEBUG
