@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.2 2000/07/18 12:56:19 lev Exp $
+ * $Id: tty.c,v 1.3 2000/07/19 12:51:25 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -384,7 +384,7 @@ int tty_get(char *buf, int size, int timeout)
 		if(tty_hangedup) 
 			return RCDO;
 		else
-			return TIMEOUT;
+			return ERROR;
 	}
 	if(rc==0) return TIMEOUT;
 	if(FD_ISSET(0, &efds)) return ERROR;
