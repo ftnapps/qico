@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.18 2004/04/09 09:51:33 sisoft Exp $
+ * $Id: protfm.c,v 1.19 2004/04/17 07:25:25 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -323,8 +323,10 @@ int c_devfree()
 		case P_HYDRA:
 			rc=hydra_devfree();
 			break;
+#ifdef WITH_BINKP
 		case P_NCP:
 			rc=bink_devfree();
+#endif
 	}
 	return rc;
 }
@@ -339,8 +341,10 @@ int c_devsend(unsigned char *str,unsigned len)
 		case P_HYDRA:
 			rc=hydra_devsend("CON",str,len);
 			break;
+#ifdef WITH_BINKP
 		case P_NCP:
 			rc=bink_devsend(str,len);
+#endif
 	}
 	return rc;
 }

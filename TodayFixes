@@ -1,13 +1,11 @@
-/* $Id: TodayFixes,v 1.60 2004/04/14 22:21:25 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.61 2004/04/17 07:25:14 sisoft Exp $ */
 ---
-show milliseconds in logtime if loglevel T >= 1.
+fix binkp voracious (last byte).
+configure: another fix configuration without --with-config.
+configure: add --disable-binkp option.
+add file INSTALL.
 .
 previous:
 ---
-in qcc: now screen splitted at: lines>=20?10:lines/2.
-improve config parsing error reports.
-add support for filename escaping to binkp.
-support for recode codepages of name/station/place/phone in binkp.
-now keywords 'lockdir', 'modem*', 'phonetr' and 'port' not required.
-in qcc: support for request many space-separated files. filenames, containing spaces must be quoted.
+show milliseconds in logtime if loglevel T >= 1.
 .

@@ -1,3 +1,9 @@
+2004-04-15 02:21  sisoft
+
+	* src/: binkp.c, log.c, qcc.c, tcp.c:
+
+	show milliseconds in logtime if loglevel T >= 1.
+
 2004-04-13 21:37  sisoft
 
 	* Changes, qico.conf.sample, src/binkp.c, src/config.c,
