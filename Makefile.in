@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.6 2000/11/13 21:23:03 lev Exp $
+# $Id: Makefile.in,v 1.7 2001/01/07 11:24:18 lev Exp $
 #
 
 prefix  = @prefix@
@@ -18,7 +18,7 @@ DIST_DIRS = src stuff
 DIST_FILES = stuff/* src/*.[chlyx] src/*.in src/*.awk \
 Changes FAQ LICENSE README *.in acconfig.h configure install-sh \
 qico.conf.sample mkinstalldirs qico.spec
-DIST_EXCLUDE = src/ls_* src/tcpp.c
+DIST_EXCLUDE = src/tcpp.c
 
 DOCS = Changes FAQ LICENSE README stuff qico.conf.sample
 
@@ -30,7 +30,7 @@ all:
 
 clean:
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
-	rm -f qico-$(VERSION).tar.gz *~
+	rm -f qico-$(VERSION).tar.gz config.cache *~
 
 full-clean: clean
 	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
