@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.16 2004/02/17 11:23:22 sisoft Exp $
+ * $Id: emsi.c,v 1.17 2004/02/22 21:33:03 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -26,11 +26,11 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 
 	xstrcpy(dat,"**EMSI_DAT0000{EMSI}{",EMSI_BUF);
 	ba=akamatch(remaddr,adrs?adrs:cfgal(CFG_ADDRESS));
-	xstrcat(dat,ftnaddrtoa(ba),EMSI_BUF);
+	xstrcat(dat,ba->d?ftnaddrtoda(ba):ftnaddrtoa(ba),EMSI_BUF);
 	for(cs=cfgal(CFG_ADDRESS);cs;cs=cs->next)
 		if(&cs->addr!=ba) {
 			xstrcat(dat," ",EMSI_BUF);
-			xstrcat(dat,ftnaddrtoa(&cs->addr),EMSI_BUF);
+			xstrcat(dat,cs->addr.d?ftnaddrtoda(&cs->addr):ftnaddrtoa(&cs->addr),EMSI_BUF);
 		}
 	xstrcat(dat,"}{",EMSI_BUF);
 	if(showpwd) {

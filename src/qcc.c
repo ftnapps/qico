@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.24 2004/02/14 15:58:54 sisoft Exp $
+ * $Id: qcc.c,v 1.25 2004/02/22 21:33:03 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -65,8 +65,8 @@
 
 /* number of lines for queue. (up window of screen) */
 #define MH 10
-/* max line height (for chat) */
-#define CHH 180
+/* max line height */
+#define CHH 256
 /* max number of slots */
 #define MAX_SLOTS 16
 /* max scroll lines for log */
@@ -458,7 +458,7 @@ static void mylog(char *str,...)
 
 static void logit(char *str,WINDOW *w,int s)
 {
-	char bbf[128];
+	char bbf[CHH];
 	int len,y,x,cu=1;
 	if(s>=0)cu=(slots[s]->lm==slots[s]->lc);
 	getyx(w,y,x);

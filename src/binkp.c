@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.24 2004/02/14 15:58:54 sisoft Exp $
+ * $Id: binkp.c,v 1.25 2004/02/22 21:33:03 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -106,7 +106,7 @@ int bink_devsend(byte *str,word len)
 	return 0;
 }
 
-static void chatrecv(char *data)
+static void bink_devrecv(char *data)
 {
 	c_devrecv((byte*)data,strlen(data)+1);
 }
@@ -728,7 +728,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    case BPM_CHAT:
 			DEBUG(('B',3,"got: M_%s",mess[rc]));
 			t1=t_set(BP_TIMEOUT);
-			if(opt_cht==O_YES)chatrecv(tmp);
+			if(opt_cht==O_YES)bink_devrecv(tmp);
 			    else DEBUG(('B',1,"got chat msg with disabled chat"));
 			break;
 		    default:

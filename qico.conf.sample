@@ -91,7 +91,7 @@
 ### addresses and passwords ###################################################
 ###############################################################################
 # your addresses, first will be used as primary and its zone and net will be
-# used as default (required). domain part used only for binkp.
+# used as default (required).
 ;address	1:2345/7845
 ;address 	111:222/44@leftnet
 
@@ -136,9 +136,9 @@ log		/var/log/ftn/qico.log
 # Logging is not ``free'' operation. qico with disabled logging will be run
 # slightly faster, than one with enabled logging and all levels set to zero
 # (no debug logging).
-# Format is: <F><LL>[,<F><LL>...]
+# Format is: <F><L>[,<F><L>...]
 #       <F>  is one-character facility name
-#       <LL> is number -- level of log.
+#       <L>  is number -- level of log.
 #            Default is 0 (no debug logging).
 #
 # Facilities are:
@@ -156,7 +156,7 @@ log		/var/log/ftn/qico.log
 #  B -- BinkP
 #  I -- IP routines
 #
-loglevels	E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0
+loglevels	C0,E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0
 
 # Write to log estimated transfer time before each file transfer
 estimatedtime	no
@@ -679,5 +679,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.25 2004/02/19 23:36:35 sisoft Exp $
+# $Id: qico.conf.sample,v 1.26 2004/02/22 21:33:01 sisoft Exp $
 ###############################################################################

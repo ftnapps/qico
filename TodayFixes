@@ -1,11 +1,16 @@
-/* $Id: TodayFixes,v 1.38 2004/02/19 23:36:35 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.39 2004/02/22 21:33:01 sisoft Exp $ */
+---
+in qcc: fix crash on terminals wider 127 columns.
+fix unnecessary error '..too slow'.
+fix domains in binkp.
+add domain parts to addresses in emsi.
+truncate Changes file.
+TODO removed, as unusable.
+.
+previous:
 ---
 fix config dumping.
 add keyword 'else'.
 add support for inline if-expressions.
 add alias 'addr' for expression 'address'.
-.
-previous:
----
-try to fix emsi.
 .

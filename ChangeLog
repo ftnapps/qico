@@ -1,3 +1,14 @@
+2004-02-20 02:36  sisoft
+
+	* Changes, FAQ, configure.in, qico.conf.sample, src/binkp.h,
+	src/config.c, src/daemon.c, src/defs.h, src/flaglex.l, src/main.c,
+	src/tools.h:
+
+	fix config dumping.
+	add keyword 'else'.
+	add support for inline if-expressions.
+	add alias 'addr' for expression 'address'.
+	
 2004-02-17 14:23  sisoft
 
 	* src/: call.c, emsi.c, flagexp.y, flaglex.l:
