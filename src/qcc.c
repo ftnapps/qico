@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.7 2001/01/09 20:14:15 aaz Exp $
+ * $Id: qcc.c,v 1.8 2001/01/09 20:27:04 aaz Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -81,7 +81,7 @@ char *helpl[]={
 
 slot_t *slots[MAX_SLOTS];
 qslot_t *queue;
-int currslot, allslots, q_pos, q_first, q_max;
+int currslot, allslots, q_pos, q_first, q_max, sizechanged=0;
 
 char *m_header=NULL;
 char *m_status=NULL;
@@ -110,32 +110,8 @@ void mvwhline (WINDOW *win,int y,int x,int ch,int n)
 }
 #endif
 
-void initscreen()
-{
+void draw_screen() {
 	int i,k=1;
-	
-	initscr();start_color();
-	cbreak();noecho();nonl();
-	nodelay(stdscr, TRUE);keypad(stdscr, TRUE);leaveok(stdscr, FALSE);
-
-	init_pair(1, COLOR_BLUE, COLOR_BLACK);
-	init_pair(2, COLOR_GREEN, COLOR_BLACK);
-	init_pair(3, COLOR_CYAN, COLOR_BLACK);
-	init_pair(4, COLOR_RED, COLOR_BLACK);
-	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(6, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(7, COLOR_WHITE, COLOR_BLACK);
-	
-	init_pair(8, COLOR_BLACK, COLOR_WHITE);
-	init_pair(9, COLOR_RED, COLOR_WHITE);
-	init_pair(10, COLOR_BLUE, COLOR_WHITE);
-	
-	init_pair(12, COLOR_YELLOW, COLOR_BLUE);
-	init_pair(13, COLOR_WHITE, COLOR_BLUE);
-	init_pair(14, COLOR_CYAN, COLOR_BLUE);
-	init_pair(15, COLOR_GREEN, COLOR_BLUE);
-	
-	init_pair(16, COLOR_BLACK, COLOR_CYAN);
 	
 	attrset(COLOR_PAIR(2));
 	bkgd(COLOR_PAIR(2)|' ');
@@ -176,8 +152,36 @@ void initscreen()
 	wrefresh(wstat);
 	wrefresh(whdr);
 	wrefresh(wlog);
+}	
 
-/* 	signal(SIGWINCH, sigwinch); */
+void initscreen()
+{
+	initscr();start_color();
+	cbreak();noecho();nonl();
+	nodelay(stdscr, TRUE);keypad(stdscr, TRUE);leaveok(stdscr, FALSE);
+
+	init_pair(1, COLOR_BLUE, COLOR_BLACK);
+	init_pair(2, COLOR_GREEN, COLOR_BLACK);
+	init_pair(3, COLOR_CYAN, COLOR_BLACK);
+	init_pair(4, COLOR_RED, COLOR_BLACK);
+	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(6, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(7, COLOR_WHITE, COLOR_BLACK);
+	
+	init_pair(8, COLOR_BLACK, COLOR_WHITE);
+	init_pair(9, COLOR_RED, COLOR_WHITE);
+	init_pair(10, COLOR_BLUE, COLOR_WHITE);
+	
+	init_pair(12, COLOR_YELLOW, COLOR_BLUE);
+	init_pair(13, COLOR_WHITE, COLOR_BLUE);
+	init_pair(14, COLOR_CYAN, COLOR_BLUE);
+	init_pair(15, COLOR_GREEN, COLOR_BLUE);
+	
+	init_pair(16, COLOR_BLACK, COLOR_CYAN);
+
+	draw_screen();
+	
+ 	signal(SIGWINCH, sigwinch);
 }
 
 void donescreen()
@@ -393,6 +397,8 @@ void freshall()
 
 void sigwinch(int s)
 {
+	sizechanged=1;
+ 	signal(SIGWINCH, sigwinch);
 }
 
 int findslot(char *slt)
@@ -448,6 +454,7 @@ int main(int argc, char **argv)
 	struct tm *tt;
 	key_t qipc_key;
 	int lastfirst=1, lastpos=1;
+	struct winsize size;
 
  	while((c=getopt(argc, argv, "h"))!=EOF) {
 		switch(c) {
@@ -476,6 +483,14 @@ int main(int argc, char **argv)
 	bzero(&slots, sizeof(slots));
 	freshall();
 	while(!quitflag) {
+ 		if (sizechanged) {
+			if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) {
+				resizeterm(size.ws_row, size.ws_col);
+				draw_screen();
+				freshall();
+			}
+			sizechanged=0;
+ 		} 
 		tim=time(NULL);
 		tt=localtime(&tim);wattron(whdr, COLOR_PAIR(15));
 		mvwprintw(whdr, 0, COLS-13, "%02d:%02d:%02d",
