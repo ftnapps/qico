@@ -6,7 +6,7 @@ package=qico
 build: debian/build
 debian/build:
 	$(checkdir)
-	./configure --prefix=/usr --sysconfdir=/etc/ftn
+	./configure --prefix=/usr --sysconfdir=/etc/ftn --disable-notify
 	$(MAKE)
 	touch debian/build
 

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.53si-cvs],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.53si-cvs])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.21 2004/03/24 17:50:01 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.22 2004/04/09 09:51:29 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 
@@ -133,17 +133,20 @@ AC_CHECK_FUNCS([recv send])
 
 dnl Checking for config path
 AC_MSG_CHECKING([for config path])
-AC_ARG_WITH([config],AC_HELP_STRING([--with-config=config],[specifies config path (default is \${prefix}/etc/qico.conf)]),,with_config=NONE)
+AC_ARG_WITH([config],AC_HELP_STRING([--with-config=config],[specifies config path (default is \${sysconfdir}/qico.conf)]),,with_config=NONE)
 if test "x${with_config}" = "xNONE"; then
-	if test "x${prefix}" = "xNONE"; then
-		with_config="${ac_default_prefix}/etc/qico.conf"
+	if test "x${sysconfdir}" = "xNONE"; then
+		with_config="${ac_default_sysconfdir}/qico.conf"
 	else
-		with_config="${prefix}/etc/qico.conf"
+		with_config="${sysconfdir}/qico.conf"
 	fi
 fi
 AC_MSG_RESULT($with_config)
 if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
-	AC_MSG_ERROR([Parameter for --with-config must be absolute pathname])
+	AC_MSG_ERROR([Parameter for --with-config must be absolute filename])
+fi
+if test -d "$with_config"; then
+	AC_MSG_WARN([Parameter for --with-config must be filename, not a directory])
 fi
 
 dnl TCP Speed

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.27 2004/03/27 21:38:41 sisoft Exp $
+ * $Id: session.c,v 1.28 2004/04/09 09:51:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -363,7 +363,7 @@ void log_rinfo(ninfo_t *e)
 	write_log("  phone: %s",e->phone);
 	write_log("  flags: [%d] %s",e->speed,e->flags);
 	write_log(" mailer: %s",e->mailer);
-	t=gmtime(&e->time);mt=gmtime(&tt);
+	t=localtime(&e->time);mt=localtime(&tt);
 	write_log("   time: %02d:%02d:%02d, %s",t->tm_hour,t->tm_min,t->tm_sec,e->wtime?e->wtime:"unknown");
 	if(t->tm_mday!=mt->tm_mday||t->tm_mon!=mt->tm_mon||t->tm_year!=mt->tm_year)
 		write_log("   date: %02d.%02d.%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);

@@ -1,3 +1,15 @@
+2004-03-28 00:38  sisoft
+
+	* Changes, README, src/binkp.c, src/daemon.c, src/flagexp.y,
+	  src/log.c, src/main.c, src/protfm.c, src/qcc.c, src/qipc.c,
+	  src/session.c, src/tcp.c, src/xmem.c, src/xstr.h:
+
+	fix a-conf option --with-default-speed.
+	in qcc: fix cmd 'h' for numbers >255.
+	in qcc: fix mark '='.
+	show remote date if it's differ from local.
+	set mtime for sending and received files relative to timezone. (patch from Konstantin Marchik)
+
 2004-03-24 20:52  sisoft
 
 	* stuff/koi8r_866.cp:
