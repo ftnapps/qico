@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.2 2000/11/03 07:55:29 lev Exp $
+ * $Id: ls_zmodem.h,v 1.3 2000/11/03 17:15:08 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -58,17 +58,26 @@
 
 #define LSZ_INIT_CRC16 0x0000
 #define LSZ_TEST_CRC16 0x0000
+#define LSZ_UPDATE_CRC16(b,crc) ((crc16tab[(((crc & 0xFFFF) >> 8) & 255)] ^ ((crc & 0xFFFF) << 8) ^ (b)) & crc & 0xFFFF)
+#define LSZ_FINISH_CRC32(crc)	(LSZ_UPDATE_CRC16(0,LSZ_UPDATE_CRC16(0,crc)))
 
-#define LSZ_INIT_CRC32 0xFFFFFFFF
-#define LSZ_TEST_CRC32 0xDEBB20E3
-
-#define LSZ_UPDATE_CRC16(b,crc) (crc16tab[(((crc) >> 8) & 255)] ^ ((crc) << 8) ^ (b))
+#define LSZ_INIT_CRC32			0xFFFFFFFFl
+#define LSZ_TEST_CRC32			0xDEBB20E3l
 #define LSZ_UPDATE_CRC32(b,crc) (crc32tab[((crc) ^ (b)) & 0xff] ^ ((b) >> 8))
+#define LSZ_FINISH_CRC32(crc)	(~crc)
 
-#define LSZ_UPDATE_CRC(b,crc) (ls_txCRC32?(LSZ_UPDATE_CRC32(b,crc)):(LSZ_UPDATE_CRC16(b,crc)))
+#define LSZ_INIT_CRC			((ls_Protocol & LSZ_OPTCRC32)?LSZ_INIT_CRC32:LSZ_INIT_CRC16)
+#define LSZ_TEST_CRC			((ls_Protocol & LSZ_OPTCRC32)?LSZ_TEST_CRC32:LSZ_TEST_CRC16)
+#define LSZ_UPDATE_CRC(b,crc)	((ls_Protocol & LSZ_OPTCRC32)?(LSZ_UPDATE_CRC32(b,crc)):(LSZ_UPDATE_CRC16(b,crc)))
+#define LSZ_FINISH_CRC(crc)		((ls_Protocol & LSZ_OPTCRC32)?(LSZ_FINISH_CRC32(crc)):(LSZ_FINISH_CRC16(crc)))
 
-#define LSZ_ZEDZAP		0x0001		/* We could big blocks */
-#define LSZ_DIRZAP		0x0002		/* We escape nothing */
+/* different protocol variations */
+#define LSZ_OPTZEDZAP		0x00000001		/* We could big blocks, ZModem variant */
+#define LSZ_OPTDIRZAP		0x00000002		/* We escape nothing, ZModem variant */
+#define LSZ_OPTESCAPEALL	0x00000004		/* We must escape ALL */
+#define LSZ_OPTCRC32		0x00000008		/* We must send CRC 32 */
+#define LSZ_OPTVHDR			0x00000010		/* We must send variable headers */
+#define LSZ_OPTRLE			0x00000020		/* We must send RLEd data */
 
 #define LTOI(x) (x)
 #define STOI(x) (x)
@@ -76,13 +85,14 @@
 #define STOH(x) (x)
 
 /* Functions */
-int zsendbhdr(int frametype, int len, char *hdr);
-int zsendhhdr(int frametype, int len, char *hdr);
+int ls_zsendbhdr(int frametype, int len, char *hdr);
+int ls_zsendhhdr(int frametype, int len, char *hdr);
 int ls_zrecvhdr(char *hdr, int timeout);
 void ls_sendchar(int c);
 void ls_sendhex(int i);
 int ls_read7bit(int timeout);
 int ls_readhex(int timeout);
 int ls_readzdle(int timeout);
+int ls_readcanned(int timeout);
 
 #endif/*_LS_ZMODEM_H_*/
