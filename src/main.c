@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.52 2001/04/15 17:10:12 lev Exp $
+ * $Id: main.c,v 1.53 2001/04/17 10:33:29 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -724,12 +724,18 @@ void answer_mode(int type)
 	tty_cooked();
 
 	if ((S_OK == (rc&S_MASK)) && cfgi(CFG_HOLDONSUCCESS)) {
+		log_done();
+		log_init(cfgs(CFG_MASTERLOG),NULL);
+
 		bso_getstatus(&rnode->addrs->addr, &sts);
 		sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 		sts.htime=MAX(t_set(cci*60),sts.htime);
 		write_log("calls to %s delayed for %d min after successuful incoming session",
 					ftnaddrtoa(&rnode->addrs->addr), cci);
 		bso_setstatus(&rnode->addrs->addr, &sts);
+
+		log_done();
+		log_init(cfgs(CFG_LOG),rnode->tty);
 	}
 
 	title("Waiting...");
