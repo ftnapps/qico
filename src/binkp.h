@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol defines. by sisoft\\trg'2003.
- * $Id: binkp.h,v 1.9 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: binkp.h,v 1.10 2004/03/06 14:53:35 sisoft Exp $
  ******************************************************************/
 #ifndef __BINKP_H__
 #define __BINKP_H__
@@ -9,8 +9,7 @@
 #define BP_BLKSIZE	4096   /* block size */
 #define BP_TIMEOUT	300    /* session timeout */
 #define BP_BUFFER	32770  /* buffer size */
-
-#define BUFS	1024
+#define BP_BUFS		4096   /* buffer size for temp strings */
 
 /* options */
 #define O_NO	0

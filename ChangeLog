@@ -1,3 +1,11 @@
+2004-03-06 15:50  sisoft
+
+	* Changes, README, configure.in, debian/init.d, debian/rules,
+	src/binkp.c, src/flaglex.l, src/tools.c, src/tty.c, src/tty.h:
+
+	set rts/cts flow control for tty's on linux.
+	fix directory tree creating.
+	
 2004-03-03 18:12  sisoft
 
 	* src/flaglex.l, src/qcc.c, stuff/ftn:

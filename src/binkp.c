@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.28 2004/03/06 12:50:56 sisoft Exp $
+ * $Id: binkp.c,v 1.29 2004/03/06 14:53:35 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -112,7 +112,7 @@ static void bink_devrecv(char *data)
 
 int binkpsession(int mode,ftnaddr_t *remaddr)
 {
-	char tmp[BUFS],*p,*fname=NULL;
+	char tmp[BP_BUFS],*p,*fname=NULL;
 	int send_file=0,recv_file=0;
 	int rc=0,n=0,chal_len=0,mes,cls;
 	int nofiles=0,wait_got=0,bp_ver=10;
@@ -190,15 +190,15 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			pp=cfgal(CFG_ADDRESS);
 			if(mode) {
 				ba=akamatch(remaddr,pp);
-				xstrcpy(tmp,ftnaddrtoda(ba),BUFS);
+				xstrcpy(tmp,ftnaddrtoda(ba),BP_BUFS);
 			    } else {
-				xstrcpy(tmp,ftnaddrtoda(&pp->addr),BUFS);
+				xstrcpy(tmp,ftnaddrtoda(&pp->addr),BP_BUFS);
 				pp=pp->next;ba=NULL;
 			}
 			for(;pp;pp=pp->next)
 			    if(&pp->addr!=ba) {
-				xstrcat(tmp," ",BUFS);
-				xstrcat(tmp,ftnaddrtoda(&pp->addr),BUFS);
+				xstrcat(tmp," ",BP_BUFS);
+				xstrcat(tmp,ftnaddrtoda(&pp->addr),BP_BUFS);
 			}
 			msgs(BPM_ADR,tmp,NULL);
 			txstate=(txstate==BPO_Init)?BPO_WaitNul:BPI_WaitAdr;
@@ -386,6 +386,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				} else if(!strncmp(tmp,"VER ",4)) {
 					restrcpy(&rnode->mailer,tmp+4);
 					n=strrchr(tmp+4,' ');
+					if(n&&(n[1]=='('||n[1]=='['))n++;
 					if(!n||strncasecmp(n+1,"binkp",5)||!(n=strchr(n,'/')))
 					    write_log("BinkP: got bad NUL VER message: %s",tmp);
 						else bp_ver=10*(n[1]-'0')+n[3]-'0';
@@ -396,6 +397,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				DEBUG(('B',3,"got: M_%s, state=%d",mess[rc],txstate));
 				if(txstate==BPO_WaitAdr||txstate==BPI_WaitAdr) {
 					char *n=tmp;
+					while(*n==' ')n++;
 					falist_kill(&rnode->addrs);
 					while((p=strsep(&n," ")))
 					    if(parseftnaddr(p,&fa,NULL,0))
