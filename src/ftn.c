@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.29 2001/04/14 12:44:54 lev Exp $
+ * $Id: ftn.c,v 1.30 2001/04/16 06:59:20 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -379,8 +379,7 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 	ph.phPRevMinor=2;
 	ph.phCaps=H2I16(1);
 
-	memset(ph.phPass,' ',8);
-	if(pwd) memcpy(ph.phPass, pwd, strlen(pwd));
+	if(pwd) memcpy(ph.phPass, pwd, MAX(strlen(pwd),8));
 
 	ph.phQOZone=H2I16(fa->z);
 	ph.phQDZone=H2I16(ta->z);
