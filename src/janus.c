@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.5 2000/11/10 12:37:21 lev Exp $
+ * $Id: janus.c,v 1.6 2000/11/12 12:29:32 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -32,6 +32,8 @@ long   brain_dead;       /* Time at which to give up on other computer     */
 slist_t *reqs=NULL;
 int caps=0;
 
+void preparereqs(flist_t *l);
+
 /*****************************************************************************/
 /* Super-duper neato-whizbang full-duplex streaming ACKless batch file       */
 /* transfer protocol for use in Opus-to-Opus mail sessions                   */
@@ -50,7 +52,7 @@ int janus()
 	long   last_rpostime;    /* Timetag of last RPOS which we performed        */
 	long   last_blkpos=0;      /* File position of last
 								  out-of-sequence BLKPKT   */
-	flist_t **l;
+	flist_t *l;
 	int rc=0;
 	char *p;	
 
@@ -77,7 +79,9 @@ int janus()
 
 	rxbufmax = rxbuf+BUFMAX+8;
 	
-	l=&fl;getfname(l);
+	l=fl;
+	preparereqs(l);
+	getfname(&l);
 	
 	sline("Janus session (%d block)", txblklen);
   
@@ -300,9 +304,9 @@ int janus()
 						} else {
 							txclose(&txfd, FOP_SKIP);
 							qpreset(1);
-							flexecute(*l);
-							l=&(*l)->next;
-							getfname(l);
+							flexecute(l);
+							l=l->next;
+							getfname(&l);
 							txstate = XSENDFNAME;
 						}
 					} else {
@@ -323,9 +327,9 @@ int janus()
 					if (txstate == XRCVEOFACK) {
 						txclose(&txfd, FOP_OK);
 						qpfsend();
-						flexecute(*l);
-						l=&(*l)->next;
-						getfname(l);
+						flexecute(l);
+						l=l->next;
+						getfname(&l);
 					}
 					txstate = XSENDFNAME;
 				}
@@ -345,7 +349,7 @@ int janus()
 						req.str=rxbuf;
 						req.next=NULL;
 						freq_ifextrp(&req);
-						getfname(l);
+						getfname(&l);
 					}
 					txstate = XSENDFNAME;
 				}
@@ -365,7 +369,7 @@ int janus()
 				if (txstate == XRCVFRNAKACK) {
 					xmit_retry = 0L;
 //					if(l) l=&(*l)->next;	
-					getfname(l);
+					getfname(&l);
 					txstate = XSENDFNAME;
 				}
 				break;
@@ -428,9 +432,9 @@ int janus()
 	/*-------------------------------------------------------------------------*/
   breakout:
 	endbatch();
-	while(*l) {
-		if(!(*l)->sendas) 	flexecute(*l);
-		l=&(*l)->next;
+	while(l) {
+		if(l->sendas) flexecute(l);
+		l=l->next;
 	}
 	free(txbuf);
 	free(rxbuf);
@@ -731,23 +735,24 @@ slist_t *readreq(slist_t *l, char *fname)
 void getfname(flist_t **l)
 {
 	while(*l) {
-		if (!(*l)->sendas)
+		if(!(*l)->sendas || !(txfd=txopen((*l)->tosend, (*l)->sendas))) {
 			flexecute(*l);
-		else {
-			if ((*l)->type==IS_REQ) {
-				reqs=readreq(reqs, (*l)->tosend);
-				/* this isn't right */
-				flexecute(*l);
-			} else break;
+		} else {
+			break;
 		}
-		l=&(*l)->next;
+		*l=(*l)->next;
 	}
-	if(*l) {
-		txfd=txopen((*l)->tosend, (*l)->sendas);
-		sprintf(txbuf, "%s%c%u %lo %o%c%c",  (*l)->sendas, 0,
-				sendf.ftot, sendf.mtime, 0644, 0, OUR_JCAPS);
-	} else {
-		sprintf(txbuf, "%c%c%c", 0, 0, OUR_JCAPS);
-	}
+	if(txfd) sprintf(txbuf,"%s%c%u %lo %o%c%c",(*l)->sendas,0,sendf.ftot,sendf.mtime,0644,0,OUR_JCAPS);
+	else sprintf(txbuf,"%c%c%c",0,0,OUR_JCAPS);
 }
 
+void preparereqs(flist_t *l)
+{
+	while(l) {
+		if(l->sendas && l->type==IS_REQ) {
+			reqs=readreq(reqs, l->tosend);
+			flexecute(l);
+		}
+		l=l->next;
+	}
+}
