@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.9 2000/11/26 13:17:34 lev Exp $
+ * $Id: hydra.c,v 1.10 2000/12/26 12:18:12 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -648,7 +648,7 @@ static void hydra_status (boolean xmit)
 
 
 /*---------------------------------------------------------------------------*/
-void hydra_init (dword want_options, boolean orig, int hmod)
+void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwin)
 {
 	hydra_modifier=hmod;
 	
@@ -691,6 +691,8 @@ void hydra_init (dword want_options, boolean orig, int hmod)
 
 	chattimer = -1L;
 
+	rxwindow = rxwin;
+	txwindow = txwin;
 }/*hydra_init()*/
 
 
@@ -711,7 +713,7 @@ int hydra_file(char *txpathname, char *txalias)
 	int   i, count;
 	time_t rxftime;
 	size_t rxfsize;
-	unsigned long hydra_txwindow=0,hydra_rxwindow=0;
+	unsigned long hydra_txwindow=txwindow,hydra_rxwindow=rxwindow;
 	struct stat statf;
 
 	if(txpathname)

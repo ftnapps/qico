@@ -2,7 +2,7 @@
  * File: hydra.h
  * Created at Tue Aug 10 22:49:42 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: hydra.h,v 1.2 2000/11/06 21:46:15 lev Exp $
+ * $Id: hydra.h,v 1.3 2000/12/26 12:18:12 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -145,7 +145,7 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define HTXI_OPTIONS  (0x0L)
 
 /* HYDRA Prototypes */
-void hydra_init (dword want_options, boolean originator, int hmod);
+void hydra_init (dword want_options, boolean originator, int hmod, int rxwin, int txwin);
 void hydra_deinit (void);
 int  hydra_file   (char *txpathname, char *txalias);
 boolean hydra_devfree (void);
