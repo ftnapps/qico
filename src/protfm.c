@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.15 2001/02/16 14:45:56 aaz Exp $
+ * $Id: protfm.c,v 1.16 2001/03/17 18:46:15 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -178,6 +178,7 @@ int rxclose(FILE **f, int what)
 		}
 		break;
 	}
+	recvf.start=0;
 	return what;
 }
 
@@ -232,6 +233,7 @@ int txclose(FILE **f, int what)
 		write_log("sent: %s, %d bytes, %d cps [%s]",
 			sendf.fname, sendf.foff, cps, ss);
 	sendf.foff=0;
+	sendf.start=0;
 	fclose(*f);*f=NULL;
 	return what;
 }
@@ -248,13 +250,13 @@ void check_cps()
 	if(!recvf.cps) recvf.cps=1;
 	recvf.cps=(recvf.foff-recvf.soff)/recvf.cps;
 
-	if(cfgi(CFG_MINCPSOUT)>0 &&
+	if(sendf.start && cfgi(CFG_MINCPSOUT)>0 &&
 	   (time(NULL)-sendf.start)>cpsdelay &&
 	   sendf.cps<cci) {
 		write_log("mincpsout=%d reached, aborting session", cci);
 		tty_hangedup=1;
 	}
-	if(cfgi(CFG_MINCPSIN)>0 &&
+	if(recvf.start && cfgi(CFG_MINCPSIN)>0 &&
 	   (time(NULL)-recvf.start)>cpsdelay &&
 	   recvf.cps<cci) {
 		write_log("mincpsin=%d reached, aborting session", cci);
