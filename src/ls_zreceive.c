@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.1 2000/12/26 12:14:33 lev Exp $
+ * $Id: ls_zreceive.c,v 1.2 2000/12/30 19:41:01 lev Exp $
  **********************************************************/
 /*
 
@@ -234,7 +234,7 @@ int ls_zrecvnewpos(unsigned long oldpos, unsigned long *pos)
 			write_log("ls_zrecvnewpos: ZNAK");
 #endif
 			ls_storelong(ls_txHdr,oldpos);
-			if((rc=ls_zsendbhdr(ZRPOS,4,ls_txHdr))<0) return rc;
+			if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 			break;
 		case LSZ_TIMEOUT:
 #ifdef Z_DEBUG2
@@ -280,7 +280,7 @@ int ls_zrecvfile(int pos)
     	
 	rxpos = pos;
 	ls_storelong(ls_txHdr,rxpos);
-	if((rc=ls_zsendbhdr(ZRPOS,4,ls_txHdr))<0) return rc;
+	if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 
 	do {
 		if(needzdata) {		/* We need new position -- ZDATA (and may be ZEOF) */
@@ -292,11 +292,11 @@ int ls_zrecvfile(int pos)
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
 				ls_storelong(ls_txHdr,rxpos);
-				if((rc=ls_zsendbhdr(ZRPOS,4,ls_txHdr))<0) return rc;
+				if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 			} else {
 				if(ZEOF == rc) {
 					ls_storelong(ls_txHdr,0);
-					if((rc=ls_zsendbhdr(ZRINIT,4,ls_txHdr))<0) return rc;
+					if((rc=ls_zsendhhdr(ZRINIT,4,ls_txHdr))<0) return rc;
 					return LSZ_OK;
 				}
 				needzdata = 0;
@@ -311,7 +311,10 @@ int ls_zrecvfile(int pos)
 #endif
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
+
 				recvf.foff = rxpos;
+				check_cps();
+				qpfrecv();
 				break;
 			case ZCRCW:
 				needzdata = 1;
@@ -321,9 +324,12 @@ int ls_zrecvfile(int pos)
 #endif
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
-				recvf.foff = rxpos;
 				ls_storelong(ls_txHdr,rxpos);
 				ls_zsendhhdr(ZACK,4,ls_txHdr);
+
+				recvf.foff = rxpos;
+				check_cps();
+				qpfrecv();
 				break;
 			case LSZ_BADCRC:
 			case LSZ_TIMEOUT:
