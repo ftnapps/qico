@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.14 2001/03/20 19:53:14 lev Exp $
+ * $Id: ls_zreceive.c,v 1.15 2001/03/23 20:46:26 lev Exp $
  **********************************************************/
 /*
 
@@ -33,18 +33,18 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 	ls_MaxBlockSize = ls_Protocol&LSZ_OPTZEDZAP?8192:1024;
 
 	/* Calculate timeouts */
-	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 5 seconds */
+	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 10 seconds */
 	ls_HeaderTimeout = (LSZ_MAXHLEN * 30) / baud;
-	ls_HeaderTimeout = ls_HeaderTimeout>5?ls_HeaderTimeout:5;
-	/* Timeout for data packet (3*TransferTime or 30 seconds) */
+	ls_HeaderTimeout = ls_HeaderTimeout>10?ls_HeaderTimeout:10;
+	/* Timeout for data packet (3*TransferTime or 60 seconds) */
 	ls_DataTimeout = (ls_MaxBlockSize * 30) / baud;
-	ls_DataTimeout = ls_DataTimeout>30?ls_DataTimeout:30;
+	ls_DataTimeout = ls_DataTimeout>60?ls_DataTimeout:60;
 
 	ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
 
 	if(NULL==(rxbuf=malloc((ls_MaxBlockSize+16)))) return LSZ_ERROR;
 
-	return ls_zrecvfinfo(f,ZRINIT,(protocol&LSZ_OPTFIRSTBATCH)?0:1);
+	return ls_zrecvfinfo(f,ZRINIT,(protocol&LSZ_OPTFIRSTBATCH)?1:0);
 }
 
 /* Internal function -- receive ZCRCW frame in 10 trys, send ZNAK/ZACK */
@@ -120,7 +120,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 		}
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
 		case ZRQINIT:		/* Send ZRINIT again */
-			first = 0;      /* We will trust in first ZFIN after ZRQINIT */
+			first = 1;      /* We will trust in first ZFIN after ZRQINIT */
 		case ZNAK:
 		case LSZ_TIMEOUT:
 			DEBUG(('Z',2,"ls_zrecvfinfo: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
@@ -158,7 +158,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			break;
 		case ZFIN:			/* ZFIN from previous session? Or may be real one? */
 			DEBUG(('Z',2,"ls_zrecvfinfo: ZFIN %d, first: %d",zfins,first));
-			if(!first || ++zfins == LSZ_TRUSTZFINS) return ZFIN;
+			if(first || ++zfins == LSZ_TRUSTZFINS) return ZFIN;
 			break;
 		case ZABORT:		/* Abort this session -- we trust in ABORT! */
 			DEBUG(('Z',2,"ls_zrecvfinfo: ABORT"));
