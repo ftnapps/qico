@@ -1,4 +1,4 @@
 #include "ver.h"
 
-char progname[]="qico";
-char version[]="@VERSION@";
+char progname[]="@PACKAGE_NAME@";
+char version[]="@PACKAGE_VERSION@";
