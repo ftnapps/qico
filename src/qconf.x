@@ -71,9 +71,10 @@ aftermail,C_STR,char *,0,NULL
 callonflavors,C_STR,char *,0,"NDCI"
 immonflavors,C_STR,char *,0,"CI"
 pollflavor,C_STR,char *,0,"N"
-zrxwin,C_INT,int,0,0
-ztxwin,C_INT,int,0,0
-hrxwin,C_INT,int,0,0
-htxwin,C_INT,int,0,0
-jrxwin,C_INT,int,0,0
-jtxwin,C_INT,int,0,0
+zrxwin,C_INT,int,0,"0"
+ztxwin,C_INT,int,0,"0"
+hrxwin,C_INT,int,0,"0"
+htxwin,C_INT,int,0,"0"
+jrxwin,C_INT,int,0,"0"
+jtxwin,C_INT,int,0,"0"
+standardemsi,C_YESNO,int,0,"yes"

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.10 2001/01/03 15:02:35 lev Exp $
+ * $Id: emsi.c,v 1.11 2001/01/08 17:30:02 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -354,10 +354,7 @@ int emsi_init(int mode)
 	if(mode) {
 		t1=t_set(HS_TIMEOUT);
 		PUTCHAR('\r');
-		do {
-/* 			PUTCHAR('\r');   */
-			ch=HASDATA(0);
-		} while (!ISTO(ch) && !t_exp(t1));
+		do { ch = HASDATA(t_rest(t1)); } while (!ISTO(ch) && !t_exp(t1));
 
 		if(NOTTO(ch)) return ch;
  		if(t_exp(t1)) return TIMEOUT;
@@ -396,6 +393,10 @@ int emsi_init(int mode)
 				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
 				PUTSTR(emsiinq);
 				PUTCHAR('\r');
+				if (cfgi(CFG_STANDARDEMSI)) {
+					PUTSTR(emsiinq);
+					PUTCHAR('\r');
+				}
 			}
 		}
 		return OK;

@@ -274,6 +274,9 @@ flags		Linux, anti-ifcico team
 #version         2000
 #osname          Windows95
 
+# Send **EMSI_INQC816 twice, as required by standard (FSC-0056.TXT).
+standardemsi yes
+
 # ZMH (better use Txy)
 zmh		Tcd
 
@@ -451,4 +454,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.10 2001/01/02 17:19:37 lev Exp $
+# $Id: qico.conf.sample,v 1.11 2001/01/08 17:30:02 lev Exp $
