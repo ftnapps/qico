@@ -2,7 +2,7 @@
  * File: qipc_server.c
  * Created at Wed Apr  4 23:53:12 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_server.c,v 1.4 2001/09/27 16:20:26 lev Exp $
+ * $Id: qipc_server.c,v 1.5 2002/03/16 15:59:38 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -280,8 +280,9 @@ static void evt_not_unpack(evtlam_t *evt)
 int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_in *sa)
 {
 	char *pwd;
-	char c;
+	char c1,c2;
 	DWORD dw1,dw2,dw3,dw4;
+	char *s;
 	txrxstate_t *txrx;
 
     /* First of all -- check PASSWORD */
@@ -390,11 +391,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c1)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
 		if(txrx->phase != TXRX_PHASE_BEGIN && txrx->phase != TXRX_PHASE_EOT) {
 			evt_out_of_sequence(evt);
 			return -1;
@@ -408,11 +409,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c1)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
 		if(txrx->phase != TXRX_PHASE_HSHAKE) {
 			evt_out_of_sequence(evt);
 			return -1;
@@ -425,11 +426,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c1)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
 		if(txrx->phase != TXRX_PHASE_LOOP) {
 			evt_out_of_sequence(evt);
 			return -1;
@@ -442,11 +443,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c1)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
 		if(txrx->phase != TXRX_PHASE_FINISH) {
 			evt_out_of_sequence(evt);
 			return -1;
@@ -459,11 +460,11 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(5!=unpack_ipc_packet(evt->data,evt.fulllength,"cdddd",&c,&dw1,&dw2,&dw3,&dw4)) {
+		if(5!=unpack_ipc_packet(evt->data,evt.fulllength,"cdddd",&c1,&dw1,&dw2,&dw3,&dw4)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
 		txrx->maxblock = dw1;
 		txrx->crcsize = dw2;
 		txrx->totalfiles = dw3;
@@ -475,34 +476,122 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 			evt_out_of_sequence(evt);
 			return -1;
 		}
-		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c)) {
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"c",&c1)) {
 			evt_not_unpack(evt);
 			return -1;
 		}
-		if(!(txrx = get_txrx_state(line,c))) return -1;
-		if(txrx->phase != TXRX_PHASE_LOOP) {
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP ||
+			txrx->filephase != TXRX_FILE_EOF) {
 			evt_out_of_sequence(evt);
 			return -1;
 		}
 		txrx->filephase = TXRX_FILE_HSHAKE;
+		txrx->filestarted = time(NULL);
 		break;
 	case EVTL2M_FILE_INFO:					/* Info about new file sended/received */
 											/* Signature: "csddd" -- DIRECTION,NAME,CRC,SIZE,TIME */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(5!=unpack_ipc_packet(evt->data,evt.fulllength,"csddd",&c1,&s,&dw1,&dw2,&dw3)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->file = s;
+		txrx->crcsize = dw1;
+		txrx->filesize = dw2;
+		if(txrx->totalpos+txrx->filesize>txrx->totalsize)
+			txrx->totalsize = txrx->totalpos+txrx->filesize;
 		break;
 	case EVTL2M_FILE_DATA:					/* FINFO Ok, start data exhcnage */
-											/* Signature: "cd" -- DIRECTION,SIZE  */
+											/* Signature: "cd" -- DIRECTION,POS */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(2!=unpack_ipc_packet(evt->data,evt.fulllength,"cd",&c1,&dw1)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP ||
+			txrx->filephase != TXRX_FILE_HSHAKE) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->filephase = TXRX_FILE_DATA;
+		txrx->totalpos += dw1;
+		txrx->filepos   = dw1;
 		break;
 	case EVTL2M_FILE_BLOCK:					/* Block sended/received */
-											/* Signature: "cd" -- DIRECTION,SIZE  */
+											/* Signature: "cdd" -- DIRECTION,POS,SIZE */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(3!=unpack_ipc_packet(evt->data,evt.fulllength,"cdd",&c1,&dw1,&dw2)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP ||
+			txrx->filephase != TXRX_FILE_DATA) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->totalpos -= txrx->filepos;
+		txrx->totalpos += dw1+dw2;
+		txrx->filepos  += dw1+dw2;
+		txrx->curblock  = dw2;
 		break;
 	case EVTL2M_FILE_REPOS:					/* Repos */
-											/* Signature: "cd" -- DIRECTION,POS  */
+											/* Signature: "cd" -- DIRECTION,POS */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(2!=unpack_ipc_packet(evt->data,evt.fulllength,"cd",&c1,&dw1)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP ||
+			txrx->filephase != TXRX_FILE_DATA) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->totalpos -= txrx->filepos;
+		txrx->totalpos += dw1;
+		txrx->filepos   = dw1;
 		break;
 	case EVTL2M_FILE_END:					/* End */
 											/* Signature: "cc" -- DIRECTION,REASON  */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		if(1!=unpack_ipc_packet(evt->data,evt.fulllength,"cc",&c1,&c2)) {
+			evt_not_unpack(evt);
+			return -1;
+		}
+		if(!(txrx = get_txrx_state(line,c1))) return -1;
+		if(txrx->phase != TXRX_PHASE_LOOP) {
+			evt_out_of_sequence(evt);
+			return -1;
+		}
+		txrx->filephase = TXRX_FILE_EOF;
+		txrx->lastfilestat = c2;
 		break;
 	case EVTL2M_CHAT_INIT:					/* Remote request for chat */
 											/* Signature: "" */
+		
 		break;
 	case EVTL2M_CHAT_LINE:					/* Chat string received */
 											/* Signature: "s" -- LINE */
