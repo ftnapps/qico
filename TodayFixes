@@ -1,11 +1,9 @@
-/* $Id: TodayFixes,v 1.41 2004/02/26 23:55:15 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.42 2004/03/03 15:12:53 sisoft Exp $ */
 ---
-remove compiler warnings under gcc3.
-fix segfault crash on some systems.
+fix expressions binkp and tcp.
 .
 previous:
 ---
-add short aliases for weekdays (su,mo,tu...).
-add aliases 'or','no[t]','xor','and' for same symbols (|!^&).
-add support for multiline breaking (line must end on " \").
+remove compiler warnings under gcc3.
+fix segfault crash on some systems.
 .
