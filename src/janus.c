@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.4 2000/11/01 10:29:24 lev Exp $
+ * $Id: janus.c,v 1.5 2000/11/10 12:37:21 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -24,7 +24,6 @@
 #include "globals.h"
 #include "ver.h"
 #include "defs.h"
-#include "zmodem.h"
 #include "qconf.h"
 
 /* #define J_DEBUG */
@@ -77,8 +76,6 @@ int janus()
 	rxbuf=calloc(txmaxblklen+8,1);
 
 	rxbufmax = rxbuf+BUFMAX+8;
-
-	zbuffer=malloc(ZBUFFER);
 	
 	l=&fl;getfname(l);
 	
@@ -437,7 +434,6 @@ int janus()
 	}
 	free(txbuf);
 	free(rxbuf);
-	free(zbuffer);
 	slist_kill(&reqs);
 	return rc;
 }
@@ -485,7 +481,7 @@ void sendpkt(byte *buf, int len, int type)
 	txbyte(crc>>8);
 	txbyte(crc&0xFF);
 
-	BUFFLUSH()
+	BUFFLUSH();
 }
 
 void sendpkt32(byte * buf, register int len, int type)
@@ -514,7 +510,7 @@ void sendpkt32(byte * buf, register int len, int type)
 	txbyte ((byte) ((crc32 >> 8) & 0xFF));
 	txbyte ((byte) (crc32 & 0xFF));
 
-	BUFFLUSH()
+	BUFFLUSH();
 }
 
 

@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.6 2000/11/01 10:29:25 lev Exp $
+ * $Id: tty.c,v 1.7 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,12 +32,17 @@ char *tty_port=NULL;
 int tty_hangedup=0;
 
 #define BUF_READ
+#define BUF_WRITE
 
 #ifdef BUF_READ
-#define MAXBUF       16384
-unsigned char buffer[MAXBUF];
-int bufpos=0, bufmax=0;
+#define IN_MAXBUF       16384
+unsigned char in_buffer[IN_MAXBUF];
+int in_bufpos=0, in_bufmax=0;
 #endif
+
+#define OUT_MAXBUF       16384
+unsigned char out_buffer[OUT_MAXBUF];
+int out_bufpos=0;
 
 void tty_sighup(int sig)
 {
@@ -398,20 +403,41 @@ int tty_get(char *buf, int size, int timeout)
 	return rc;
 }
 
+
+int tty_bufc(char ch)
+{
+	int rc = OK;
+	if(OUT_MAXBUF==out_bufpos) {
+		rc=tty_put(out_buffer,OUT_MAXBUF);
+		out_bufpos=0;
+	}
+	out_buffer[out_bufpos++]=ch;
+	return rc;
+}
+int tty_bufflush()
+{	int rc=tty_put(out_buffer,out_bufpos);
+	out_bufpos=0;
+	return rc;
+}
+
+void tty_bufclear() { out_bufpos = 0; }
+
+
 int tty_putc(char ch)
 {
 	return tty_put(&ch, 1);
 }
 
+
 #ifdef BUF_READ
 int tty_getc(int timeout)
 {
  	int rc;
- 	if(bufpos<bufmax) return buffer[bufpos++];
- 	rc=tty_get(buffer, MAXBUF, timeout);
+ 	if(in_bufpos<in_bufmax) return in_buffer[in_bufpos++];
+ 	rc=tty_get(in_buffer, IN_MAXBUF, timeout);
  	if(rc<0) return rc;
- 	bufpos=0;bufmax=rc;
- 	return buffer[bufpos++];
+ 	in_bufpos=0;in_bufmax=rc;
+ 	return in_buffer[in_bufpos++];
 }
 #else
 int tty_getc(int timeout)
@@ -431,7 +457,7 @@ int tty_hasdata(int sec, int usec)
 
 	if(tty_hangedup) return RCDO;
 #ifdef BUF_READ	
-  	if(bufpos<bufmax) return OK; 
+  	if(in_bufpos<in_bufmax) return OK; 
 #endif
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);

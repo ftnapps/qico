@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.6 2000/10/12 18:19:12 lev Exp $
+ * $Id: mailer.h,v 1.7 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -143,6 +143,9 @@ extern byte txlastc;
 #define CARRIER() (!tty_hangedup)
 #define PUTBLK(bl, size) tty_put(bl,size)
 #define CANCEL() tty_put(canistr, strlen(canistr))
+#define BUFCHAR(c) tty_bufc(c)
+#define BUFFLUSH() tty_bufflush()
+#define BUFCLEAR() tty_bufclear()
 
 extern void flexecute(flist_t *fl);
 extern void addflist(flist_t **fl, char *loc, char *rem, char kill,

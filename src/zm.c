@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.5 2000/11/01 10:29:25 lev Exp $
+ * $Id: zm.c,v 1.6 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -39,9 +39,6 @@ int deputch(int x)
 	return m_putc(x);
 }
 #endif
-
-char *zbuffer=NULL;
-int   zlength=0;
 
 #define Rxtimeout 10		/* Tenths of seconds to wait for something */
 
@@ -253,7 +250,7 @@ void zsda32(char *buf, int length, int frameend)
 	for (;--length >= 0; ++buf) {
 		c = *buf & 0377;
 		if (c & 0140)
-			BUFCHAR(lastsent = c)
+			BUFCHAR(lastsent = c);
 		else
 			zsendline(c);
 		crc = UPDC32(c, crc);
@@ -665,7 +662,7 @@ void zsendline(int c)
 
 	/* Quick check for non control characters */
 	if (c & 0140)
-		BUFCHAR(lastsent = c)
+		BUFCHAR(lastsent = c);
 	else {
 		switch (c &= 0377) {
 		case ZDLE:

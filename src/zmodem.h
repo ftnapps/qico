@@ -2,7 +2,7 @@
  * File: zmodem.h
  * Created at Fri Jul 16 17:24:54 1999 by pk // aaz@ruxy.org.ru
  * Manifest constants for ZMODEM
- * $Id: zmodem.h,v 1.3 2000/10/12 19:13:17 lev Exp $
+ * $Id: zmodem.h,v 1.4 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1993 Omen Technology Inc All Rights Reserved
@@ -173,7 +173,6 @@ extern void zsdar32(char *buf, int length, int frameend);
 extern int zrdatr32(register char *buf, int length);
 extern int zapok;
 
-
 #undef DSZ
 
 #define UPDC32(octet, crc) (crc32tab[((crc) ^ (octet)) & 0xff] ^ ((crc) >> 8))
@@ -181,14 +180,6 @@ extern int zapok;
 
 /* #define flushmo() { fflush(stdin);fflush(stdout); } */
 #define zperr sline
-
-#define ZBUFFER       16384
-extern char *zbuffer;
-extern int  zlength;
-
-#define BUFCLEAR()  zlength=0
-#define BUFFLUSH()  { PUTBLK(zbuffer, zlength);zlength=0; }
-#define BUFCHAR(c)  { if(zlength>=ZBUFFER) BUFFLUSH(); zbuffer[zlength++]=(c); }
 
 #endif
 /* End of zmodem.h */

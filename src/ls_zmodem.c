@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.5 2000/11/04 20:02:10 lev Exp $
+ * $Id: ls_zmodem.c,v 1.6 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 /*
 
@@ -17,7 +17,8 @@
 #include "qipc.h"
 
 /* Common variables */
-int ls_Hdr[LSZ_MAXHLEN];	/* Received or sended header */
+int ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
+int ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
 int ls_GotZDLE;				/* We seen DLE as last character */
 int ls_GotHexNibble;		/* We seen one hex digit as last character */
 int ls_Protocol;			/* Plain/ZedZap/DirZap */
@@ -26,11 +27,12 @@ int ls_Garbage;				/* Count of garbage characters */
 
 /* Variables to control sender */
 int ls_txWinSize;			/* Receiver Window/Buffer size (0 for streaming) */
-int ls_txCouldDuplex;		/* Receiver could fullduplex -- use ZCRCQ */
-int ls_txLastACK;			/* Last ACKed byte */
-int ls_txLastRepos;			/* Last requested byte */
+int ls_txCould;				/* Receiver could fullduplex/streamed IO */
 int ls_txCurBlockSize;		/* Current block size */
+int ls_txMaxBlockSize;		/* Maximal block size */
 int ls_txLastSent;			/* Last sent character -- for escaping */
+long ls_txLastACK;			/* Last ACKed byte */
+long ls_txLastRepos;		/* Last requested byte */
 
 /* Variables to control receiver */
 
@@ -46,9 +48,9 @@ char HEX_DIGITS[] = "0123456789abcdef";
 /* Functions */
 
 /* Send binary header. Use proper CRC, send var. len. if could */
-int zsendbhdr(int frametype, int len, char *hdr)
+int ls_zsendbhdr(int frametype, int len, char *hdr)
 {
-	int crc = LSZ_INIT_CRC;
+	long crc = LSZ_INIT_CRC;
 	int type;
 	int n;
 
@@ -86,9 +88,9 @@ int zsendbhdr(int frametype, int len, char *hdr)
 }
 
 /* Send HEX header. Use CRC16, send var. len. if could */
-int zsendhhdr(int frametype, int len, char *hdr)
+int ls_zsendhhdr(int frametype, int len, char *hdr)
 {
-	int crc = LSZ_INIT_CRC16;
+	long crc = LSZ_INIT_CRC16;
 	int n;
 
 	/* Send **<DLE> */
@@ -141,10 +143,10 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	} readmode = rm7BIT;
 
 	static int frametype = LSZ_ERROR;
-	static int crc = 0;
 	static int crcl = 2;
 	static int crcgot = 0;
-	static int incrc = 0;
+	static long incrc = 0;
+	static long crc = 0;
 	static int len = 0;
 	static int got = 0;
 	static int inhex = 0;
@@ -244,7 +246,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 /* Send data block, with CRC and framing */
 int ls_senddata(char *data, int len, int frame)
 {
-	int crc = LSZ_INIT_CRC;
+	long crc = LSZ_INIT_CRC;
 	int n;
 
 	for(; len--; data++) {
@@ -271,10 +273,10 @@ int ls_recvdata(char *data, int *len, int timeout, int crc32)
 	int c;
 	int t = time(NULL);
 	int crcl = crc32?4:2;
-	int incrc = crc32?LSZ_INIT_CRC32:LSZ_INIT_CRC16;
 	int crcgot = 0;
 	int got = 0;
-	int crc = 0;
+	long incrc = crc32?LSZ_INIT_CRC32:LSZ_INIT_CRC16;
+	long crc = 0;
 	int frametype = LSZ_ERROR;
 	int rcvdata = 1;
 	int res;
@@ -445,4 +447,24 @@ int ls_readcanned(int timeout)
 	if (CAN == c) { if (++ls_CANCount == 5) return LSZ_CAN; }
 	else { ls_CANCount = 0; }
 	return c & 0xFF;
+}
+
+/* Store long integer (4 bytes) in buffer, as it must be stored in header */
+void ls_storelong(char *buf, long l)
+{
+	l=LTOI(l);
+	buf[LSZ_P0] = (l)&0xFF;
+	buf[LSZ_P1] = (l>>8)&0xFF;
+	buf[LSZ_P2] = (l>>16)&0xFF;
+	buf[LSZ_P3] = (l>>24)&0xFF;
+}
+
+/* Fetch long integer (4 bytes) from buffer, as it must be stored in header */
+long ls_fetchlong(char *buf)
+{
+	long l = buf[LSZ_P3];
+	l<<=8; l|=buf[LSZ_P2];
+	l<<=8; l|=buf[LSZ_P1];
+	l<<=8; l|=buf[LSZ_P0];
+	return LTOH(l);
 }

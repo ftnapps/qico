@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.8 2000/11/01 10:43:21 lev Exp $
+ * $Id: protfm.c,v 1.9 2000/11/10 12:37:21 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,20 +18,20 @@
 #include "globals.h"
 
 /*  Common protocols' vars */
-FILE   *txfd=NULL,     *rxfd=NULL;  
-long    txpos,          rxpos;      
-word    txretries,      rxretries;   
-long    txwindow,       rxwindow;     
-word    txblklen,       rxblklen;   
-long    txsyncid,       rxsyncid;    
-byte   *txbuf,         *rxbuf;   
-dword   txoptions,      rxoptions;  
+FILE   *txfd=NULL,     *rxfd=NULL;
+long    txpos,          rxpos;
+word    txretries,      rxretries;
+long    txwindow,       rxwindow;
+word    txblklen,       rxblklen;
+long    txsyncid,       rxsyncid;
+byte   *txbuf,         *rxbuf;
+dword   txoptions,      rxoptions;
 unsigned effbaud=9600;
 byte    *rxbufptr;
 byte    txstate,        rxstate;
 byte    *rxbufmax;
-long    txstart,        rxstart;  
-word    txmaxblklen;    
+long    txstart,        rxstart;
+word    txmaxblklen;
 word    timeout;
 byte    txlastc;
 

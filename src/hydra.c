@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.7 2000/11/06 21:46:15 lev Exp $
+ * $Id: hydra.c,v 1.8 2000/11/10 12:37:21 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -24,7 +24,6 @@
 #include "qipc.h"
 #include "globals.h"
 #include "ver.h"
-#include "zmodem.h"
 #include "defs.h"
 
 

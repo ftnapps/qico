@@ -2,7 +2,7 @@
  * File: zrecv.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * receive zmodem, based on code by Chuck Forsberg
- * $Id: zrecv.c,v 1.5 2000/11/01 10:29:25 lev Exp $
+ * $Id: zrecv.c,v 1.6 2000/11/10 12:37:22 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/time.h>
@@ -374,7 +374,6 @@ int zmodem_receive(char *pathname)
 	int c;
 	HASDATA(10);
 	rxbuf=malloc(8193);
-	zbuffer=malloc(ZBUFFER);zlength=0;
 	if((c=tryz())) {
 		if (c == ZCOMPL) {
 			sfree(rxbuf);
@@ -384,6 +383,5 @@ int zmodem_receive(char *pathname)
 			c = rzfiles(pathname);
 	}
 	sfree(rxbuf);
-	sfree(zbuffer);
 	return c;
 }
