@@ -32,7 +32,9 @@
 
 #undef NEWZMODEM
 
-#undef HAVE_SYSLOG_NAMES
+#undef HAVE_SYSLOG_FAC_NAMES
+
+#undef HAVE_SYSLOG_PRI_NAMES
 
 #undef NEED_DEBUG
 
