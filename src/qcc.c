@@ -2,13 +2,14 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.15 2001/05/11 07:31:28 lev Exp $
+ * $Id: qcc.c,v 1.16 2001/06/09 21:15:47 aaz Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/ipc.h>
