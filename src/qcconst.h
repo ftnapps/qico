@@ -2,7 +2,7 @@
  * File: qcconst.h
  * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.h,v 1.9 2001/01/18 18:55:12 lev Exp $
+ * $Id: qcconst.h,v 1.10 2001/03/11 20:15:27 lev Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -21,19 +21,20 @@ typedef struct {
 
 #define MSG_BUFFER 2048
 
-#define Q_CHARS		"NHDCIUdrxw"
-#define Q_COLORS	{7,3,1,2,2,4,7,6,6,6}
+#define Q_CHARS		"NHDCIRUdrxw"
+#define Q_COLORS	{7,3,1,2,2,7,4,7,6,6,6}
 #define Q_NORM		0x0000001
 #define Q_HOLD		0x0000002
 #define Q_DIR		0x0000004
 #define Q_CRASH		0x0000008
 #define Q_IMM		0x0000010
-#define Q_UNDIAL 	0x0000020
-#define Q_DIAL		0x0000040
-#define Q_WAITR		0x0000080
-#define Q_WAITX		0x0000100
-#define Q_WAITA		0x0000200
-#define Q_MAXBIT	10
+#define Q_REQ		0x0000020
+#define Q_UNDIAL 	0x0000040
+#define Q_DIAL		0x0000080
+#define Q_WAITR		0x0000100
+#define Q_WAITX		0x0000200
+#define Q_WAITA		0x0000400
+#define Q_MAXBIT	11
 #define Q_ANYWAIT	(Q_WAITR|Q_WAITX|Q_WAITA)
 
 #define QC_MSGQ  'C'

@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.23 2001/02/16 14:45:56 aaz Exp $
+ * $Id: ftn.c,v 1.24 2001/03/11 20:15:27 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -609,11 +609,11 @@ int isdos83name(char *fn)
 
 int havestatus(int status, int cfgkey)
 {
-	static int stc[]={Q_NORM,Q_HOLD,Q_DIR,Q_CRASH,Q_IMM};
+	static int stc[]={Q_NORM,Q_HOLD,Q_DIR,Q_CRASH,Q_IMM,Q_REQ};
 	static char stl[]=Q_CHARS;
 	int i;
 	char *callon=cfgs(cfgkey);
-	for(i=0;i<5;i++) if((status & stc[i]) && (strchr(callon,stl[i]))) return 1;
+	for(i=0;i<F_MAX;i++) if((status & stc[i]) && (strchr(callon,stl[i]))) return 1;
 	return 0;
 }
 
