@@ -2,7 +2,7 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.7 2001/09/27 16:20:26 lev Exp $
+ * $Id: qipcng.h,v 1.8 2002/03/16 15:59:38 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
@@ -36,12 +36,16 @@ typedef struct _TRANSFERSTATE {
 #define TXRX_PHASE_HSHAKE	'h'		/* Handhaske in progress */
 #define TXRX_PHASE_LOOP		'l'		/* File loop */
 #define TXRX_PHASE_FINISH	'f'		/* Finishing */
-#define TXRX_PHASE_EOB		'-'		/* Batch was finished or not started yet */
+#define TXRX_PHASE_EOB		'\x00'	/* Batch was finished or not started yet */
 	CHAR filephase;			/* Phase of LOOP */
 #define TXRX_FILE_HSHAKE	'h'		/* File handshake in progress */
 #define TXRX_FILE_DATA		'd'		/* Data sending/receiving */
-#define TXRX_FILE_FINISH	'f'		/* End-of-file process */
-#define TXRX_FILE_EOF		'-'		/* No files in processing */
+#define TXRX_FILE_EOF		'\x00'	/* No files in processing */
+	CHAR lastfilestat;		/* Last file status */
+#define TXRX_FILESTAT_OK			'o'		/* Ok */
+#define TXRX_FILESTAT_SKIPPED		's'		/* Skipped */
+#define TXRX_FILESTAT_REFUSED		'r'		/* Refuse */
+#define TXRX_FILESTAT_ERROR			'e'		/* Error */
 	UINT32 maxblock;		/* Maximum block size */
 	UINT32 curblock;		/* Current block size */
 	UINT32 crcsize;			/* Size of CRC control sum in bits */
@@ -60,7 +64,7 @@ typedef struct _TRANSFERSTATE {
 typedef struct _LINESTATE {
 	struct _LINESTATE *next;
 	CHAR phase;				/* Phase of session */
-#define SESS_PHASE_NOPROC		'n'
+#define SESS_PHASE_NOPROC		'\x00'
 #define SESS_PHASE_BEGIN		'b'
 #define SESS_PHASE_CONNECT		'c'
 #define SESS_PHASE_HSHAKEOUT	'o'
@@ -78,8 +82,9 @@ typedef struct _LINESTATE {
 	CHAR *connect;
 	CHAR *cid;
 	CHAR *log_buffer[LOG_BUFFER_SIZE];
+	CHAR *chat_buffer[LOG_BUFFER_SIZE];
 	/* Internal variables */
-	int log_head,log_tail;
+	int log_head,log_tail,chat_head,chat_tail;
 	pid_t pid;
 	struct sockaddr_in from;
 	time_t lastevent;
@@ -152,12 +157,10 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 #define EVTL2M_FILE_DATA		0x43	/* Info was ACKed and we wait for data exchange */
 /* Signature: "c" -- DIRECTION  */
 #define EVTL2M_FILE_BLOCK		0x44	/* Block sended/received */
-/* Signature: "cd" -- DIRECTION,SIZE  */
+/* Signature: "cdd" -- DIRECTION,POS,SIZE  */
 #define EVTL2M_FILE_REPOS		0x45	/* Repos */
 /* Signature: "cd" -- DIRECTION,POS  */
-#define EVTL2M_FILE_END			0x46	/* Data got, start to finish file */
-/* Signature: "c" -- DIRECTION */
-#define EVTL2M_FILE_ENDED		0x47	/* File finished */
+#define EVTL2M_FILE_END			0x46	/* File finished */
 /* Signature: "cc" -- DIRECTION,REASON  */
 
 
