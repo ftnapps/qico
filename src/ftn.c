@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.32 2001/05/22 19:49:06 lev Exp $
+ * $Id: ftn.c,v 1.33 2001/05/29 19:13:33 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -422,7 +422,7 @@ void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
 	fprintf(f,"--- %s\r * Origin: %s (%s)\r,%c%c%c", tear, orig, ftnaddrtoa(fa), 0, 0, 0);
 }
 
-#ifndef HAVE_LIBUTIL
+#ifndef HAVE_SETPROCTITLE
 /*
  * clobber argv so ps will show what we're doing.
  * (stolen from BSD ftpd where it was stolen from sendmail)
