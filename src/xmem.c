@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.4 2001/03/20 15:00:16 lev Exp $
+ * $Id: xmem.c,v 1.5 2001/03/20 16:09:33 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -66,7 +66,7 @@ char *xstrcat(char *dst, char *src, size_t size)
 	if(size) {
 		d = dst;
 		n = size - 1;
-		while(n-- && *d) *d++;
+		while(n-- && *d) d++;
 		n++;
 		if(n) while(n-- && *src) *d++ = *src++;
 		n++;
