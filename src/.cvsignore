@@ -2,8 +2,12 @@
 *.core
 qico
 qcc
+qctl
 qconf.h
 qconf.c
 flagexp.c
 flaglex.c
 ver.c
+ver.h
+Makefile
+
