@@ -66,15 +66,9 @@ fi
 AC_MSG_RESULT($with_config)
 
 dnl ZModem
-AC_MSG_CHECKING([for zmodem implemetation])
-AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=yes)
-if test x$with_new_zmodem != xno; then
-	AC_MSG_RESULT(new ZModem)
-	AC_DEFINE(NEWZMODEM)
-	NEWZMODEM=1
-else 
-	AC_MSG_RESULT(original ZModem)
-	NEWZMODEM=0  
+AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=NOTSET)
+if test x$with_new_zmodem != xNOTSET; then
+	AC_MSG_RESULT(new ZModem IN ANY case! WARNING! old ZModem was eliminated!)
 fi
 
 
@@ -216,6 +210,5 @@ AC_SUBST(SHELL)
 AC_SUBST(TM_HAVE_GMTOFF)
 AC_SUBST(LOCKSTYLE_OPEN)
 AC_SUBST(QIPC_KEY)
-AC_SUBST(NEWZMODEM)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec, [echo timestamp > stamp-h])

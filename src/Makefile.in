@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.14 2001/03/20 19:51:00 lev Exp $
+# $Id: Makefile.in,v 1.15 2001/04/03 20:27:21 lev Exp $
 #
 
 prefix  = @prefix@
@@ -17,8 +17,6 @@ QCC     = @QCC@
 
 LIBOBJS= @LIBOBJS@
 
-NEWZMODEM = @NEWZMODEM@
-
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
@@ -33,7 +31,8 @@ QCLIBS  = @QCCLIBS@
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o session.o call.o qnlc.o qipc.o tcp.o \
           hydra.o flagexp.o execsh.o protfm.o janus.o freq.o gmtoff.o \
-          xmem.o xstr.o $(LIBOBJS)
+          xmem.o xstr.o ls_zmodem.o ls_zglue.o ls_zreceive.o ls_zsend.o \
+          $(LIBOBJS)
 
 
 QCCOBJS	= qcc.o ver.o
@@ -43,15 +42,8 @@ LIBSRCS=$(LIBOBJS:.o=.c)
 
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c session.c call.c qnlc.c qipc.c tcp.c \
-          hydra.c execsh.c protfm.c janus.c freq.c gmtoff.c xmem.c $(LIBSRCS)
-
-ifeq (1,$(NEWZMODEM))
-OBJS    += ls_zmodem.o ls_zglue.o ls_zreceive.o ls_zsend.o
-SRCS    += ls_zmodem.c ls_zglue.c ls_zreceive.c ls_zsend.c
-else
-OBJS    += zm.o zmr.o zrecv.o zsend.o
-SRCS    += zm.c zmr.c zrecv.c zsend.c
-endif
+          hydra.c execsh.c protfm.c janus.c freq.c gmtoff.c xmem.c \
+          ls_zmodem.c ls_zglue.c ls_zreceive.c ls_zsend.c $(LIBSRCS)
 
 AUTOH = qconf.h 
 AUTOC = qconf.c flagexp.c flaglex.c
