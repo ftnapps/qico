@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.2 2000/10/07 14:27:26 lev Exp $
+ * $Id: freq.c,v 1.3 2000/10/07 14:37:39 lev Exp $
  ***************************************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -69,7 +69,7 @@ int freq_ifextrp(slist_t *reqs)
 #ifdef S_DEBUG
 		log("sending '%s' as '%s'", s, p);
 #endif
-		addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL, 0);
+		addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL);
 		got=1;
 	}
 	fclose(f);lunlink(fn);
@@ -97,7 +97,7 @@ int freq_ifextrp(slist_t *reqs)
 		closepkt(g, ma, s, cfgs(CFG_STATION));
 		sprintf(s,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);p=strdup(s);
 		sprintf(s,"%08lx.pkt", sequencer());
-		addflist(&fl, p, strdup(s), '^',0,NULL, 0);
+		addflist(&fl, p, strdup(s), '^',0,NULL);
 		freq_pktcount++;
 	}
 	sprintf(fn,"/tmp/qrep.%04x",getpid());
