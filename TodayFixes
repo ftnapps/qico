@@ -1,9 +1,8 @@
-/* $Id: TodayFixes,v 1.45 2004/03/08 22:02:42 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.46 2004/03/08 22:41:10 sisoft Exp $ */
 ---
-stable version 0.52 forking. current=0.53.
+0.53si-cvs.
 .
 previous:
 ---
-improve BP_VER message parsing.
-increase binkp temp buffer (for support lots akas).
+stable version 0.52 forking. current=0.53.
 .

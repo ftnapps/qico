@@ -1,3 +1,15 @@
+qico (0.53si-1) stable; urgency=low
+
+  * new upstream release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Mon,  8 Mar 2004 22:27:54 +0300
+
+qico (0.52si-1) stable; urgency=low
+
+  * new upstream release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Mon,  8 Mar 2004 22:20:14 +0300
+
 qico (0.51si-1) unstable; urgency=low
 
   * See Changes and ChangeLog.
