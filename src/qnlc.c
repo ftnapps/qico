@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.3 2000/11/01 10:29:24 lev Exp $
+ * $Id: qnlc.c,v 1.4 2000/11/06 08:56:54 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 int nl_ext(char *s)
 {
 	char *p, *q;
-	p=strchr(s, ',');
+	if(!(p=strchr(s, ','))) return -1;
 	q=strchr(p+1, ',');
 	if(q) *q=0;
 	if(!p) return -1;else return atoi(p+1);
@@ -30,7 +30,7 @@ int compile_nodelists()
 	char fn[MAX_PATH], *p, s[MAX_STRING];
 	FILE *idx, *f;
 	DIR *d;struct dirent *de;
-	int num, max, i=0, gp=0, rc, k, total=0;
+	int num, max, i=0, gp=0, rc, k, total=0, line=0;
 	idxh_t idxh;
 	idxent_t ie;
 	unsigned long pos;
@@ -95,9 +95,10 @@ int compile_nodelists()
 		if(!f) 
 			write_log("can't open %s for reading!", fn);
 		else {
-			k=0;pos=0;
+			k=0;pos=0;line=0;
 			while(1) {
 				pos=ftell(f);
+				line++;
 				if(!fgets(s, MAX_STRING, f)) break;
 				if(s[0]==';' || s[0]=='\r' || s[0]=='\n' ||
 				   s[0]==0x1a || !s[0]) continue;
@@ -120,6 +121,12 @@ int compile_nodelists()
 				} else if(!gp && strncmp(s, "Down,", 5)) {
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
 				}					
+				if(ie.addr.z < 0 || ie.addr.n < 0 || ie.addr.f < 0 || ie.addr.p < 0) {
+					log("can not parse address in %s at line %d!",basename(fn),line);
+					fclose(idx);
+					sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+					return 0;
+				}
 				ie.offset=pos;ie.index=i;
 				k++;
 				if(fwrite(&ie, sizeof(ie), 1, idx)!=1) {
