@@ -1,3 +1,10 @@
+2004-03-09 01:02  sisoft
+
+	* configure.in, src/basename.c, src/malloc.c, src/memcmp.c,
+	src/strcspn.c, src/strsep.c, src/usleep.c:
+
+	stable version 0.52 forking. current=0.53.
+	
 2004-03-06 17:53  sisoft
 
 	* Changes, qico.conf.sample, src/binkp.c, src/binkp.h,
