@@ -2,9 +2,23 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.9 2001/03/20 19:53:15 lev Exp $
+ * $Id: qnlc.c,v 1.10 2001/04/13 17:47:18 lev Exp $
  **********************************************************/
 #include "headers.h"
+
+static int compare_idxent(const void *a, const void *b)
+{
+	ftnaddr_t *aa = &(((idxent_t *)a)->addr);
+	ftnaddr_t *bb = &(((idxent_t *)b)->addr);
+	int res;
+	if((res = aa->z - bb->z)) return res;
+	if((res = aa->n - bb->n)) return res;
+	if((res = aa->f - bb->f)) return res;
+	if((res = aa->p - bb->p)) return res;
+	if((res = ((idxent_t *)a)->index - ((idxent_t *)b)->index)) return res;
+	return 0;
+}
+
 
 int nl_ext(char *s)
 {
@@ -22,8 +36,10 @@ int compile_nodelists()
 	FILE *idx, *f;
 	DIR *d;struct dirent *de;
 	int num, max, i=0, gp=0, rc, k, total=0, line=0;
+	int firsteq, lasteq, deleted;
 	idxh_t idxh;
-	idxent_t ie;
+	idxent_t ie, *ies = NULL;
+	int alloc = 0;
 	unsigned long pos;
 	struct stat sb;
 
@@ -119,26 +135,53 @@ int compile_nodelists()
 					return 0;
 				}
 				ie.offset=pos;ie.index=i;
-				k++;
-				if(fwrite(&ie, sizeof(ie), 1, idx)!=1) {
-					write_log("can't write to index!");
-					fclose(idx);
-					snprintf(fn, MAX_PATH, "%s/%s.lock", ccs, NL_IDX);unlink(fn);
-					return 0;
+ 				if(total >= alloc) {
+ 					alloc += 8192/sizeof(ie);
+ 					ies = ies?xrealloc(ies,sizeof(ie)*alloc):xmalloc(sizeof(ie)*alloc);
 				}
+ 				ies[total++] = ie;
+ 				k++;
 			}
-			fclose(f);total+=k;
+ 			fclose(f);
 			printf("compiled %s: %d nodes\n", basename(fn), k);
-			i++;if(i>MAX_NODELIST) {
+			i++;
+			if(i>MAX_NODELIST) {
 				write_log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");
 				break;
 			}
 		}
 	}
+	if(total) {
+		qsort(ies, total, sizeof(ie), compare_idxent);
+		/* Delete duplicates */
+		k=deleted=0;firsteq=lasteq=-1;
+		while(k<total-1) {
+			if(!memcmp(&ies[k].addr,&ies[k+1].addr,sizeof(ies->addr))) {
+				if(firsteq<0) firsteq=k;
+				lasteq=k+1;
+				k++;
+			} else if(firsteq>=0) {
+				memcpy(&ies[firsteq+1],&ies[lasteq+1],sizeof(*ies)*(total-lasteq-1));
+				firsteq=lasteq=-1;
+				deleted++;
+				total--;
+			} else {
+				k++;
+			}
+		}
+		printf("delete %d duplicate records\n",deleted);
+		if(fwrite(ies, sizeof(*ies), total, idx)!=total) {
+			xfree(ies);
+			write_log("can't write to index!");
+			fclose(idx);
+			sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
+			return 0;
+		}
+		xfree(ies);
+	}
 	printf("total %d lists, %d nodes\n", i, total);
 	fseek(idx, 0, SEEK_SET);
-	if(fwrite(&idxh, sizeof(idxh), 1, idx)!=1) 
-		write_log("can't write to index!");
+	if(fwrite(&idxh, sizeof(idxh), 1, idx)!=1) write_log("can't write to index!");
 	fclose(idx);
 	snprintf(fn, MAX_PATH, "%s/%s.lock", ccs, NL_IDX);unlink(fn);
 	return 1;

@@ -2,24 +2,35 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.13 2001/03/20 19:53:15 lev Exp $
+ * $Id: nodelist.c,v 1.14 2001/04/13 17:47:18 lev Exp $
  **********************************************************/
 #include "headers.h"
 
-#define NL_RECS 1000
-
 char *NL_IDX="/qnode.idx";
 char *NL_SIGN="qico nodelist index";
+
+static int compare_ftnaddr(const void *a, const void *b)
+{
+	const ftnaddr_t *aa = (const ftnaddr_t *)a;
+	const ftnaddr_t *bb = (const ftnaddr_t *)b;
+	int res;
+	if((res = aa->z - bb->z)) return res;
+	if((res = aa->n - bb->n)) return res;
+	if((res = aa->f - bb->f)) return res;
+	if((res = aa->p - bb->p)) return res;
+	return 0;
+}
 
 int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 {
 	ninfo_t *nlent=xmalloc(sizeof(ninfo_t));
 	FILE *idx;
 	idxh_t ih;
-	idxent_t ie[NL_RECS];
+	idxent_t ie;
 	char nlp[MAX_PATH], str[MAX_STRING], *p, *t;
-	int rc,i;
+	int rc;
 	struct stat sb;
+	int l, r;
 
 	*nl=NULL;
 	memset(nlent, 0, sizeof(ninfo_t));
@@ -29,28 +40,54 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	idx=fopen(nlp, "rb");
 	if(!idx) { xfree(nlent);return 1; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
+		fclose(idx);
 		xfree(nlent);return 1;
 	}
 	if(strcmp(ih.sign, NL_SIGN)) {
+		fclose(idx);
 		xfree(nlent);return 1;
 	}
-	do {
-		rc=fread(&ie, sizeof(idxent_t), NL_RECS, idx);
-		for(i=0;i<rc;i++) if(ADDRCMP(ie[i].addr, (*addr))) break;
-	} while(rc>=NL_RECS && i==rc);
+	if(fstat(fileno(idx),&sb)) {
+		fclose(idx);
+		xfree(nlent);return 1;
+	}
+	l = 0;
+	r = (sb.st_size-sizeof(idxh_t))/sizeof(idxent_t);
+	rc = -1;
+	while(l < r) {
+		int m;
+		m = (l+r)/2;
+		if(fseek(idx, sizeof(idxh_t)+m*sizeof(idxent_t), SEEK_SET)) {
+			fclose(idx);
+			xfree(nlent);return 1;
+		}
+		if(fread(&ie, sizeof(ie), 1, idx) != 1) {
+			fclose(idx);
+			xfree(nlent);return 1;
+		}
+		rc = compare_ftnaddr(addr, &ie.addr);
+		if(rc < 0)
+			r = m;
+		else if(rc > 0)
+			l = m+1;
+		else
+			break;
+	}
 	fclose(idx);
-	if(i==rc) { xfree(nlent);return 0; }
+	if(rc != 0) {
+		xfree(nlent);return 0;
+	}
 	xstrcpy(nlp, nlpath, MAX_PATH);xstrcat(nlp, "/", MAX_PATH);
-	xstrcat(nlp, ih.nlname[ie[i].index], MAX_PATH);
+	xstrcat(nlp, ih.nlname[ie.index], MAX_PATH);
 	if(stat(nlp,&sb)) {
 		xfree(nlent);return 2;
 	} else
-		if(sb.st_mtime!=ih.nltime[ie[i].index]) {
+		if(sb.st_mtime!=ih.nltime[ie.index]) {
 			xfree(nlent);return 3;
 		}
 	idx=fopen(nlp, "rt");
 	if(!idx) { xfree(nlent);return 2; }
-	fseek(idx, ie[i].offset, SEEK_SET);
+	fseek(idx, ie.offset, SEEK_SET);
 	if(!fgets(str, MAX_STRING, idx)) {
 		xfree(nlent);return 2;
 	}
@@ -97,6 +134,8 @@ int is_listed(ftnaddr_t *addr, char *nlpath)
 	idxent_t ie;
 	int rc;
 	char nlp[MAX_PATH];
+	struct stat sb;
+	int l, r;
 
 	xstrcpy(nlp, nlpath, MAX_PATH);
 	xstrcat(nlp, NL_IDX, MAX_PATH);
@@ -107,10 +146,34 @@ int is_listed(ftnaddr_t *addr, char *nlpath)
 	}
 	if(strcmp(ih.sign, NL_SIGN)) 
 		return 0;
-	do rc=fread(&ie, sizeof(idxent_t), 1, idx);
-	while(!ADDRCMP(ie.addr, (*addr)) && rc==1);
+	if(fstat(fileno(idx),&sb)) {
+		fclose(idx);
+		return 0;
+	}
+	l = 0;
+	r = (sb.st_size-sizeof(idxh_t))/sizeof(idxent_t);
+	rc = -1;
+	while(l < r) {
+		int m;
+		m = (l+r)/2;
+		if(fseek(idx, sizeof(idxh_t)+m*sizeof(idxent_t), SEEK_SET)) {
+			fclose(idx);
+			return 0;
+		}
+		if(fread(&ie, sizeof(ie), 1, idx) != 1) {
+			fclose(idx);
+			return 0;
+		}
+		rc = compare_ftnaddr(addr, &ie.addr);
+		if(rc < 0)
+			r = m;
+		else if(rc > 0)
+			l = m+1;
+		else
+			break;
+	}
 	fclose(idx);
-	return rc;
+	return rc == 0;
 }
 
 void phonetrans(char **pph, slist_t *phtr)
