@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.26 2001/03/20 19:53:13 lev Exp $
+ * $Id: emsi.c,v 1.27 2001/03/23 20:46:55 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -401,6 +401,7 @@ int emsi_init(int mode)
 				tries++;
 				if(tries > 10) return TIMEOUT;
 				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
+				DEBUG(('E',1,"Sending EMSI_INQ (Try %d of %d)...",tries,10));
 				PUTSTR(emsiinq);
 				PUTCHAR('\r');
 				if (cfgi(CFG_STANDARDEMSI)) {
@@ -413,10 +414,10 @@ int emsi_init(int mode)
 	}
 	t1=t_set(HS_TIMEOUT);
 	sline("Sending EMSI_REQ...");
-	DEBUG(('Z',1,"Sending EMSI_REQ"));
+	DEBUG(('E',1,"Sending EMSI_REQ"));
 	PUTSTR(emsireq);PUTCHAR('\r');
 	sline("Waiting for EMSI_INQ...");
-	DEBUG(('Z',1,"Waiting for EMSI_INQ"));
+	DEBUG(('E',1,"Waiting for EMSI_INQ"));
 	ch=tty_expect(emsiinq, HS_TIMEOUT);
 	return ch;
 }
