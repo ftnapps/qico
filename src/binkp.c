@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.7 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: binkp.c,v 1.8 2003/09/23 21:48:08 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -128,7 +128,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	time_t ti,t1,ftime;
 	totaln=0;totalf=0;totalm=0;got_req=0;
 	bp_supp=0;rxstate=1;was_req=0;bp_crypt=0;
-	for(p=cfgs(CFG_BINKPOPT);p;p++)switch(tolower(*p)) {
+	for(p=cfgs(CFG_BINKPOPT);*p;p++)switch(tolower(*p)) {
 	    case 'm': bp_supp|=BP_OPT_MD5; break;
 	    case 'c': bp_supp|=BP_OPT_CRYPT; break;
 	    case 'r': bp_supp|=BP_OPT_NR; break;
