@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.14 2001/01/21 18:22:26 lev Exp $
+ * $Id: emsi.c,v 1.15 2001/01/21 20:51:29 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -46,7 +46,11 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	if(showpwd) {
 		p=findpwd(remaddr);if(p) strcat(dat, p);
 	}
-	strcat(dat, "}{8N1,RH1");
+	strcat(dat, "}{8N1");
+	if(strchr(protos,'H')
+		|| strchr(protos,'h')
+		|| strchr(protos,'8')
+		|| strchr(protos,'6')) strcat(dat,",RH1");
 	if(lopt&O_PUA) strcat(dat,",PUA");
 	if(lopt&O_PUP) strcat(dat,",PUP");
 	if(lopt&O_HRQ) strcat(dat,",HRQ");
