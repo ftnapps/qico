@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.47 2001/03/25 20:30:13 lev Exp $
+ * $Id: main.c,v 1.48 2001/04/03 15:38:01 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -202,8 +202,6 @@ void daemon_mode()
 			write_log("can't spawn daemon!");
 			exit(1);
 		}
-		to_dev_null();
-		setsid();
 	}
 
 	signal(SIGINT, sigerr);	
@@ -237,6 +235,10 @@ void daemon_mode()
 		write_log("can't open master log %s!", ccs);
 		exit(1);
 	}
+	/* we could detach from terminal -- log system is Ok */
+	to_dev_null();
+	setsid();
+	/* No terninal below this line */
 	write_log("%s-%s/%s daemon started",progname,version,osname);
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	srand(time(NULL));
