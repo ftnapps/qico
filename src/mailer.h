@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.8 2001/01/08 19:37:06 lev Exp $
+ * $Id: mailer.h,v 1.9 2001/02/08 19:25:19 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -138,10 +138,12 @@ extern word timeout;
 extern byte txlastc;
 
 #define GETCHAR(t) tty_getc(t)
+#define GETCHART(t) tty_getc_timed(t)
 #define PUTCHAR(c) tty_putc(c)
 #define PUTSTR(s) tty_put(s, strlen(s))
 #define HASDATA(t) tty_hasdata(t,0)
 #define UHASDATA(t) tty_hasdata(0,t)
+#define HASDATAT(t) tty_hasdata_timed(t)
 #define PURGE() tty_purge()
 #define PURGEOUT() tty_purgeout()
 #define PURGEALL() {tty_purge();tty_purgeout();}
