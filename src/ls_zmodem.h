@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.5 2000/11/10 12:37:21 lev Exp $
+ * $Id: ls_zmodem.h,v 1.6 2000/11/13 21:21:03 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -127,13 +127,30 @@
 #define LTOH(x) (x)
 #define STOH(x) (x)
 
+/* Variables */
+extern char ls_txHdr[];			/* Sended header */
+extern char ls_rxHdr[];			/* Receiver header */
+extern int ls_GotZDLE;			/* We seen DLE as last character */
+extern int ls_GotHexNibble;		/* We seen one hex digit as last character */
+extern int ls_Protocol;			/* Plain/ZedZap/DirZap */
+extern int ls_CANCount;			/* Count of CANs to go */
+extern int ls_Garbage;			/* Count of garbage characters */
+extern int ls_txWinSize;		/* Receiver Window/Buffer size (0 for streaming) */
+extern int ls_rxCould;			/* Receiver could fullduplex/streamed IO */
+extern int ls_txCurBlockSize;	/* Current block size */
+extern int ls_txMaxBlockSize;	/* Maximal block size */
+extern int ls_txLastSent;		/* Last sent character -- for escaping */
+extern long ls_txLastACK;		/* Last ACKed byte */
+extern long ls_txLastRepos;		/* Last requested byte */
+
+
 /* Functions */
 int ls_zsendbhdr(int frametype, int len, char *hdr);
 int ls_zsendhhdr(int frametype, int len, char *hdr);
 int ls_zrecvhdr(char *hdr, int *hlen, int timeout);
 
-int ls_senddata(char *data, int len, int frame);
-int ls_recvdata(char *data, int *len, int timeout, int crc32);
+int ls_zsenddata(char *data, int len, int frame);
+int ls_zrecvdata(char *data, int *len, int timeout, int crc32);
 
 void ls_sendchar(int c);
 void ls_sendhex(int i);

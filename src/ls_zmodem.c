@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.6 2000/11/10 12:37:21 lev Exp $
+ * $Id: ls_zmodem.c,v 1.7 2000/11/13 21:21:03 lev Exp $
  **********************************************************/
 /*
 
@@ -17,8 +17,8 @@
 #include "qipc.h"
 
 /* Common variables */
-int ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
-int ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
+char ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
+char ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
 int ls_GotZDLE;				/* We seen DLE as last character */
 int ls_GotHexNibble;		/* We seen one hex digit as last character */
 int ls_Protocol;			/* Plain/ZedZap/DirZap */
@@ -27,7 +27,7 @@ int ls_Garbage;				/* Count of garbage characters */
 
 /* Variables to control sender */
 int ls_txWinSize;			/* Receiver Window/Buffer size (0 for streaming) */
-int ls_txCould;				/* Receiver could fullduplex/streamed IO */
+int ls_rxCould;				/* Receiver could fullduplex/streamed IO */
 int ls_txCurBlockSize;		/* Current block size */
 int ls_txMaxBlockSize;		/* Maximal block size */
 int ls_txLastSent;			/* Last sent character -- for escaping */
@@ -35,6 +35,33 @@ long ls_txLastACK;			/* Last ACKed byte */
 long ls_txLastRepos;		/* Last requested byte */
 
 /* Variables to control receiver */
+
+
+/* String names of frames, if debug only */
+#ifdef Z_DEBUG
+char *LSZ_FRAMETYPES[] = {
+	"ZRQINIT",
+	"ZRINIT",
+	"ZSINIT",
+	"ZACK",
+	"ZFILE",
+	"ZSKIP",
+	"ZNAK",
+	"ZABORT",
+	"ZFIN",
+	"ZRPOS",
+	"ZDATA",
+	"ZEOF",
+	"ZFERR",
+	"ZCRC",
+	"ZCHALLENGE",
+	"ZCOMPL",
+	"ZCAN",
+	"ZFREECNT",
+	"ZCOMMAND",
+	"ZSTDERR"
+};
+#endif
 
 
 /* Special table to FAST calculate header type */
@@ -56,12 +83,15 @@ int ls_zsendbhdr(int frametype, int len, char *hdr)
 
 	/* First, calculate packet header byte */
 	if ((type = HEADER_TYPE[(ls_Protocol & LSZ_OPTCRC32)==LSZ_OPTCRC32][(ls_Protocol & LSZ_OPTVHDR)==LSZ_OPTVHDR][(ls_Protocol & LSZ_OPTRLE)==LSZ_OPTRLE]) < 0) {
-		log("zmodem: invalid options set, %s, %s, %s",
-			(ls_Protocol & LSZ_OPTCRC32)?"crc32":"crc16",
-			(ls_Protocol & LSZ_OPTVHDR)?"varh":"fixh",
-			(ls_Protocol & LSZ_OPTRLE)?"RLE":"Plain");
+		write_log("zmodem: invalid options set, %s, %s, %s",
+				(ls_Protocol & LSZ_OPTCRC32)?"crc32":"crc16",
+				(ls_Protocol & LSZ_OPTVHDR)?"varh":"fixh",
+				(ls_Protocol & LSZ_OPTRLE)?"RLE":"Plain");
 		return ERROR;
 	}
+#ifdef Z_DEBUG
+	write_log("lszsendbhdr: %c, %s, len: %d",type,LSZ_FRAMETYPES[frametype]);
+#endif
 
 	/* Send *<DLE> and packet type */
 	BUFCHAR(ZPAD);BUFCHAR(ZDLE);BUFCHAR(type);
@@ -71,7 +101,7 @@ int ls_zsendbhdr(int frametype, int len, char *hdr)
 	crc = LSZ_UPDATE_CRC(frametype,crc);
 	/* Send whole header */
 	for (n=len; --n >= 0; ++hdr) {
-		ls_senzdle(*hdr);
+		ls_sendchar(*hdr);
 		crc = LSZ_UPDATE_CRC((0xFF & *hdr),crc);
 	}
 	crc = LSZ_FINISH_CRC(crc);
@@ -93,6 +123,9 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	long crc = LSZ_INIT_CRC16;
 	int n;
 
+#ifdef Z_DEBUG
+	write_log("lszsendhhdr: %s, len: %d",LSZ_FRAMETYPES[frametype]);
+#endif
 	/* Send **<DLE> */
 	BUFCHAR(ZPAD); BUFCHAR(ZPAD); BUFCHAR(ZDLE);
 
@@ -115,8 +148,10 @@ int ls_zsendhhdr(int frametype, int len, char *hdr)
 	crc = STOI(crc & 0xFFFF);
 	ls_sendhex(crc >> 8);
 	ls_sendhex(crc & 0xFF);
+	BUFCHAR(CR); BUFCHAR(LF|0x80);
+	if(frametype != ZACK && frametype != ZFIN) BUFCHAR(XON);
 	/* Clean buffer, do real send */
-	return BUFLUSH();
+	return BUFFLUSH();
 }
 
 int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
@@ -125,6 +160,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		rhInit,				/* Start state */
 		rhZPAD,				/* ZPAD got (*) */
 		rhZDLE,				/* We got ZDLE */
+		rhFrameType,
 		rhZBIN,
 		rhZHEX,
 		rhZBIN32,
@@ -134,9 +170,12 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		rhZVBIN32,
 		rhZVBINR32,
 		rhBYTE,
-		rhCRC
+		rhCRC,
+		rhCR,
+		rhLF
 	} state = rhInit;
 	static enum rhREADMODE {
+		rm8BIT,
 		rm7BIT,
 		rmZDLE,
 		rmHEX
@@ -151,10 +190,17 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	static int got = 0;
 	static int inhex = 0;
 	int t = time(NULL);
-	int c;
+	int c = -1;
 	int res;
 
+#ifdef Z_DEBUG
+	write_log("lszrecvhdr: %d",timeout);
+#endif
+
 	if(rhInit == state) {
+#ifdef Z_DEBUG
+		write_log("lszrecvhdr: init state");
+#endif
 		crc = 0;
 		crcl = 2;
 		crcgot = 0;
@@ -167,6 +213,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 
 	while(OK == (res = HASDATA(timeout))) {
 		switch(readmode) {
+		case rm8BIT: c = ls_readcanned(0); break;
 		case rm7BIT: c = ls_read7bit(0); break;
 		case rmZDLE: c = ls_readzdle(0); break;
 		case rmHEX: c = ls_readhex(0); break;
@@ -177,10 +224,16 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 
 		switch(state) {
 		case rhInit:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhInit");
+#endif
 			if(ZPAD == c) { state = rhZPAD; }
 			else { ls_Garbage++; }
 			break;
 		case rhZPAD:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhZPAD");
+#endif
 			switch(c) {
 			case ZPAD: break;
 			case ZDLE: state = rhZDLE; break;
@@ -188,15 +241,18 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			}
 			break;
 		case rhZDLE:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhZDLE");
+#endif
 			switch(c) {
-			case ZBIN: state = rhZBIN; frametype = c; readmode = rmZDLE; break;
-			case ZHEX: state = rhZHEX; frametype = c; readmode = rmHEX; break;
-			case ZBIN32: state = rhZBIN32; frametype = c; readmode = rmZDLE; break;
-			case ZBINR32: state = rhZBINR32; frametype = c; readmode = rmZDLE; break;
-			case ZVBIN: state = rhZVBIN; frametype = c; readmode = rmZDLE; break;
-			case ZVHEX: state = rhZVHEX; frametype = c; readmode = rmHEX; break;
-			case ZVBIN32: state = rhZVBIN32; frametype = c; readmode = rmZDLE; break;
-			case ZVBINR32: state = rhZVBINR32; frametype = c; readmode = rmZDLE; break;
+			case ZBIN: state = rhZBIN; readmode = rmZDLE; break;
+			case ZHEX: state = rhZHEX; readmode = rmHEX; break;
+			case ZBIN32: state = rhZBIN32; readmode = rmZDLE; break;
+			case ZBINR32: state = rhZBINR32; readmode = rmZDLE; break;
+			case ZVBIN: state = rhZVBIN; readmode = rmZDLE; break;
+			case ZVHEX: state = rhZVHEX; readmode = rmHEX; break;
+			case ZVBIN32: state = rhZVBIN32; readmode = rmZDLE; break;
+			case ZVBINR32: state = rhZVBINR32; readmode = rmZDLE; break;
 			default: ls_Garbage++; state = rhInit; readmode = rm7BIT; break;
 			}
 			break;
@@ -206,7 +262,10 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhZVBIN:
 		case rhZVHEX:
 			len = c;
-			state = rhBYTE;
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: Any rhZV %d, %d, %c",(int)state,crcl,len);
+#endif
+			state = rhFrameType;
 			break;
 		case rhZBIN32:
 		case rhZBINR32:
@@ -214,8 +273,22 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		case rhZBIN:
 		case rhZHEX:
 			len = 4;
+			frametype = c;
+			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16(c,incrc); }
+			else { incrc = LSZ_UPDATE_CRC32(c,incrc); }
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: Any rhZ %d, %d, %d",(int)state,crcl,frametype);
+#endif
 			state = rhBYTE;
 			break;
+		case rhFrameType:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: Frametype %d",frametype);
+#endif
+			frametype = c;
+			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16(c,incrc); }
+			else { incrc = LSZ_UPDATE_CRC32(c,incrc); }
+			break;			
 		case rhBYTE:
 			hdr[got] = c;
 			if(++got == len) state = rhCRC;
@@ -223,37 +296,74 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			else { incrc = LSZ_UPDATE_CRC32(c,incrc); }
 			break;
 		case rhCRC:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhCRC");
+#endif
 			crc <<= 8;
 			crc |= c;
 			if(++crcgot == crcl)  { /* Crc finished */
 				state = rhInit;
 				ls_Garbage = 0;
-				incrc = LSZ_FINISH_CRC(incrc);
-				if(2 == crcl) { crc = STOH(crc & 0xFFFF); }
-				else { crc = LTOH(crc); }
+				if(2 == crcl) { incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xFFFF); }
+				else { incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc); }
+#ifdef Z_DEBUG
+				write_log("lszrecvhdr: CRC %d finished: got %d, calcualte %d",crcl,crc,incrc);
+#endif
 				if (incrc != crc) return LSZ_BADCRC;
 				*hlen = got;
-				return frametype;
+				if(rmHEX == readmode) { state = rhCR; readmode = rm8BIT; }
+				else { return frametype; }
+			}
+			break;
+		case rhCR:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhCR");
+#endif
+			switch(c) {
+			case CR: state = rhLF; break;
+			case LF: ls_7bit = 1; return frametype;
+			case LF|0x80: return frametype;
+			default:
+				return LSZ_BADCRC;
+			}
+			break;
+		case rhLF:
+#ifdef Z_DEBUG
+			write_log("lszrecvhdr: rhLF");
+#endif
+			switch(c) {
+			case LF: ls_7bit = 1; return frametype;
+			case LF|0x80: return frametype;
+			default:
+				return LSZ_BADCRC;
 			}
 			break;
 		default:
 			break;
 		}
 	}
+#ifdef Z_DEBUG
+	write_log("lszrecvhdr: timeout ot something other: %d",res);
+#endif
 	return res;
 }
 
 /* Send data block, with CRC and framing */
-int ls_senddata(char *data, int len, int frame)
+int ls_zsenddata(char *data, int len, int frame)
 {
 	long crc = LSZ_INIT_CRC;
 	int n;
 
-	for(; len--; data++) {
+#ifdef Z_DEBUG
+	write_log("lssenddata: %d, %c",len,(char)frame);
+#endif
+	for(;len--; data++) {
 		ls_sendchar(*data);
 		crc = LSZ_UPDATE_CRC(*data,crc);
 	}
-	crc = LSZ_FINISH_CRC(crc);
+	BUFCHAR(ZDLE); BUFCHAR(frame);
+	crc = LSZ_FINISH_CRC(LSZ_UPDATE_CRC(frame,crc));
+
 	if (ls_Protocol & LSZ_OPTCRC32) {
 		crc = LTOI(crc);
 		for (n=4; --n >= 0;) { ls_sendchar(crc & 0xFF); crc >>= 8; }
@@ -262,13 +372,12 @@ int ls_senddata(char *data, int len, int frame)
 		ls_sendchar(crc >> 8);
 		ls_sendchar(crc & 0xFF);
 	}
-	ls_sendchar(frame);
 	if((ls_Protocol & LSZ_OPTDIRZAP) == 0 && ZCRCW == frame) BUFCHAR(XON);
 	return BUFFLUSH();
 }
 
 /* Receive data block, return frame type or error (may be -- timeout) */
-int ls_recvdata(char *data, int *len, int timeout, int crc32)
+int ls_zrecvdata(char *data, int *len, int timeout, int crc32)
 {
 	int c;
 	int t = time(NULL);
@@ -281,6 +390,10 @@ int ls_recvdata(char *data, int *len, int timeout, int crc32)
 	int rcvdata = 1;
 	int res;
 
+#ifdef Z_DEBUG
+	write_log("lsrecvdata: %d, %d",timeout,crc32);
+#endif
+
 	while(OK == (res = HASDATA(timeout))) {
 		timeout -= (time(NULL) - t); t = time(NULL);
 		if((c = ls_readzdle(0)) < 0) return c;
@@ -291,7 +404,10 @@ int ls_recvdata(char *data, int *len, int timeout, int crc32)
 			case LSZ_CRCQ:
 			case LSZ_CRCW:
 				rcvdata = 0;
-				frametype = c & (~0x0100);
+				frametype = c&0xFF;
+#ifdef Z_DEBUG
+				write_log("lsrecvdata: Frameend %c",(char)frametype);
+#endif
 				break;
 			default:
 				*data++ = c; got++;
@@ -303,12 +419,21 @@ int ls_recvdata(char *data, int *len, int timeout, int crc32)
 			if(++crcgot == crcl) {
 				if(2 == crcl) { incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xFFFF); }
 				else { incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc); }
+#ifdef Z_DEBUG
+				write_log("lsrecvdata: CRC got %d, claculated %d",incrc,crc);
+#endif
 				if (incrc != crc) return LSZ_BADCRC;
 				*len = got;
+#ifdef Z_DEBUG
+				write_log("lsrecvdata: OK");
+#endif
 				return frametype;
 			}
 		}
 	}
+#ifdef Z_DEBUG
+	write_log("lsrecvdata: timeout or something else: %d",res);
+#endif
 	return res;
 }
 
@@ -392,7 +517,7 @@ int ls_readhex(int timeout)
 		timeout -= (time(NULL) - t); t = time(NULL);
 		c <<= 4;
 	}
-	if(OK == (res = HASDATS(timeout))) {
+	if(OK == (res = HASDATA(timeout))) {
 		if((c2 = ls_readhexnibble(0)) < 0) return c2;
         ls_GotHexNibble = 0;
 		return c | c2;
@@ -437,6 +562,7 @@ int ls_readzdle(int timeout)
 			return (c ^ 0x40) & 0xFF;
         }
 	}
+	return LSZ_TIMEOUT;
 }
 
 /* Read one character, check for five CANs */
