@@ -1,3 +1,14 @@
+2004-05-29 15:54  sisoft
+
+	* Changes, qico.spec, src/Makefile.am, src/call.c, src/defs.h,
+	  src/execsh.c, src/headers.h, src/mailer.h, src/modem.c,
+	  src/qcc.c, src/tools.c, src/tools.h, stuff/Makefile.am,
+	  stuff/freebsd/Makefile, stuff/freebsd/distinfo,
+	  stuff/freebsd/pkg-descr, stuff/freebsd/pkg-install,
+	  stuff/freebsd/pkg-plist:
+
+	[no log message]
+
 2004-05-28 08:15  sisoft
 
 	* src/modem.c:
