@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.2 2000/10/12 19:24:27 lev Exp $
+ * $Id: qctl.c,v 1.3 2000/10/12 19:43:52 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <config.h>
 #include "qcconst.h"
 #include "ver.h"
 

@@ -2,8 +2,9 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.4 2000/10/12 19:13:16 lev Exp $
+ * $Id: qcc.c,v 1.5 2000/10/12 19:43:52 lev Exp $
  **********************************************************/
+#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>

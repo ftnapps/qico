@@ -3,11 +3,12 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.6 2000/10/08 17:28:01 lev Exp $
+ * $Id: ftn.h,v 1.7 2000/10/12 19:43:52 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
 
+#include <config.h>
 #include <sys/types.h>
 #include <string.h>
 #include <dirent.h>
