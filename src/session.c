@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.5 2000/10/08 17:57:08 lev Exp $
+ * $Id: session.c,v 1.6 2000/10/11 21:35:46 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -26,28 +26,30 @@
 #include "ver.h"
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill,
-			   off_t off, FILE *lo)
+			   off_t off, FILE *lo, int sort)
 {
 	flist_t **t, *q;
 	int type;
 
 	type=whattype(rem);
+	if((checktimegaps(cfgs(CFG_MAILONLY)) ||
+		checktimegaps(cfgs(CFG_ZMH))) && type!=IS_PKT) return;
 	switch(type) {
 	case IS_REQ:
-		if(rnode->options&(O_HRQ|O_NRQ)) return;
+		if(rnode && rnode->options&(O_HRQ|O_NRQ)) return;
 		break;
 	case IS_PKT:
-		if(rnode->options&O_HAT) return;
+		if(rnode && rnode->options&O_HAT) return;
 		break;
 	default:
-		if(rnode->options&(O_HXT|O_HAT)) return;
+		if(rnode && rnode->options&(O_HXT|O_HAT)) return;
 		break;
 	}
-	for(t=fl;*t && (*t)->type<=type;t=&((*t)->next));
+	for(t=fl;*t && ((*t)->type<=type || !sort);t=&((*t)->next));
 	q=(flist_t *)malloc(sizeof(flist_t));
 	q->next=*t;*t=q;
 	q->kill=kill;q->loff=off;
-	if((rnode->options&O_FNC) && rem) {
+	if(rnode && (rnode->options&O_FNC) && rem) {
 	    q->sendas=strdup(fnc(rem));
 	    sfree(rem);
 	} else q->sendas=rem;
@@ -96,7 +98,7 @@ void floflist(flist_t **fl, char *flon)
 				fn=strrchr(p, '/');if(fn) fn++;else fn=p;
 				mapname(fn, map);
 				
-				addflist(fl, fp, strdup(fn), str[0], off, f);
+				addflist(fl, fp, strdup(fn), str[0], off, f, 1);
 				
 				if(!stat(fp,&sb)) {
 					totalf+=sb.st_size;totaln++;
@@ -104,7 +106,7 @@ void floflist(flist_t **fl, char *flon)
 			}		
 			off=ftell(f);
 		}
-		addflist(fl, strdup(flon), NULL, '^', -1, f);
+		addflist(fl, strdup(flon), NULL, '^', -1, f, 1);
 	}
 }
 
@@ -121,7 +123,7 @@ int boxflist(flist_t **fl, char *path)
 			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
 				addflist(fl, p,
 						 strdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
-						 '^', 0, NULL);
+						 '^', 0, NULL, 1);
 				totalf+=sb.st_size;totaln++;
 			} else sfree(p);
 		}
@@ -143,13 +145,13 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	for(i=0;i<4;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			sprintf(str, "%08lx.pkt", sequencer());
-			addflist(fl, strdup(bso_tmp), strdup(str), '^', 0, NULL);
+			addflist(fl, strdup(bso_tmp), strdup(str), '^', 0, NULL, 1);
 			totalm+=sb.st_size;totaln++;
 		}
 	
 	if(!stat(bso_reqn(fa), &sb)) {
 		sprintf(str, "%04x%04x.req", fa->n, fa->f);
-		addflist(fl, strdup(bso_tmp), strdup(str), ' ', 0, NULL);
+		addflist(fl, strdup(bso_tmp), strdup(str), ' ', 0, NULL, 1);
 		totalf+=sb.st_size;totaln++;
 	}
 	
@@ -223,6 +225,14 @@ void flkill(flist_t **l, int rc)
 		t=(*l)->next;
 		sfree(*l);*l=t;
 	}	
+}
+
+void simulate_send(ftnaddr_t *fa)
+{
+	flist_t *fl, *l;
+	makeflist(&fl, fa);
+	for(l=fl;l;l=l->next) flexecute(l);
+	flkill(&fl, 1);
 }
 
 int receivecb(char *fn)
@@ -631,8 +641,10 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 			fclose(h);
 		}
 	}
-	sprintf(s,"/tmp/qpkt.%04x",getpid());
-	if(fexist(s)) lunlink(s);
+	while(--freq_pktcount) {
+		sprintf(s,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);
+		if(fexist(s)) lunlink(s);
+	}
 	if(cfgs(CFG_AFTERSESSION)) {
 		log("starting %s %s %c %d",
 			cfgs(CFG_AFTERSESSION),
