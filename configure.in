@@ -76,6 +76,22 @@ AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh
 AC_DEFINE_UNQUOTED(SHELL, "$with_shell")
 AC_MSG_RESULT($with_shell)
 
+dnl Lock creation style
+AC_MSG_CHECKING([for lock creation style])
+AC_ARG_WITH(lock-style,[  --with-lock-style       select lock creation style (open or link)] , , with_lock_style=LINK)
+case "$with_lock_style" in
+	link | LINK | NFS | nfs )
+		AC_MSG_RESULT(link)
+		;;
+	open | OPEN | VFAT | vfat )
+		AC_MSG_RESULT(open)
+		AC_DEFINE(LOCKSTYLE_OPEN)
+		;;
+	*)
+		AC_MSG_RESULT(link)
+		;;
+esac
+
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
 AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
@@ -121,6 +137,7 @@ AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
 AC_SUBST(TM_HAVE_GMTOFF)
+AC_SUBST(LOCKSTYLE_OPEN)
 AC_SUBST(QIPC_KEY)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)

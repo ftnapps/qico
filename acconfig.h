@@ -25,3 +25,5 @@
 #undef SHELL
 
 #undef TM_HAVE_GMTOFF
+
+#undef LOCKSTYLE_OPEN

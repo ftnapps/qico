@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.15 2000/11/16 18:50:52 lev Exp $
+ * $Id: ftn.c,v 1.16 2000/11/26 12:19:48 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -249,17 +249,23 @@ int lockpid(char *pidfn)
 		else return 0;
 	}
 
+#ifndef LOCKSTYLE_OPEN
 	strcpy(tmpname, pidfn);
 	p=strrchr(tmpname, '/');if(!p) p=tmpname;
 	sprintf(tmpname+(p-tmpname), "/QTEMP.%d", getpid());
 	if ((f=fopen(tmpname,"w")) == NULL) return 0;
 	fprintf(f,"%10d\n",getpid());
 	fclose(f);
-/* 	chmod(tmpname,0444); */
-	unlink(pidfn);
 	rc=link(tmpname,pidfn);
 	if(rc) return 0;
 	unlink(tmpname);
+#else
+	rc=open(pidfn,O_CREAT|O_EXCL);
+	if(rc<0) return 0;
+	sprintf(tmpname,"%10d\n",getpid());
+	write(rc,tmpname,strlen(tmpname));
+	close(rc);
+#endif
 	return 1;
 }
 	
