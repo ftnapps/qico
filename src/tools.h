@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.6 2004/03/24 17:50:04 sisoft Exp $ */
+/* $Id: tools.h,v 1.7 2004/04/13 17:37:05 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -75,7 +75,7 @@ extern slist_t *cfgsl(int i);
 extern faslist_t *cfgfasl(int i);
 extern falist_t *cfgal(int i);
 extern int readconfig(char *cfgname);
-extern int parsekeyword(char *kw,char *arg,int line);
+extern int parsekeyword(char *kw,char *arg,char *cfgname,int line);
 extern int parseconfig(char *cfgname);
 extern void killconfig(void);
 #ifdef NEED_DEBUG

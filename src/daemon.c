@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.21 2004/03/27 21:38:40 sisoft Exp $
+ * $Id: daemon.c,v 1.22 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -336,18 +336,22 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		}
 		break;
 	    case QR_REQ: {
-		int locked=0;
+		int locked=0,l;
 		DEBUG(('I',2,"client %d: request filereq addr %s",uis->id,buf+3));
 		if(BSO)locked|=bso_locknode(&fa,LCK_t);
 		if(ASO)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
 			sendrpkt(0,chld,"");
 			sl=NULL;p=buf+strlen(buf+3)+4;
-			while(strlen(p)){
+			while((l=strlen(p))){
+				if(*p=='"'&&p[l-1]=='"') {
+					l--;p[l]=0;p++;
+					if(l<2)goto skiprq;
+				}
 				write_log("requested '%s' from %s",p,ftnaddrtoa(&fa));
 				if(strchr(cfgs(CFG_MAPOUT),'r'))recode_to_remote(p);
 				slist_add(&sl,p);
-				p+=strlen(p)+1;
+skiprq:				p+=l+1;
 			}
 			if(BSO)rc=bso_request(&fa,sl);
 			else if(ASO)rc=aso_request(&fa,sl);
@@ -704,7 +708,7 @@ void daemon_mode()
 										hld=MAX(hld,cci);
 										sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 										sts.htime=t_set(hld*60);
-										write_log("calls to %s delayed for %d min after successuful session",ftnaddrtoa(&current->addr),hld);
+										write_log("calls to %s delayed for %d min after successful session",ftnaddrtoa(&current->addr),hld);
 									}
 									sts.try=0;
 									bso_setstatus(&current->addr,&sts);
@@ -715,7 +719,7 @@ void daemon_mode()
 										hld=MAX(hld,cci);
 										sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 										sts.htime=t_set(hld*60);
-										if(!BSO)write_log("ASO calls to %s delayed for %d min after successuful session",ftnaddrtoa(&current->addr),hld);
+										if(!BSO)write_log("ASO calls to %s delayed for %d min after successful session",ftnaddrtoa(&current->addr),hld);
 									}
 									sts.try=0;
 									aso_setstatus(&current->addr,&sts);
