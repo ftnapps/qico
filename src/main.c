@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.3 2000/07/22 16:00:07 lev Exp $
+ * $Id: main.c,v 1.4 2000/09/21 12:28:35 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -57,6 +57,7 @@ void usage(char *ex)
 		   "-n           compile nodelists\n"
 		   "-f           query info about <node>\n"
 		   "-p           poll <node>\n"
+		   "-c		     force call to <node>\n"
 		   "-r           freq from <node> files <files>\n"
 		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
 		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
@@ -415,6 +416,25 @@ void answer_mode(int type)
 	stopit(rc);
 }	
 
+int force_call(ftnaddr_t *fa)
+{
+ char *port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
+ int rc;
+
+ rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
+ if (!rnode) return 0;
+ phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+ rnode->tty=strdup(baseport(port));
+ if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
+	 printf("can't open log %s!\n", ccs);
+	 exit(0);
+	}
+ rc=do_call(fa, rnode->phone,port);
+ stopit(rc);
+ return rc;
+}
+
+
 char *flvs[]={"error", "normal", "hold", "direct", "crash"};
 
 int main(int argc, char *argv[], char *envp[])
@@ -433,7 +453,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
  	setlocale(LC_ALL, "");	 
 
-	while((c=getopt(argc, argv, "hI:da:qni:s:rpz:x:fkR"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:qni:s:crpz:x:fkR"))!=EOF) {
 		switch(c) {
 		case 'v':
 			verb=1;
@@ -469,6 +489,9 @@ int main(int argc, char *argv[], char *envp[])
 			break;
 		case 'p':
 			daemon=3;
+			break;
+		case 'c':
+			daemon=12;
 			break;
 		case 'f':
 			daemon=8;
@@ -592,6 +615,17 @@ int main(int argc, char *argv[], char *envp[])
 		answer_mode(sesstype);break;
 	case 2:
 		compile_nodelists();break;
+	case 12:
+		if (bso_locknode(&fa)) {
+			if(verb) log("call %s\n", ftnaddrtoa(&fa));
+			rc=force_call(&fa);
+			bso_unlocknode(&fa);
+		} else
+			rc=0;
+		if(!rc) {
+			log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
+		}
+		break;
 	case 3:
 		if(bso_locknode(&fa)) {
 			if(verb) log("poll %s\n", ftnaddrtoa(&fa));
