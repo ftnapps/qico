@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations 
- * $Id: queue.c,v 1.5 2003/09/08 21:17:23 sisoft Exp $
+ * $Id: queue.c,v 1.6 2003/09/14 16:45:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -159,15 +159,15 @@ void rescan_boxes(int rslow)
 						if(q->sizes[5]!=0) {
 							q->touched=1;
 							q->what|=T_ARCMAIL;
-							if(n==5)switch(tolower(flv)) {
+							if(n==4)flv=*cfgs(CFG_DEFBOXFLV);
+							switch(tolower(flv)) {
 							    case 'h': q->flv|=Q_HOLD;break;
-							    case 'n':
 							    case 'f': q->flv|=Q_NORM;break;
 							    case 'd': q->flv|=Q_DIR;break;
 							    case 'c': q->flv|=Q_CRASH;break;
 							    case 'i': q->flv|=Q_IMM;break;
 							    default : write_log("unknown longbox flavour '%c'",flv);
-							} else q->flv|=Q_HOLD;
+							}
 						}
 						xfree(p);
 					}

@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.4 2003/09/13 15:31:49 sisoft Exp $
+ * $Id: binkp.c,v 1.5 2003/09/14 16:45:20 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -514,6 +514,14 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					else if(!strcmp(p,"CRYPT"))bp_opt|=BP_OPT_CRYPT;
 				}
 				bp_opt&=BP_OPTIONS;
+			} else if(!strncmp(tmp,"TRF ",4)) {
+				n=tmp+4;rnode->netmail=atoi(n);
+				n=strchr(n,' ');
+				if(n)rnode->files=atoi(n+1);
+				if(rnode->files||rnode->netmail)
+				    write_log("traffic: %d%c mail; %d%c files",
+					SIZES(rnode->netmail), SIZEC(rnode->netmail),
+					    SIZES(rnode->files), SIZEC(rnode->files));
 			} else DEBUG(('B',2,"message ignored"));
 		      } break;
 		    case BPM_DATA:

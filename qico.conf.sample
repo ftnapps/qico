@@ -318,18 +318,24 @@ dialsuffix	|
 #
 # Call to node, if one of these presents in outbound for this node
 # Default is NDCI
-callonflavors NDCIR
+callonflavors	NDCIR
 
 #
 # Don't check work time, if these flavors present in outbound for this node
 # Default is CI
-immonflavors CI
+immonflavors	CI
 
 #
 # Flavor for pols and attaches. Could be overwritten from command line.
 # Alos, this flavor is used, when restore poll after disconnection
-pollflavor N
-            
+# Default is N
+pollflavor	N
+
+#
+# Flavor for longbox's in UNIX-like style (z.n.f.p).		       (NEW!!!)
+# Default is H
+defboxflv	H
+
 # maximum dial fails (the reason to set undialable flag)
 max_fails	30
 
@@ -648,5 +654,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.8 2003/09/13 15:31:48 sisoft Exp $
+# $Id: qico.conf.sample,v 1.9 2003/09/14 16:45:20 sisoft Exp $
 ###############################################################################

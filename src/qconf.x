@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.6 2003/09/07 20:27:35 sisoft Exp $
+#* $Id: qconf.x,v 1.7 2003/09/14 16:45:20 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -21,6 +21,7 @@ chatlog,C_PATH,char *,0,NULL
 chatlognetmail,C_YESNO,int,0,"no"
 chattoemail,C_STR,char *,0,NULL
 clearundial,C_INT,int,0,"0"
+defboxflv,C_STR,char *,0,"H"
 defperm,C_OCT,int,0,"644"
 dialdelay,C_INT,int,0,"60"
 dialdelta,C_INT,int,0,"0"
