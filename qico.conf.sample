@@ -148,8 +148,9 @@ log		/var/log/ftn/qico.log
 #  Z -- ZModem
 #  M -- Modem
 #  R -- File requests
+#  X -- Sent debug log to qcc
 #
-;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0
+;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0
 
 # Write to log estimated transfer time befor each file transfer
 estimatedtime no
@@ -621,5 +622,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.4 2003/07/23 20:33:27 sisoft Exp $
+# $Id: qico.conf.sample,v 1.5 2003/07/24 11:53:42 sisoft Exp $
 ###############################################################################
