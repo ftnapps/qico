@@ -1,12 +1,9 @@
-/* $Id: TodayFixes,v 1.32 2004/02/11 12:44:03 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.33 2004/02/13 22:29:01 sisoft Exp $ */
 ---
-update stat scripts in stuff.
+fix updating stat scripts. ;)
+another src's correcting.
 .
 previous:
 ---
-fix boxes queue scan.
-fix freqs.
+update stat scripts in stuff.
 .
-
-ps: в связи с временным отсутствием фидошки,
-писать мне можно только на <sisoft#bk.ru>.

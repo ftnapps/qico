@@ -1,16 +1,14 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.14 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: qipc.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif
-#include "byteop.h"
 #include "clserv.h"
-#include "qipc.h"
 
-void qsendpkt(char what,char *line,char *buff,int len)
+void qsendpkt(char what,char *line,char *buff,size_t len)
 {
 	char buf[MSG_BUFFER];
 	if(!xsend_cb)return;
@@ -31,7 +29,7 @@ void qsendpkt(char what,char *line,char *buff,int len)
 	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
 }
 
-int qrecvpkt(char *str)
+size_t qrecvpkt(char *str)
 {
 	int rc;
 	if(!xsend_cb)return 0;

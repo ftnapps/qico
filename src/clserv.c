@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.8 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: clserv.c,v 1.9 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -16,10 +16,9 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#include "byteop.h"
 #include "clserv.h"
 
-int (*xsend_cb)(int sock,char *buf,int len)=NULL;
+int (*xsend_cb)(int sock,char *buf,size_t len)=NULL;
 
 int cls_conn(int type,char *port)
 {
@@ -66,7 +65,7 @@ void cls_shutd(int sock)
 	cls_close(sock);
 }
 
-int xsendto(int sock,char *buf,int len,struct sockaddr *to)
+int xsendto(int sock,char *buf,size_t len,struct sockaddr *to)
 {
 	int rc;
 	char *b;
@@ -82,12 +81,12 @@ int xsendto(int sock,char *buf,int len,struct sockaddr *to)
 	return rc;
 }
 
-int xsend(int sock,char *buf,int len)
+int xsend(int sock,char *buf,size_t len)
 {
 	return xsendto(sock,buf,len,NULL);
 }
 
-int xrecv(int sock,char *buf,int len,int wait)
+int xrecv(int sock,char *buf,size_t len,int wait)
 {
 	int rc;
 	unsigned short l=0;

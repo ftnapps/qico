@@ -1,26 +1,24 @@
 /**********************************************************
  * for exchange with qcc
- * $Id: qcconst.h,v 1.6 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: qcconst.h,v 1.7 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
 
-#define Q_STRING 80
-#define Q_PATH   40
-
 typedef struct {
 	char *fname;
-	int  foff,ftot,toff,ttot,nf,allf,cps,soff,stot,sts;
+	int foff,ftot,toff,ttot,nf,allf,cps,soff,stot,sts;
 	time_t start,mtime;
 } pfile_t;
-
-#include "opts.h"
 
 #define MSG_BUFFER 2048
 
 #define MO_IFC		1
 #define MO_BINKP	2
 #define MO_CHAT		4
+
+#define Q_STRING 80
+#define Q_PATH   40
 
 #define Q_CHARS		"NHDCIRUdrxw"
 #define Q_COLORS	{7,3,1,2,2,7,4,7,6,6,6}
@@ -38,8 +36,21 @@ typedef struct {
 #define Q_ANYWAIT	(Q_WAITR|Q_WAITX|Q_WAITA)
 #define Q_MAXBIT	11
 
-#define QC_MSGQ   'C'
-#define QR_MSGQ   'R'
+#define O_NRQ 1<<9
+#define O_HRQ 1<<10
+#define O_FNC 1<<11
+#define O_XMA 1<<12
+#define O_HAT 1<<13
+#define O_HXT 1<<14
+#define O_NPU 1<<15
+#define O_PUP 1<<16
+#define O_PUA 1<<17
+#define O_PWD 1<<18
+#define O_BAD 1<<19
+#define O_RH1 1<<20
+#define O_LST 1<<21
+#define O_INB 1<<22
+#define O_TCP 1<<23
 
 #define QR_POLL   'A'
 #define QR_REQ    'B'

@@ -1,10 +1,9 @@
 /**********************************************************
  * MD5 crypt.
  * original version of this file was taken from BinkleyForce mailer.
- * $Id: md5.c,v 1.4 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: md5.c,v 1.5 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-#include "byteop.h"
 
 /* Data structure for MD5 (Message-Digest) computation */
 typedef struct {

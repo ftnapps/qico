@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.12 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: qctl.c,v 1.13 2004/02/13 22:29:01 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -39,12 +39,13 @@
 #include <time.h>
 #endif
 #endif
-#include "qcconst.h"
-#include "ver.h"
 #include "replace.h"
+#include "types.h"
+#include "qcconst.h"
 #include "byteop.h"
 #include "xstr.h"
 #include "clserv.h"
+#include "ver.h"
 
 extern time_t gmtoff(time_t tt,int mode);
 

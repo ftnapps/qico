@@ -1,9 +1,8 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.14 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: emsi.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-#include "defs.h"
 #include "qipc.h"
 #include "crc.h"
 #include "tty.h"

@@ -1,4 +1,4 @@
-/* $Id: globals.h,v 1.6 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: globals.h,v 1.7 2004/02/13 22:29:01 sisoft Exp $ */
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
@@ -31,7 +31,7 @@ extern int skipiftic;
 extern int ssock,uis_sock,lins_sock;
 extern int tty_hangedup;
 extern int was_req,got_req;
-extern long chattimer;
+extern time_t chattimer;
 extern ninfo_t *rnode;
 extern pfile_t sendf,recvf;
 extern qitem_t *q_queue;

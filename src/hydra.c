@@ -4,12 +4,9 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.7 2004/02/06 21:54:46 sisoft Exp $ */
+/* $Id: hydra.c,v 1.8 2004/02/13 22:29:01 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
-#include "byteop.h"
-#include "defs.h"
-#include "qipc.h"
 #include "crc.h"
 #include "tty.h"
 

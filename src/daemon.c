@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.14 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: daemon.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -19,8 +19,6 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#include "byteop.h"
-#include "qipc.h"
 #include "tty.h"
 #include "clserv.h"
 
@@ -94,7 +92,7 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 	if(xsend(sock,buf,rc+3)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
 
-int daemon_xsend(int sock,char *buf,int len)
+int daemon_xsend(int sock,char *buf,size_t len)
 {
 	cls_cl_t *uis=cl;
 	if(!uis)return len;

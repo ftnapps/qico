@@ -1,12 +1,9 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.22 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: binkp.c,v 1.23 2004/02/13 22:29:01 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
-#include "byteop.h"
-#include "defs.h"
-#include "qipc.h"
 #include "tty.h"
 #include "crc.h"
 

@@ -1,13 +1,13 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.23 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: session.c,v 1.24 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
 #include "ls_zmodem.h"
 #include "hydra.h"
 #include "janus.h"
-#include "defs.h"
+#include "binkp.h"
 #include "qipc.h"
 #include "tty.h"
 

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.22 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: qcc.c,v 1.23 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -55,12 +55,13 @@
 #ifndef GWINSZ_IN_SYS_IOCTL
 #include <termios.h>
 #endif
-#include "qcconst.h"
-#include "ver.h"
-#include "byteop.h"
 #include "replace.h"
+#include "types.h"
+#include "byteop.h"
+#include "qcconst.h"
 #include "xstr.h"
 #include "clserv.h"
+#include "ver.h"
 
 /* number of lines for queue. (up window of screen) */
 #define MH 10

@@ -1,6 +1,6 @@
 /**********************************************************
  * global variables
- * $Id: globals.c,v 1.6 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: globals.c,v 1.7 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -33,7 +33,7 @@ int skipiftic=0;
 int ssock=-1,uis_sock=-1,lins_sock=-1;
 int tty_hangedup=0;
 int was_req,got_req;
-long chattimer;
+time_t chattimer;
 ninfo_t *rnode=NULL;
 pfile_t sendf,recvf;
 qitem_t *q_queue=NULL;
