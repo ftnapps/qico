@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.3 2000/10/07 13:56:39 lev Exp $
+ * $Id: hydra.c,v 1.4 2000/10/22 19:22:34 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -482,7 +482,9 @@ static int rxpkt (void)
 			case HCHR_PKTEND:
 				rxbufptr = p;
 
-				switch (rxpktformat) {
+				/* BUGFIX by Igor Vanin */
+                if (!rxbufptr) c=H_NOPKT;
+                else switch (rxpktformat) {
 				case HCHR_BINPKT:
 					q = rxbufptr;
 					break;
