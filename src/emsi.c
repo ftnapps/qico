@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.15 2001/01/21 20:51:29 lev Exp $
+ * $Id: emsi.c,v 1.16 2001/01/21 20:53:28 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
