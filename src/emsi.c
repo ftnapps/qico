@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.1 2001/01/21 18:16:44 lev Exp $
+ * $Id: emsi.c,v 1.5.2.2 2001/01/21 18:18:55 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -334,6 +334,7 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 #endif
 					if(ch) {
 						sline("Sending EMSI_ACK...");
+						PUTSTR(emsiack);PUTCHAR('\r');
 						PUTSTR(emsiack);PUTCHAR('\r');
 						return OK;
 					} else break;
