@@ -1,11 +1,9 @@
-/* $Id: TodayFixes,v 1.84 2004/06/14 20:29:32 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.85 2004/06/16 03:42:20 sisoft Exp $ */
 ---
-fix compile with old flex.
-fix kill files from *.hlo and *.hut, when holdout=yes.
+some perl-related changes.
 .
 previous:
 ---
-fix freqs: do not include path in outgoing filenames.
-fix debian packages install.
-distrubute stuff/test.pl.
+fix compile with old flex.
+fix kill files from *.hlo and *.hut, when holdout=yes.
 .

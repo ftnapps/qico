@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.19 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: ftn.h,v 1.20 2004/06/16 03:42:20 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -81,10 +81,9 @@ typedef struct _flist_t {
 
 typedef struct {
 	falist_t *addrs;
-	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host;
-	int options,speed,realspeed,netmail,files,haswtime,hidnum,type,holded,opt;
+	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host,*tty;
+	int options,speed,realspeed,netmail,files,type,haswtime,hidnum,holded,opt;
 	time_t time,starttime;
-	char *tty;
 } ninfo_t;
 
 typedef struct _qitem_t {

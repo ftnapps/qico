@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.32 2004/06/14 20:29:32 sisoft Exp $
+ * $Id: session.c,v 1.33 2004/06/16 03:42:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -301,7 +301,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	int rc,emsi_lo=0,proto;
 	unsigned long nfiles;
 	unsigned char *mydat;
-	char *t,pr[3];
+	char *t,pr[3],s[MAX_STRING];
 	falist_t *pp=NULL;
 	qitem_t *q=NULL;
 	was_req=0;got_req=0;
@@ -410,8 +410,6 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	rnode->starttime=time(NULL);
 	if(cfgi(CFG_MAXSESSION))alarm(cci*60);
 	DEBUG(('S',1,"Maxsession: %d",cci));
-	qemsisend(rnode);
-	qpreset(0);qpreset(1);
 	proto=(mode?rnode->options:emsi_lo)&P_MASK;
 	switch(proto) {
 	    case P_NCP:
@@ -440,7 +438,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		t="Unknown";
 	}
 	DEBUG(('S',1,"emsopts: %s %x %x %x %x",t,rnode->options&P_MASK,rnode->options,emsi_lo,rnode->opt));
-	write_log("options: %s%s%s%s%s%s%s%s%s%s",t,
+	snprintf(s,MAX_STRING-1,"%s%s%s%s%s%s%s%s%s%s",t,
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
 		(rnode->options&O_HXT)?"/MO":"",
@@ -450,7 +448,12 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		(rnode->options&O_FNC)?"/FNC":"",
 		(rnode->options&O_BAD)?"/BAD":"",
 		(rnode->opt&MO_CHAT)?"/CHT":"");
+	write_log("options: %s",s);
 	chatinit(proto);
+	IFPerl(rc=perl_on_session(mode,s);
+	    if(rc!=S_OK){flkill(&fl,0);return rc;});
+	qemsisend(rnode);
+	qpreset(0);qpreset(1);
 	switch(proto) {
 	    case P_ZEDZAP:
 	    case P_DIRZAP:

@@ -1,24 +1,24 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.4 2004/06/11 20:30:24 sisoft Exp $
+# $Id: test.pl,v 1.5 2004/06/16 03:42:21 sisoft Exp $
 
 # available qico functions:
-#  sub wlog(string): write string to log.
+#  sub wlog([level,]string): write string to log.
 #  sub setflag(num,bool): set user perl flag num to bool.
 
-# default commands (outside any subs), executig before on_load().
+# default commands (outside any subs), executig before on_init().
 #use strict;
 
 # called for initialization.
 # $conf: config file name.
 # %conf: hash of config values.
-# $daemon: true, if script loaded into daemon, not in line.
-# $init: true on init, and false after reload configs or daemon forking.
-sub on_load {
+# $daemon: 1 if script loaded into daemon, 0 else.
+# $init: 1 on init, and 0 after reload configs or daemon forking.
+sub on_init {
     my $re=$init?"":"re";
     wlog("normally ${re}loaded, daemon=$daemon, ver=$version");
     wlog("from $conf:");
-    wlog(" main addr: $conf{address}[0], sysop: $conf{sysop}");
-    wlog(" first password line: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
+    wlog(0," main addr: $conf{address}[0], sysop: $conf{sysop}");
+    wlog(1,"first password line: $conf{password}{adr}[0] '$conf{password}{str}[0]'");
 }
 
 # called before exit, for deinitialization.
@@ -43,9 +43,44 @@ sub on_log {
     return $rc;
 }
 
-# called
-# 
+# called before dialing or connecting (if IP), after exec runonsession.
+# $addr: calling address.
+# $site: phone or host of calling system.
+# $tcpip: 1 if call over tcp/ip, 0 else.
+# $binkp: 1 if call via Binkp protocol, 0 else.
+# $port: modem port (ex.: ttyS1) or "ip" if ip call.
+# return: combination of S_* constants. aborting call, if return!=$S_OK.
 sub on_call {
-    wlog("on_call to $addr by $phone, ip=$tcpip, bink=$binkp.");
-    return 0;
+    wlog("on_call to $addr by $site, ip=$tcpip, bink=$binkp, port=$port.");
+    return $S_BUSY if($addr eq '2:5050/125.522');
+    return $S_OK;
+}
+
+# called after handshake, before start transfer.
+# @addrs: list of our akas.
+# @akas: list of remote akas.
+# $start: unix time of session start.
+# %info: hash of strings: sysop, station, mailer, place, flags, wtime, password,
+#        and integers: time, speed, connect.
+# $flags: protocol and session flags.
+# %flags: hash of booleans: in, out, secure, listed.
+# %queue: hash of integers: mail, files, num.
+# @queue: list of outgoing files, format such as in *.?lo.
+# return: $S_OK for continue session, any other S_* for abort with this status.
+sub on_session {
+    wlog("on_session time=$start, dir=$flags{out}, sec=$flags{secure}, lst=$flags{listed}.");
+    wlog(" $info{sysop}, sysop of <$info{station}>, using $info{mailer}");
+    wlog(" live in '$info{place}' and work in '$info{wtime}' (now time=$info{time})");
+    wlog(" he akas: @akas, our akas: @addrs");
+    wlog(" remote has flags '$info{flags}' and system flags '$flags'");
+    wlog(" need to sent $queue{mail} bytes of mail and $queue{files} bytes of files ($queue{num} files)");
+    return $S_OK;
+}
+
+# called after session.
+#
+sub end_session {
+    wlog("end_session.");
+
+
 }
