@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.4 2000/11/03 21:22:17 lev Exp $
+ * $Id: ls_zmodem.c,v 1.5 2000/11/04 20:02:10 lev Exp $
  **********************************************************/
 /*
 
@@ -56,14 +56,14 @@ int zsendbhdr(int frametype, int len, char *hdr)
 	if ((type = HEADER_TYPE[(ls_Protocol & LSZ_OPTCRC32)==LSZ_OPTCRC32][(ls_Protocol & LSZ_OPTVHDR)==LSZ_OPTVHDR][(ls_Protocol & LSZ_OPTRLE)==LSZ_OPTRLE]) < 0) {
 		log("zmodem: invalid options set, %s, %s, %s",
 			(ls_Protocol & LSZ_OPTCRC32)?"crc32":"crc16",
-			(ls_Protocol & LSZ_OPTCHDR)?"varh":"fixh",
+			(ls_Protocol & LSZ_OPTVHDR)?"varh":"fixh",
 			(ls_Protocol & LSZ_OPTRLE)?"RLE":"Plain");
 		return ERROR;
 	}
 
 	/* Send *<DLE> and packet type */
 	BUFCHAR(ZPAD);BUFCHAR(ZDLE);BUFCHAR(type);
-	if (ls_UseVarHeaders) ls_sendchar(len);			/* Send length of header, if needed */
+	if (ls_Protocol & LSZ_OPTVHDR) ls_sendchar(len);			/* Send length of header, if needed */
 
 	ls_sendchar(frametype);							/* Send type of frame */
 	crc = LSZ_UPDATE_CRC(frametype,crc);
@@ -95,7 +95,7 @@ int zsendhhdr(int frametype, int len, char *hdr)
 	BUFCHAR(ZPAD); BUFCHAR(ZPAD); BUFCHAR(ZDLE);
 
 	/* Send header type */
-	if (ls_UseVarHeaders) {
+	if (ls_Protocol & LSZ_OPTVHDR) {
 		BUFCHAR(ZVHEX);
 		ls_sendhex(len);
 	} else {
@@ -117,7 +117,7 @@ int zsendhhdr(int frametype, int len, char *hdr)
 	return BUFLUSH();
 }
 
-int ls_zrecvhdr(char *hdr, int timeout)
+int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 {
 	static enum rhSTATE {
 		rhInit,				/* Start state */
@@ -230,6 +230,7 @@ int ls_zrecvhdr(char *hdr, int timeout)
 				if(2 == crcl) { crc = STOH(crc & 0xFFFF); }
 				else { crc = LTOH(crc); }
 				if (incrc != crc) return LSZ_BADCRC;
+				*hlen = got;
 				return frametype;
 			}
 			break;
@@ -243,7 +244,9 @@ int ls_zrecvhdr(char *hdr, int timeout)
 /* Send data block, with CRC and framing */
 int ls_senddata(char *data, int len, int frame)
 {
-	int crc = LSZ_CRC_INIT;
+	int crc = LSZ_INIT_CRC;
+	int n;
+
 	for(; len--; data++) {
 		ls_sendchar(*data);
 		crc = LSZ_UPDATE_CRC(*data,crc);
@@ -263,11 +266,48 @@ int ls_senddata(char *data, int len, int frame)
 }
 
 /* Receive data block, return frame type or error (may be -- timeout) */
-int ls_recvdata(char *data, int timeout)
+int ls_recvdata(char *data, int *len, int timeout, int crc32)
 {
-	int crc = LSZ_CRC_INIT;
+	int c;
 	int t = time(NULL);
+	int crcl = crc32?4:2;
+	int incrc = crc32?LSZ_INIT_CRC32:LSZ_INIT_CRC16;
+	int crcgot = 0;
+	int got = 0;
+	int crc = 0;
+	int frametype = LSZ_ERROR;
+	int rcvdata = 1;
+	int res;
 
+	while(OK == (res = HASDATA(timeout))) {
+		timeout -= (time(NULL) - t); t = time(NULL);
+		if((c = ls_readzdle(0)) < 0) return c;
+		if(rcvdata) {
+			switch(c) {
+			case LSZ_CRCE:
+			case LSZ_CRCG:
+			case LSZ_CRCQ:
+			case LSZ_CRCW:
+				rcvdata = 0;
+				frametype = c & (~0x0100);
+				break;
+			default:
+				*data++ = c; got++;
+				crc = crc32?LSZ_UPDATE_CRC32(c,crc):LSZ_UPDATE_CRC16(c,crc);
+				break;
+			}
+		} else {
+			incrc <<= 8; incrc |= c &0xFF;
+			if(++crcgot == crcl) {
+				if(2 == crcl) { incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xFFFF); }
+				else { incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc); }
+				if (incrc != crc) return LSZ_BADCRC;
+				*len = got;
+				return frametype;
+			}
+		}
+	}
+	return res;
 }
 
 
@@ -276,10 +316,10 @@ void ls_sendchar(int c)
 {
 	int esc = 0;
 	c &= 0xFF;
-	if (ls_Protocol & LSZ_DIRZAP) {	/* We are Direct ZedZap -- escape only <DLE> */
+	if (ls_Protocol & LSZ_OPTDIRZAP) {	/* We are Direct ZedZap -- escape only <DLE> */
 		esc = (ZDLE == c);
 	} else {			/* We are normal ZModem */
-		if ((ls_protocol & LSZ_OPTESCAPEALL) && ((c & 0x60) == 0)) { /* Receiver want to escape ALL */
+		if ((ls_Protocol & LSZ_OPTESCAPEALL) && ((c & 0x60) == 0)) { /* Receiver want to escape ALL */
 			esc = 1;
 		} else {
 			switch (c) {
@@ -317,7 +357,7 @@ int ls_read7bit(int timeout)
 
 	do {
 		if((c = GETCHAR(timeout)) < 0) return c;
-	} while((0 == (ls_Protocol & LSZ_DIRZAP)) && (XON == c || XOFF == c));
+	} while((0 == (ls_Protocol & LSZ_OPTDIRZAP)) && (XON == c || XOFF == c));
 
 	if (CAN == c) { if (++ls_CANCount == 5) return LSZ_CAN; }
 	else { ls_CANCount = 0; }
@@ -369,7 +409,7 @@ int ls_readzdle(int timeout)
 		do {
 			if((c = ls_readcanned(timeout)) < 0) return c;
 
-			if(!(ls_Protocol & LSZ_DIRZAP)) { /* Check for unescaped XON/XOFF */
+			if(!(ls_Protocol & LSZ_OPTDIRZAP)) { /* Check for unescaped XON/XOFF */
 				switch(c) {
 				case XON: case XON | 0x80:
 				case XOFF: case XOFF | 0x80:
@@ -378,7 +418,7 @@ int ls_readzdle(int timeout)
 			}
 			if (ZDLE == c) { ls_GotZDLE = 1; }
 			else if(LSZ_XONXOFF != c) { return c & 0xFF; }
-		} whlie(LSZ_XONXOFF == c);
+		} while(LSZ_XONXOFF == c);
 	}
 	/* We will be here only in case of DLE */
 	if(HASDATA(0)) { /* We have data RIGHT NOW! */
@@ -400,6 +440,7 @@ int ls_readzdle(int timeout)
 /* Read one character, check for five CANs */
 int ls_readcanned(int timeout)
 {
+	int c;
 	if((c = GETCHAR(timeout)) < 0) return c;
 	if (CAN == c) { if (++ls_CANCount == 5) return LSZ_CAN; }
 	else { ls_CANCount = 0; }
