@@ -177,12 +177,24 @@ else
 	NEED_DEBUG=0
 fi
 
+dnl whether syslog.h and sys/syslog.h may both be included
+AC_MSG_CHECKING([whether syslog.h and sys/syslog.h may both be included])
+AC_TRY_COMPILE([#include <stdlib.h>
+#define SYSLOG_NAMES
+#include <syslog.h>
+#ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
+#include <sys/syslog.h>
+#endif], [ int i=0; i++; ],
+AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
 dnl Check for syslog facility names
 AC_MSG_CHECKING([for syslog facility names])
 AC_TRY_COMPILE([#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
-#include <sys/syslog.h>], [ char *p=facilitynames[0].c_name; ],
+#ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
+#include <sys/syslog.h>
+#endif], [ char *p=facilitynames[0].c_name; ],
 AC_DEFINE(HAVE_SYSLOG_FAC_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 
 dnl Check for syslog priority names

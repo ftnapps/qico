@@ -2,12 +2,15 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.15 2001/03/20 20:45:01 lev Exp $
+ * $Id: log.c,v 1.16 2001/05/16 19:40:25 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
+#ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
+#	include <sys/syslog.h>
+#endif
 
 typedef struct _slncode {
 	char *c_name;
