@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.13 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: qcc.c,v 1.14 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -185,11 +185,11 @@ int  qclrs[Q_MAXBIT]=Q_COLORS;
 void usage(char *ex)
 {
 	printf("usage: %s [options]\n"
-               "-P port      connect to <port> (default: 60178)\n"
+               "-P port      connect to <port> (default: qicoui or %u)\n"
 	       "-n           disable sound (silent)\n"
 	       "-h           this help screen\n"
                "-v           show version\n"
-	       "\n",ex);
+	       "\n",ex,DEF_SERV_PORT);
 	exit(0);
 }
 
@@ -780,7 +780,7 @@ int inputstr(char *str,char *name,int mode)
 				bp=sp=cp=sl=0;
 				break;
 			default:
-				while(getmessages(NULL));
+				while(getmessages(NULL)>0);
 				tim=time(NULL);tt=localtime(&tim);
 				wattron(whdr,COLOR_PAIR(15));
 				mvwprintw(whdr,0,COL-11,"%02d:%02d:%02d",tt->tm_hour,tt->tm_min,tt->tm_sec);
@@ -844,7 +844,7 @@ rei:	zone=strtoul(myaddr,&nm,10);
 
 void xcmd(char *buf,int cmd,int len)
 {
-	*(unsigned short*)buf=0;
+	STORE16(buf,0);
 	buf[2]=cmd;
 	/*mylog("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
@@ -852,7 +852,7 @@ void xcmd(char *buf,int cmd,int len)
 
 void xcmdslot(char *buf,int cmd,int len)
 {
-	*(unsigned short*)buf=slots[currslot]->id;
+	STORE16(buf,slots[currslot]->id);
 	buf[2]=cmd;
 	/*mylog("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
@@ -868,7 +868,7 @@ void printinfo(char *addr,int what,char *buf)
 	if(!*addr||!addr)return;
 	xstrcpy(buf+3,addr,64);
 	xcmd(buf,QR_INFO,strlen(addr)+4);
-	while(getmessages(buf));rc=buf[2];
+	while(getmessages(buf)>0);rc=buf[2];
 	if(rc)return;
 	for(p=buf+3;strlen(p);rc++) {
 		mylog("%s: %s",infostrs[rc],p);
@@ -897,7 +897,8 @@ int getmessages(char *bbx)
 	unsigned char *data,*p;
 	memset(buf,0,MSG_BUFFER);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
-	if(rc>=0&&rc<MSG_BUFFER)buf[rc]=0;
+	if(!rc)return -1;
+	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
 	/*if(rc>0)mylog("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));*/
 	if(bbx&&rc>=3&&buf[2]<8) {
 		memcpy(bbx,buf,rc);
@@ -905,7 +906,7 @@ int getmessages(char *bbx)
 	}
 	if(bbx&&allslots==-9)return 1;
 	if(rc>=3) {
-		id=*(unsigned short*)buf;
+		id=FETCH16(buf);
 		type=buf[2];
 		if(type<8)return 1;
 		data=(unsigned char*)(strchr(buf+3,0)+1);
@@ -1146,8 +1147,8 @@ int main(int argc,char **argv)
 	signal(SIGPIPE,SIG_IGN);
 	snprintf(buf+3,MSG_BUFFER-4,"eqcc-%s",version);
 	xcmd(buf,QR_STYPE,strlen(buf+3)+4);
-	tim=time(NULL)+6;
-	while(getmessages(buf)&&time(NULL)<tim);
+	tim=time(NULL)+6;buf[2]=1;
+	while(getmessages(buf)>0&&time(NULL)<tim);
 	if(buf[2]||time(NULL)>=tim) {
 		fprintf(stderr,"bad server\n");
 		return 1;
@@ -1190,11 +1191,18 @@ int main(int argc,char **argv)
 		tv.tv_sec=1;
 		tv.tv_usec=0;
 		rc=select(sock+1,&rfds,NULL,NULL,&tv);
-		if(FD_ISSET(sock,&rfds))while(getmessages(NULL));
-		if(FD_ISSET(0,&rfds)) {
+		if(rc<0) {
+			mylog("err in select: %s",strerror(errno));
+		}
+		if(rc>0&&FD_ISSET(sock,&rfds))do {
+			ch=getmessages(NULL);
+			if(ch<0)quitflag=1;
+		} while(ch>0);
+		if(rc>0&&FD_ISSET(0,&rfds)) {
 		ch=getch();
-		if(ch==12/*ctrl+l*/) {
-
+		if(ch==('@'-'L')) {
+			freshall();
+			refresh();
 		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
 			if(currslot<(allslots-1)||ch=='\t') {
 				currslot++;

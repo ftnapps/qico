@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.8 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: emsi.c,v 1.9 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -65,7 +65,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 		}
 	}
 	if(!c)xstrcat(dat,",NCP",EMSI_BUF);
-    	snprintf(tmp,1024,"}{FE}{%s}{%s}{%s}",xstrdup(qver(0)),xstrdup(qver(1)),xstrdup(qver(2)));
+    	snprintf(tmp,1024,"}{FE}{%s}{%s}{%s}",qver(0),qver(1),qver(2));
 	xstrcat(dat,tmp,EMSI_BUF);
 	snprintf(tmp,1024,"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s %s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
 			strip8(cfgs(CFG_STATION)),strip8(cfgs(CFG_PLACE)),

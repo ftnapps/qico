@@ -1,9 +1,10 @@
 /**********************************************************
  * MD5 crypt.
  * original version of this file was taken from BinkleyForce mailer.
- * $Id: md5.c,v 1.1 2003/08/28 13:42:05 sisoft Exp $
+ * $Id: md5.c,v 1.2 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include <headers.h>
+#include "byteop.h"
 
 /* Data structure for MD5 (Message-Digest) computation */
 typedef struct {
@@ -232,20 +233,15 @@ static void md5_compute(s_md5 *md, const unsigned char *data, size_t length,
 	length += (md->chunks * 64);
 	length <<= 3;
 
-	buffer[56] = (unsigned char)((length      ) & 0xff);
-	buffer[57] = (unsigned char)((length >> 8 ) & 0xff);
-	buffer[58] = (unsigned char)((length >> 16) & 0xff);
-	buffer[59] = (unsigned char)((length >> 24) & 0xff);
+	STORE32(buffer+56,length);
 
 	md5_update(md, buffer);
 
 	for( i = 0; i < 4; i++ )
 	{
 		unsigned int x = md->buf[i];
-		*digest++ = (unsigned char)((x      ) & 0xff);
-		*digest++ = (unsigned char)((x >> 8 ) & 0xff);
-		*digest++ = (unsigned char)((x >> 16) & 0xff);
-		*digest++ = (unsigned char)((x >> 24) & 0xff);
+		STORE32(digest,x);
+		INC32(digest);
 	}
 }
 

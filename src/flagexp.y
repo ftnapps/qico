@@ -1,8 +1,8 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.4 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: flagexp.y,v 1.5 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
-%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
+%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR HOST
 %{
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -28,6 +28,7 @@ static int checkspeed(int op, int speed, int real);
 static int checkphone(void);
 static int checkport(void);
 static int checkcid(void);
+static int checkhost(void);
 static int checkfile(void);
 static int yyerror(char *s);
 extern char *yyPTR;
@@ -58,6 +59,8 @@ elemexp		: flag
 			{$$ = checkphone();}
 		| CID PHSTR
 			{$$ = checkcid();}
+		| HOST IDENT
+			{$$ = checkhost();}
 		| PORT IDENT
 			{$$ = checkport();}
 		| FLFILE PATHSTR
@@ -114,7 +117,7 @@ static int checkconnstr(void)
 	DEBUG(('Y',2,"checkconnstr: \"%s\"",yytext));
 	if(!connstr||is_ip) return 0;
 	DEBUG(('Y',2,"checkconnstr: \"%s\" <-> \"%s\"",yytext,connstr));
-	if(!strncmp(yytext,connstr,strlen(yytext))) return 1;
+	if(!strstr(connstr,yytext)) return 1;
 	return 0;
 }
 
@@ -147,8 +150,7 @@ static int checkspeed(int op, int speed, int real)
 static int checkphone(void)
 {
 	DEBUG(('Y',2,"checkphone: \"%s\"",yytext));
-	if(!rnode) return 0;
-	if(!rnode->phone) return 0;
+	if(!rnode||!rnode->phone) return 0;
 	DEBUG(('Y',2,"checkphone: \"%s\" <-> \"%s\"",yytext,rnode->phone));
 	if(!strncasecmp(yytext,rnode->phone,strlen(yytext))) return 1;
 	return 0;
@@ -160,6 +162,15 @@ static int checkcid(void)
 	if(!cid||strlen(cid?cid:"")<4) cid = "none";
 	DEBUG(('Y',2,"checkcid: \"%s\" <-> \"%s\"",yytext,cid));
 	if(!strncasecmp(yytext,cid,strlen(yytext))) return 1;
+	return 0;
+}
+
+static int checkhost(void)
+{
+	DEBUG(('Y',2,"checkhost: \"%s\"",yytext));
+	if(!rnode || !rnode->host) return 0;
+	DEBUG(('Y',2,"checkhost: \"%s\" <-> \"%s\"",yytext,rnode->host));
+	if(!strncasecmp(yytext,rnode->host,strlen(yytext)))return 1;
 	return 0;
 }
 
@@ -196,11 +207,11 @@ int flagexp(char *expr)
 	flxpres=0;
 	if(yyparse()) {
 		DEBUG(('Y',1,"checkexpression: could not parse, assume \"false\""));
-		free(p);
+		xfree(p);
 		return 0;
 	}
 	DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
-	free(p);
+	xfree(p);
 	return flxpres;
 }
 

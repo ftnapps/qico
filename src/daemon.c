@@ -1,7 +1,14 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.4 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: daemon.c,v 1.5 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
+#include <config.h>
+#ifdef HAVE_FNOTIFY
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <fcntl.h>
+#undef _GNU_SOURCE
+#endif
 #include "headers.h"
 #include <stdarg.h>
 #include <sys/socket.h>
@@ -12,6 +19,9 @@
 static short tosend=0;
 static cls_cl_t *cl=NULL;
 static int t_dial=0,c_delay,rnum;
+#ifdef HAVE_FNOTIFY
+static int fnot;
+#endif
 
 static void sigchild(int sig)
 {
@@ -38,6 +48,15 @@ static void sighup(int sig)
 #endif
 	do_rescan=1;
 }
+
+#ifdef HAVE_FNOTIFY
+static void sigrt(int sig)
+{
+	signal(sig,sigrt);
+	DEBUG(('Q',2,"got SIGRT"));
+	do_rescan=2;rnum=0;
+}
+#endif
 
 static char *sts_str(int flags)
 {
@@ -136,23 +155,30 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		sendrpkt(1,chld,"need basic auth!");
 		return;
 	}
-	if(*(short*)buf) {
-		DEBUG(('I',2,"client %d: msg for line '%s' (pid=%d)",uis->id,buf[3],*(unsigned short*)buf));
+	if(FETCH16(buf)) {
+		DEBUG(('I',2,"client %d: msg for pid %d",uis->id,FETCH16(buf)));
 		if(xsend(lins_sock,buf,rc)<0)DEBUG(('I',1,"can't send to lines: %s",strerror(errno)));
 		return;
 	}
 	if(buf[2]==QR_POLL||buf[2]==QR_REQ||buf[2]==QR_INFO||
 	    buf[2]==QR_SEND||buf[2]==QR_STS||buf[2]==QR_KILL) {
 		if(!parseftnaddr(buf+3, &fa, &DEFADDR, 0)) {
-			write_log("can't parse address '%s'!", buf+3);
 			sendrpkt(1,chld,"can't parse address '%s'!", buf+3);
+			write_log("can't parse address '%s'!", buf+3);
 			return;
 		}
 	}
 	switch(buf[2]) {
 	    case QR_QUIT:
 		DEBUG(('I',2,"client %d: request quit (type='%c')",uis->id,uis->type));
-		if(uis->type!='c')break;
+		if(uis->type!='c') {
+			sendrpkt(1,chld,"wrong client type, ignored");
+			break;
+		}
+		sendrpkt(0,chld,"");
+#ifdef HAVE_FNOTIFY
+		if(fnot>0)close(fnot);
+#endif
 		if(is_bso()==1)bso_done();
 		if(is_aso()==1)aso_done();
 		write_log("exiting by request");
@@ -170,33 +196,33 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		killsubsts(&psubsts);
 		killconfig();
 		if(!readconfig(configname)) {
-			write_log("there was some errors parsing config, exiting");
 			sendrpkt(1,chld,"bad config, terminated");
+			write_log("there was some errors parsing config, exiting");
 			stopit(0);
 		}
+		sendrpkt(0,chld,"");
 		psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
 		parse_log_levels();
 #endif
-		do_rescan=1;					
-		sendrpkt(0,chld,"");
+		do_rescan=1;
 		break;
 	    case QR_SCAN:
 		DEBUG(('I',2,"client %d: request rescan",uis->id));
-		do_rescan=1;rnum=0;
 		sendrpkt(0,chld,"");
+		do_rescan=1;rnum=0;
 		break;
 	    case QR_RESTMR:
+		sendrpkt(0,chld,"");
 		c_delay=1;
 		t_dial=0;
-		sendrpkt(0,chld,"");
 		break;
 	    case QR_HANGUP: {
-		char ccmd[MAX_STRING];
+//		char ccmd[MAX_STRING];
 		DEBUG(('I',2,"client %d: request hangup line '%s'",uis->id,buf+3));
-		sprintf(ccmd,"/bin/kill -HUP `cat '%s/LCK..%s'`",cfgs(CFG_LOCKDIR),buf+3);
-		execnowait("/bin/sh","-c",ccmd,NULL);
 		sendrpkt(0,chld,"");
+//		sprintf(ccmd,"/bin/kill -HUP `cat '%s/LCK..%s'`",cfgs(CFG_LOCKDIR),buf+3);
+//		execnowait("/bin/sh","-c",ccmd,NULL);
 		} break;
 	    case QR_POLL: {
 		int locked=0;
@@ -208,12 +234,12 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			if(*p=='?')*p=*cfgs(CFG_POLLFLAVOR);
 			rc=bso_flavor(*p);
 			if(rc==F_ERR) {
-				write_log("unknown flavour - '%c'",C0(*p));
 				sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+				write_log("unknown flavour - '%c'",C0(*p));
 				break;
 			}
-			write_log("poll for %s, flavor %c", ftnaddrtoa(&fa),*p);
 			sendrpkt(0,chld,"");
+			write_log("poll for %s, flavor %c", ftnaddrtoa(&fa),*p);
 			if(is_bso()==1) {
 				rc=bso_poll(&fa,rc);
 				bso_unlocknode(&fa,LCK_t);
@@ -236,8 +262,8 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			}
 			do_rescan=1;
 		    } else {
-			write_log("can't create poll for %s!",ftnaddrtoa(&fa));
 			sendrpkt(1,chld,"can't create poll for %s",ftnaddrtoa(&fa));
+			write_log("can't create poll for %s!",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_KILL: {
@@ -246,15 +272,15 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
 		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
-			write_log("kill %s",ftnaddrtoa(&fa));
 			sendrpkt(0,chld,"");
+			write_log("kill %s",ftnaddrtoa(&fa));
 			simulate_send(&fa);
 			if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
 			if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
 			do_rescan=1;
 		    } else {
-			write_log("can't kill %s!",ftnaddrtoa(&fa));
 			sendrpkt(1,chld,"can't kill %s",ftnaddrtoa(&fa));
+			write_log("can't kill %s!",ftnaddrtoa(&fa));
 			}
 		} break;
 	    case QR_STS:
@@ -271,13 +297,14 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			case 'u': res|=Q_UNDIAL;break;
 			case 'h': set|=Q_WAITA;rc=2;break;
 			default:
-				write_log("unknown status action: %c",*p);
 				sendrpkt(1,chld,"unknown status action: %c",*p);
+				write_log("unknown status action: %c",*p);
 				rc=0;
 			}
 			p++;
 		}
 		if(rc) {
+			sendrpkt(0,chld,"");
 			if(is_bso()==1) {
 				bso_getstatus(&fa,&sts);
 				sts.flags|=set;sts.flags&=~res;p++;
@@ -298,7 +325,6 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 				if(res&Q_UNDIAL) sts.try=0;
 				aso_setstatus(&fa,&sts);
 			}
-			sendrpkt(0,chld,"");
 			do_rescan=1;
 		}
 		break;
@@ -308,6 +334,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
 		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
+			sendrpkt(0,chld,"");
 			sl=NULL;p=buf+3+strlen(buf+3)+1;
 			while(strlen(p)){
 				write_log("requested '%s' from %s",p,ftnaddrtoa(&fa));
@@ -315,7 +342,6 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 				slist_add(&sl,p);
 				p+=strlen(p)+1;
 			}
-			sendrpkt(0,chld,"");
 			if(is_bso()==1)rc=bso_request(&fa,sl);
 			else if(is_aso()==1)rc=aso_request(&fa,sl);
 			slist_kill(&sl);
@@ -339,8 +365,8 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			}
 			do_rescan=1;
 		    } else {
-			write_log("can't lock node %s!",ftnaddrtoa(&fa));
 			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
+			write_log("can't lock node %s!",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_SEND: {
@@ -350,14 +376,15 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		if('?'==*p)*p=*cfgs(CFG_POLLFLAVOR);
 		rc=bso_flavor(*p);
 		if(rc==F_ERR) {
-			write_log("unknown flavour - '%c'",C0(*p));
 			sendrpkt(1,chld,"unknown flavour %c",C0(*p));
+			write_log("unknown flavour - '%c'",C0(*p));
 			break;
 		}
 		p+=strlen(p)+1;
 		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_t);
 		if(is_aso()==1)locked|=aso_locknode(&fa,LCK_t);
 		if(locked) {
+			sendrpkt(0,chld,"");
 			sl=NULL;
 			while(strlen(p)){
 				write_log("attaching '%s' to %s%s",
@@ -371,11 +398,10 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			slist_kill(&sl);
 			if(is_bso()==1)bso_unlocknode(&fa,LCK_t);
 			if(is_aso()==1)aso_unlocknode(&fa,LCK_t);
-			sendrpkt(0,chld,"");
 			do_rescan=1;
 		    } else {
-			write_log("can't lock node %s!",ftnaddrtoa(&fa));
 			sendrpkt(1,chld,"can't lock node %s",ftnaddrtoa(&fa));
+			write_log("can't lock node %s!",ftnaddrtoa(&fa));
 		}
 		} break;
 	    case QR_INFO:
@@ -393,25 +419,25 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 					);
 				nlkill(&rnode);
 			} else {
-				write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
 				sendrpkt(1,chld,"%s not found in nodelist!",ftnaddrtoa(&fa));
+				write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
 			}
 			break;
 		    case 1:
-			write_log("can't query nodelist, index error");
 			sendrpkt(1,chld,"can't query nodelist, index error");
+			write_log("can't query nodelist, index error");
 			break;
 		    case 2:
-			write_log("can't query nodelist, nodelist error");
 			sendrpkt(1,chld,"can't query nodelist, nodelist error");
+			write_log("can't query nodelist, nodelist error");
 			break;
 		    case 3:
-			write_log("index is older than the list, need recompile");
 			sendrpkt(1,chld,"index is older than the list, need recompile");
+			write_log("index is older than the list, need recompile");
 			break;
 		    default:
-			write_log("nodelist query error!");
 			sendrpkt(1,chld,"nodelist query error!");
+			write_log("nodelist query error!");
 			break;
 		}
 		break;
@@ -427,10 +453,11 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 				(unsigned long)sinfo->try,(char)0,
 				(unsigned long)sinfo->flv);
 		} while ((sinfo=sinfo->next));
-			sendrpkt(0,chld,"%c",0);
-			break;
+		sendrpkt(0,chld,"%c",0);
+		break;
 	    default:
 		DEBUG(('I',2,"client %d: bad request",uis->id));
+		sendrpkt(1,chld,"bad request");
 		write_log("got unsupported packet type: %c",C0(buf[2]));
 	}
 }
@@ -493,12 +520,24 @@ void daemon_mode()
 	} 
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
+#ifdef HAVE_FNOTIFY
+	if(is_aso()==1) {
+		fnot=open(cfgs(CFG_ASOOUTBOUND),O_RDONLY);
+		if(fnot<0)DEBUG(('Q',1,"can't open %s: %s",ccs,strerror(errno)));
+		    else {
+			signal(SIGRTMIN,sigrt);
+			fcntl(fnot,F_SETSIG,SIGRTMIN);
+			fcntl(fnot,F_NOTIFY,DN_MODIFY|DN_CREATE|DN_DELETE|DN_RENAME|DN_MULTISHOT);
+		}
+	} else fnot=-1;
+#endif
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	srand(time(NULL));rnum=-1;
 	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 	while(1) {
 		rescanperiod=cfgi(CFG_RESCANPERIOD);
-		if(!((rescanperiod-t_rescan)%2))title("Queue manager [%d]",rescanperiod-t_rescan);
+		if(do_rescan>1){t_rescan=rescanperiod-do_rescan;do_rescan=0;}
+		title("Queue manager [%d]",rescanperiod-t_rescan);
 		if(t_rescan>=rescanperiod||do_rescan) {
 			/*sline("Rescanning outbound...");*/
 			if(rnum<0)rnum=cfgi(CFG_LONGRESCAN)-1;
@@ -571,6 +610,7 @@ void daemon_mode()
 				if(!(rnode->opt&(MO_BINKP|MO_IFC)))xfree(rnode->host);
 				DEBUG(('Q',1,"ndl: %s %s %s [%d]",ftnaddrtoa(&current->addr),rnode?(rnode->host?rnode->host:rnode->phone):"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				if(checktimegaps(cfgs(CFG_CANCALL))&&find_dialable_subst(rnode,havestatus(f,CFG_IMMONFLAVORS),psubsts)) {
+					xfree(rnode->tty);
 					if(rnode->host) {
 						static struct stat s;
 						static char lckname[MAX_PATH];
@@ -591,10 +631,14 @@ void daemon_mode()
 					chld=fork();
 					if(!chld) {
 						setsid();
+#ifdef HAVE_FNOTIFY
+						signal(SIGRTMIN,SIG_IGN);
+#endif						
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(cfgi(CFG_TRANSLATESUBST)==1&&!is_ip)phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 						log_done();ssock=uis_sock=lins_sock=-1;
+						log_callback=NULL;xsend_cb=NULL;
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
@@ -765,7 +809,7 @@ nlkil:				is_ip=0;bink=0;
 			}
 			tv.tv_sec=0;tv.tv_usec=5000;
 			rc=select(rc+1,&rfds,NULL,NULL,&tv);
-			if(rc<0)DEBUG(('I',1,"select: error: %s",strerror(errno)));
+			if(rc<0&&errno!=EINTR)DEBUG(('I',1,"select: error: %s",strerror(errno)));
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
 					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);

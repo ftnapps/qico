@@ -1,19 +1,23 @@
-/* $Id: TodayFixes,v 1.14 2004/01/17 00:05:04 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.15 2004/01/18 15:58:58 sisoft Exp $ */
+---
+fix work without daemon.
+in qcc&qctl: quit, if connection to server broken.
+set default port to service 'qicoui' or 60178.
+fix some memory leak.
+add autorescan if system GNU-compatible, have F_NOTIFY and ASO used.
+added option '--disable-notify' to configure for disable autorescan.
+add if-expression 'host'.
+fix 'connstr' if-expression.
+more portable ip exchange.
+change loglevel 'X' - max dubug level, for send to clients.
+.
+previous:
 ---
 added loglevel 'I' - debug ip routines.
 in daemon: check clients for compatibility.
 in qcc&qctl: check for daemon really present on connected port.
 improve 'autoticskip' in binkp.
 added hydra-4k.
-.
-previous:
----
-rewrite ipc code to (tcp+udp)/ip.
-remove 'ipcperm' keyword.
-added 'server' keyword: server port.
-added -P <port> options to qcc and qctl.
-some code cleanup... may be.
-many bugs added too. ;)
 .
 
 ps: в связи с временным отсутствием фидошки,

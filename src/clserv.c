@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.3 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: clserv.c,v 1.4 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -19,7 +19,8 @@ int cls_conn(int type,char *port)
 	sa.sin_family=AF_INET;
 	if(port&&atoi(port))sa.sin_port=htons(atoi(port));
 	    else if(port&&(se=getservbyname(port,(type&CLS_UDP)?"udp":"tcp")))sa.sin_port=se->s_port;
-		else if(!port)sa.sin_port=htons(60178);
+	      else if(!port&&(se=getservbyname("qicoui",(type&CLS_UDP)?"udp":"tcp")))sa.sin_port=se->s_port;
+		else if(!port)sa.sin_port=htons(DEF_SERV_PORT);
 		    else {errno=EINVAL;return -1;}
 	rc=socket(AF_INET,type&CLS_UDP?SOCK_DGRAM:SOCK_STREAM,0);
     	if(rc<0)return rc;
@@ -34,11 +35,9 @@ int cls_conn(int type,char *port)
 			xsend_cb=xsend;
 			return rc;
 		}
-			xsend_cb=xsend;
-			return rc;
-		
+		xsend_cb=xsend;
+		return rc;
 	}
-//	inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
 	if(connect(rc,(struct sockaddr*)&sa,sizeof(sa))<0)return -1;
 	xsend_cb=xsend;
 	return rc;
@@ -55,16 +54,15 @@ void cls_shutd(int sock)
 	if(sock>=0)shutdown(sock,3);
 #endif
 	cls_close(sock);
-	xsend_cb=xsend;
 }
 
 int xsend(int sock,char *buf,int len)
 {
 	int rc;
-	unsigned short l=len;
+	unsigned short l=H2I16(len);
 	if(sock<0){errno=EBADF;return -1;}
 	if(!len)return 0;
-	rc=send(sock,&l,sizeof(short),MSG_DONTWAIT);
+	rc=send(sock,&l,2,MSG_DONTWAIT);
 	if(rc<=0)return rc;
 	rc=send(sock,buf,len,0);
 	return rc;
@@ -78,14 +76,15 @@ int xrecv(int sock,char *buf,int len,int wait)
 	rc=recv(sock,&l,2,MSG_PEEK|(wait?MSG_WAITALL:MSG_DONTWAIT));
 	if(rc<=0)return rc;
 	if(rc==2) {
-		rc=recv(sock,&l,sizeof(short),MSG_WAITALL);
-		if(rc<sizeof(short))return -1;
+		rc=recv(sock,&l,2,MSG_WAITALL);
+		if(rc<2)return -1;
+		l=I2H16(l);
 		if(!l)return 0;
 		if(l>len)l=len;len=0;
 		do {
 			rc=recv(sock,buf,l-len,MSG_WAITALL);
 			if(rc>0)len+=rc;
-		} while((rc>=0||(rc<0&&errno==EAGAIN))&&len<l);
+		} while((rc>0||(rc<0&&errno==EAGAIN))&&len<l);
 		return rc<0?rc:len;
 	}
 	return 0;

@@ -1,3 +1,11 @@
+2004-01-17 03:05  sisoft
+
+	* Changes, compile, qico.conf.sample, debian/rules, src/binkp.c,
+	src/clserv.c, src/daemon.c, src/emsi.c, src/hydra.c, src/mailer.h,
+	src/protfm.c, src/qcc.c, src/qctl.c, src/qipc.c, src/session.c:
+
+	[no log message]
+	
 2004-01-16 02:39  sisoft
 
 	* Changes, README, TODO, configure.in, qico.conf.sample,

@@ -1,6 +1,6 @@
 /**********************************************************
  * bso management
- * $Id: bso.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: bso.c,v 1.6 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -279,6 +279,7 @@ int bso_getstatus(ftnaddr_t *fa, sts_t *st)
 		    else if(*buf)st->bp.name=xstrdup(buf);
 		if(rc==4||rc==8)return 1;
 		write_log("status file %s corrupted",bso_tmp);
+		xfree(st->bp.name);
 	}
 	memset(st,0,sizeof(sts_t));
 	return 0;

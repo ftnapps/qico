@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.7 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: log.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -115,6 +115,11 @@ int log_init(char *ln, char *tn)
 	if(tn) {
 		len=strlen(progname)+2+strlen(tn);
 		n=malloc(len);
+		if(!n) {
+			fprintf(stderr,"can't malloc memory");
+			abort();
+			exit(1);
+		}
 		xstrcpy(n,progname,len);
 		xstrcat(n,".",len);
 		xstrcat(n,tn,len);
@@ -194,7 +199,7 @@ void write_debug_log(unsigned char facility,int level,char *fmt,...)
 #endif
 	snprintf(prefix,16,"DBG_%c%02d: ",facility,level);
 	va_start(args, fmt);
-	vwrite_log(fmt,prefix,facilities_levels['X']>0,args);
+	vwrite_log(fmt,prefix,facilities_levels['X']>=level,args);
 	va_end(args);
 }
 #endif

@@ -1,6 +1,8 @@
-/* $Id: clserv.h,v 1.2 2004/01/15 23:39:41 sisoft Exp $ */
+/* $Id: clserv.h,v 1.3 2004/01/18 15:58:58 sisoft Exp $ */
 #ifndef __CLSERV_H__
 #define __CLSERV_H__
+
+#define DEF_SERV_PORT 60178
 
 #define CLS_UDP 1
 #define CLS_SERVER 2

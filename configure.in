@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico], [0.51si-cvs], [sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.51si-cvs])
-AC_REVISION([$Id: configure.in,v 1.8 2004/01/15 23:39:40 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.9 2004/01/18 15:58:58 sisoft Exp $])
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
@@ -231,6 +231,48 @@ if test "${enable_efence}x" != "nox"; then
 	fi
 else 
 	AC_MSG_RESULT(no)
+fi
+
+dnl Check for F_NOTIFY
+AC_MSG_CHECKING([for F_NOTIFY (for ASO auto-rescascan)])
+AC_ARG_ENABLE(notify,AC_HELP_STRING([--disable-notify],[disable use F_NOTIFY for ASO auto-rescan]),,enable_notify=yes)
+if test "${enable_notify}x" != "nox"; then
+	AC_TRY_RUN([
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
+int done;
+void sigrt(int sig) { done=1; }
+int main(void) {
+    int fd,rc=1;
+    FILE *f;
+    mkdir("ac_xtst",S_IRWXU);
+    fd=open("ac_xtst",O_RDONLY);
+    if(fd<0) { rmdir("ac_xtst"); return 1; }
+    signal(SIGRTMIN,sigrt);
+    if(fcntl(fd,F_SETSIG,SIGRTMIN)<0 ||
+	fcntl(fd,F_NOTIFY,DN_CREATE|DN_DELETE|DN_MULTISHOT)<0) goto bad;
+    done=0;
+    f=fopen("ac_xtst/ac","w");
+    if(!f) goto bad;
+    fclose(f);
+    sleep(1);
+    if(!done) goto bad;
+    done=0;
+    unlink("ac_xtst/ac");
+    sleep(1);
+    if(done) rc=0;
+bad:close(fd);
+    rmdir("ac_xtst");
+    return rc;
+}
+	],AC_MSG_RESULT(yes);
+	AC_DEFINE(HAVE_FNOTIFY,1,[Allow use F_NOTIFY for ASO auto-recan]),
+	AC_MSG_RESULT(no),AC_MSG_RESULT(cross-compiling. No assumptions made))
+else
+	AC_MSG_RESULT(no);
 fi
 
 dnl My defines -- from acconfig.h, hack for new autoconf
