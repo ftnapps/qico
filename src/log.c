@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.9 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: log.c,v 1.10 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -57,6 +57,7 @@ static SLNCODE prioritynames[] =
 };
 #endif
 
+#define CHATLOG_BUF 4096
 static int log_type=0,mcpos,rcpos;
 static int syslog_priority=LOG_INFO;
 char *log_name=NULL;
@@ -66,8 +67,8 @@ static ftnaddr_t *adr;
 static char pktname[MAX_PATH]={0};
 static FILE *cpkt=NULL;
 static FILE *lemail=NULL;
-static char mchat[4096]={0};
-static char rchat[4096]={0};
+static char mchat[CHATLOG_BUF]={0};
+static char rchat[CHATLOG_BUF]={0};
 
 #ifdef NEED_DEBUG
 int facilities_levels[256];
@@ -253,7 +254,7 @@ void chatlog_write(char *text,int side)
 	char quot[2]={0},*tmp,*cbuf=side?rchat:mchat;
 	if(side)*quot='>'; else *quot=' ';
 	if(text&&*text) {
-		strncpy(cbuf+(side?rcpos:mcpos),text,4095-(side?rcpos:mcpos));
+		xstrcpy(cbuf+(side?rcpos:mcpos),text,CHATLOG_BUF-(side?rcpos:mcpos)-1);
 		if(side)rcpos+=strlen(text);
 		    else mcpos+=strlen(text);
 		while((side?rcpos:mcpos)&&(tmp=strchr(cbuf,'\n'))) {
@@ -279,7 +280,7 @@ void chatlog_write(char *text,int side)
 				fwrite(quot,1,1,cpkt);
 				fwrite(cbuf,1,n,cpkt);
 			}
-			if(cbuf[n])strncpy(cbuf,cbuf+n,4091);
+			if(cbuf[n])xstrcpy(cbuf,cbuf+n,CHATLOG_BUF-6);
 			if(side)rcpos-=(n+m);
 			    else mcpos-=(n+m);
 		}

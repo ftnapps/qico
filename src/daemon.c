@@ -1,9 +1,9 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.10 2004/01/26 21:24:46 sisoft Exp $
+ * $Id: daemon.c,v 1.11 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include <config.h>
-#ifdef HAVE_FNOTIFY
+#ifdef HAVE_DNOTIFY
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <fcntl.h>
@@ -22,8 +22,8 @@ static short tosend=0;
 static cls_cl_t *cl=NULL;
 static cls_ln_t *ln=NULL;
 static int t_dial=0,c_delay,rnum;
-#ifdef HAVE_FNOTIFY
-static int fnot;
+#ifdef HAVE_DNOTIFY
+static int dnot;
 #endif
 
 static void sigchild(int sig)
@@ -52,7 +52,7 @@ static void sighup(int sig)
 	do_rescan=1;
 }
 
-#ifdef HAVE_FNOTIFY
+#ifdef HAVE_DNOTIFY
 static void sigrt(int sig)
 {
 	signal(sig,sigrt);
@@ -197,8 +197,8 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			break;
 		}
 		sendrpkt(0,chld,"");
-#ifdef HAVE_FNOTIFY
-		if(fnot>0)close(fnot);
+#ifdef HAVE_DNOTIFY
+		if(dnot>0)close(dnot);
 #endif
 		if(is_bso()==1)bso_done();
 		if(is_aso()==1)aso_done();
@@ -548,16 +548,16 @@ void daemon_mode()
 	} 
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
-#ifdef HAVE_FNOTIFY
+#ifdef HAVE_DNOTIFY
 	if(is_aso()==1) {
-		fnot=open(cfgs(CFG_ASOOUTBOUND),O_RDONLY);
-		if(fnot<0)DEBUG(('Q',1,"can't open %s: %s",ccs,strerror(errno)));
+		dnot=open(cfgs(CFG_ASOOUTBOUND),O_RDONLY);
+		if(dnot<0)DEBUG(('Q',1,"can't open %s: %s",ccs,strerror(errno)));
 		    else {
 			signal(SIGRTMIN,sigrt);
-			fcntl(fnot,F_SETSIG,SIGRTMIN);
-			fcntl(fnot,F_NOTIFY,DN_MODIFY|DN_CREATE|DN_DELETE|DN_RENAME|DN_MULTISHOT);
+			fcntl(dnot,F_SETSIG,SIGRTMIN);
+			fcntl(dnot,F_NOTIFY,DN_MODIFY|DN_CREATE|DN_DELETE|DN_RENAME|DN_MULTISHOT);
 		}
-	} else fnot=-1;
+	} else dnot=-1;
 #endif
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	srand(time(NULL));rnum=-1;
@@ -659,7 +659,7 @@ void daemon_mode()
 					chld=fork();
 					if(!chld) {
 						setsid();
-#ifdef HAVE_FNOTIFY
+#ifdef HAVE_DNOTIFY
 						signal(SIGRTMIN,SIG_IGN);
 #endif						
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
@@ -924,7 +924,6 @@ nlkil:				is_ip=0;bink=0;
 						if(cl)uis->next=uit;
 						    else cl=uit;
 						DEBUG(('I',1,"new client %d: accepted (fd=%d)",uit->id,uit->sock));
-						qpmydata();
 					}
 				}
 			}

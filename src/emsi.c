@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.9 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: emsi.c,v 1.10 2004/02/01 18:11:43 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -71,8 +71,8 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 			strip8(cfgs(CFG_STATION)),strip8(cfgs(CFG_PLACE)),
 			strip8(cfgs(CFG_SYSOP)),strip8(cfgs(CFG_PHONE)),
 			cfgi(CFG_SPEED),strip8(cfgs(CFG_FLAGS)),
-			mail,files,strip8(cfgs(CFG_WORKTIME)?ccs:xstrdup("Never")),
-			strip8(cfgs(CFG_EMSIFREQTIME)?ccs:(cfgs(CFG_FREQTIME)?ccs:xstrdup("Never"))),
+			mail,files,strip8(cfgs(CFG_WORKTIME)?ccs:"Never"),
+			strip8(cfgs(CFG_EMSIFREQTIME)?ccs:(cfgs(CFG_FREQTIME)?ccs:"Never")),
 			time(NULL)+gmtoff(tm,0),gmtoff(tm,0)/3600);
 	xstrcat(dat,tmp,EMSI_BUF);
 	snprintf(tmp,1024,"%04X",strlen(dat)-14);
@@ -149,7 +149,6 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 			fputs(str, elog);fputc('\n', elog);fclose(elog);
 		}
 	}
-/* 	*(str+strlen(str)-1)=0; */
 	if(!(str=strstr(str, "**EMSI_DAT")))return 0;
 	sscanf(str+10,"%04X",&l);
 	if(l!=strlen(str)-18)return 0;

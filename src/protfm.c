@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.7 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: protfm.c,v 1.8 2004/02/01 18:11:43 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -26,9 +26,10 @@ word    txmaxblklen;
 word    timeout;
 byte    txlastc;
 
+#define CHAT_BUF 16384
 static unsigned char qrcv_buf[MSG_BUFFER]={0};
-static unsigned char qsnd_buf[16384]={0};
-static unsigned char ubuf[16384];
+static unsigned char qsnd_buf[CHAT_BUF]={0};
+static unsigned char ubuf[CHAT_BUF];
 static char hellostr[MAX_STRING];
 static unsigned short qsndbuflen=0;
 int chatprot,chatlg=0,rxstatus=0,skipiftic=0;
@@ -275,11 +276,11 @@ int txclose(FILE **f, int what)
 
 void chatinit(int prot)
 {
-	strcpy(hellostr,"\05\05\05");
+	xstrcpy(hellostr,"\05\05\05",MAX_STRING);
 	strtr(cfgs(CFG_CHATHALLOSTR),'|','\n');strtr(ccs,'$','\a');
 	snprintf(hellostr+3,MAX_STRING-7,ccs,rnode->sysop);
 	stodos((unsigned char*)hellostr);
-	strcat(hellostr,"\05\05\05");
+	xstrcat(hellostr,"\05\05\05",MAX_STRING);
 	chattimer=-1L;
 	chatlg=0;
 	qsndbuflen=0;
@@ -386,15 +387,15 @@ void getevt()
 				break;
 			case QR_CHAT:
 				if(qrcv_buf[3]) {
-					strncpy(qsnd_buf+qsndbuflen,qrcv_buf+3,16383-qsndbuflen);
+					xstrcpy((char*)(qsnd_buf+qsndbuflen),(char*)(qrcv_buf+3),CHAT_BUF-qsndbuflen);
 					qsndbuflen+=strlen((char*)(qrcv_buf+3));
-					if(qsndbuflen>16300)qsndbuflen=16300;
+					if(qsndbuflen>CHAT_BUF-128)qsndbuflen=CHAT_BUF-128;
 				    } else {
 					i=chatprot;chatprot=-1;
 					chatsend(qsnd_buf);
 					if(chatlg)chatlog_done();
 					chatlg=0;
-					strcat((char*)qsnd_buf,"\n * Chat closed\n");
+					xstrcat((char*)qsnd_buf,"\n * Chat closed\n",CHAT_BUF);
 					chatprot=i;
 					chatsend(qsnd_buf);
 					if(chattimer>0L)qlcerase();

@@ -1,3 +1,9 @@
+2004-01-27 00:24  sisoft
+
+	* Changes, src/daemon.c, src/nodelist.c, src/qipc.c:
+
+	fix 'translatesubst' on outgoing from daemon.
+	
 2004-01-23 15:43  sisoft
 
 	* TODO, src/daemon.c, src/qcc.c, src/qipc.c, src/queue.c:
