@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.10 2000/10/12 19:24:27 lev Exp $
+ * $Id: main.c,v 1.11 2000/10/12 19:32:09 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -710,6 +710,7 @@ int main(int argc, char *argv[], char *envp[])
 	char *hostname=NULL;
 	ftnaddr_t fa;
 	int call_flags = 0;
+	char *str=NULL;
 
 #ifndef FREE_BSD
 	setargspace(argv,envp);
