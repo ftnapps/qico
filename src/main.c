@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.57 2001/06/22 13:05:29 lev Exp $
+ * $Id: main.c,v 1.58 2001/07/08 09:17:19 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -17,6 +17,8 @@
 #include "byteop.h"
 
 #define IP_D 0
+
+extern int hangup();
 
 char *configname=CONFIG;
 subst_t *psubsts;
@@ -721,11 +723,11 @@ void answer_mode(int type)
 			write_log("*** CONNECT Unknown");spd=300;
 		}
 	}
-	if((cs=getenv("CALLER_ID")) && strcasecmp(cs,"none"))
-	   write_log("caller-id: %s", cs);
+	if((cs=getenv("CALLER_ID")) && strcasecmp(cs,"none")) write_log("caller-id: %s", cs);
 	tty_setattr(0);
 	tty_nolocal();
 	rc=session(0, type, NULL, spd);
+	if(!is_ip) hangup();
 	tty_cooked();
 
 	if ((S_OK == (rc&S_MASK)) && cfgi(CFG_HOLDONSUCCESS)) {
