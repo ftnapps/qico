@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.33 2004/04/09 09:51:33 sisoft Exp $
+ * $Id: qcc.c,v 1.34 2004/04/11 01:03:02 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -62,7 +62,7 @@
 #include "ver.h"
 
 /* number of lines for queue. (up window of screen) */
-#define MH 10
+#define MAXMH 10
 /* max line height */
 #define CHH 256
 /* max number of slots */
@@ -192,7 +192,7 @@ NULL
 static slot_t *slots[MAX_SLOTS];
 static qslot_t *queue;
 static int currslot,allslots=-9,q_pos,q_first,q_max,crey=0,crex=0;
-static int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
+static int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0,MH=MAXMH;
 static char *m_header=NULL,*m_status=NULL;
 static WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 static int sock=-1,hstlast=0;
@@ -260,6 +260,7 @@ static void initscreen()
 	nodelay(stdscr,TRUE);
 	keypad(stdscr,TRUE);
 	leaveok(stdscr,FALSE);
+	if(LINES<MH*2)MH=LINES/2-1;
 	init_pair(1,COLOR_BLUE,COLOR_BLACK);
 	init_pair(2,COLOR_GREEN,COLOR_BLACK);
 	init_pair(3,COLOR_CYAN,COLOR_BLACK);
@@ -1247,6 +1248,7 @@ int main(int argc,char **argv)
 		if (sizechanged) {
 			if(!ioctl(fileno(stdout),TIOCGWINSZ,&size)) {
 				LINES=size.ws_row;COLS=size.ws_col;
+				if(LINES<MH*2)MH=LINES/2-1; else MH=MAXMH;
 				resizeterm(LINES,COLS);draw_screen();
 				for(ch=0;ch<allslots;ch++)wresize(slots[ch]->wlog,LOGSIZE,COL);
 				wresize(wmain,MH,COL);wresize(wlog,LOGSIZE,COL);
@@ -1272,7 +1274,7 @@ int main(int argc,char **argv)
 		tv.tv_sec=1;
 		tv.tv_usec=0;
 		rc=select(sock+1,&rfds,NULL,NULL,&tv);
-		if(rc<0)mylog("err in select: %s",strerror(errno));
+		if(rc<0&&errno!=EINTR)mylog("err in select: %s",strerror(errno));
 		if(rc>0&&FD_ISSET(sock,&rfds))do {
 			ch=getmessages(NULL);
 			if(ch<0)quitflag=1;
