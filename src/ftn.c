@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.11 2000/10/12 20:32:41 lev Exp $
+ * $Id: ftn.c,v 1.12 2000/11/01 10:29:23 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -335,7 +335,7 @@ void rmdirs(char *name)
 	char *q;
 	q=strrchr(name,'/');
 	while(q && q!=name && !rc) {
-		*q=0;rc=rmdir(name);/* log("rmdir %s", name); */
+		*q=0;rc=rmdir(name);/* write_log("rmdir %s", name); */
 		q=strrchr(name,'/');*q='/';
 	}
 }
@@ -542,7 +542,7 @@ int lunlink(char *s)
 {
 	int rc=unlink(s);
 	if(rc<0 && errno!=ENOENT)
-		log("can't delete file %s: %s", s, strerror(errno));
+		write_log("can't delete file %s: %s", s, strerror(errno));
 	return rc;
 }
 			

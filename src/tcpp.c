@@ -3,7 +3,7 @@
  * Created at Fri Dec 17 00:14:49 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico,
  * but... it was a very bad piece of code ;)
- * $Id: tcpp.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tcpp.c,v 1.2 2000/11/01 10:29:25 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <unistd.h>
@@ -26,10 +26,10 @@ int tcppsend(int zap)
 	int rc;
 	unsigned long total=totalf+totalm;
 
-	log("tcp send");sline("Init tcpsend...");
+	write_log("tcp send");sline("Init tcpsend...");
 	rc=getsync();
 	if(rc) {
-		log("can't synchronize tcp");
+		write_log("can't synchronize tcp");
 		return 1;
 	}
 	sendf.cps=1;sendf.allf=totaln;sendf.ttot=totalf;
@@ -58,7 +58,7 @@ int tcprecv()
 	long filesize,filetime;
 	char *filename,*p;	
 
-	log("tcpp receive");
+	write_log("tcpp receive");
 	if(getsync()){
 		logerr("can't synchronize tcpp");
 		return 1;
@@ -124,7 +124,7 @@ int sendfile(char *tosend,char *sendas)
 		if(bufl>3 && rxbuf[3]==' '){
 			offset=strtol(rxbuf+4,(char **)NULL,10);
 			if(fseek(txfd,offset,SEEK_SET)){
-				log("can't seek in file %s",ln);
+				write_log("can't seek in file %s",ln);
 				return 1;
 			}
 		} else offset=0;

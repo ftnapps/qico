@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.6 2000/10/07 13:44:52 lev Exp $
+ * $Id: emsi.c,v 1.7 2000/11/01 10:29:23 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -16,11 +16,11 @@
 #include "defs.h"
 
 #ifdef E_DEBUG
-#define sline log
+#define sline write_log
 #undef PUTSTR
 #undef PUTCHAR
-#define PUTSTR(x) {tty_put(x,strlen(x));log("putstr %d %x", strlen(x), strlen(x));}
-#define PUTCHAR(x) {tty_putc(x);log("putchar %x '%c'", x, (x>=32)?x:'.');}
+#define PUTSTR(x) {tty_put(x,strlen(x));write_log("putstr %d %x", strlen(x), strlen(x));}
+#define PUTCHAR(x) {tty_putc(x);write_log("putchar %x '%c'", x, (x>=32)?x:'.');}
 #endif
 
 #define EMSI_BUF 65536
@@ -197,7 +197,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 
 	dat->options|=emsi_parsecod(lcod, ccod);
 #ifdef E_DEBUG	
-	log("emsi codes %s/%s",lcod,ccod); 
+	write_log("emsi codes %s/%s",lcod,ccod); 
 #endif
 
 	sfree(dat->wtime);
@@ -262,14 +262,14 @@ int emsi_send(int mode, char *dat)
 		t2=t_set(20);got=0;p=str;
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
-/*   			log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);   */
+/*   			write_log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);   */
 			if(NOTTO(ch)) return ch;
 			if(t_exp(t1)) return TIMEOUT;
 			if(t_exp(t2)) break;
 			if(!got && ch=='*') got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
 #ifdef E_DEBUG	
-				log("got str '%s' %d", str, strlen(str));
+				write_log("got str '%s' %d", str, strlen(str));
 #endif
 				*p=0;p=str;got=0;
 				if(!strncmp(str, emsiack, 14)) {
@@ -312,7 +312,7 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
-/*  			log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);  */
+/*  			write_log("er: '%c' %03d %d %d", C0(ch), ch, got, p-str);  */
 			if(NOTTO(ch)) return ch;
 			if(ch<0) break;
 			if(!got && ch=='*') got=1;
@@ -320,17 +320,17 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 				*p=0;p=str;got=0;
 #ifdef E_DEBUG	
 				if(strstr(str, emsidat))
-					log("emsidat at offs %d", strstr(str, emsidat)-str);
-				log("got str '%s' %d", str, strlen(str));
+					write_log("emsidat at offs %d", strstr(str, emsidat)-str);
+				write_log("got str '%s' %d", str, strlen(str));
 #endif
 				if(!strncmp(str, emsidat, 10)) {
 #ifdef E_DEBUG	
-					log("got emsidat!");
+					write_log("got emsidat!");
 #endif
 					sline("Received EMSI_DAT");
 					ch=emsi_parsedat(str, rememsi);
 #ifdef E_DEBUG	
-					log("parse %d", ch);
+					write_log("parse %d", ch);
 #endif
 					if(ch) {
 						sline("Sending EMSI_ACK...");
@@ -341,7 +341,7 @@ int emsi_recv(int mode, ninfo_t *rememsi)
 			}
 			if(got) *p++=ch;
 			if((p-str)>=EMSI_BUF) {
-				log("too long EMSI packet!");
+				write_log("too long EMSI packet!");
 				got=0;p=str;
 			}
 			if(t_exp(t2)) {
@@ -374,7 +374,7 @@ int emsi_init(int mode)
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
 #ifdef E_DEBUG	
-			log("getchar '%c' %d", C0(ch), ch);
+			write_log("getchar '%c' %d", C0(ch), ch);
 #endif
 			if(NOTTO(ch)) return ch;
 	 		if(t_exp(t1)) return TIMEOUT;
@@ -383,14 +383,14 @@ int emsi_init(int mode)
 				*p=0;p=str;got=0;
 				if(strstr(str, emsireq)) {
 #ifdef E_DEBUG	
-					log("got emsireq!");
+					write_log("got emsireq!");
 #endif
 					sline("Received EMSI_REQ, sending EMSI_INQ...");
 					PUTSTR(emsiinq);PUTCHAR('\r');
 					return OK;
 				} else {
 					str[79]=0;
-					if(cfgi(CFG_SHOWINTRO)) if(*str) log("intro: %s", str);
+					if(cfgi(CFG_SHOWINTRO)) if(*str) write_log("intro: %s", str);
 				}
 			}
 			if(got && ch>=32 && ch<=255) *p++=ch;

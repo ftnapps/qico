@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.3 2000/10/29 12:22:13 lev Exp $
+ * $Id: janus.c,v 1.4 2000/11/01 10:29:24 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -101,7 +101,7 @@ int janus()
 		/* happened within the last 2 minutes, give up in disgust                */
 		/*-----------------------------------------------------------------------*/
 		if (t_exp(brain_dead)) {
-			log("other end died");  /* "He's dead, Jim." */
+			write_log("other end died");  /* "He's dead, Jim." */
 			goto giveup;
 		}
 
@@ -119,7 +119,7 @@ int janus()
 					break;
 				case XRCVEOFACK:
 					if(fseek(txfd, txpos=lasttx, SEEK_SET)) {
-						log("seek error on %s", sendf.fname);
+						write_log("seek error on %s", sendf.fname);
 						goto giveup;
 					}
 					txstate = XSENDBLK;
@@ -139,7 +139,7 @@ int janus()
 			*((long *)txbuf) = lasttx = txpos;
 			blklen = fread(txbuf+sizeof(txpos),  1, txblklen, txfd);
 			if(blklen<1) {
-				log("read error on %s", recvf.fname);
+				write_log("read error on %s", recvf.fname);
 				goto giveup;
 			}
 			sendpkt(txbuf, sizeof(txpos)+blklen, BLKPKT);
@@ -179,7 +179,7 @@ int janus()
 		/*-----------------------------------------------------------------------*/
 		while ((pkttype = rcvpkt())) {
 #ifdef J_DEBUG			
-			log("rcvpkt %d (%c) len=%d at txs=%d rxs=%d",
+			write_log("rcvpkt %d (%c) len=%d at txs=%d rxs=%d",
 				pkttype, C0(pkttype),
 				rxblklen,
 				txstate, rxstate);
@@ -212,7 +212,7 @@ int janus()
 						rpos_retry = rpos_count = 0;
 						if(fwrite(rxbuf+sizeof(rxpos),
 								  rxblklen -= sizeof(rxpos), 1, rxfd)<0) {
-							log("write error on %s", recvf.fname);
+							write_log("write error on %s", recvf.fname);
 							goto giveup;
 						}
 						rxpos += rxblklen;
@@ -238,7 +238,7 @@ int janus()
 					&& !caps) {
 					caps=*((char *)strchr(p,0)+1) & OUR_JCAPS;
 					if (!capslogged) {
-						log("janus link options: %dKB%s%s%s",
+						write_log("janus link options: %dKB%s%s%s",
 							txmaxblklen/1024,
 							caps & JCAP_CRC32?",C32":"", 
 							caps & JCAP_FREQ?",FRQ":"",
@@ -251,7 +251,7 @@ int janus()
 					if(!rxbuf[0]) {
 						if(reqs && (caps&JCAP_FREQ)) {
 							sprintf(txbuf, "%s%c%c", reqs->str, 0, caps);
-							log("sent janus freq: %s", txbuf);
+							write_log("sent janus freq: %s", txbuf);
 							sendpkt((byte *)txbuf,strlen(txbuf)+2,FREQPKT);
 							reqs=reqs->next;
 							break;
@@ -296,7 +296,7 @@ int janus()
 							sendf.soff=txpos;
 							if(fseek(txfd, txstart = txpos,
 									 SEEK_SET)<0) {
-								log("seek error on %s", sendf.fname);
+								write_log("seek error on %s", sendf.fname);
 								goto giveup;
 							}
 							txstate = XSENDBLK;
@@ -341,7 +341,7 @@ int janus()
 				if (txstate == XRCVFNACK) {
 					caps=*(strchr(rxbuf,'\0')+1);
 					xmit_retry = 0L;
-					log("recd janus freq: %s", rxbuf);
+					write_log("recd janus freq: %s", rxbuf);
 					// TODO FREQS
 					if(cfgs(CFG_EXTRP)) {
 						slist_t req;
@@ -357,7 +357,7 @@ int janus()
 				/* Our last file request didn't match anything; move on to next  */
 				/*---------------------------------------------------------------*/
 			case FREQNAKPKT:
-				log("janus freq: remote hasn't such file");
+				write_log("janus freq: remote hasn't such file");
 				sendpkt (NULL, 0, FRNAKACKPKT);
 				break;
 				
@@ -384,7 +384,7 @@ int janus()
 						if(fseek(txfd,
 								 txpos = lasttx = *((long*)rxbuf),
 								 SEEK_SET)<0) {
-							log("seek error on %s", sendf.fname);
+							write_log("seek error on %s", sendf.fname);
 							goto giveup;
 						}
 						sline("Resending from %ld", txpos);
@@ -406,7 +406,7 @@ int janus()
 				/* Abort the transfer and quit                                       */
 				/*-------------------------------------------------------------------*/
 			default:
-				log("janus: unknown packet type %d",pkttype);
+				write_log("janus: unknown packet type %d",pkttype);
 				/* fallthrough */
 			case HALTPKT:
 			  giveup:
@@ -462,7 +462,7 @@ void sendpkt(byte *buf, int len, int type)
 	}
 
 #ifdef J_DEBUG	
-	log("sendpkt %d bytes, type:%c", len ,type);
+	write_log("sendpkt %d bytes, type:%c", len ,type);
 #endif
 
 	BUFCLEAR();
@@ -718,7 +718,7 @@ slist_t *readreq(slist_t *l, char *fname)
 	
 	f=fopen(fname, "rt");
 	if(!f) {
-		log("can't read .req: %s", fname);
+		write_log("can't read .req: %s", fname);
 		return l;
 	}
 	

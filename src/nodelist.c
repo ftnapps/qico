@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.3 2000/07/18 12:58:58 lev Exp $
+ * $Id: nodelist.c,v 1.4 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -235,7 +235,7 @@ int checktimegaps(char *ranges)
 		if(secondMinute != -1) secondMark += secondMinute;
 		currentMark = Hour * 60 + Min;  
 
-/* 			log("%d.%d:%d-%d.%d:%d %d.%d:%d", */
+/* 			write_log("%d.%d:%d-%d.%d:%d %d.%d:%d", */
 /* 				firstDay,firstHour,firstMinute, */
 /* 				secondDay,secondHour,secondMinute, */
 /* 				Day,Hour,Min); */

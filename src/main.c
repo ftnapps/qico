@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.16 2000/10/24 09:56:05 lev Exp $
+ * $Id: main.c,v 1.17 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -31,7 +31,7 @@
 #include "globals.h"
 
 #ifdef Q_DEBUG
-#define sline log
+#define sline write_log
 #endif
 
 #define IP_D 0
@@ -66,7 +66,7 @@ void usage(char *ex)
 void stopit(int rc)
 {
 	vidle();qqreset();
-	log("exiting with rc=%d", rc);log_done();
+	write_log("exiting with rc=%d", rc);log_done();
 #if IP_D	
 	if(is_ip) qlerase();
 #endif	
@@ -81,7 +81,7 @@ void sigerr(int sig)
 	signal(sig, SIG_DFL);
 	msgctl(qipcr_msg, IPC_RMID, 0);
 	bso_done();
-	log("got SIG%s signal",sigs[sig]);
+	write_log("got SIG%s signal",sigs[sig]);
 #if IP_D	
 	if(is_ip) qlerase();
 #endif
@@ -105,7 +105,7 @@ void sigchild(int sig)
 	int rc, wr;
 	signal(SIGCHLD, sigchild);
 	wr=wait(&rc);
-	if(wr<0) log("wait() returned %d (%d)", wr, rc);
+	if(wr<0) write_log("wait() returned %d (%d)", wr, rc);
 	rc=WEXITSTATUS(rc)&S_MASK;
 	if(rc==S_OK || rc==S_REDIAL) {
 		do_rescan=1;
@@ -115,11 +115,11 @@ void sigchild(int sig)
 void sighup(int sig)
 {
 	signal(SIGHUP, sighup);
-	log("got SIGHUP, trying to reread configs...");
+	write_log("got SIGHUP, trying to reread configs...");
 	killsubsts(&psubsts);
 	killconfig();
 	if(!readconfig(configname)) {
-		log("there was some errors parsing config, exiting");
+		write_log("there was some errors parsing config, exiting");
 		stopit(0);
 	}
 	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
@@ -181,7 +181,7 @@ void daemon_mode()
 		if((rc=fork())>0) 
 			exit(0);
 		if(rc<0) {
-			log("can't spawn daemon!");
+			write_log("can't spawn daemon!");
 			exit(1);
 		}
 		setsid();
@@ -196,29 +196,29 @@ void daemon_mode()
 
 	if(cfgs(CFG_PIDFILE)) {
 		if(!lockpid(ccs)) {
-			log("another daemon exists or can't create pid file!");
+			write_log("another daemon exists or can't create pid file!");
 			exit(1);
 		}
 	}
 	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
-		log("can't get key");
+		write_log("can't get key");
 		exit(1);
 	}
 	if((qipcr_msg=msgget(qipcr_key, cfgi(CFG_IPCPERM) | IPC_CREAT | IPC_EXCL))<0) {
-		log("can't create message queue (may be another daemon is running?)");
+		write_log("can't create message queue (may be another daemon is running?)");
 		exit(1);
 	}
 
 	if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-		log("can't init BSO");
+		write_log("can't init BSO");
 		exit(1);
 	}
 
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		log("can't open master log %s!", ccs);
+		write_log("can't open master log %s!", ccs);
 		exit(1);
 	}
-	log("%s-%s/%s daemon started",progname,version,osname);
+	write_log("%s-%s/%s daemon started",progname,version,osname);
 	t_rescan=cfgi(CFG_RESCANPERIOD);
 	srand(time(NULL));
 	c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
@@ -228,7 +228,7 @@ void daemon_mode()
 			do_rescan=0;
 			sline("Rescanning outbound...");
 			if(!q_rescan(&current)) 
-				log("can't rescan outbound %s!", cfgs(CFG_OUTBOUND));
+				write_log("can't rescan outbound %s!", cfgs(CFG_OUTBOUND));
 			t_rescan=0;
 		}
 		sline("Waiting %d...", c_delay-t_dial);
@@ -241,7 +241,7 @@ void daemon_mode()
 			if(!port || !q_queue) dable=1;
 			i=q_queue;
 #ifdef Q_DEBUG			
-			log("dabl");
+			write_log("dabl");
 #endif
 			while(!dable && i) {
 				f=current->flv;
@@ -259,7 +259,7 @@ void daemon_mode()
 						sts.utime=0;
 						bso_setstatus(&current->addr, &sts);
 						f&=~Q_UNDIAL;
-						log("changing status of %s to [%s]",
+						write_log("changing status of %s to [%s]",
 							ftnaddrtoa(&current->addr), sts_str(sts.flags));
 					}
 				}
@@ -276,16 +276,16 @@ void daemon_mode()
 					continue;
 				}
 #ifdef Q_DEBUG			
-				log("quering");
+				write_log("quering");
 #endif
 				rc=query_nodelist(&current->addr,cfgs(CFG_NLPATH),&rnode);
 #ifdef Q_DEBUG			
-				log("querynl");
+				write_log("querynl");
 #endif
 				switch(rc) {
-				case 1:log("can't query nodelist, index error");break;
-				case 2:log("can't query nodelist, nodelist error");break;
-				case 3:log("index is older than the list, need recompile");break;
+				case 1:write_log("can't query nodelist, index error");break;
+				case 2:write_log("can't query nodelist, nodelist error");break;
+				case 3:write_log("index is older than the list, need recompile");break;
 				}
 				if(!rnode) {
 					rnode=calloc(1,sizeof(ninfo_t));
@@ -295,7 +295,7 @@ void daemon_mode()
 				}
 				phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
 #ifdef Q_DEBUG			
-				log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
+				write_log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum);
 #endif
 				applysubst(rnode, psubsts);
@@ -305,7 +305,7 @@ void daemon_mode()
 					dable=1;current->flv|=Q_DIAL;
 					chld=fork();
 #ifdef Q_DEBUG			
-					log("forking %s",ftnaddrtoa(&current->addr));
+					write_log("forking %s",ftnaddrtoa(&current->addr));
 #endif
 					
 					if(chld==0) {
@@ -319,13 +319,13 @@ void daemon_mode()
 							title("Calling %s #%d, %s",
 								  rnode->name, rnode->hidnum,
 								  ftnaddrtoa(&current->addr));
-							log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,	
+							write_log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,	
 								ftnaddrtoa(&current->addr),
 								rnode->phone);
 						} else {								
 							title("Calling %s, %s",
 								  rnode->name, ftnaddrtoa(&current->addr));
-							log("calling %s, %s (%s)", rnode->name,
+							write_log("calling %s, %s (%s)", rnode->name,
 								ftnaddrtoa(&current->addr),
 								rnode->phone);
 						}								
@@ -339,7 +339,7 @@ void daemon_mode()
 						}
 							
 						if(rc&S_ANYHOLD) {
-							log("calls to %s delayed for %d min",
+							write_log("calls to %s delayed for %d min",
 								ftnaddrtoa(&current->addr), cfgi(CFG_WAITHRQ));
 							bso_getstatus(&current->addr, &sts);
 							if(rc&S_HOLDA) sts.flags|=Q_WAITA;
@@ -366,7 +366,7 @@ void daemon_mode()
 							bso_getstatus(&current->addr, &sts);
 							if(++sts.try>=cfgi(CFG_MAX_FAILS)) {
 								sts.flags|=Q_UNDIAL;
-								log("maximum tries count reached, %s undialable",
+								write_log("maximum tries count reached, %s undialable",
 									ftnaddrtoa(&current->addr));
 							}
 							bso_setstatus(&current->addr, &sts);
@@ -377,11 +377,11 @@ void daemon_mode()
 /* 						qipc_done(); */
 						exit(rc);
 					}
-					if(chld<0) log("can't fork() caller!");
+					if(chld<0) write_log("can't fork() caller!");
 				} else current->flv&=~Q_DIAL;
 				nlkill(&rnode);
 #ifdef Q_DEBUG
-				log("nlkill");
+				write_log("nlkill");
 #endif
 				current=current->next;
 				if(!current) current=q_queue;
@@ -400,7 +400,7 @@ void daemon_mode()
 				   buf[8]==QR_INFO || buf[8]==QR_SEND ||
 				   buf[8]==QR_STS || buf[8]==QR_KILL) {
 					if(!parseftnaddr(buf+9, &fa, &DEFADDR, 0)) {
-						log("can't parse address '%s'!", buf+9);
+						write_log("can't parse address '%s'!", buf+9);
 						sendrpkt(1,chld,"can't parse address '%s'!", buf+9);
 						rc=0;
 					}
@@ -410,7 +410,7 @@ void daemon_mode()
 					sendrpkt(0,chld,"");
 					msgctl(qipcr_msg, IPC_RMID, 0);
 					bso_done();
-					log("exiting by request");
+					write_log("exiting by request");
 #if IP_D	
 					if(is_ip) qlerase();
 #endif
@@ -422,11 +422,11 @@ void daemon_mode()
 					qipc_done();
 					exit(0);
 				case QR_CONF:
-					log("trying to reread configs by request...");
+					write_log("trying to reread configs by request...");
 					killsubsts(&psubsts);
 					killconfig();
 					if(!readconfig(configname)) {
-						log("there was some errors parsing config, exiting");
+						write_log("there was some errors parsing config, exiting");
 						sendrpkt(1,chld,"bad config, terminated");
 						stopit(0);
 					}
@@ -440,13 +440,13 @@ void daemon_mode()
 					break;
 				case QR_POLL:
 					if(bso_locknode(&fa)) {
-						log("poll for %s", ftnaddrtoa(&fa));
+						write_log("poll for %s", ftnaddrtoa(&fa));
 						sendrpkt(0,chld,"");
 						rc=bso_poll(&fa);
 						bso_unlocknode(&fa);
 						do_rescan=1;
 					} else {
-						log("can't create poll for %s!",
+						write_log("can't create poll for %s!",
 							ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't create poll for %s",
 								 ftnaddrtoa(&fa));
@@ -454,13 +454,13 @@ void daemon_mode()
 					break;
 				case QR_KILL:
 					if(bso_locknode(&fa)) {
-						log("kill %s", ftnaddrtoa(&fa));
+						write_log("kill %s", ftnaddrtoa(&fa));
 						sendrpkt(0,chld,"");
 						simulate_send(&fa);
 						bso_unlocknode(&fa);
 						do_rescan=1;
 					} else {
-						log("can't kill %s!",
+						write_log("can't kill %s!",
 							ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't kill %s",
 								 ftnaddrtoa(&fa));
@@ -478,7 +478,7 @@ void daemon_mode()
 						case 'i': res|=Q_IMM;break;
 						case 'u': res|=Q_UNDIAL;break;
 						default:
-							log("unknown status action: %c", *p);
+							write_log("unknown status action: %c", *p);
 							sendrpkt(1,chld,
 									 "unknown status action: %c", *p);
 							rc=0;
@@ -488,7 +488,7 @@ void daemon_mode()
 					if(rc) {
 						bso_getstatus(&fa, &sts);
 						sts.flags|=set;sts.flags&=~res;
-						log("changing status of %s to [%s]",
+						write_log("changing status of %s to [%s]",
 							ftnaddrtoa(&fa), sts_str(sts.flags));
 						if(set&Q_WAITA && !(res&Q_ANYWAIT))
 							sts.htime=t_set(cfgi(CFG_WAITHRQ)*60);
@@ -503,7 +503,7 @@ void daemon_mode()
 					if(bso_locknode(&fa)) {
 						sl=NULL;p=buf+9+strlen(buf+9)+1;
 						while(strlen(p)){
-							log("requested '%s' from %s",p,
+							write_log("requested '%s' from %s",p,
 								ftnaddrtoa(&fa));
 							slist_add(&sl, p);
 							p+=strlen(p)+1;
@@ -514,7 +514,7 @@ void daemon_mode()
 						sendrpkt(0,chld,"");
 						do_rescan=1;
 					} else {
-						log("can't lock node %s!",
+						write_log("can't lock node %s!",
 							ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't lock node %s",
 								 ftnaddrtoa(&fa));
@@ -530,7 +530,7 @@ void daemon_mode()
 					default: rc=F_ERR;
 					}
 					if(rc==F_ERR) {
-						log("unknown flavour - '%c'",C0(*p));
+						write_log("unknown flavour - '%c'",C0(*p));
 						sendrpkt(1,chld,"unknown flavour %c",C0(*p));
 						break;
 					}
@@ -538,7 +538,7 @@ void daemon_mode()
 					if(bso_locknode(&fa)) {
 						sl=NULL;
 						while(strlen(p)){
-							log("attaching '%s' to %s%s",
+							write_log("attaching '%s' to %s%s",
 								(p[0]=='^')?p+1:p,
 								ftnaddrtoa(&fa),
 								(p[0]=='^')?" (k/s)":"");
@@ -551,7 +551,7 @@ void daemon_mode()
 						sendrpkt(0,chld,"");
 						do_rescan=1;
 					} else {
-						log("can't lock node %s!",
+						write_log("can't lock node %s!",
 							ftnaddrtoa(&fa));
 						sendrpkt(1,chld,"can't lock node %s",
 								 ftnaddrtoa(&fa));
@@ -560,12 +560,12 @@ void daemon_mode()
 				case QR_INFO:
 					rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
 					if(rc) {
-						log("nodelist query error!");
+						write_log("nodelist query error!");
 						sendrpkt(1, chld, "nodelist query error!");
 						break;
 					}
 					if(rnode) {
-						log("returned info about %s (%s)",
+						write_log("returned info about %s (%s)",
 							rnode->name, ftnaddrtoa(&fa));
 						sendrpkt(0, chld, "%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
 								 ftnaddrtoa(&fa), 0,
@@ -575,14 +575,14 @@ void daemon_mode()
 							);
 						nlkill(&rnode);
 					} else {
-						log("%s not found in nodelist!",
+						write_log("%s not found in nodelist!",
 							ftnaddrtoa(&fa));
 						sendrpkt(1, chld, "%s not found in nodelist!",
 								 ftnaddrtoa(&fa));
 					}
 					break;
 				default:
-					log("got unsupported packet type: %c", C0(buf[8]));
+					write_log("got unsupported packet type: %c", C0(buf[8]));
 				}
 			}
 		}
@@ -646,23 +646,23 @@ void answer_mode(int type)
 	signal(SIGFPE, sigerr);
 	
 	if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-		log("can't init BSO");stopit(1);
+		write_log("can't init BSO");stopit(1);
 	}
 
-	log("answering incoming call");vidle();
+	write_log("answering incoming call");vidle();
 	if(is_ip && !getpeername(0,(struct sockaddr *)&sa,&ss)) {
-		log("remote is %s", inet_ntoa(sa.sin_addr));
+		write_log("remote is %s", inet_ntoa(sa.sin_addr));
 		spd=TCP_SPEED;
 	} else {	
 		cs=getenv("CONNECT");spd=cs?atoi(cs):0;
 		if(cs && spd) {
-			log("*** CONNECT %s", cs);
+			write_log("*** CONNECT %s", cs);
 		} else {
-			log("*** CONNECT Unknown");spd=300;
+			write_log("*** CONNECT Unknown");spd=300;
 		}
 	}
 	if((cs=getenv("CALLER_ID")) && strcasecmp(cs,"none"))
-	   log("caller-id: %s", cs);
+	   write_log("caller-id: %s", cs);
 	tty_setattr(0);
 	tty_nolocal();
 	rc=session(0, type, NULL, spd);
@@ -716,9 +716,9 @@ int force_call(ftnaddr_t *fa, int flags)
 	}
 
 	if(rnode->hidnum) {
-		log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+		write_log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
 	} else {
-		log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
+		write_log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
 	}
 
 	rc=do_call(fa, rnode->phone,port);
@@ -749,7 +749,7 @@ int main(int argc, char *argv[], char *envp[])
 				case 'N': call_flags=0; break;
 				case 'I': call_flags|=1; break;
 				case 'A': call_flags|=2; break;
-				default: log("unknown call option: %c", *optarg);exit(0);
+				default: write_log("unknown call option: %c", *optarg);exit(0);
 				}
 				str++;
 			}
@@ -782,7 +782,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	getsysinfo();
 	if(!readconfig(configname)) {
-		log("there was some errors parsing %s, aborting",
+		write_log("there was some errors parsing %s, aborting",
 				configname);
 		exit(EXC_BADCONFIG);
 	}
@@ -802,11 +802,11 @@ int main(int argc, char *argv[], char *envp[])
 	printf("...press any key...\n");getchar();
 #endif	
 
-	if(!qipc_init()) log("can't create ipc key!");
+	if(!qipc_init()) write_log("can't create ipc key!");
 
 	if(hostname || daemon==12) 
 		if(!parseftnaddr(argv[optind], &fa, &DEFADDR, 0)) {
-			log("%s: can't parse address '%s'!", argv[0],
+			write_log("%s: can't parse address '%s'!", argv[0],
 				argv[optind]);
 			exit(1);
 		}
@@ -821,7 +821,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 		rnode->tty="tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-			log("can't open log %s!", ccs);
+			write_log("can't open log %s!", ccs);
 			exit(1);
 		}
 		signal(SIGINT, sigerr);
@@ -829,7 +829,7 @@ int main(int argc, char *argv[], char *envp[])
 		signal(SIGSEGV, sigerr);
 		
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-			log("can't init BSO");stopit(1);
+			write_log("can't init BSO");stopit(1);
 		}
 		tcp_call(hostname, &fa);
 		
@@ -839,7 +839,7 @@ int main(int argc, char *argv[], char *envp[])
 
 	if(daemon==12) {
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
-			log("%s: can't init bso!", argv[0]);
+			write_log("%s: can't init bso!", argv[0]);
 			exit(1);
 		}
 		if (bso_locknode(&fa)) {
@@ -849,7 +849,7 @@ int main(int argc, char *argv[], char *envp[])
 			rc=force_call(&fa,call_flags);
 			bso_unlocknode(&fa);
 		} else rc=0;
-		if(rc) log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
+		if(rc) write_log("%s: can't call to %s", argv[0],ftnaddrtoa(&fa));
 		bso_done();
 		stopit(rc);
 	}

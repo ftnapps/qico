@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.4 2000/10/17 16:58:26 lev Exp $
+ * $Id: qipc.c,v 1.5 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,7 +63,7 @@ void qsendpkt(char what, char *line, char *buff, int len)
 	buf[12]=what;
 	strncpy(buf+13,line,8);
 	memcpy(buf+13+strlen(line)+1, buff, len);
-//	log("sendpkt %s %d", line, len);
+//	write_log("sendpkt %s %d", line, len);
 	rc=msgsnd(qipc_msg, buf, 13+strlen(line)+1+len, IPC_NOWAIT);
 	if(rc<0 && errno==EIDRM) {
 		qipc_msg=-1;

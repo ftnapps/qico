@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.5 2000/10/26 19:05:58 lev Exp $
+ * $Id: tty.c,v 1.6 2000/11/01 10:29:25 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,7 +42,7 @@ int bufpos=0, bufmax=0;
 void tty_sighup(int sig)
 {
 	tty_hangedup=1;
-	log("interrupted!");
+	write_log("interrupted!");
 	return;
 }
 
@@ -488,7 +488,7 @@ int tty_expect(char *what, int timeout)
 	while(!got && to>0) {
 		t1=t_start();
 		ch=tty_getc(to);
-/* 		log("getc got '%c' %03d", C0(ch), ch); */
+/* 		write_log("getc got '%c' %03d", C0(ch), ch); */
 		if(ch<0) return ch;
 		to-=t_time(t1);
 		if(ch==what[p]) p++;else p=0;
@@ -540,7 +540,7 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
 		if(!*buf) continue;
-/*      		log("gets got %d '%s'", rc, buf);  */
+/*      		write_log("gets got %d '%s'", rc, buf);  */
 		if(rc!=OK) {
 			if(rest) strcpy(rest, "FAILURE");
 			return MC_FAIL;

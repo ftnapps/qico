@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.6 2000/10/17 16:48:28 lev Exp $
+ * $Id: protfm.c,v 1.7 2000/11/01 10:29:24 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -70,7 +70,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	sprintf(p, "%s/tmp/", cfgs(CFG_INBOUND));
 	if(stat(p, &sb)) 
 		if(mkdirs(p) && errno!=EEXIST) {
-			log("can't make directory %s: %s", p, strerror(errno));
+			write_log("can't make directory %s: %s", p, strerror(errno));
 			log(wesusstr,recvf.fname);
 			return FOP_SUSPEND;
 		}
@@ -85,7 +85,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 		if(sb.st_size<rsize/*   && sb.st_mtime==rtime */) {
 			*f=fopen(p, "ab");
 			if(!*f) {
-				log("can't open file %s for writing!", p);
+				write_log("can't open file %s for writing!", p);
 				log(wesusstr,recvf.fname);
 				return FOP_SUSPEND;
 			}
@@ -96,7 +96,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 
 	*f=fopen(p, "wb");
 	if(!*f) {
-		log("can't open file %s for writing!", p);
+		write_log("can't open file %s for writing!", p);
 		log(wesusstr,recvf.fname);
 		return FOP_SUSPEND;
 	}
@@ -122,10 +122,10 @@ int rxclose(FILE **f, int what)
 	default: ss="";
 	}
 	if(recvf.soff)
-		log("recd: %s, %d bytes (from %d), %d cps [%s]",
+		write_log("recd: %s, %d bytes (from %d), %d cps [%s]",
 			recvf.fname, recvf.foff, recvf.soff, cps, ss);
 	else
-		log("recd: %s, %d bytes, %d cps [%s]",
+		write_log("recd: %s, %d bytes, %d cps [%s]",
 			recvf.fname, recvf.foff, cps, ss);
 	fclose(*f);*f=NULL;
 	sprintf(p, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
@@ -150,14 +150,14 @@ int rxclose(FILE **f, int what)
 					ss--;
 					while('.' == *ss && ss >= p2) ss--;
 					if(ss < p2) {
-						log("can't find situable name for %s: leaving in temporary directory",p);
+						write_log("can't find situable name for %s: leaving in temporary directory",p);
 						p2[0] = '\x00';
 					}
 				}
 			}
 			if(p2[0]) {
 				if(rename(p, p2)) {
-					log("can't rename %s to %s: %d", p, p2, strerror(errno));
+					write_log("can't rename %s to %s: %d", p, p2, strerror(errno));
 				} else {
 					utime(p2, &ut);chmod(p2, cfgi(CFG_DEFPERM));
 				}
@@ -174,7 +174,7 @@ FILE *txopen(char *tosend, char *sendas)
 	struct stat sb;
 	
 	if(stat(tosend, &sb)) {
-		log("can't find file %s!", tosend);
+		write_log("can't find file %s!", tosend);
 		return NULL;
 	}
  	if(sendf.fname) free(sendf.fname);
@@ -185,7 +185,7 @@ FILE *txopen(char *tosend, char *sendas)
 	sendf.nf++;if(sendf.nf>sendf.allf) sendf.allf++;
 	f=fopen(tosend, "rb");
 	if(!f) {
-		log("can't open file %s for reading!", tosend);
+		write_log("can't open file %s for reading!", tosend);
 		return NULL;
 	}
 	return f;
@@ -208,10 +208,10 @@ int txclose(FILE **f, int what)
 	default: ss="";
 	}
 	if(sendf.soff)
-		log("sent: %s, %d bytes (from %d), %d cps [%s]",
+		write_log("sent: %s, %d bytes (from %d), %d cps [%s]",
 			sendf.fname, sendf.foff, sendf.soff, cps, ss);
 	else
-		log("sent: %s, %d bytes, %d cps [%s]",
+		write_log("sent: %s, %d bytes, %d cps [%s]",
 			sendf.fname, sendf.foff, cps, ss);
 	sendf.foff=0;
 	fclose(*f);*f=NULL;
@@ -233,13 +233,13 @@ void check_cps()
 	if(cfgi(CFG_MINCPSOUT)>0 &&
 	   (time(NULL)-sendf.start)>cpsdelay &&
 	   sendf.cps<cci) {
-		log("mincpsout=%d reached, aborting session", cci);
+		write_log("mincpsout=%d reached, aborting session", cci);
 		tty_hangedup=1;
 	}
 	if(cfgi(CFG_MINCPSIN)>0 &&
 	   (time(NULL)-recvf.start)>cpsdelay &&
 	   recvf.cps<cci) {
-		log("mincpsin=%d reached, aborting session", cci);
+		write_log("mincpsin=%d reached, aborting session", cci);
 		tty_hangedup=1;
 	}
 }

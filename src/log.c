@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.3 2000/08/06 18:36:58 lev Exp $
+ * $Id: log.c,v 1.4 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <stdlib.h>
@@ -59,7 +59,7 @@ int log_init(char *ln, char *tn)
 	return 1;
 }
 
-void log(char *fmt, ...)
+void write_log(char *fmt, ...)
 {
 	time_t tt;struct tm *t;
 	FILE *log_f;va_list args;

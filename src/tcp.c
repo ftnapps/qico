@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tcp.c,v 1.2 2000/11/01 10:29:25 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -48,7 +48,7 @@ int opentcp(char *name)
 	else if ((he=gethostbyname(name)))
 		memcpy(&server.sin_addr,he->h_addr,he->h_length);
 	else {
-		log("can't resolve ip for\n",name);
+		write_log("can't resolve ip for\n",name);
 		return 0;
 	}
 	sline("Connecting to %s:%d",
@@ -61,23 +61,23 @@ int opentcp(char *name)
 	close(0);
 	close(1);
 	if ((fd=socket(AF_INET,SOCK_STREAM,0)) != 0) {
-		log("cannot create socket");
+		write_log("cannot create socket");
 		open("/dev/null",O_RDONLY);
 		open("/dev/null",O_WRONLY);
 		return 0;
 	}
 	if (dup(0) != 1) {
-		log("cannot dup socket");
+		write_log("cannot dup socket");
 		open("/dev/null",O_WRONLY);
 		return 0;
 	}
 	clearerr(stdin);
 	clearerr(stdout);
 	if (connect(fd,(struct sockaddr *)&server,sizeof(server))<0) {
-		log("cannot connect %s",inet_ntoa(server.sin_addr));
+		write_log("cannot connect %s",inet_ntoa(server.sin_addr));
 		return 0;
 	}
-	log("TCP/IP connection with %s",inet_ntoa(server.sin_addr));
+	write_log("TCP/IP connection with %s",inet_ntoa(server.sin_addr));
 	sline("Fido-server found... Waiting for reply...");
 	return 1;
 }
@@ -92,13 +92,13 @@ int tcp_call(char *host, ftnaddr_t *fa)
 {
 	int rc;
 
-	log("connecting to %s at %s", ftnaddrtoa(fa), host);
+	write_log("connecting to %s at %s", ftnaddrtoa(fa), host);
 	rc=opentcp(host);
 	if(rc) {
 		rc=session(1, SESSION_AUTO, fa, TCP_SPEED);
 		closetcp();
 		if((rc&S_MASK)==S_REDIAL) {
-			log("creating poll for %s", ftnaddrtoa(fa));
+			write_log("creating poll for %s", ftnaddrtoa(fa));
 			bso_poll(fa); 
 		} 
 	} else rc=S_REDIAL;

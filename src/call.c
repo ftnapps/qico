@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: call.c,v 1.2 2000/11/01 10:29:23 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <stdlib.h>
@@ -19,7 +19,7 @@ int hangup()
 	slist_t *hc;
 	int rc=MC_OK;
 	if(!cfgsl(CFG_MODEMHANGUP)) return MC_OK; 
-	log("hanging up...");
+	write_log("hanging up...");
 	for(hc=cfgsl(CFG_MODEMHANGUP);hc;hc=hc->next)
 		rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
 					  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
@@ -33,13 +33,13 @@ int reset()
 	slist_t *hc;
 	int rc=MC_OK;
 	if(!cfgsl(CFG_MODEMRESET)) return MC_OK; 
-	log("resetting modem...");
+	write_log("resetting modem...");
 	for(hc=ccsl;hc && rc==MC_OK;hc=hc->next)
 		rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
 					  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
 					  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
 					  cfgi(CFG_WAITRESET), NULL);
-	if(rc!=MC_OK) log("modem reset failed [%s]", mcs[rc]);
+	if(rc!=MC_OK) write_log("modem reset failed [%s]", mcs[rc]);
 	return rc;
 }
 
@@ -49,7 +49,7 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 	char s[MAX_STRING], conn[MAX_STRING];
 
 	if((rc=tty_openport(port))) {
-		log("can't open port: %s", tty_errs[rc]);
+		write_log("can't open port: %s", tty_errs[rc]);
 		return 0;
 	}
 
@@ -68,7 +68,7 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 				  conn);
 	sline("Modem said: %s", conn);
 	if(rc!=MC_OK) {
-		log("got %s",conn);
+		write_log("got %s",conn);
 		title("Waiting...");
 		vidle();
 		switch(rc) {		
@@ -86,12 +86,12 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 		tty_close();
 		return rc;
 	}
-	log("*** %s", conn);
+	write_log("*** %s", conn);
 	tty_nolocal();
 	if(rc==MC_OK) {
 		rc=session(1, SESSION_AUTO, fa, atoi(conn+strcspn(conn,"0123456789")));
 		if((rc&S_MASK)==S_REDIAL) {
-			log("creating poll for %s", ftnaddrtoa(fa));
+			write_log("creating poll for %s", ftnaddrtoa(fa));
 			bso_poll(fa);
 		}
 	} else rc=S_REDIAL;

@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.4 2000/10/11 21:35:46 lev Exp $
+ * $Id: freq.c,v 1.5 2000/11/01 10:29:23 lev Exp $
  ***************************************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -25,7 +25,7 @@ int freq_ifextrp(slist_t *reqs)
 	ftnaddr_t *ma=akamatch(&rnode->addrs->addr, cfgal(CFG_ADDRESS));
 
 #ifdef S_DEBUG
-	log("ifextrp job");
+	write_log("ifextrp job");
 #endif
 	priv='a';
 	if(rnode->options&O_LST) priv='l';
@@ -34,11 +34,11 @@ int freq_ifextrp(slist_t *reqs)
 	sprintf(fn,"/tmp/qreq.%04x",getpid());
 	f=fopen(fn,"wt");
 	if(!f) {
-		log("can't open '%s' for writing",fn);return got;
+		write_log("can't open '%s' for writing",fn);return got;
 	}
 	while(reqs) {
 #ifdef S_DEBUG
-		log("requested '%s'", reqs->str);
+		write_log("requested '%s'", reqs->str);
 #endif
 		fprintf(f, "%s\n", reqs->str);
 		reqs=reqs->next;
@@ -48,7 +48,7 @@ int freq_ifextrp(slist_t *reqs)
 	sprintf(s, "%s -wazoo -%c -s%d %s /tmp/qreq.%04x /tmp/qfls.%04x /tmp/qrep.%04x",
 			cfgs(CFG_EXTRP), priv, rnode->realspeed,
 			ftnaddrtoa(&rnode->addrs->addr), getpid(),getpid(),getpid());
-	log("exec '%s' returned rc=%d", s,
+	write_log("exec '%s' returned rc=%d", s,
 		execsh(s));
 	lunlink(fn);
 	
@@ -59,7 +59,7 @@ int freq_ifextrp(slist_t *reqs)
 		lunlink(fn);
 		sprintf(fn,"/tmp/qfls.%04x",getpid());
 		lunlink(fn);
-		log("can't open '%s' for reading",fn);return got;
+		write_log("can't open '%s' for reading",fn);return got;
 	}
 	while(fgets(s,MAX_PATH-1,f)) {
 		p=s+strlen(s)-1;
@@ -67,7 +67,7 @@ int freq_ifextrp(slist_t *reqs)
 		p=strrchr(s,' ');
 		if(p) *p++=0;else p=s;
 #ifdef S_DEBUG
-		log("sending '%s' as '%s'", s, p);
+		write_log("sending '%s' as '%s'", s, p);
 #endif
 		addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL,0);
 		got=1;
@@ -76,14 +76,14 @@ int freq_ifextrp(slist_t *reqs)
 	
 	sprintf(fn,"/tmp/qrep.%04x",getpid());
 	f=fopen(fn,"rt");
-	if(!f) log("can't open '%s' for reading",fn);
+	if(!f) write_log("can't open '%s' for reading",fn);
 	
 	sprintf(fn,"/tmp/qpkt.%04x%02x",getpid(),freq_pktcount);
 	g=openpktmsg(ma, &rnode->addrs->addr,
 				 rnode->sysop,cfgs(CFG_FREQFROM),
 				 cfgs(CFG_FREQSUBJ),rnode->pwd,fn);
 	if(!g) {
-		log("can't open '%s' for writing",fn);
+		write_log("can't open '%s' for writing",fn);
 		if(f) fclose(f);
 	}
 	if(f && g) {

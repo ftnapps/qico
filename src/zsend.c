@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.4 2000/10/07 13:56:40 lev Exp $
+ * $Id: zsend.c,v 1.5 2000/11/01 10:29:25 lev Exp $
  **********************************************************/
 
 #include <sys/stat.h>
@@ -29,7 +29,7 @@ int sendzsinit()
 	int c;
 
 #ifdef Z_DEBUG	
-	log("sendzsinit");
+	write_log("sendzsinit");
 #endif
 	if (Myattn[0] == '\0' && (!Zctlesc || (rxoptions & TESCCTL)))
 		return OK;
@@ -67,7 +67,7 @@ int getzrxinit(int canzap)
 	int n;
 
 #ifdef Z_DEBUG	
-	log("getzrxinit");
+	write_log("getzrxinit");
 #endif
 	for (n=10; --n>=0; ) {
 		
@@ -143,7 +143,7 @@ int getinsync(flag)
 {
 	int c=OK;
 #ifdef Z_DEBUG	
-	log("getinsync");
+	write_log("getinsync");
 #endif
 	for (;;) {
 		c = zgethdr(Rxhdr);
@@ -205,7 +205,7 @@ int zsendfdata()
 	long tcount = 0;
 	int junkcount;		/* Counts garbage chars received by TX */
 #ifdef Z_DEBUG	
-	log("zsendfdata");
+	write_log("zsendfdata");
 #endif
 	junkcount = 0;
 	Beenhereb4 = FALSE;
@@ -311,7 +311,7 @@ int zsendfile(char *buf, int blen)
 	long lastcrcrq = -1;
 
 #ifdef Z_DEBUG	
-	log("zsendfile");
+	write_log("zsendfile");
 #endif
 	
 	for (txretries=0; ++txretries<11;) {
@@ -416,7 +416,7 @@ int zmodem_sendfile(char *tosend, char *sendas,
 int zmodem_senddone()
 {
 #ifdef Z_DEBUG
-	log("zsenddone");
+	write_log("zsenddone");
 #endif
 	for (;;) {
 		stohdr(0L);		/* CAF Was zsbhdr - minor change */

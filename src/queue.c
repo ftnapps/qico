@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.3 2000/10/08 17:28:01 lev Exp $
+ * $Id: queue.c,v 1.4 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include <unistd.h>
 #include <stdio.h>
@@ -65,7 +65,7 @@ void q_recountflo(char *name, off_t *size, time_t *mtime)
 					if(!stat(p, &sb)) total+=sb.st_size;
 				}
 				fclose(f);
-			} else log("can't open %s: %s", name, strerror(errno));
+			} else write_log("can't open %s: %s", name, strerror(errno));
 			*size=total;
 		}
 	} else {
@@ -126,7 +126,7 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 					sfree(p);
 				}
 				closedir(d);
-			} else log("can't open %s: %s", name, strerror(errno));
+			} else write_log("can't open %s: %s", name, strerror(errno));
 			*size=total;
 		}
 	} else {
@@ -170,7 +170,7 @@ void rescan_boxes()
 					sfree(p);
 			}
 			closedir(d);
-		} else log("can't open %s: %s", ccs, strerror(errno));
+		} else write_log("can't open %s: %s", ccs, strerror(errno));
 	}
 }
 

@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.2 2000/07/21 20:49:29 lev Exp $
+ * $Id: qnlc.c,v 1.3 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +47,7 @@ int compile_nodelists()
 	sprintf(fn,"%s/%s", ccs, NL_IDX);
 	idx=fopen(fn, "wb");
 	if(!idx) {
-		log("can't open nodelist index %s for writing!",fn);
+		write_log("can't open nodelist index %s for writing!",fn);
 		sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 		return 0;		
 	}
@@ -63,7 +63,7 @@ int compile_nodelists()
 			s[strlen(s)-4]=0;
 			d=opendir(ccs);
 			if(!d) {
-				log("can't open nodelist directory %s!",ccs);
+				write_log("can't open nodelist directory %s!",ccs);
 				fclose(idx);
 				sprintf(fn,"%s/%s.lock",ccs, NL_IDX);unlink(fn);
 				return 0;
@@ -80,7 +80,7 @@ int compile_nodelists()
 				}
 			closedir(d);
 			if(max<0) 
-				log("no lists matching %s.[0-9]", s);
+				write_log("no lists matching %s.[0-9]", s);
 			else {
 				sprintf(idxh.nlname[i], "%s.%03d", s, max);
 				sprintf(fn, "%s/%s.%03d", ccs, s, max);
@@ -93,7 +93,7 @@ int compile_nodelists()
 		if(!stat(fn,&sb)) idxh.nltime[i]=sb.st_mtime;
 		f=fopen(fn, "rt");
 		if(!f) 
-			log("can't open %s for reading!", fn);
+			write_log("can't open %s for reading!", fn);
 		else {
 			k=0;pos=0;
 			while(1) {
@@ -123,7 +123,7 @@ int compile_nodelists()
 				ie.offset=pos;ie.index=i;
 				k++;
 				if(fwrite(&ie, sizeof(ie), 1, idx)!=1) {
-					log("can't write to index!");
+					write_log("can't write to index!");
 					fclose(idx);
 					sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 					return 0;
@@ -132,7 +132,7 @@ int compile_nodelists()
 			fclose(f);total+=k;
 			printf("compiled %s: %d nodes\n", basename(fn), k);
 			i++;if(i>MAX_NODELIST) {
-				log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");
+				write_log("too much lists - increase MAX_NODELIST in CONFIG and rebuild!");
 				break;
 			}
 		}
@@ -140,7 +140,7 @@ int compile_nodelists()
 	printf("total %d lists, %d nodes\n", i, total);
 	fseek(idx, 0, SEEK_SET);
 	if(fwrite(&idxh, sizeof(idxh), 1, idx)!=1) 
-		log("can't write to index!");
+		write_log("can't write to index!");
 	fclose(idx);
 	sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 	return 1;

@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.4 2000/10/22 19:22:34 lev Exp $
+ * $Id: hydra.c,v 1.5 2000/11/01 10:29:24 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -29,7 +29,7 @@
 
 
 #ifdef H_DEBUG
-#define sline log
+#define sline write_log
 
 char *hstates[]={
 "HTX_DONE",
@@ -141,7 +141,7 @@ static struct _h_flags h_flags[] = {
 static void hydra_msgdev (byte *data, word len)
 {       /* text is already NUL terminated by calling func hydra_devrecv() */
 	len = len;
-	log("HM: %s",data);
+	write_log("HM: %s",data);
 }/*hydra_msgdev()*/
 
 
@@ -315,7 +315,7 @@ static void txpkt (register word len, int type)
 	static char hexdigit[] = "0123456789abcdef";
 
 #ifdef H_DEBUG	
-	log("txpkt %s (%c) len=%d", hpkts[type-'A'], type, len);
+	write_log("txpkt %s (%c) len=%d", hpkts[type-'A'], type, len);
 #endif	
 	txbufin[len++] = type;
 
@@ -582,7 +582,7 @@ static int rxpkt (void)
 
 				if (n) {
 #ifdef H_DEBUG	
-					log("rxpkt %s (%c) len=%d",
+					write_log("rxpkt %s (%c) len=%d",
 						hpkts[rxbuf[rxpktlen]-'A'],
 						rxbuf[rxpktlen], rxpktlen);
 #endif	
@@ -694,7 +694,7 @@ void hydra_init (dword want_options, boolean orig, int hmod)
 
 	txstate = HTX_DONE;
 
-	log("hydra %s-directional mode session",hdxlink ? "uni" : "bi");
+	write_log("hydra %s-directional mode session",hdxlink ? "uni" : "bi");
 
 /*          hydra_devfunc("CON",hydra_remotechat); */
 
@@ -824,7 +824,7 @@ int hydra_file(char *txpathname, char *txalias)
 				i=strlen(sendf.fname)+strlen((char *)txbufin)+2;
 			} else {
 				if (!txretries) {
-/* 					log("hydra: End of batch"); */
+/* 					write_log("hydra: End of batch"); */
 					qpreset(1);
 				}
 				strcpy((char *) txbufin,"");
@@ -905,7 +905,7 @@ int hydra_file(char *txpathname, char *txalias)
 /*  		while (txstate && ) { */ 
 			
 #ifdef H_DEBUG
-			log("txstate %s (%d) pkttype %s (%d) '%c'",
+			write_log("txstate %s (%d) pkttype %s (%d) '%c'",
 				hstates[txstate], txstate,
 				(pkttype>='A')?hpkts[pkttype-'A']:"$", pkttype,
 				(pkttype>='A' && pkttype<='N')?pkttype:'*');
@@ -923,7 +923,7 @@ int hydra_file(char *txpathname, char *txalias)
 				case H_SYSABORT:
 				case H_BRAINTIME:
 				}
-/* 				log("Hydra: %s",p); */
+/* 				write_log("Hydra: %s",p); */
 				if(txstate!=HTX_ENDACK)	res = XFER_ABORT;
 				txstate = HTX_DONE;
 				break;
@@ -937,7 +937,7 @@ int hydra_file(char *txpathname, char *txalias)
 				}
 
 				if (++txretries > H_RETRIES) {
-					log("hydra: too many errors");
+					write_log("hydra: too many errors");
 					txstate = HTX_DONE;
 					res = XFER_ABORT;
 					break;
@@ -959,7 +959,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case H_DEVTXTIME:
 				if (++devtxretries > H_RETRIES) {
-					log("HD: Too many errors");
+					write_log("HD: Too many errors");
 					txstate = HTX_DONE;
 					res = XFER_ABORT;
 					break;
@@ -988,13 +988,13 @@ int hydra_file(char *txpathname, char *txalias)
 					p += ((int) strlen(p)) + 1;
 					q = p + ((int) strlen(p)) + 1;
 					rxoptions  = options | HUNN_OPTIONS;
-/* 					log("Other end hydra can %s", p); */
-/* 					log("Other end hydra wants %s", q); */
+/* 					write_log("Other end hydra can %s", p); */
+/* 					write_log("Other end hydra wants %s", q); */
 					rxoptions |= get_flags(q,h_flags);
 					rxoptions &= get_flags(p,h_flags);
 					rxoptions &= HCAN_OPTIONS;
 					if (rxoptions < (options & HNEC_OPTIONS)) {
-						log("hydra is incompatible on this link!");
+						write_log("hydra is incompatible on this link!");
 						txstate = HTX_DONE;
 						res = XFER_ABORT;
 						break;
@@ -1023,14 +1023,14 @@ int hydra_file(char *txpathname, char *txalias)
 						if ((q = strchr(p,',')) != NULL) *q = ' ';
 						if ((q = strchr(p,',')) != NULL) *q = '/';
 #ifdef H_DEBUG
-						log("other end hydra is %s, rev %u",p,revstamp);
+						write_log("other end hydra is %s, rev %u",p,revstamp);
 #endif						
 						put_flags((char *) rxbuf,h_flags,rxoptions);
 						if (txwindow || rxwindow)
-							log("hydra link options: %s [%d/%d]",rxbuf,
+							write_log("hydra link options: %s [%d/%d]",rxbuf,
 								txwindow,rxwindow);
 						else
-							log("hydra link options: %s",rxbuf);
+							write_log("hydra link options: %s",rxbuf);
 					}
 
 					chattimer = (rxoptions & HOPT_DEVICE) ? 0L : -2L;
@@ -1057,7 +1057,7 @@ int hydra_file(char *txpathname, char *txalias)
 				if (rxstate == HRX_FINFO) {
 					braindead = h_timer_set(H_BRAINDEAD);
 					if (!rxbuf[0]) {
-/* 						log("HR: End of batch"); */
+/* 						write_log("HR: End of batch"); */
 						qpreset(0);
 						rxpos = 0L;
 						rxstate = HRX_DONE;
@@ -1166,7 +1166,7 @@ int hydra_file(char *txpathname, char *txalias)
 								}
 							}
 							if (++rxretries > H_RETRIES) {
-								log("HR: too many errors");
+								write_log("HR: too many errors");
 								txstate = HTX_DONE;
 								res = XFER_ABORT;
 								break;
@@ -1323,7 +1323,7 @@ int hydra_file(char *txpathname, char *txalias)
 					}
 					else {
 						if (++txretries > H_RETRIES) {
-							log("hydra: too many errors");
+							write_log("hydra: too many errors");
 							txstate = HTX_DONE;
 							res = XFER_ABORT;
 							break;
@@ -1350,7 +1350,7 @@ int hydra_file(char *txpathname, char *txalias)
 						if (!h_timer_running(rxtimer) ||
 							h_timer_expired(rxtimer)) {
 							if (++rxretries > H_RETRIES) {
-								log("HR: too many errors");
+								write_log("HR: too many errors");
 								txstate = HTX_DONE;
 								res = XFER_ABORT;
 								break;
@@ -1432,7 +1432,7 @@ int hydra_file(char *txpathname, char *txalias)
 					txpkt(0,HPKT_END);
 					txpkt(0,HPKT_END);
 					txpkt(0,HPKT_END);
-/* 					log("Hydra done"); */
+/* 					write_log("Hydra done"); */
 					txstate = HTX_DONE;
 					res = XFER_OK;
 				}
@@ -1487,7 +1487,7 @@ int hydra_file(char *txpathname, char *txalias)
 				/*---------------------------------------------------*/
 			case HTX_XDATA:
 				if (rxstate && hdxlink) {
-					log("HM: %s",hdxmsg);
+					write_log("HM: %s",hdxmsg);
 					hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
 
 					txtimer = h_timer_set(H_IDLE);

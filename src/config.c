@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.2 2000/07/18 12:56:15 lev Exp $
+ * $Id: config.c,v 1.3 2000/11/01 10:29:23 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -181,7 +181,7 @@ int readconfig(char *cfgname)
 	for(i=0;i<CFG_NNN;i++) {
 		if(!configtab[i].found) {
 			if(configtab[i].required) {
-				log("required value '%s' not defined!",
+				write_log("required value '%s' not defined!",
 						configtab[i].keyword);
 				rc=0;
 			} else {
@@ -228,13 +228,13 @@ int parseconfig(char *cfgname)
 			i=0;
 			if(!strcasecmp(p, "include")) {
 				if(!parseconfig(t)) {
-					log("%d: was errors parsing included file %s",
+					write_log("%d: was errors parsing included file %s",
 							line, p);
 					rc=0;					
 				}
 			} else if(!strcasecmp(p, "if"))	{
 				if(flagexp(t)<0) {
-					log("%d: can't parse expression '%s'",
+					write_log("%d: can't parse expression '%s'",
 							line, t);
 					rc=0;
 				} else {
@@ -243,7 +243,7 @@ int parseconfig(char *cfgname)
 				}
 			} else if(!strcasecmp(p, "endif"))	{
 				if(!curcond) {
-					log("%d: misplaced 'endif' without 'if'!", line);
+					write_log("%d: misplaced 'endif' without 'if'!", line);
 					rc=0;
 				} else curcond=NULL;
 			} else {
@@ -262,11 +262,11 @@ int parseconfig(char *cfgname)
 						if(!curcond) configtab[i].found=1;
 					} else {
 						sfree(ci);
-						log("%d: can't parse '%s %s'",  line, p, t);
+						write_log("%d: can't parse '%s %s'",  line, p, t);
 						rc=0;
 					}
 				} else {
-					log("%d: unknown keyword '%s'", line, p);
+					write_log("%d: unknown keyword '%s'", line, p);
 					rc=0;
 				}
 			}

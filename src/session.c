@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.7 2000/10/12 19:13:17 lev Exp $
+ * $Id: session.c,v 1.8 2000/11/01 10:29:25 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -84,7 +84,7 @@ void floflist(flist_t **fl, char *flon)
 					for(l=i->str;*l && *l!=' ';l++);
 					for(m=l;*m==' ';m++);
 					len=l-i->str;
-					if(!*l||!*m) log("bad mapping '%s'!", i->str);
+					if(!*l||!*m) write_log("bad mapping '%s'!", i->str);
 					else if(!strncasecmp(i->str,p,len)) {
 						memmove(p+strlen(m),p+len,strlen(p+len)+1);
 						memcpy(p,m,strlen(m));
@@ -140,7 +140,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	faslist_t *j;
 
 #ifdef S_DEBUG	
-	log("mkflist %s", ftnaddrtoa(fa));
+	write_log("mkflist %s", ftnaddrtoa(fa));
 #endif	
 	for(i=0;i<4;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
@@ -160,7 +160,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
 		if(ADDRCMP((*fa),j->addr)) {
 			if(!boxflist(fl, j->str))
-				log("can't open filebox '%s'!", j->str);
+				write_log("can't open filebox '%s'!", j->str);
 			break;
 		}
 
@@ -190,7 +190,7 @@ void flexecute(flist_t *fl)
 			case '#':
 				f=fopen(fl->tosend, "w");
 				if(f) fclose(f);
-				else log("can't truncate %s!", fl->tosend);
+				else write_log("can't truncate %s!", fl->tosend);
 				break;
 			}
 			fseek(fl->lo, fl->loff, SEEK_SET);
@@ -204,7 +204,7 @@ void flexecute(flist_t *fl)
 		case '#':
 			f=fopen(fl->tosend, "w");
 			if(f) fclose(f);
-			else log("can't truncate %s!", fl->tosend);
+			else write_log("can't truncate %s!", fl->tosend);
 			break;
 		}
 		sfree(fl->sendas);
@@ -245,7 +245,7 @@ int receivecb(char *fn)
 		slist_t *reqs=NULL;
 		
 		f=fopen(fn,"rt");
-		if(!f) {log("can't open '%s' for reading",s);return 0;}
+		if(!f) {write_log("can't open '%s' for reading",s);return 0;}
 		while(fgets(s,MAX_PATH-1,f)) {
 			p=s+strlen(s)-1;
 			while(*p=='\r' || *p=='\n') *p--=0;
@@ -268,7 +268,7 @@ int wazoosend(int zap)
 	int rc;
 	unsigned long total=totalf+totalm;
 
-	log("wazoo send");sline("Init zsend...");
+	write_log("wazoo send");sline("Init zsend...");
 	rc=zmodem_sendinit(zap);
 	sendf.cps=1;sendf.allf=totaln;sendf.ttot=totalf;
  	if(!rc) for(l=fl;l;l=l->next) {
@@ -292,7 +292,7 @@ int wazoosend(int zap)
 int wazoorecv()
 {
 	int rc;
-	log("wazoo receive");
+	write_log("wazoo receive");
 	rc=zmodem_receive(cfgs(CFG_INBOUND));
 	qpreset(0);
 	if(rc==RCDO || rc==ERROR) return 1;
@@ -345,26 +345,26 @@ void log_rinfo(ninfo_t *e)
 	char s[MAX_STRING]={0};
 	int k=0;
 
-	if((i=e->addrs)) { log("address: %s", ftnaddrtoa(&i->addr));i=i->next; }
+	if((i=e->addrs)) { write_log("address: %s", ftnaddrtoa(&i->addr));i=i->next; }
 	for(;i;i=i->next) {
 		if(k) strcat(s, " ");strcat(s, ftnaddrtoa(&i->addr));
-		k++;if(k==2) { log("    aka: %s", s);k=0;s[0]=0; }
+		k++;if(k==2) { write_log("    aka: %s", s);k=0;s[0]=0; }
 	}
-	if(k) log("    aka: %s", s);
-	log(" system: %s", e->name);
-	log("   from: %s", e->place);
-	log("  sysop: %s", e->sysop);
-	log("  phone: %s", e->phone);
-	log("  flags: [%d] %s", e->speed, e->flags);
-	log(" mailer: %s", e->mailer);
+	if(k) write_log("    aka: %s", s);
+	write_log(" system: %s", e->name);
+	write_log("   from: %s", e->place);
+	write_log("  sysop: %s", e->sysop);
+	write_log("  phone: %s", e->phone);
+	write_log("  flags: [%d] %s", e->speed, e->flags);
+	write_log(" mailer: %s", e->mailer);
 	t=gmtime(&e->time);
-	log("   time: %02d:%02d:%02d, %s",
+	write_log("   time: %02d:%02d:%02d, %s",
 		t->tm_hour, t->tm_min, t->tm_sec,
 		e->wtime ? e->wtime : "unknown");
 	if(e->holded && !e->files && !e->netmail)
-		log(" for us: %d%c on hold", SIZES(e->holded), SIZEC(e->holded));
+		write_log(" for us: %d%c on hold", SIZES(e->holded), SIZEC(e->holded));
 	else
-		log(" for us: %d%c mail; %d%c files",
+		write_log(" for us: %d%c mail; %d%c files",
 			SIZES(e->netmail), SIZEC(e->netmail),
 			SIZES(e->files), SIZEC(e->files));
 }
@@ -380,7 +380,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	was_req=0;got_req=0;receive_callback=receivecb;
 	totaln=0;totalf=0;totalm=0;emsi_lo=0;
 	if(mode) {
-		log("starting outbound EMSI session");
+		write_log("starting outbound EMSI session");
 		q=q_find(calladdr);
 		if(q) {
 			totalm=q->pkts;
@@ -395,10 +395,10 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	} else {
 		rc=emsi_recv(mode, rnode);
 		if(rc<0) {
-			log("unable to establish EMSI session");
+			write_log("unable to establish EMSI session");
 			return S_REDIAL;
 		}
-		log("starting inbound EMSI session");
+		write_log("starting inbound EMSI session");
 	}
 
 	if(mode)
@@ -416,7 +416,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		bso_locknode(&pp->addr);
 	if(mode) {
 		if(!has_addr(calladdr, rnode->addrs)) {
-			log("remote isn't %s!", ftnaddrtoa(calladdr));
+			write_log("remote isn't %s!", ftnaddrtoa(calladdr));
 			return S_UNDIAL;
 		}
 		flkill(&fl, 0);totalf=0;totalm=0;
@@ -426,7 +426,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	} else {
 		for(pp=cfgal(CFG_ADDRESS);pp;pp=pp->next)
 			if(has_addr(&pp->addr, rnode->addrs)) {
-				log("remote also has %s!", ftnaddrtoa(&pp->addr));
+				write_log("remote also has %s!", ftnaddrtoa(&pp->addr));
 				return S_UNDIAL;
 			}		
 		nfiles=0;rc=0;
@@ -436,8 +436,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				makeflist(&fl, &pp->addr);
 				if(t) rnode->options|=O_PWD;
 			} else {
-				log("password not matched for %s",ftnaddrtoa(&pp->addr));
-				log("  (got '%s' instead of '%s')", rnode->pwd, t);
+				write_log("password not matched for %s",ftnaddrtoa(&pp->addr));
+				write_log("  (got '%s' instead of '%s')", rnode->pwd, t);
 				rc=1;
 			}
 		}
@@ -478,7 +478,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			return S_REDIAL;
 		}
 	}
-	log("we have: %d%c mail; %d%c files",
+	write_log("we have: %d%c mail; %d%c files",
 		SIZES(totalm), SIZEC(totalm),
 		SIZES(totalf), SIZEC(totalf));
 
@@ -493,7 +493,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	proto=(mode?rnode->options:emsi_lo)&P_MASK;
 	switch(proto) {
 	case P_NCP: 
-		log("no compatible protocols");
+		write_log("no compatible protocols");
 		flkill(&fl, 0);
 		return S_UNDIAL;
 	case P_ZMODEM:
@@ -514,9 +514,9 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="Unknown";		
 	}
 #ifdef S_DEBUG	
-	log("emsopts: %s %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo);
+	write_log("emsopts: %s %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo);
 #endif
-	log("options: %s%s%s%s%s%s%s%s", t,
+	write_log("options: %s%s%s%s%s%s%s%s", t,
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
 		(rnode->options&O_HXT)?"/MO":"",
@@ -568,7 +568,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 void sessalarm(int sig)
 {
 	signal(SIGALRM, SIG_DFL);
-	log("session limit of %d minutes is over",
+	write_log("session limit of %d minutes is over",
 		cfgi(CFG_MAXSESSION));
 	tty_hangedup=1;
 }
@@ -587,7 +587,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 
 	rc=cfgi(CFG_MINSPEED);
 	if(rc && speed<rc) {
-		log("connection speed is too low");
+		write_log("connection speed is too low");
 		return S_REDIAL;
 	}
 		
@@ -600,10 +600,10 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 
 	switch(type) {
 	case SESSION_AUTO:
-		log("trying EMSI...");
+		write_log("trying EMSI...");
 		rc=emsi_init(mode);
 		if(rc<0) {
-			log("unable to establish EMSI session");
+			write_log("unable to establish EMSI session");
 			return S_REDIAL;
 		}
 		rc=emsisession(mode, calladdr, speed);
@@ -612,7 +612,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		rc=emsisession(mode, calladdr, speed);
 		break;
 	default:
-		log("unsupported session type! (%d)", type);
+		write_log("unsupported session type! (%d)", type);
 		return S_REDIAL;
 	}
 	for(pp=rnode->addrs;pp;pp=pp->next) bso_unlocknode(&pp->addr);
@@ -621,16 +621,16 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 	if(rnode->options&O_HAT) rc|=S_HOLDA;
 	signal(SIGALRM, SIG_DFL);
 	sest=rnode->starttime?time(NULL)-rnode->starttime:0;
-	log("total: %d:%02d:%02d online, %d%c sent, %d%c received",
+	write_log("total: %d:%02d:%02d online, %d%c sent, %d%c received",
 		sest/3600,sest%3600/60,sest%60,
 		SIZES(sendf.toff-sendf.soff), SIZEC(sendf.toff-sendf.soff),
 		SIZES(recvf.toff-recvf.soff), SIZEC(recvf.toff-recvf.soff));
-	log("session with %s %s [%s]",
+	write_log("session with %s %s [%s]",
 		rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
 		((rc&S_MASK)==S_OK)?"successful":"failed", M_STAT);
 	if(rnode->starttime && cfgs(CFG_HISTORY)) {
 		h=fopen(ccs,"at");
-		if(!h) log("can't open %s for writing!",ccs);
+		if(!h) write_log("can't open %s for writing!",ccs);
 		else {
 			fprintf(h,"%s,%ld,%ld,%s,%s%s%c%d,%d,%d\n",
 					rnode->tty,rnode->starttime, sest,
@@ -646,7 +646,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		if(fexist(s)) lunlink(s);
 	}
 	if(cfgs(CFG_AFTERSESSION)) {
-		log("starting %s %s %c %d",
+		write_log("starting %s %s %c %d",
 			cfgs(CFG_AFTERSESSION),
 			rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
 			(rnode->options&O_INB)?'I':'O',((rc&S_MASK)==S_OK)?1:0);
@@ -656,7 +656,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 	}
 	if(cfgs(CFG_AFTERMAIL)){
 		if(recvf.toff-recvf.soff!=0){
-			log("starting %s %s %c %d",
+			write_log("starting %s %s %c %d",
 				cfgs(CFG_AFTERMAIL),
 				rnode->addrs?ftnaddrtoa(&rnode->addrs->addr):(calladdr?ftnaddrtoa(calladdr):"unknown"),
 				(rnode->options&O_INB)?'I':'O',((rc&S_MASK)==S_OK)?1:0);
