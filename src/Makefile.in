@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.3 2000/10/12 20:31:51 lev Exp $
+# $Id: Makefile.in,v 1.4 2000/10/17 16:55:06 lev Exp $
 #
 
 prefix  = @prefix@
@@ -27,7 +27,7 @@ QCC     = @QCC@
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 # ipc key file
-DEFS    += -DQIPC_KEY=\"$(BINDIR)/qico\" -I. -I..
+DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
 
 DEFS    += -DSHELL=\"$(SHELL)\"
 CFLAGS	= $(DEFS) -Wall -D_GNU_SOURCE=1 -D_BSD_SOURCE=1
