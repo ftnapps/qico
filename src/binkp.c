@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.16 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: binkp.c,v 1.17 2004/01/19 20:21:32 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -28,7 +28,7 @@ static int msgs(int msg,char *t1,char *t2)
 	if(t1)len+=strlen(t1);
 	if(t2)len+=strlen(t2);
 	if(len>0x7fff)len=0x7fff;
-	*txbuf=(unsigned char)(len>>8)&0x7f;
+	*txbuf=((len>>8)&0x7f)|0x80;
 	txbuf[1]=len&0xff;txbuf[2]=msg;
 	snprintf((char*)(txbuf+3),len,"%s%s",t1?t1:"",t2?t2:"");
 	return(datas(txbuf,(word)(len+2)));
@@ -193,7 +193,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					(opt_nd&O_THEY)?" ND":"",
 					(opt_mb&O_WANT)?" MB":"",
 					(opt_cr&O_WE)?" CRYPT":"");
-				msgs(BPM_NUL,"OPT",tmp);
+				msgs(BPM_NUL,"OPT ",tmp);
 			}
 			pp=cfgal(CFG_ADDRESS);
 			if(mode) {

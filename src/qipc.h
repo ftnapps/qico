@@ -1,4 +1,4 @@
-/* $Id: qipc.h,v 1.5 2004/01/15 23:39:41 sisoft Exp $ */
+/* $Id: qipc.h,v 1.6 2004/01/19 20:21:32 sisoft Exp $ */
 #ifndef __QIPC_H__
 #define __QIPC_H__
 #include "mailer.h"
@@ -18,7 +18,7 @@ extern int qrecvpkt(char *str);
 extern void qpmydata();
 
 extern char *log_tty;
-#define QLNAME is_ip?ip_id:(log_tty?log_tty:"master")
+#define QLNAME log_tty?(is_ip?ip_id:log_tty):"master"
 #define qpfsend()  qpproto(QC_SENDD, &sendf)
 #define qpfrecv()  qpproto(QC_RECVD, &recvf)
 #define qereset()  qsendpkt(QC_EMSID, QLNAME, "", 0)

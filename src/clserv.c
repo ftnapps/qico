@@ -1,12 +1,13 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.4 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: clserv.c,v 1.5 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "byteop.h"
 #include "clserv.h"
 
 int (*xsend_cb)(int sock,char *buf,int len)=NULL;
@@ -56,16 +57,25 @@ void cls_shutd(int sock)
 	cls_close(sock);
 }
 
-int xsend(int sock,char *buf,int len)
+int xsendto(int sock,char *buf,int len,struct sockaddr *to)
 {
 	int rc;
+	char *b;
 	unsigned short l=H2I16(len);
 	if(sock<0){errno=EBADF;return -1;}
 	if(!len)return 0;
-	rc=send(sock,&l,2,MSG_DONTWAIT);
-	if(rc<=0)return rc;
-	rc=send(sock,buf,len,0);
+	b=malloc(len+2);
+	if(!b){errno=ENOMEM;return -1;}
+	STORE16(b,l);
+	memcpy(b+2,buf,len);
+	rc=sendto(sock,b,len+2,0,to,sizeof(struct sockaddr));
+	xfree(b);
 	return rc;
+}
+
+int xsend(int sock,char *buf,int len)
+{
+	return xsendto(sock,buf,len,NULL);
 }
 
 int xrecv(int sock,char *buf,int len,int wait)
@@ -76,16 +86,15 @@ int xrecv(int sock,char *buf,int len,int wait)
 	rc=recv(sock,&l,2,MSG_PEEK|(wait?MSG_WAITALL:MSG_DONTWAIT));
 	if(rc<=0)return rc;
 	if(rc==2) {
-		rc=recv(sock,&l,2,MSG_WAITALL);
-		if(rc<2)return -1;
 		l=I2H16(l);
 		if(!l)return 0;
-		if(l>len)l=len;len=0;
-		do {
-			rc=recv(sock,buf,l-len,MSG_WAITALL);
-			if(rc>0)len+=rc;
-		} while((rc>0||(rc<0&&errno==EAGAIN))&&len<l);
-		return rc<0?rc:len;
+		if(l>len)l=len;
+		rc=recv(sock,buf,MIN(l+2,len),MSG_WAITALL);
+		if(rc<=0)return rc;
+		rc=FETCH16(buf);
+		if(!rc)return 0;
+		memcpy(buf,buf+2,rc);
+		return rc;
 	}
 	return 0;
 }

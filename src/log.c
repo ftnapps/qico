@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: log.c,v 1.9 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -209,7 +209,6 @@ void log_done()
 	if(log_type==2)closelog();
 	xfree(log_name);
 	xfree(log_tty);
-	log_name=NULL;log_tty=NULL;
 	log_type=0;
 }
 

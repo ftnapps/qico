@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.15 2004/01/18 21:13:42 sisoft Exp $
+ * $Id: qcc.c,v 1.16 2004/01/19 20:21:32 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -174,6 +174,7 @@ char *m_status=NULL;
 WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 
 int sock=-1;
+int oldcurr=-1;
 
 int hstlast=0;
 char *hst[HSTMAX+1],*myaddr;
@@ -578,12 +579,14 @@ int createslot(char *slt,char d)
 	}
 	slots[allslots]->wlog=newwin(LOGSIZE,COL,MH+2,1);
 	scrollok(slots[allslots]->wlog,TRUE);flash();
+	if(oldcurr>=0){currslot=oldcurr;oldcurr=-1;}
 	return allslots++;
 }
 
 void delslot(int slt)
 {
 	allslots--;
+	oldcurr=currslot;
 	if(currslot==allslots||currslot==slt)currslot--;
 	delwin(slots[slt]->wlog);
 	xfree(slots[slt]->cl);
@@ -911,6 +914,7 @@ int getmessages(char *bbx)
 		data=(unsigned char*)(strchr(buf+3,0)+1);
 		len=rc-4-strlen(buf+3);
 		if(strcmp(buf+3,"master")) {
+			if(!strcmp(buf+3,"ipline"))snprintf(buf+3,7,"ip%04x",id);
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
 				if(allslots>0&&rc>=0) {
@@ -1410,7 +1414,9 @@ int main(int argc,char **argv)
 				break;
 			case 'h':
 				xstrcpy(buf+3,slots[currslot]->tty,8);
-				xcmdslot(buf,QR_HANGUP,strlen(buf+3)+4);
+				if(!(slots[currslot]->opt&(MO_IFC|MO_BINKP)))
+					xcmd(buf,QR_HANGUP,strlen(buf+3)+4);
+				xcmdslot(buf,QR_HANGUP,3);
 				break;
 			case 'c':
 				if((slots[currslot]->opt&MO_CHAT)&&slots[currslot]->session) {
