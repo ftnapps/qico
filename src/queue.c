@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.2 2000/07/18 12:56:18 lev Exp $
+ * $Id: queue.c,v 1.3 2000/10/08 17:28:01 lev Exp $
  **********************************************************/
 #include <unistd.h>
 #include <stdio.h>
@@ -205,3 +205,10 @@ int q_rescan(qitem_t **curr)
 	return 1;
 }
 
+void qsendqueue()
+{
+	qitem_t *q;	
+	qqreset();
+	for(q=q_queue;q;q=q->next)
+		qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
+}

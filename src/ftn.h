@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.5 2000/10/07 14:24:35 lev Exp $
+ * $Id: ftn.h,v 1.6 2000/10/08 17:28:01 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -284,6 +284,7 @@ extern qitem_t *q_queue;
 extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr);
 extern off_t q_sum(qitem_t *q);
+extern void qsendqueue();
 
 #define bso_poll(adr) bso_attach(adr, F_NORM, NULL)
 
