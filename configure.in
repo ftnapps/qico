@@ -1,12 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/main.c)
-AC_CONFIG_HEADER(config.h)
-VERSION=0.49.10
+AC_INIT([qico],[0.49.10],[lev@serebryakov.spb.ru])
+AC_PREREQ(2.53)
 
-dnl Definitions
-AC_DEFUN(AC_ADD_REPLACE,[
-LIBOBJS="$LIBOBJS $1.${ac_objext}"
-])
+AC_CONFIG_SRCDIR([src/main.c])
+AC_CONFIG_HEADER([config.h])
 
 dnl Checks for programs.
 AC_PROG_AWK
@@ -15,25 +12,25 @@ AC_PROG_INSTALL
 AC_PROG_LEX
 AC_PROG_YACC
 
-AC_LANG_C
+AC_LANG([C])
 
 dnl Check for all headers
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS([sys/time.h])
 AC_HEADER_TIME
 dnl FreeBSD 3.x have setproctitle(2) in libutil.h
-AC_CHECK_HEADERS(libutil.h)
+AC_CHECK_HEADERS([libutil.h])
 dnl FreeBSD 4.x have basename(2) in libgen.h
-AC_CHECK_HEADERS(libgen.h)
+AC_CHECK_HEADERS([libgen.h])
 
 dnl whether syslog.h and sys/syslog.h may both be included
 AC_MSG_CHECKING([whether syslog.h and sys/syslog.h may both be included])
 AC_TRY_COMPILE([#include <stdlib.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
-#include <sys/syslog.h>], [ int i=0; i++; ],
-AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+#include <sys/syslog.h>],[ int i=0; i++; ],
+[AC_DEFINE(HAVE_SYSLOG_AND_SYS_SYSLOG,,[Could <syslog.h> and <sys/syslog.h> be included in one file])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_SIZEOF(char,1)
@@ -49,10 +46,10 @@ AC_STRUCT_TM
 dnl Check for tm_gmtoff
 AC_MSG_CHECKING([for tm_gmtoff field in struct tm])
 AC_TRY_COMPILE([#include <sys/types.h>
-#include <$ac_cv_struct_tm>], [ struct tm t; t.tm_gmtoff = 0; ],
-HAVE_GMTOFF=yes, HAVE_GMTOFF=no )
+#include <$ac_cv_struct_tm>],[ struct tm t; t.tm_gmtoff = 0; ],
+[HAVE_GMTOFF=yes],[HAVE_GMTOFF=no])
 if test "${HAVE_GMTOFF}x" = "yesx"; then
-	AC_DEFINE(TM_HAVE_GMTOFF)
+	AC_DEFINE(TM_HAVE_GMTOFF,,[Define to 1 if 'struct tm' have 'tm_gmtoff' field])
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -65,8 +62,8 @@ AC_TRY_COMPILE([#include <stdlib.h>
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
 #include <sys/syslog.h>
-#endif], [ char *p=facilitynames[0].c_name; ],
-AC_DEFINE(HAVE_SYSLOG_FAC_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+#endif],[char *p=facilitynames[0].c_name;],
+[AC_DEFINE(HAVE_SYSLOG_FAC_NAMES,,[Define to 1 if 'facilitynames' defined in syslog headers])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Check for syslog priority names
 AC_MSG_CHECKING([for syslog priority names])
@@ -75,27 +72,27 @@ AC_TRY_COMPILE([#include <stdlib.h>
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
 #include <sys/syslog.h>
-#endif], [ char *p=prioritynames[0].c_name; ],
-AC_DEFINE(HAVE_SYSLOG_PRI_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+#endif],[ char *p=prioritynames[0].c_name; ],
+[AC_DEFINE(HAVE_SYSLOG_PRI_NAMES,,[Define to 1 if 'prioritynames' defined in syslog headers])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Check for TIOCSCTTY
 AC_MSG_CHECKING([for ioctl(TIOCSCTTY)])
 AC_TRY_COMPILE([#include <stdlib.h>
 #include <sys/ioctl.h>
-#include <termios.h>], [ ioctl(0,TIOCSCTTY); ],
-AC_DEFINE(HAVE_TIOCSCTTY)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+#include <termios.h>],[ ioctl(0,TIOCSCTTY); ],
+[AC_DEFINE(HAVE_TIOCSCTTY,,[Define to 1 if system have 'TIOCSCTTY' ioctl()])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Is EIDRM defined...
 AC_MSG_CHECKING([for EIDRM errno])
 AC_TRY_COMPILE([#include <stdlib.h>
-#include <errno.h>], [ int i=EIDRM; ],
-AC_DEFINE(HAVE_EIDRM)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+#include <errno.h>],[int i=EIDRM;],
+[AC_DEFINE(HAVE_EIDRM,,[Define to 1 if system defines 'EIDRM' errno value])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Check for STD*_FILENO
 AC_MSG_CHECKING([for STDxxx_FILENO])
 AC_TRY_COMPILE([#include <unistd.h>],
-[ int fd1=STDIN_FILENO, fd2=STDOUT_FILENO, fd3=STDERR_FILENO; ],
-AC_DEFINE(HAVE_STDXXX_FILENO)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+[int fd1=STDIN_FILENO,fd2=STDOUT_FILENO,fd3=STDERR_FILENO;],
+[AC_DEFINE(HAVE_STDXXX_FILENO,,[Define to 1 if system defines 'STDxxx_FILENO' constants])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(vsnprintf snprintf)
@@ -112,31 +109,31 @@ static char *fl = "/usr/local/bin/some.file";
 int main(int argn, char **argv) {
 	char *b = basename(fl); return !(*b != '/');
 }
-	], AC_MSG_RESULT(no), AC_DEFINE(HAVE_BROKEN_BASENAME)AC_ADD_REPLACE(basename)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+	],[AC_MSG_RESULT(no)],[AC_DEFINE(HAVE_BROKEN_BASENAME,,[Define to 1 if basename() function returns pointer to '/'])AC_LIBOBJ([basename])AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no)])
 fi
 
 dnl Checking for FreeBSD setproctitle in libutil
-AC_CHECK_FUNC(setproctitle,AC_DEFINE(HAVE_SETPROCTITLE),AC_CHECK_LIB(util,setproctitle,AC_DEFINE(HAVE_SETPROCTITLE)))
+AC_CHECK_FUNC(setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])],[AC_CHECK_LIB(util,setproctitle,[AC_DEFINE(HAVE_SETPROCTITLE,,[Define to 1 if system have setproctitle() call])])])
 
 dnl On old FreeBSD systems ftok() is only in libcompat
-AC_CHECK_FUNC(ftok,,AC_CHECK_LIB(compat,ftok))
+AC_CHECK_FUNC(ftok,,[AC_CHECK_LIB(compat,ftok)])
 
 dnl Socket functions are in libnsl.a on SunOS 5.5
-AC_CHECK_FUNC(socket,,AC_CHECK_LIB(socket,socket))
-AC_CHECK_FUNC(getpeername,,AC_CHECK_LIB(socket,getpeername))
-AC_CHECK_FUNC(gethostbyname,,AC_CHECK_LIB(nsl,gethostbyname))
-AC_CHECK_FUNC(getservbyname,,AC_CHECK_LIB(socket,getservbyname))
-AC_CHECK_FUNC(inet_addr,,AC_CHECK_LIB(nsl,inet_addr))
-AC_CHECK_FUNC(inet_ntoa,,AC_CHECK_LIB(nsl,inet_ntoa))
+AC_CHECK_FUNC(socket,,[AC_CHECK_LIB(socket,socket)])
+AC_CHECK_FUNC(getpeername,,[AC_CHECK_LIB(socket,getpeername)])
+AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
+AC_CHECK_FUNC(getservbyname,,[AC_CHECK_LIB(socket,getservbyname)])
+AC_CHECK_FUNC(inet_addr,,[AC_CHECK_LIB(nsl,inet_addr)])
+AC_CHECK_FUNC(inet_ntoa,,[AC_CHECK_LIB(nsl,inet_ntoa)])
 AC_CHECK_FUNCS(shutdown)
-AC_CHECK_FUNC(connect,,AC_CHECK_LIB(nsl,connect))
+AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(nsl,connect)])
 
 dnl --------------------------------------------------------------------------
 dnl All parameters
 dnl --------------------------------------------------------------------------
 dnl Config file 
 AC_MSG_CHECKING([for config path])
-AC_ARG_WITH(config,[  --with-config           specifies config path (default is \${prefix}/etc/qico.conf) ], , with_config=NONE)
+AC_ARG_WITH(config,[  --with-config           specifies config path (default is \${prefix}/etc/qico.conf) ],,with_config=NONE)
 if test "x${with_config}" = "xNONE"; then
 	if test "x${prefix}" = "xNONE"; then
 		with_config="${ac_default_prefix}/etc/qico.conf"
@@ -150,37 +147,37 @@ if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; the
 fi
 
 dnl ZModem
-AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ], , with_new_zmodem=NOTSET)
+AC_ARG_WITH(new_zmodem,[  --without-new-zmodem    use old ZModem implementation ],,with_new_zmodem=NOTSET)
 if test "${with_new_zmodem}x" != "NOTSETx"; then
 	AC_MSG_WARN([Use new ZModem IN ANY case, old ZModem was eliminated!])
 fi
 
 dnl TCP Speed
 AC_MSG_CHECKING([for TCP connection speed])
-AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ], , with_tcp_speed=115200)
-AC_DEFINE_UNQUOTED(TCP_SPEED, $with_tcp_speed)
+AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ],,with_tcp_speed=115200)
+AC_DEFINE_UNQUOTED(TCP_SPEED,$with_tcp_speed,[Speed for TCP connections in bps])
 AC_MSG_RESULT($with_tcp_speed)
-changequote(, )dnl
+changequote(,)dnl
 if test "x`expr "$with_tcp_speed" : '[0-9]*'`" != "x`expr "$with_tcp_speed" : '.*'`"; then
-changequote([, ])dnl
+changequote([,])dnl
 	AC_MSG_ERROR([Parameter for --with-tcp-speed must be a number])
 fi
 
 dnl Default Speed
 AC_MSG_CHECKING([for default port locking speed])
-AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ], , with_default_speed=9600)
-AC_DEFINE_UNQUOTED(DEFAULT_SPEED, $with_default_speed)
+AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ],,with_default_speed=9600)
+AC_DEFINE_UNQUOTED(DEFAULT_SPEED,$with_default_speed,[Default speed for modem connections])
 AC_MSG_RESULT($with_default_speed)
-changequote(, )dnl
+changequote(,)dnl
 if test "x`expr "$with_default_speed" : '[0-9]*'`" != "x`expr "$with_default_speed" : '.*'`"; then
-changequote([, ])dnl	
+changequote([,])dnl	
 	AC_MSG_ERROR([Parameter for --with-default-speed must be a number])
 fi
 
 dnl Shell
 AC_MSG_CHECKING([for shell])
-AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ], , with_shell=/bin/sh)
-AC_DEFINE_UNQUOTED(SHELL, "$with_shell")
+AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ],,with_shell=/bin/sh)
+AC_DEFINE_UNQUOTED(SHELL,"$with_shell",[Path to system shell])
 AC_MSG_RESULT($with_shell)
 if test "x`expr "$with_shell" : '/.*'`" != "x`expr "$with_shell" : '.*'`"; then
 	AC_MSG_ERROR([Parameter for --with-shell must be absolute pathname])
@@ -191,14 +188,14 @@ fi
 
 dnl Lock creation style
 AC_MSG_CHECKING([for lock creation style])
-AC_ARG_WITH(lock-style,[  --with-lock-style       select lock creation style (open or link)] , , with_lock_style=LINK)
+AC_ARG_WITH(lock-style,[  --with-lock-style       select lock creation style (open or link)],,with_lock_style=LINK)
 case "$with_lock_style" in
 	link | LINK | NFS | nfs )
 		AC_MSG_RESULT(link)
 		;;
 	open | OPEN | VFAT | vfat )
 		AC_MSG_RESULT(open)
-		AC_DEFINE(LOCKSTYLE_OPEN)
+		AC_DEFINE(LOCKSTYLE_OPEN,,[Create lock files with open(), not link()])
 		;;
 	*)
 		AC_MSG_RESULT(unknown)
@@ -208,35 +205,35 @@ esac
 
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
-AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound], , enable_aso=no)
+AC_ARG_ENABLE(aso,[  --enable-aso            enable Amiga-style 4D outbound],,enable_aso=no)
 if test "${enable_aso}x" != "nox"; then
 	AC_MSG_RESULT(aso)
-	AC_DEFINE(AMIGA4D)
+	AC_DEFINE(AMIGA4D,,[Use Amiga-style outbound])
 else 
 	AC_MSG_RESULT(bso)
 fi
 
 dnl HYDRA8/16K support (disable by default)
 AC_MSG_CHECKING([for Hydra8k/16k support])
-AC_ARG_ENABLE(hydra8k, [  --enable-hydra8k        enable buggy Hydra8k/16k protocols support], , enable_hydra8k=no)
+AC_ARG_ENABLE(hydra8k,[  --enable-hydra8k        enable buggy Hydra8k/16k protocols support],,enable_hydra8k=no)
 if test "${enable_hydra8k}x" != "nox"; then
 	AC_MSG_RESULT(yes)
-	AC_DEFINE(HYDRA8K16K)
+	AC_DEFINE(HYDRA8K16K,,[Allow Hydra-8K and Hydra-16K protocols])
 else
 	AC_MSG_RESULT(no)
 fi
 
 dnl qcc support
-AC_ARG_ENABLE(qcc, [  --disable-qcc           disable building of qcc and its support], , enable_qcc=yes)
+AC_ARG_ENABLE(qcc,[  --disable-qcc           disable building of qcc and its support],,enable_qcc=yes)
 if test "${enable_qcc}x" != "nox"; then
-	AC_CHECK_LIB(ncurses, main, AC_DEFINE(HAVE_LIBNCURSES)
-	CURSES=ncurses, AC_CHECK_LIB(curses, main,AC_DEFINE(HAVE_LIBCURSES)
-	CURSES=curses))
+	AC_CHECK_LIB(ncurses,main,[AC_DEFINE(HAVE_LIBNCURSES,,[Define to 1 if system have ncurses])
+	CURSES=ncurses],[AC_CHECK_LIB(curses,main,[AC_DEFINE(HAVE_LIBCURSES,,[Define to 1 if system have curses])
+	CURSES=curses])])
 	if test $CURSES; then
-		AC_CHECK_LIB($CURSES, mvvline, AC_DEFINE(CURS_HAVE_MVVLINE))
-		AC_CHECK_LIB($CURSES, wresize, AC_DEFINE(CURS_HAVE_WRESIZE))
+		AC_CHECK_LIB($CURSES,mvvline,[AC_DEFINE(CURS_HAVE_MVVLINE,,[Define to 1 if system (n)curses have mvvline()])])
+		AC_CHECK_LIB($CURSES,wresize,[AC_DEFINE(CURS_HAVE_WRESIZE,,[Define to 1 if system (n)curses have wresize()])])
 		QCC=1
-		AC_DEFINE(QCC)
+		AC_DEFINE(QCC,,[Build qcc (interface program)])
 		AC_CHECK_HEADERS(curses.h ncurses.h)
 		QCCLIBS=-l$CURSES
 		AC_MSG_CHECKING([for qcc support])
@@ -255,10 +252,10 @@ fi
 
 dnl Compile in debug messages
 AC_MSG_CHECKING([for debug logging])
-AC_ARG_ENABLE(debug,[  --disable-debug         disable adding debug messages ], , enable_debug=yes)
+AC_ARG_ENABLE(debug,[  --disable-debug         disable adding debug messages ],,enable_debug=yes)
 if test "${enable_debug}x" != "nox"; then
 	AC_MSG_RESULT([yes, use loglevels in config to tune])
-	AC_DEFINE(NEED_DEBUG)
+	AC_DEFINE(NEED_DEBUG,,[Build debug loglevels support])
 	NEED_DEBUG=1
 else
 	AC_MSG_RESULT([no, logleves in config is useless])
@@ -267,10 +264,10 @@ fi
 
 dnl Electric Fence malloc() debbuger support
 AC_MSG_CHECKING([for Electric Fence malloc() debbuger])
-AC_ARG_ENABLE(efence, [  --enable-efence         enable linking with libefence malloc() debugger ], , enable_efence=no)
+AC_ARG_ENABLE(efence,[  --enable-efence         enable linking with libefence malloc() debugger ],,enable_efence=no)
 if test "${enable_efence}x" != "nox"; then
 	AC_MSG_RESULT(yes)
-	AC_CHECK_LIB(efence, malloc, LIBS="${LIBS} -L/usr/local/lib -lefence",enable_efence=no, "-L/usr/local/lib")
+	AC_CHECK_LIB(efence,malloc,[LIBS="${LIBS} -L/usr/local/lib -lefence"],enable_efence=no,["-L/usr/local/lib"])
 	if test "${enable_fence}x" = "nox"; then
 		AC_MSG_WARN([No Electric Fence library found -- turn --enable-efence off])
 	fi
@@ -278,20 +275,26 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+dnl My defines -- from acconfig.h, hack for new autoconf
+AC_DEFINE_UNQUOTED(MAX_PATH,256,[Maximum length of file path])
+AC_DEFINE_UNQUOTED(MAX_STRING,256,[Maximum length of string on stack for log and some other places])
+AC_DEFINE_UNQUOTED(MAX_NODELIST,32,[Maximum number of compiled nodelists])
+
 dnl My substs
-AC_SUBST(VERSION)
 AC_SUBST(QCCLIBS)
 AC_SUBST(QCC)
-
-dnl calculate real config -- prefix already known, so we could eval config
-with_config=`eval echo $with_config`
-AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
-CONFIG=$with_config
-
-AC_SUBST(CONFIG)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
 AC_SUBST(QIPC_KEY)
 
-AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec, [echo timestamp > stamp-h])
+dnl calculate real config -- prefix already known, so we could eval config
+with_config=`eval echo $with_config`
+AC_DEFINE_UNQUOTED(CONFIG,"$with_config",[Default path to config])
+CONFIG=$with_config
+
+AC_SUBST(CONFIG)
+
+AC_CONFIG_FILES([src/ver.c src/Makefile Makefile qico.spec])
+AC_CONFIG_COMMANDS([default],[[echo timestamp > stamp-h]],[[]])
+AC_OUTPUT
