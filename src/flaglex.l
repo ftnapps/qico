@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.9 2004/02/17 11:23:22 sisoft Exp $
+ * $Id: flaglex.l,v 1.10 2004/02/19 23:36:39 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -60,7 +60,7 @@ Sfree		[Ss][Ff][Rr][Ee][Ee]
 Phone		[Pp][Hh][Oo][Nn][Ee]
 Time		[Tt][Ii][Mm][Ee]
 iTime		[Ii][Tt][Ii][Mm][Ee]
-Address		[Aa][Dd][Dd][Rr][Ee][Ss][Ss]
+Address		[Aa][Dd][Dd][Rr]([Ee][Ss][Ss])?
 Port    	[Pp][Oo][Rr][Tt]
 Date    	[Dd][Aa][Tt][Ee]
 Connect 	[Cc][Oo][Nn][Nn][Ee][Cc][Tt]

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.20 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: main.c,v 1.21 2004/02/19 23:36:39 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -311,14 +311,11 @@ int main(int argc,char *argv[],char *envp[])
 	if(!hostname&&daemon<0)usage(argv[0]);
 	getsysinfo();ssock=lins_sock=uis_sock=-1;
 	if(!readconfig(configname)) {
-		write_log("there was some errors parsing %s, aborting",configname);
+		write_log("there was some errors parsing '%s', aborting",configname);
 		exit(EXC_BADCONFIG);
 	}
-	if(daemon==3) {
-		exit(EXC_OK);
-	}
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
-		write_log("can't open master log %s!",ccs);
+		write_log("can't open master log '%s'!",ccs);
 		exit(1);
 	}
 #ifdef NEED_DEBUG
@@ -331,16 +328,20 @@ int main(int argc,char *argv[],char *envp[])
 		subst_t *s;
 		dialine_t *l;
 		for(s=psubsts;s;s=s->next) {
-			write_log("subst for %s [%d]\n",ftnaddrtoa(&s->addr),s->nhids);
+			write_log("subst for %s [%d]",ftnaddrtoa(&s->addr),s->nhids);
 			for(l=s->hiddens;l;l=l->next)
-				write_log(" * %s,%s,%s,%d,%d\n",l->phone,l->host,l->timegaps,l->flags,l->num);
+				write_log(" * %s,%s,%s,%d,%d",l->phone,l->host,l->timegaps,l->flags,l->num);
 		}
 	}
 #endif
-
+	if(daemon==3) {
+		log_done();
+		exit(EXC_OK);
+	}
 	if(hostname||daemon==12) {
 		if(!parseftnaddr(argv[optind],&fa,&DEFADDR,0)) {
 			write_log("%s: can't parse address '%s'!",argv[0],argv[optind]);
+			log_done();
 			exit(1);
 		}
 		optind++;

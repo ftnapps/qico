@@ -25,22 +25,24 @@
 #
 # dynamic configuration:
 # ~~~~~~~~~~~~~~~~~~~~~
-# some parts of config can be overriden at runtime:
+# some parts of config can be overriden at runtime.
+# standart use:
 #   if <conditions>
 #     <keyword> <value>
 #           ...
 #     <keyword> <value>
 #   endif
-# (endif can be omitted)
+# inline use:
+#   if <conditions> : <keyword> <value>
+#
 # *last* matching condition will be used!!!
 # where <conditions> is expression with syntax similar to ifcico's one.
 # you can use round brackets, '|' (or), '&' (and), '^' (xor)
 # and '!' (not) operators, and some tokens:
 #
-# + address <addr_mask>      - remote has this address(s)
+# + addr[ess] <addr_mask>    - remote has this address(s)
 #                              ex.: 'address 1:2345/*'
-# + port <wildcard>          - connection is on <port> (or 'ip' for ip
-#                              connections)
+# + port <wildcard>          - connection is on <port>
 #                              ex.: 'port ttyS?'
 # + phone <substr>           - remote's phone begins with <substr>
 #                              ex.: 'phone 7-812-'
@@ -652,9 +654,7 @@ mapin	lk
 ;endif
 
 # he has stupid big /etc/issue ;)
-;if address 1:2345/678
-; showintro no
-;endif
+;if addr 1:2345/678 : showintro no
 
 # security violation
 if bad
@@ -664,9 +664,7 @@ if bad
 endif
 
 # BinkP without session timeout
-;if binkp
-; maxsession 0
-;endif
+;if binkp: maxsession 0
 
 # only send, if free space less 1Mb
 ;if sfree < 1024 /var/spool/ftn
@@ -681,5 +679,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.24 2004/02/15 01:22:24 sisoft Exp $
+# $Id: qico.conf.sample,v 1.25 2004/02/19 23:36:35 sisoft Exp $
 ###############################################################################
