@@ -1,10 +1,9 @@
-/* $Id: TodayFixes,v 1.95 2004/06/25 09:46:42 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.96 2004/06/30 09:09:41 sisoft Exp $ */
 ---
-change option '-a'.
-remove stuff/fts-001.
+show remote time in local timezone.
 .
 previous:
 ---
-add lost files slists.[ch].
-remove unused /tmp/qpkt*.pkt's.
+change option '-a'.
+remove stuff/fts-001.
 .
