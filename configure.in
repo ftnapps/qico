@@ -46,7 +46,7 @@ AC_MSG_RESULT($CONFIG)
 
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
-AC_ARG_ENABLE(qcc, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
+AC_ARG_ENABLE(aso, [  --enable-aso            enable Amiga-style 4D outbound ], , enable_aso=no)
 if test x$enable_aso != xno; then
 	AC_MSG_RESULT(aso)
 	AC_DEFINE(AMIGA4D)
