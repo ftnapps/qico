@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.4 2000/10/07 13:37:44 lev Exp $
+ * $Id: ftn.h,v 1.5 2000/10/07 14:24:35 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -318,5 +318,8 @@ extern unsigned short crc16(char *str, int l);
 extern unsigned short crc16scc(char *str);
 extern unsigned short crc16cc(char *str, int l);
 extern unsigned long crc32cc(char *str, int l);
+
+#define xcrc(crc,c) (crc16tab[(((crc >> 8) & 0xff) ^ (c)) & 0xff] ^ (crc << 8))
+#define xcrc32(crc,c) (crc32tab[( crc ^ (c)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL))
 
 #endif
