@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Receiver logic.
-   $Id: ls_zreceive.c,v 1.6 2004/02/26 23:55:18 sisoft Exp $
+   $Id: ls_zreceive.c,v 1.7 2004/05/19 09:52:13 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -23,7 +23,7 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 	ls_txWinSize = window;
 
 	/* Maximum block size -- by protocol, may be reduced by window size later */
-	ls_MaxBlockSize = ls_Protocol&LSZ_OPTZEDZAP?8192:1024;
+	ls_MaxBlockSize = (ls_Protocol&LSZ_OPTZEDZAP)?8192:1024;
 
 	/* Calculate timeouts */
 	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 10 seconds */

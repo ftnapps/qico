@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.15 2004/04/13 17:37:05 sisoft Exp $
+ * $Id: config.c,v 1.16 2004/05/19 09:52:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -215,7 +215,7 @@ int parseconfig(char *cfgname)
 contl:		line++;p=s;
 		strtr(p,'\t',' ');
 		while(*p==' ')p++;
-		if(*p&&*p!='#'&&*p!='\n'&&*p!=';') {
+		if(*p&&*p!='#'&&*p!='\n'&&*p!=';'&&(*p!='/'||p[1]!='/')) {
 			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
 			if(*t=='\\'&&*(t-1)==' ') {
 				fgets(t,MAX_STRING*2-(t-p),f);

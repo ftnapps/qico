@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Sender logic.
-   $Id: ls_zsend.c,v 1.6 2004/02/13 22:29:01 sisoft Exp $
+   $Id: ls_zsend.c,v 1.7 2004/05/19 09:52:13 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -97,7 +97,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 	ls_Protocol = protocol;
 
 	/* Maximum block size -- by protocol, may be reduced by window size later */
-	ls_MaxBlockSize = ls_Protocol&LSZ_OPTZEDZAP?8192:1024;
+	ls_MaxBlockSize = (ls_Protocol&LSZ_OPTZEDZAP)?8192:1024;
 
 	/* Calculate timeouts */
 	/* Timeout for header waiting, if no data sent -- 3*TransferTime or 10 seconds */
@@ -145,7 +145,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 			/* Ok, now we could calculate real max frame size and initial block size */
 			if(ls_txWinSize && ls_MaxBlockSize>ls_txWinSize) {
 				for(ls_MaxBlockSize=1;ls_MaxBlockSize<ls_txWinSize;ls_MaxBlockSize<<=1);
-				ls_MaxBlockSize >>= 1;
+				/*ls_MaxBlockSize >>= 1;*/
 				if(ls_MaxBlockSize<32) ls_txWinSize=ls_MaxBlockSize=32;
 			}
 
@@ -158,7 +158,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 				else if(baud>=9600 && baud<14400) ls_txCurBlockSize = 4096;
 				else if(baud>=14400) ls_txCurBlockSize = 8192;
 			}
-			if(ls_txCurBlockSize<ls_MaxBlockSize) ls_txCurBlockSize=ls_MaxBlockSize;
+			if(ls_txCurBlockSize>ls_MaxBlockSize) ls_txCurBlockSize=ls_MaxBlockSize;
 			DEBUG(('Z',2,"ls_zinitsender: Block sizes: %d, %d",ls_MaxBlockSize,ls_txCurBlockSize));
 
 			/* Allocate memory for send buffer */
