@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.3 2000/07/19 12:51:25 lev Exp $
+ * $Id: tty.c,v 1.3.2.1 2000/10/26 18:25:43 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -80,10 +80,15 @@ char *tty_findport(slist_t *ports, char *nodial)
 int tty_openport(char *port)
 {
 	char str[20]="/dev/", *p;
+	int speed = 0;
 	if(*port!='/') strcat(str, port);else strcpy(str, port);
 	p=strchr(str, ':');
-	*p++=0;
-	return tty_open(str, atoi(p));
+	if (*p) {
+		*p++=0;
+		speed = atoi(p);
+	}
+	if (!speed) speed = DEFAULT_SPEED;
+	return tty_open(str,speed);
 }
 	
 void tty_unlock(char *port)

@@ -47,6 +47,10 @@ DEFS    += -DPROCTITLE
 # calculation of block size etc.)
 DEFS    += -DTCP_SPEED=115200 
 
+# default port speed, if you omit `:speed' part in `port' configuration
+# parameter
+DEFS    += -DDEFAULT_SPEED=9600
+
 # some defines (usually you don't need to change it)
 DEFS	+= -DMAX_PATH=256  -DMAX_NODELIST=32 -DMAX_STRING=256
        
@@ -70,5 +74,5 @@ YACC    = yacc
 #LIBS=-lutil
 
 #
-# $Id: CONFIG,v 1.8.2.1 2000/10/17 17:34:33 lev Exp $
+# $Id: CONFIG,v 1.8.2.2 2000/10/26 18:25:43 lev Exp $
 #
