@@ -1,4 +1,9 @@
-/* $Id: TodayFixes,v 1.15 2004/01/18 15:58:58 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.16 2004/01/18 21:13:42 sisoft Exp $ */
+---
+in qcc: fix ESC key.
+perfect daemon latency.
+.
+previous:
 ---
 fix work without daemon.
 in qcc&qctl: quit, if connection to server broken.
@@ -10,14 +15,6 @@ add if-expression 'host'.
 fix 'connstr' if-expression.
 more portable ip exchange.
 change loglevel 'X' - max dubug level, for send to clients.
-.
-previous:
----
-added loglevel 'I' - debug ip routines.
-in daemon: check clients for compatibility.
-in qcc&qctl: check for daemon really present on connected port.
-improve 'autoticskip' in binkp.
-added hydra-4k.
 .
 
 ps: в связи с временным отсутствием фидошки,

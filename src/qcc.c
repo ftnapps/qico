@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.14 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: qcc.c,v 1.15 2004/01/18 21:13:42 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -145,8 +145,7 @@ char *infostrs[]={
 	"  Sysop",
 	"  Phone",
 	"  Flags",
-	"  Speed",
-NULL
+	"  Speed"
 };
 char *help[]={
 	"\01* qico control center %s, sisoft\\\\trg edition. help about keys:",
@@ -156,7 +155,7 @@ char *help[]={
 	"\01  0..9 - select window          0..9 - select window        F4 - send `bell'",
 	"\01  W/w/I/i/U/u/h - node status   h - hangup line             F2 - send string",
 	"\01  R/r - rescan cfg / queue      X - skip file               F8 - close chat",
-	"\01  Space - reset waiting cycle   R - refuse file",
+	"\01  Space - reset waiting cycle   R - suspend file",
 	"\01  F/f - info about node         c - open chat window",
 	"\01  K/k - kill files for node     Space - reset wait cycle",
 	"\01  S/s - sent file,  p - poll    F8 - close window",
@@ -1200,6 +1199,8 @@ int main(int argc,char **argv)
 		} while(ch>0);
 		if(rc>0&&FD_ISSET(0,&rfds)) {
 		ch=getch();
+		if(ch==0x1b)ch=getch();
+		if(ch==ERR)continue;
 		if(ch==('@'-'L')) {
 			freshall();
 			refresh();

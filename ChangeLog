@@ -1,3 +1,24 @@
+2004-01-18 18:58  sisoft
+
+	* Changes, README, configure.in, qico.conf.sample,
+	debian/conffiles, debian/qcc.8, debian/qctl.8, src/aso.c,
+	src/binkp.c, src/bso.c, src/clserv.c, src/clserv.h, src/daemon.c,
+	src/emsi.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/hydra.c,
+	src/log.c, src/ls_zreceive.c, src/ls_zsend.c, src/main.c,
+	src/md5.c, src/qcc.c, src/qctl.c, src/qipc.c, src/session.c,
+	src/tcp.c:
+
+	fix work without daemon.
+	in qcc&qctl: quit, if connection to server broken.
+	set default port to service 'qicoui' or 60178.
+	fix some memory leak.
+	add autorescan if system GNU-compatible, have F_NOTIFY and ASO used.
+	added option '--disable-notify' to configure for disable autorescan.
+	add if-expression 'host'.
+	fix 'connstr' if-expression.
+	more portable ip exchange.
+	change loglevel 'X' - max dubug level, for send to clients.
+	
 2004-01-17 03:05  sisoft
 
 	* Changes, compile, qico.conf.sample, debian/rules, src/binkp.c,
