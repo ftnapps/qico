@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.2 2000/07/18 12:56:16 lev Exp $
+ * $Id: hydra.c,v 1.2.2.1 2000/10/22 19:00:54 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -1489,7 +1489,7 @@ int hydra_file(char *txpathname, char *txalias)
 
 				/*---------------------------------------------------*/
 			case HTX_RINIT:
-				if (rxstate == HRX_FINFO) {
+				if (rxstate != HRX_INIT) {
 					txtimer = h_timer_reset();
 					txretries = 0;
 					txstate = HTX_FINFO;
