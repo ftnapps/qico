@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.3 2000/07/18 12:56:16 lev Exp $
+ * $Id: ftn.c,v 1.4 2000/07/22 13:52:51 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -489,12 +489,15 @@ char *fnc(char *s)
 	}
 	s++;
 	if(*s) {
-	    strcat(s8,".");q=s8+strlen(s8);i=0;
-	    for(;*s && i<3;s++) 
-		    if((tolower(*s)<='z' && tolower(*s)>='a') ||
-		       (*s<='9' && *s>='0') || strchr(dos_allowed, *s)) 
-			    q[i++]=tolower(*s);
-	    q[i]=0;
+		if (strstr(s,"tar.gz") strcat(s8,".tgz")
+		else if (strstr(s,"tar.bz2") strcat(s8,".tb2") else {
+	    	strcat(s8,".");q=s8+strlen(s8);i=0;
+		    for(;*s && i<3;s++) 
+			    if((tolower(*s)<='z' && tolower(*s)>='a') ||
+		    	   (*s<='9' && *s>='0') || strchr(dos_allowed, *s)) 
+			    	q[i++]=tolower(*s);
+		    q[i]=0;
+		}
 	}
 	sfree(t);
 	return s8;
