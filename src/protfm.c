@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.13 2001/01/13 12:01:47 lev Exp $
+ * $Id: protfm.c,v 1.14 2001/01/16 18:48:11 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -88,7 +88,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	
 	sprintf(p, "%s/tmp/%s", ccs, bn);
 	if(!stat(p, &sb)) {
-		if(sb.st_size<rsize/*   && sb.st_mtime==rtime */) {
+		if(sb.st_size<rsize && sb.st_mtime==rtime) {
 			*f=fopen(p, "ab");
 			if(!*f) {
 				write_log("can't open file %s for writing!", p);
