@@ -70,9 +70,9 @@
 #                              ex. 'connstr LAP-M'
 # + host <host>              - where <host> is remote host or ip-addr.
 #                              ex. 'host foo.bar.com'
-# + sfree <path> <comp> <value> - free disk space on <path> path 
+# + sfree <value> <comp> <path> - free disk space on <path> path 
 #                              is <comp> <value> (in KBytes).
-#                              ex. 'sfree /mnt/dos < 100'
+#                              ex. 'sfree < 100 /mnt/dos'
 # + <flag>                   - where flag can be:
 #                                - 'list[ed]' (without '')
 #                                - 'prot[ected]'
@@ -669,7 +669,7 @@ endif
 ;endif
 
 # only send, if free space less 1Mb
-;if sfree /var/spool/ftn < 1024
+;if sfree < 1024 /var/spool/ftn
 ; sendonly yes
 ;endif
 
@@ -681,5 +681,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.23 2004/02/09 01:05:33 sisoft Exp $
+# $Id: qico.conf.sample,v 1.24 2004/02/15 01:22:24 sisoft Exp $
 ###############################################################################
