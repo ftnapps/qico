@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.4 2000/10/17 16:55:06 lev Exp $
+# $Id: Makefile.in,v 1.5 2000/10/27 19:56:30 lev Exp $
 #
 
 prefix  = @prefix@
@@ -7,7 +7,6 @@ exec_prefix = @exec_prefix@
 BINDIR  = @bindir@
 SBINDIR  = @sbindir@
 
-SHELL   = /bin/sh
 CC      = @CC@
 AWK     = @AWK@
 INSTALL = @INSTALL@
@@ -26,10 +25,8 @@ QCC     = @QCC@
 #DEFS   += -DC_DEBUG # Config & Substs
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
-# ipc key file
 DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
 
-DEFS    += -DSHELL=\"$(SHELL)\"
 CFLAGS	= $(DEFS) -Wall -D_GNU_SOURCE=1 -D_BSD_SOURCE=1
 LFLAGS  += @LIBS@
 CFLAGS  += @CFLAGS@
@@ -59,7 +56,6 @@ AUTOALL = ver.c Makefile
 
 ###############################################################################
 ifeq (1,$(QCC))
-DEFS    += -DQCC
 all:	qico qcc qctl
 else
 all:	qico qctl

@@ -21,3 +21,5 @@
 #undef TCP_SPEED
 
 #undef DEFAULT_SPEED
+
+#undef SHELL

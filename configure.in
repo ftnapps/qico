@@ -41,22 +41,25 @@ dnl Config file
 AC_MSG_CHECKING([for config path])
 AC_ARG_WITH(config,[  --with-config           specifies config path (default is /etc/ftn/qico.conf) ], , with_config=/etc/ftn/qico.conf)
 AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
-CONFIG=$with_config
-AC_MSG_RESULT($CONFIG)
+AC_MSG_RESULT($with_config)
 
 dnl TCP Speed
 AC_MSG_CHECKING([for TCP connection speed])
 AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ], , with_tcp_speed=115200)
 AC_DEFINE_UNQUOTED(TCP_SPEED, $with_tcp_speed)
-TCP_SPEED=$with_tcp_speed
-AC_MSG_RESULT($TCP_SPEED)
+AC_MSG_RESULT($with_tcp_speed)
 
 dnl Default Speed
 AC_MSG_CHECKING([for default port locking speed])
 AC_ARG_WITH(default-speed,[  --with-default-speed    specifies default port locking speed (default is 9600) ], , with_default_speed=9600)
 AC_DEFINE_UNQUOTED(DEFAULT_SPEED, $with_default_speed)
-DEFAULT_SPEED=$with_default_speed
-AC_MSG_RESULT($DEFAULT_SPEED)
+AC_MSG_RESULT($with_default_speed)
+
+dnl Shell
+AC_MSG_CHECKING([for shell])
+AC_ARG_WITH(shell,[  --with-shell            specifies shell (default is /bin/sh) ], , with_shell=/bin/sh)
+AC_DEFINE_UNQUOTED(SHELL, "$with_shell")
+AC_MSG_RESULT($with_shell)
 
 dnl Amiga4D-style outbound support
 AC_MSG_CHECKING([for outbound mode])
@@ -101,5 +104,7 @@ AC_SUBST(QCC)
 AC_SUBST(CONFIG)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
+AC_SUBST(SHELL)
+AC_SUBST(QIPC_KEY)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)
