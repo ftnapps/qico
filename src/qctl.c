@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.4 2000/10/17 16:49:07 lev Exp $
+ * $Id: qctl.c,v 1.5 2000/11/08 20:51:30 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -24,20 +24,20 @@ void usage(char *ex)
 {
 	printf("qctl-%s copyright (c) pavel kurnosoff, 1999-2000\n"
 		   "usage: %s [<options>] [<node>] [<files>]\n"
- 		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
-		   "-h           this help screen\n"
- 		   "-q           stop daemon\n"
- 		   "-Q           force queue rescan\n"
- 		   "-R           reread config\n"
-		   "-K           kill outbound of <node> [<node2> <nodeN>]\n"
-		   "-f           query info about <node>\n"
-		   "-p           poll <node1> [<node2> <nodeN>]\n"
-		   "-r           freq from <node> files <files>\n"
-		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
-		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
-		   "-k           kill attached files after transmission (for -s)\n"
-		   "-x[UuWwIi]   set[UWI]/reset[uwi] <node> state(s)\n"
-		   "             <u>ndialable, <i>mmediate, <w>ait\n"
+ 		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
+		   "-h             this help screen\n"
+ 		   "-q             stop daemon\n"
+ 		   "-Q             force queue rescan\n"
+ 		   "-R             reread config\n"
+		   "-K             kill outbound of <node> [<node2> <nodeN>]\n"
+		   "-f             query info about <node>\n"
+		   "-p             poll <node1> [<node2> <nodeN>]\n"
+		   "-r             freq from <node> files <files>\n"
+		   "-s[n|c|d|h|i]  attach files <files> to <node> with specified flavor\n"
+		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
+		   "-k             kill attached files after transmission (for -s)\n"
+		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
+		   "               < u>ndialable, <i>mmediate, <w>ait\n"
 		   "\n", version, ex);
 }
 
