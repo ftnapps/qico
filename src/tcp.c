@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.7 2001/06/09 22:18:47 lev Exp $
+ * $Id: tcp.c,v 1.8 2001/06/22 13:05:30 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -54,11 +54,11 @@ int opentcp(char *name)
 	fflush(stdin); fflush(stdout);
 	setbuf(stdin,NULL); setbuf(stdout,NULL);
 	close(STDIN_FILENO); close(STDOUT_FILENO);
-	if (dup2(STDIN_FILENO,fd) != STDIN_FILENO) {
+	if (dup2(fd,STDIN_FILENO) != STDIN_FILENO) {
 		write_log("cannot dup socket: %s",strerror(errno));
 		return 0;
 	}
-	if (dup2(STDOUT_FILENO,fd) != STDOUT_FILENO) {
+	if (dup2(fd,STDOUT_FILENO) != STDOUT_FILENO) {
 		write_log("cannot dup socket: %s",strerror(errno));
 		return 0;
 	}

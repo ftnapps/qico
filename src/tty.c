@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.18 2001/05/29 19:13:34 lev Exp $
+ * $Id: tty.c,v 1.19 2001/06/22 13:05:30 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -120,10 +120,10 @@ int tty_open(char *port, int speed)
 	setbuf(stdin, NULL);setbuf(stdout, NULL);
 	close(STDIN_FILENO);close(STDOUT_FILENO);
 	fd=open(port, O_RDONLY|O_NONBLOCK);
-	if(dup2(STDIN_FILENO,fd)!=STDIN_FILENO) return ME_OPEN;
+	if(dup2(fd,STDIN_FILENO)!=STDIN_FILENO) return ME_OPEN;
 	if(fd!=STDIN_FILENO) close(fd);
 	fd=open(port, O_WRONLY|O_NONBLOCK);
-	if(dup2(STDOUT_FILENO,fd)!=STDOUT_FILENO) return ME_OPEN;
+	if(dup2(fd,STDOUT_FILENO)!=STDOUT_FILENO) return ME_OPEN;
 	if(fd!=STDOUT_FILENO) close(fd);
 	clearerr(stdin);clearerr(stdout);
 
