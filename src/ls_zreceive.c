@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.3 2001/01/04 11:44:33 lev Exp $
+ * $Id: ls_zreceive.c,v 1.4 2001/01/04 11:46:17 lev Exp $
  **********************************************************/
 /*
 
@@ -95,7 +95,7 @@ int ls_zrecvcrcw(char *buf, int *len)
 int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 {
 	int trys = 0;
-	int retransmit = 1;
+	int retransmit = first;
 	int hlen = 0;
 	int len = 0;
 	int rc = 0;
