@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.19 2000/11/08 20:57:37 lev Exp $
+ * $Id: main.c,v 1.20 2000/11/09 12:49:04 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -144,7 +144,7 @@ void sendrpkt(char what, pid_t pid, char *fmt, ...)
 char qchars[]=Q_CHARS;
 char *sts_str(int flags)
 {
-	static char s[9];int i;
+	static char s[Q_MAXBIT+1];int i;
 	for(i=0;i<Q_MAXBIT;i++) s[i]=(flags&(1<<i))?qchars[i]:'.';
 	s[Q_MAXBIT]=0;
 	return s;
@@ -260,11 +260,9 @@ void daemon_mode()
 				}
  
 				if(falist_find(cfgal(CFG_ADDRESS), &current->addr) ||
-				   f&Q_UNDIAL ||
-				   !(f&Q_NORM) ||
-				   (f&Q_WAITR && !(w&(~T_REQ))) ||
-				   (f&Q_WAITX && !(w&(~T_ARCMAIL))) ||
-				   (f&Q_WAITA)) {
+					f&Q_UNDIAL ||
+					!havestatus(f,CFG_CALLONFLAVOR) ||
+					needhold(f,w)) {
 					current=current->next;
 					if(!current) current=q_queue;
 					i=i->next;
@@ -295,7 +293,7 @@ void daemon_mode()
 #endif
 				applysubst(rnode, psubsts);
 				rnode->tty=strdup(baseport(port));
-				if(can_dial(rnode, current->flv&Q_IMM) &&
+				if(can_dial(rnode, havestatus(f,CFG_IMMONFLAVOR)) &&
 				   checktimegaps(cfgs(CFG_CANCALL))) {
 					dable=1;current->flv|=Q_DIAL;
 					chld=fork();

@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.5 2000/11/08 20:31:45 lev Exp $
+ * $Id: queue.c,v 1.6 2000/11/09 12:49:04 lev Exp $
  **********************************************************/
 #include <unistd.h>
 #include <stdio.h>
@@ -92,11 +92,7 @@ void q_each(char *fname, ftnaddr_t *fa, int type, int flavor)
 		q_recountflo(fname, &q->sizes[flavor-1], &q->times[flavor-1]);
 		break;
 	}
-	switch(flavor) {
-	case F_HOLD: q->flv|=Q_HOLD;break;
-	case F_IMM: case F_CRSH: q->flv|=Q_IMM|Q_NORM;break;
-	default: q->flv|=Q_NORM;
-	}
+	q->flv|=(1<<(flavor-1));
 }
 
 off_t q_sum(qitem_t *q)

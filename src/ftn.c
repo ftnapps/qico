@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.13 2000/11/01 14:12:27 lev Exp $
+ * $Id: ftn.c,v 1.14 2000/11/09 12:49:04 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,6 +17,7 @@
 #include <signal.h>
 #include "ftn.h"
 #include "qconf.h"
+#include "qcconst.h"
 
 unsigned long seq=0xFFFFFFFF;
 
@@ -619,4 +620,23 @@ int isdos83name(char *fn)
     	p++;
     }
     return (f && ec < 2 && el < 4 && nl < 9 && (!lc || !uc));
+}
+
+int havestatus(int status, int cfgkey)
+{
+	static int stc[]={Q_NORM,Q_HOLD,Q_DIR,Q_CRASH,Q_IMM};
+	static char stl[]=Q_CHARS;
+	int i;
+    char *callon=cfgs(cfgkey);
+	for(i=0;i<5;i++) if((status & stc[i]) && (strchr(callon,stl[i]))) return 1;
+	return 0;
+}
+
+int needhold(int status, int what)
+{
+	status&=Q_ANYWAIT;
+	if(status&Q_WAITA) return 1;
+	if((status&Q_WAITR)&&!(what&(~T_REQ))) return 1;
+	if((status&Q_WAITX)&&!(what&(~T_ARCMAIL))) return 1;
+	return 0;
 }

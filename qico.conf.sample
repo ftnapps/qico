@@ -220,6 +220,29 @@ modemhangup	~~+++~~ATH0|
 dialprefix	ATM0DT
 dialsuffix	|
 
+#
+# Outbound falvors and call control
+#
+# N - Normal (*.flo, *.out)
+# D - Direct (*.dlo, *.dut)
+# H - Hold   (*.hlo, *.hut)
+# C - Crash  (*.clo, *.cut)
+# I - Imm    (*.ilo, *.iut)
+#
+# Crash mode (call without pauses) is not supported yet.
+# Hold files and mail will be sent in outbound session, if other flavors
+# trigger calling.
+#
+# Call to node, if one of these presents in outbound for this node
+# Default is NDCI
+callonflavors NDCI
+
+#
+# Don't check work time, if these flavors present in outbound for this node
+# Default is CI
+immonflavors CI
+
+
 # maximum dial fails (the reason to set undialable flag)
 max_fails	30
 
@@ -412,4 +435,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.5 2000/10/24 09:40:59 lev Exp $
+# $Id: qico.conf.sample,v 1.6 2000/11/09 12:49:03 lev Exp $
