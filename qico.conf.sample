@@ -1,14 +1,14 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.53si $Id: qico.conf.sample,v 1.33 2004/05/17 22:29:03 sisoft Exp $
+#for 0.53si $Id: qico.conf.sample,v 1.34 2004/05/19 09:52:12 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
 # common config structure is similar to ifcico's:
 # <keyword> <value>
-# strings, beginning with '#' or ';' are comments and will be
-# ignored leading and trailing spaces and tabs will be stripped.
+# strings, beginning with '#', ';' or '//' are comments and will be
+# ignored. leading and trailing spaces and tabs will be stripped.
 # lines may be breaked by trailing character ' \' (perl style).
 # here is 3 types of parameters - string, integer and boolean.
 # for boolean 'y[es]','1','t[rue]' assumed as yes, all other - as no.
@@ -675,7 +675,7 @@ mapin	lkr
 ; or addr 1:2345/7845.16 : protorder Z1
 
 # he has stupid big /etc/issue ;)
-;if addr 1:2345/678 : showintro no
+if addr 1:2345/678 : showintro no
 
 # security violation
 if bad

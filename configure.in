@@ -1,9 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
-cache_file=config.cache
 AC_INIT([qico],[0.53si],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.53si])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.25 2004/05/17 22:29:03 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.26 2004/05/19 09:52:12 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
@@ -135,11 +134,15 @@ AC_CHECK_FUNCS([recv send])
 dnl Checking for config path
 AC_MSG_CHECKING([for config path])
 AC_ARG_WITH([config],AC_HELP_STRING([--with-config=config],[specifies config path (default is \${sysconfdir}/qico.conf)]),,with_config=NONE)
-if test "x${with_config}" = "xNONE"; then
-	if test "x${sysconfdir}" = "xNONE"; then
-		syscdir=`eval echo ${ac_default_sysconfdir}`
+if test "${with_config}x" = "NONEx"; then
+	if test "${sysconfdir}x" = "NONEx"; then
+	    if test "${prefix}x" = "NONEx"; then
+		syscdir="${ac_default_prefix}/etc"
+	    else
+		syscdir="${prefix}/etc"
+	    fi
 	else
-		syscdir=`eval echo ${sysconfdir}`
+	    syscdir="${sysconfdir}"
 	fi
 	with_config=`eval echo ${syscdir}/qico.conf`
 fi
@@ -310,7 +313,6 @@ else
 fi
 
 dnl calculate real config -- prefix already known, so we could eval config
-with_config=`eval echo $with_config`
 if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
 	AC_MSG_ERROR([Parameter for --with-config must be absolute filename])
 fi
