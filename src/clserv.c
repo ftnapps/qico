@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.2 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: clserv.c,v 1.3 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -19,25 +19,29 @@ int cls_conn(int type,char *port)
 	sa.sin_family=AF_INET;
 	if(port&&atoi(port))sa.sin_port=htons(atoi(port));
 	    else if(port&&(se=getservbyname(port,(type&CLS_UDP)?"udp":"tcp")))sa.sin_port=se->s_port;
-		else sa.sin_port=htons(60178);
+		else if(!port)sa.sin_port=htons(60178);
+		    else {errno=EINVAL;return -1;}
 	rc=socket(AF_INET,type&CLS_UDP?SOCK_DGRAM:SOCK_STREAM,0);
     	if(rc<0)return rc;
-	    else {
-		xsend_cb=xsend;
-		if(type&CLS_SERVER) {
-			if(setsockopt(rc,SOL_SOCKET,SO_REUSEADDR,&f,sizeof(f))<0)return -1;
-			sa.sin_addr.s_addr=htonl((type&CLS_UDP)?INADDR_LOOPBACK:INADDR_ANY);
-			f=fcntl(rc,F_GETFL,0);
-			if(f>=0)fcntl(rc,F_SETFL,f|O_NONBLOCK);
-			if(bind(rc,(struct sockaddr*)&sa,sizeof(sa))<0)return -1;
-			if(!(type&CLS_UDP))if(listen(rc,4)<0)return -1;
+	sa.sin_addr.s_addr=htonl((type&CLS_UDP)?INADDR_LOOPBACK:INADDR_ANY);
+	if(type&CLS_SERVER) {
+		if(setsockopt(rc,SOL_SOCKET,SO_REUSEADDR,&f,sizeof(f))<0)return -1;
+		f=fcntl(rc,F_GETFL,0);
+		if(f>=0)fcntl(rc,F_SETFL,f|O_NONBLOCK);
+		if(bind(rc,(struct sockaddr*)&sa,sizeof(sa))<0)return -1;
+		if(!(type&CLS_UDP)) {
+			if(listen(rc,4)<0)return -1;
+			xsend_cb=xsend;
 			return rc;
 		}
-		inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
-		if(connect(rc,(struct sockaddr*)&sa,sizeof(sa))<0)return -1;
-		    else return rc;
+			xsend_cb=xsend;
+			return rc;
+		
 	}
-	return -1;
+//	inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
+	if(connect(rc,(struct sockaddr*)&sa,sizeof(sa))<0)return -1;
+	xsend_cb=xsend;
+	return rc;
 }
 
 void cls_close(int sock)
@@ -58,14 +62,11 @@ int xsend(int sock,char *buf,int len)
 {
 	int rc;
 	unsigned short l=len;
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t:send %d: %d\n",getpid(),sock,sizeof(short));fclose(f);}
 	if(sock<0){errno=EBADF;return -1;}
+	if(!len)return 0;
 	rc=send(sock,&l,sizeof(short),MSG_DONTWAIT);
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t: rc=%d\n",getpid(),rc);fclose(f);}
 	if(rc<=0)return rc;
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t:send %d: %d\n",getpid(),sock,len);fclose(f);}
 	rc=send(sock,buf,len,0);
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t: rc=%d\n",getpid(),rc);fclose(f);}
 	return rc;
 }
 
@@ -74,20 +75,18 @@ int xrecv(int sock,char *buf,int len,int wait)
 	int rc;
 	unsigned short l=0;
 	if(sock<0){errno=EBADF;return -1;}
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t:peek %d: %d\n",getpid(),sock,sizeof(short));fclose(f);}
 	rc=recv(sock,&l,2,MSG_PEEK|(wait?MSG_WAITALL:MSG_DONTWAIT));
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t: rc=%d\n",getpid(),rc);fclose(f);}
 	if(rc<=0)return rc;
-	if(rc>=2&&l>0) {
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t:recv %d: %d\n",getpid(),sock,sizeof(short));fclose(f);}
+	if(rc==2) {
 		rc=recv(sock,&l,sizeof(short),MSG_WAITALL);
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t: rc=%d\n",getpid(),rc);fclose(f);}
 		if(rc<sizeof(short))return -1;
-		if(l>len)l=len;
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t:recv %d: %d\n",getpid(),sock,l);fclose(f);}
-		rc=recv(sock,buf,l,MSG_WAITALL);
-//{FILE *f=fopen("/debg","a");fprintf(f,"%d\t: rc=%d\n",getpid(),rc);fclose(f);}
-		return rc;
+		if(!l)return 0;
+		if(l>len)l=len;len=0;
+		do {
+			rc=recv(sock,buf,l-len,MSG_WAITALL);
+			if(rc>0)len+=rc;
+		} while((rc>=0||(rc<0&&errno==EAGAIN))&&len<l);
+		return rc<0?rc:len;
 	}
 	return 0;
 }

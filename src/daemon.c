@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.3 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: daemon.c,v 1.4 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -82,7 +82,7 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 	rc=vsprintf(buf+3,fmt,args);
 #endif	
 	va_end(args);
-	xsend(sock,buf,rc+3);
+	if(xsend(sock,buf,rc+3)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
 
 int daemon_xsend(int sock,char *buf,int len)
@@ -91,7 +91,7 @@ int daemon_xsend(int sock,char *buf,int len)
 	if(!uis)return len;
 	while(uis) {
 		if(uis->type=='e'&&(!tosend||tosend==uis->sock))
-		    xsend(uis->sock,buf,len);
+		    if(xsend(uis->sock,buf,len)<0)DEBUG(('I',1,"can't send to client %d (fd=%d): %s",uis->id,uis->sock,strerror(errno)));
 		uis=uis->next;
 	}
 	return len;
@@ -107,12 +107,38 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	slist_t *sl;
 	cls_cl_t *uis;
 	if(!mode) {
-		if(*(short*)buf==2)daemon_xsend(chld,buf,rc);
+		daemon_xsend(chld,buf,rc);
 		return;
 	}
 	for(uis=cl;uis&&uis->sock!=chld;uis=uis->next);
 	if(!uis) {
 		DEBUG(('I',1,"got message from unknown client (fd=%d), skipped",chld));
+		return;
+	}
+	if(rc>0)buf[rc]=0;
+	if(buf[2]==QR_STYPE) {
+		DEBUG(('I',1,"client %d: type '%c' (%s)",uis->id,buf[3],buf+4));
+		if(!strchr("euic",buf[3])) {
+			DEBUG(('I',1,"is unknown type"));
+			sendrpkt(1,chld,"unknown client type '%c'",buf[3]);
+			return;
+		}
+		uis->type=buf[3];
+		sendrpkt(0,chld,"ok");
+		tosend=chld;
+		qpmydata();
+		qsendqueue();
+		tosend=0;
+		return;
+	}
+	if(uis->type=='u') {
+		DEBUG(('I',1,"client %d: msg before auth",uis->id));
+		sendrpkt(1,chld,"need basic auth!");
+		return;
+	}
+	if(*(short*)buf) {
+		DEBUG(('I',2,"client %d: msg for line '%s' (pid=%d)",uis->id,buf[3],*(unsigned short*)buf));
+		if(xsend(lins_sock,buf,rc)<0)DEBUG(('I',1,"can't send to lines: %s",strerror(errno)));
 		return;
 	}
 	if(buf[2]==QR_POLL||buf[2]==QR_REQ||buf[2]==QR_INFO||
@@ -124,14 +150,6 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		}
 	}
 	switch(buf[2]) {
-	    case QR_STYPE:
-		uis->type=buf[3];
-		DEBUG(('I',2,"client %d: set type '%c'",uis->id,uis->type));
-		tosend=chld;
-		qpmydata();
-		qsendqueue();
-		tosend=0;
-		break;
 	    case QR_QUIT:
 		DEBUG(('I',2,"client %d: request quit (type='%c')",uis->id,uis->type));
 		if(uis->type!='c')break;
@@ -537,7 +555,6 @@ void daemon_mode()
 					    i=i->next;
 					    continue;
 				}
-				DEBUG(('Q',1,"quering"));
 				rc=query_nodelist(&current->addr,cfgs(CFG_NLPATH),&rnode);
 				DEBUG(('Q',1,"querynl"));
 				switch(rc) {
@@ -582,7 +599,6 @@ void daemon_mode()
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
 						}
-						signal(SIGPIPE,SIG_IGN);
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
@@ -749,12 +765,12 @@ nlkil:				is_ip=0;bink=0;
 			}
 			tv.tv_sec=0;tv.tv_usec=5000;
 			rc=select(rc+1,&rfds,NULL,NULL,&tv);
-			if(rc<0)write_log("select: error: %s",strerror(errno));
+			if(rc<0)DEBUG(('I',1,"select: error: %s",strerror(errno)));
 			if(rc>0) {
 				if(FD_ISSET(lins_sock,&rfds)) {
 					rc=xrecv(lins_sock,buf,MSG_BUFFER-1,1);
-					if(rc<0)write_log("xrecv_l: %s",strerror(errno));
-					if(rc>0)DEBUG(('I',5,"lines_cl: recv %d bytes",rc));
+					if(rc<0)DEBUG(('I',3,"xrecv_l: %s",strerror(errno)));
+					if(rc>0)DEBUG(('I',6,"lines_cl: recv %d bytes",rc));
 					if(rc>1)daemon_evt(lins_sock,buf,rc,0);
 				}
 				uis=cl;uit=NULL;
@@ -763,7 +779,7 @@ nlkil:				is_ip=0;bink=0;
 						rc=xrecv(uis->sock,buf,MSG_BUFFER-1,1);
 						if(!rc) {
 							cls_cl_t *uitt=uis;
-							DEBUG(('I',2,"client %d: removed",uis->id));
+							DEBUG(('I',1,"client %d: removed",uis->id));
 							cls_close(uis->sock);
 							if(uis->id+1==curr_id)curr_id--;
 							uis=uis->next;
@@ -773,7 +789,7 @@ nlkil:				is_ip=0;bink=0;
 							xfree(uitt);
 							continue;
 						}
-						if(rc<0&&errno!=EAGAIN)write_log("xrecv_u %d: %s",uis->id,strerror(errno));
+						if(rc<0&&errno!=EAGAIN)DEBUG(('I',3,"xrecv_u %d: %s",uis->id,strerror(errno)));
 						if(rc>0)DEBUG(('I',5,"client %d: recv %d bytes",uis->id,rc));
 						if(rc>1)daemon_evt(uis->sock,buf,rc,1);
 					}
@@ -785,7 +801,7 @@ nlkil:				is_ip=0;bink=0;
 					uit=xmalloc(sizeof(cls_cl_t));
 					uit->sock=accept(uis_sock,NULL,NULL);
 					if(uit->sock<0) {
-						write_log("client %d: accept err: %s",uit->id,strerror(errno));
+						DEBUG(('I',1,"client %d: accept err: %s",uit->id,strerror(errno)));
 						xfree(uit);
 					} else {
 						if(curr_id<3)curr_id=33;

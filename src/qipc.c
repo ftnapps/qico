@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.6 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: qipc.c,v 1.7 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -28,7 +28,7 @@ void qsendpkt(char what,char *line,char *buff,int len)
 	}*/
 	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
 /*	write_log("sendpkt %s %d", line, len); */
-	*(short*)buf=2;
+	*(unsigned short*)buf=(unsigned short)getpid();
 	buf[2]=what;
 	if(buf[2]==QC_CERASE)buf[2]=QC_ERASE;
 	xstrcpy(buf+3,line,8);
@@ -41,9 +41,12 @@ int qrecvpkt(char *str)
 {
 	int rc;
 	rc=xrecv(ssock,str,MSG_BUFFER-1,0);
+	if(rc<0&&errno!=EAGAIN)DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
 	if(rc<3||!str[2])return 0;
 /*	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]); */
-	return 1;
+	if(*(unsigned short*)str<3||*(unsigned short*)str==(unsigned short)getpid())
+	    return rc;
+	return 0;
 }
 
 void vlogs(char *str)

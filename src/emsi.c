@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.7 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: emsi.c,v 1.8 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -38,7 +38,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 	xstrcat(dat,"}{8N1",EMSI_BUF);
 	if(strchr(protos,'H')||strchr(protos,'h')
 #ifdef HYDRA8K16K
-		||strchr(protos,'8')||strchr(protos,'6')
+		||strchr(protos,'4')||strchr(protos,'8')||strchr(protos,'6')
 #endif/*HYDRA8K16K*/		
 		)xstrcat(dat,",RH1",EMSI_BUF);
 	if(lopt&O_PUA)xstrcat(dat,",PUA",EMSI_BUF);
@@ -56,6 +56,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 		case 'D':xstrcat(dat,",DZA",EMSI_BUF);c=1;break;
 		case 'H':xstrcat(dat,",HYD",EMSI_BUF);c=1;break;
 #ifdef HYDRA8K16K		
+		case '4':xstrcat(dat,",HY4",EMSI_BUF);c=1;break;
 		case '8':xstrcat(dat,",HY8",EMSI_BUF);c=1;break;
 		case '6':xstrcat(dat,",H16",EMSI_BUF);c=1;break;
 #endif/*HYDRA8K16K*/	
@@ -186,9 +187,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	restrcat(&dat->mailer,"/");
 	restrcat(&dat->mailer, p);
 	emsi_dcds(dat->mailer);
-
 	DEBUG(('E',1,"emsi codes %s/%s",lcod,ccod));
-
 	dat->options|=emsi_parsecod(lcod, ccod);
 	if(chat_need==1&&chatmy!=0)dat->opt|=MO_CHAT;
 	xfree(dat->wtime);
@@ -236,7 +235,6 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	}		
 	return 1;
 }
-
 
 int emsi_send(int mode,unsigned char *dat)
 {
@@ -431,6 +429,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "ZAP")) { o|=P_ZEDZAP;continue;}
 		if(!strcmp(p, "DZA")) { o|=P_DIRZAP;continue;}
 #ifdef HYDRA8K16K
+		if(!strcmp(p, "HY4")) { o|=P_HYDRA4;continue;}
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
 		if(!strcmp(p, "H16")) { o|=P_HYDRA16;continue;}
 #endif/*HYDRA8K16K*/		

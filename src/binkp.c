@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.14 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: binkp.c,v 1.15 2004/01/17 00:05:05 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -123,10 +123,10 @@ static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
 int binkpsession(int mode,ftnaddr_t *remaddr)
 {
 	char tmp[BUFS],*p,*fname;
-	int sent_eob=0,recv_eob=0;
 	int send_file=0,recv_file=0;
-	int rc,n=0,chal_len=0,mes,cls;
+	int rc=0,n=0,chal_len=0,mes,cls;
 	int nofiles=0,wait_got=0,bp_ver=10;
+	int sent_eob=0,recv_eob=0,ticskip=0;
 	size_t fsize,foffs;
 	falist_t *pp=NULL;
 	qitem_t *q=NULL;
@@ -503,14 +503,17 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	DEBUG(('B',1,"established binkp ver %d session. nr=%d,nd=%d,md=%d,mb=%d,cr=%d",bp_ver,opt_nr,opt_nd,opt_md,opt_mb,opt_cr));
 	while((sent_eob<2||recv_eob<2)&&!t_exp(t1)) {
 		if(!send_file&&sent_eob<2&&!txfd&&!nofiles) {
-			DEBUG(('B',1,"find files"));
+			DEBUG(('B',2,"find files"));
 			if(lst&&lst!=fl)lst=lst->next;
+			if(lst)rc=cfgi(CFG_AUTOTICSKIP)?ticskip:0;
 			while(lst&&!txfd) {
-				if(!lst->sendas||!(txfd=txopen(lst->tosend,lst->sendas))) {
-					flexecute(lst);
-					lst=lst->next;
+				if(!lst->sendas||(rc&&istic(lst->tosend))||!(txfd=txopen(lst->tosend,lst->sendas))) {
+					if(rc&&istic(lst->tosend))write_log("tic file '%s' auto%sed",lst->tosend,rc==1?"skipp":"suspend");
+					if(rc!=2)flexecute(lst);
+					lst=lst->next;rc=0;
 				}
 			}
+			ticskip=0;
 			if(lst&&txfd) {
 				DEBUG(('B',1,"found: %s",sendf.fname));
 				send_file=1;txpos=(opt_nr&O_WE)?-1:0;
@@ -689,6 +692,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					DEBUG(('B',1,"file %s %s",sendf.fname,(rc==BPM_GOT)?"skipped":"suspended"));
 					txclose(&txfd,(rc==BPM_GOT)?FOP_SKIP:FOP_SUSPEND);
 					if(rc==BPM_GOT)flexecute(lst);
+					ticskip=(rc==BPM_GOT)?1:2;
 					send_file=0;
 					break;
 				}
@@ -698,6 +702,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					DEBUG(('B',1,"file %s %s",sendf.fname,(rc==BPM_GOT)?"done":"suspended"));
 					txclose(&txfd,(rc==BPM_GOT)?FOP_OK:FOP_SUSPEND);
 					if(rc==BPM_GOT)flexecute(lst);
+					ticskip=(rc==BPM_GOT)?0:2;
 				} else write_log("got M_%s for unknown file",mess[rc]);
 			} else DEBUG(('B',1,"unparsable fileinfo"));
 			break;

@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.7 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: mailer.h,v 1.8 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -18,6 +18,7 @@
 #define P_HYDRA		0x0010
 #define P_JANUS		0x0020
 #ifdef HYDRA8K16K
+#	define P_HYDRA4		0x0040
 #	define P_HYDRA8		0x0080
 #	define P_HYDRA16	0x0100
 #endif/*HYDRA8K16K*/
