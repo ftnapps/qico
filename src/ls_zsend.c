@@ -2,7 +2,7 @@
  * File: ls_zsend.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zsend.c,v 1.11 2001/01/24 11:46:01 lev Exp $
+ * $Id: ls_zsend.c,v 1.12 2001/02/11 11:32:24 lev Exp $
  **********************************************************/
 /*
 
@@ -333,6 +333,11 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 			crc = LSZ_FINISH_CRC32(crc);
 			ls_storelong(ls_txHdr,crc);
 			if((rc=ls_zsendhhdr(ZCRC,4,ls_txHdr))<0) return rc;
+			break;
+		case ZRINIT:
+#ifdef Z_DEBUG2
+			write_log("ls_zsendfinfo: skip ZRINIT");
+#endif
 			break;
 		case ZNAK:
 		case LSZ_TIMEOUT:

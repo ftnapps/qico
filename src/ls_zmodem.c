@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.14 2001/02/08 19:43:55 lev Exp $
+ * $Id: ls_zmodem.c,v 1.15 2001/02/11 11:32:24 lev Exp $
  **********************************************************/
 /*
 
@@ -214,7 +214,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	static int inhex = 0;
 	int c = -1;
 	int rc;
-	int zero = 0;
+	int zero = 1;
 
 #ifdef Z_DEBUG
 	write_log("ls_zrecvhdr: timeout %d",timeout);
@@ -237,10 +237,10 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 
 	while(OK == (rc = HASDATAT(&timeout))) {
 		switch(readmode) {
-		case rm8BIT: c = ls_readcanned(&zero); break;
-		case rm7BIT: c = ls_read7bit(&zero);   break;
-		case rmZDLE: c = ls_readzdle(&zero);   break;
-		case rmHEX:  c = ls_readhex(&zero);    break;
+		case rm8BIT: c = ls_readcanned(&timeout); break;
+		case rm7BIT: c = ls_read7bit(&timeout);   break;
+		case rmZDLE: c = ls_readzdle(&timeout);   break;
+		case rmHEX:  c = ls_readhex(&timeout);    break;
 		}
 		if(c < 0) return c;								/* Here is error */
 		c &= 0xff;										/* Strip high bits */
