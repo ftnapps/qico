@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.17 2001/04/08 07:26:48 lev Exp $
+ * $Id: bso.c,v 1.18 2001/04/10 07:26:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -134,7 +134,7 @@ int bso_init(char *bsopath, int def_zone)
 {
 	bso_base=xstrdup(bsopath);
 	bso_base_len = strlen(bso_base)+1;
-    bso_tmp_len = bso_base_len+50
+	bso_tmp_len = bso_base_len+50;
 	bso_tmp=xmalloc(bso_tmp_len);
 	return 1;
 }
