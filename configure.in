@@ -80,7 +80,7 @@ static char *fl = "/usr/local/bin/some.file";
 int main(int argc, char **argv) {
 	char *b = basename(fl); return ((*b != '/')?0:1);
 }
-],[ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
+],[ac_cv_func_basename_nonbroken=yes], [ac_cv_func_basename_nonbroken=no], [ac_cv_func_basename_nonbroken=no])])
 if test $ac_cv_func_basename_nonbroken = yes; then
 	AC_DEFINE([HAVE_BASENAME],1,[Define to 1 if basename() is nonbroken])
 else
