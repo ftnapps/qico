@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.15 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: qnlc.c,v 1.16 2003/02/09 09:05:19 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -131,7 +131,7 @@ int compile_nodelists()
 					ie.addr.f=0;ie.addr.p=0;
 				} else if(!gp && strncmp(s, "Down,", 5)) {
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
-				}					
+				} else if(!gp) continue;
 				if(ie.addr.z < 0 || ie.addr.n < 0 || ie.addr.f < 0 || ie.addr.p < 0) {
 					write_log("can not parse address in %s at line %d!",basename(fn),line);
 					fclose(idx);
