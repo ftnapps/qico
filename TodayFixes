@@ -1,17 +1,13 @@
-/* $Id: TodayFixes,v 1.24 2004/02/02 17:31:38 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.25 2004/02/05 13:09:00 sisoft Exp $ */
+---
+added socks4 and socks5 support. added keword 'socks'.
+.
+previous:
 ---
 in qcc: fix get info about node.
 free unused memory after binkp.
 fix making emsi data.
 added chat for binkp and option 'T' for 'binkpopt'.
-.
-previous:
----
-another paranoidal changes.
-change f_notify to dnotify (as in kernel).
-fix crash if bad ip packet recv.
-fix 'mapout' keyword.
-use basename() in mapping.
 .
 
 ps: в связи с временным отсутствием фидошки,
