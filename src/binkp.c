@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.18 2004/01/20 10:42:28 sisoft Exp $
+ * $Id: binkp.c,v 1.19 2004/02/02 17:31:45 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -10,9 +10,9 @@
 extern int receivecb(char *fn);
 char *hexdigits="0123456789abcdef";
 static unsigned long key_in[3],key_out[3];
-static int opt_nr,opt_nd,opt_md,opt_cr,opt_mb;
-static char *mess[]={"NUL","ADR","PWD","FILE",
-		"OK","EOB","GOT","ERR","BSY","GET","SKIP"};
+static int opt_nr,opt_nd,opt_md,opt_cr,opt_mb,opt_cht;
+static char *mess[]={"NUL","ADR","PWD","FILE","OK","EOB","GOT",
+		    "ERR","BSY","GET","SKIP","RESERVED","CHAT"};
 
 static int datas(byte *buf,word len)
 {
@@ -120,9 +120,29 @@ static int f_pars(char *s,char **fn,size_t *sz,time_t *tm,size_t *offs)
 	return 1;
 }
 
+int bink_devfree()
+{
+	if(opt_cht==O_YES)return 1;
+	return 0;
+}
+
+int bink_devsend(byte *str,word len)
+{
+	if(opt_cht==O_YES) {
+		msgs(BPM_CHAT,(char*)str,NULL);
+		return 1;
+	}
+	return 0;
+}
+
+static void chatrecv(char *data)
+{
+	c_devrecv((byte*)data,strlen(data)+1);
+}
+
 int binkpsession(int mode,ftnaddr_t *remaddr)
 {
-	char tmp[BUFS],*p,*fname;
+	char tmp[BUFS],*p,*fname=NULL;
 	int send_file=0,recv_file=0;
 	int rc=0,n=0,chal_len=0,mes,cls;
 	int nofiles=0,wait_got=0,bp_ver=10;
@@ -138,7 +158,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	time_t ti,t1,ftime;
 	totaln=0;totalf=0;totalm=0;got_req=0;
 	rxstate=1;receive_callback=receivecb;
-	opt_nr=opt_nd=opt_md=opt_cr=opt_mb=O_NO;
+	opt_nr=opt_nd=opt_md=opt_cr=opt_mb=opt_cht=O_NO;
 	for(p=cfgs(CFG_BINKPOPT);*p;p++)switch(tolower(*p)) {
 	    case 'm': opt_md|=O_WANT; break;
 	    case 'c': opt_cr|=O_WE; break;
@@ -146,12 +166,13 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	    case 'r': opt_nr|=mode?O_WANT:O_NO; break;
 	    case 'b': opt_mb|=O_WANT; break;
 	    case 'p': opt_md|=O_NEED|O_WANT; break;
+	    case 't': opt_cht|=O_WANT; break;
 	    default: write_log("unknown binkp option: '%c'",*p);
 	}
+	if(opt_cht&O_WANT)chatinit(0);
 	write_log("starting %sbound BinkP session",mode?"out":"in");
 	txbuf=(byte*)xcalloc(BP_BUFFER,1);
 	rxbuf=(byte*)xcalloc(BP_BUFFER,1);
-	fname=(char*)xcalloc(MAX_PATH,1);
 	txstate=mode?BPO_Init:BPI_Init;
 	if(mode)q=q_find(remaddr);
 	if(q){totalm=q->pkts;totalf=q_sum(q)+q->reqs;}
@@ -188,11 +209,12 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			strtr(tmp,' ','-');xstrcat(tmp," " BP_VERSION,128);
 			msgs(BPM_NUL,"VER ",tmp);
 			if(mode) {
-				snprintf(tmp,128,"NDA%s%s%s%s",
+				snprintf(tmp,128,"NDA%s%s%s%s%s",
 					(opt_nr&O_WANT)?" NR":"",
 					(opt_nd&O_THEY)?" ND":"",
 					(opt_mb&O_WANT)?" MB":"",
-					(opt_cr&O_WE)?" CRYPT":"");
+					(opt_cr&O_WE)?" CRYPT":"",
+					(opt_cht&O_WANT)?" CHAT":"");
 				msgs(BPM_NUL,"OPT ",tmp);
 			}
 			pp=cfgal(CFG_ADDRESS);
@@ -241,16 +263,14 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				log_rinfo(rnode);
 				write_log("can't lock outbound for %s!",ftnaddrtoa(mode?remaddr:&rnode->addrs->addr));
 				msgs(BPM_BSY,"All addresses are busy",NULL);
-				flkill(&fl,0);
-				return S_REDIAL;
+				rc=S_REDIAL;goto failed;
 			}
 			if(mode) {
 				if(!has_addr(remaddr,rnode->addrs)) {
 					log_rinfo(rnode);
 					write_log("remote isn't %s!",ftnaddrtoa(remaddr));
 					msgs(BPM_ERR,"Sorry, you are not who I need",NULL);
-					flkill(&fl,0);
-					return S_FAILURE;
+					rc=S_FAILURE;goto failed;
 				}
 				flkill(&fl,0);totalf=0;totalm=0;
 				for(pp=rnode->addrs;pp;pp=pp->next) {
@@ -269,8 +289,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		    				log_rinfo(rnode);
 						write_log("remote also has %s!",ftnaddrtoa(&pp->addr));
 						msgs(BPM_ERR,"Sorry, you also has one of my aka's",NULL);
-						flkill(&fl,0);
-						return S_FAILURE;
+						rc=S_FAILURE;goto failed;
 					}
 				if(is_listed(rnode->addrs,cfgs(CFG_NLPATH),cfgi(CFG_NEEDALLLISTED)))
 					rnode->options|=O_LST;
@@ -282,8 +301,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	    				log_rinfo(rnode);
 					write_log("got disabled plain password");
 					msgs(BPM_ERR,"You must support MD5",NULL);
-					flkill(&fl,0);
-					return S_FAILURE;
+					rc=S_FAILURE;goto failed;
 				}
 				if(opt_md&O_WE)opt_md=O_YES;
 				for(pp=rnode->addrs;pp;pp=pp->next) {
@@ -305,8 +323,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 						write_log("password not matched for %s",ftnaddrtoa(&pp->addr));
 						msgs(BPM_ERR,"Security violation",NULL);
 						rnode->options|=O_BAD;
-						flkill(&fl,0);
-						return S_FAILURE;
+						rc=S_FAILURE;goto failed;
 					}
 				}
 				if((opt_nd&O_WE)&&!(opt_nd&O_EXT))opt_nd|=O_THEY;
@@ -318,10 +335,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			}
 			if(txstate==BPI_Auth) {
 				if(!(rnode->options&O_PWD)||opt_md!=O_YES)opt_cr=O_NO;
-				snprintf(tmp,128,"%s%s%s%s%s",
+				snprintf(tmp,128,"%s%s%s%s%s%s",
 					(opt_nr&O_WANT)?" NR":"",
 					(opt_nd&O_THEY)?" ND":"",
 					(opt_mb&O_WANT)?" MB":"",
+					(opt_cht&O_WANT)?" CHAT":"",
 					((!(opt_nd&O_WE))!=(!(opt_nd&O_THEY)))?" NDA":"",
 					((opt_cr&O_WE)&&(opt_cr&O_THEY))?" CRYPT":"");
 				if(strlen(tmp))msgs(BPM_NUL,"OPT",tmp);
@@ -338,11 +356,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			getevt();
 			rc=msgr(tmp);
 			if(rc==RCDO||tty_hangedup) {
-				flkill(&fl,0);
-				return S_REDIAL;
+				rc=S_REDIAL;goto failed;
 			}
 			switch(rc) {
 			    case BPM_NONE: case TIMEOUT: case BPM_DATA:
+			    case BPM_CHAT: case BPM_RESERVED:
 				break;
 			    case BPM_NUL: {
 				char *n;
@@ -383,6 +401,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 						else if(!strcmp(p,"MB"))opt_mb|=O_WE;
 						else if(!strcmp(p,"ND"))opt_nd|=O_WE;
 						else if(!strcmp(p,"NDA"))opt_nd|=O_EXT;
+						else if(!strcmp(p,"CHAT"))opt_cht|=O_WE;
 						else if(!strcmp(p,"CRYPT"))opt_cr|=O_THEY;
 						else if(!strncmp(p,"CRAM-MD5-",9)) {
 							if(strlen(p+9)>(2*sizeof(chal)))
@@ -433,13 +452,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				write_log("BinkP error: \"%s\"",tmp);
 			    case ERROR:
 				DEBUG(('B',3,"got: ERROR, state=%d",txstate));
-				flkill(&fl,0);
-				return S_FAILURE|S_ADDTRY;
+				rc=S_FAILURE|S_ADDTRY;goto failed;
 			    case BPM_BSY:
 				DEBUG(('B',3,"got: M_%s, state=%d",mess[rc],txstate));
 				write_log("BinkP busy: \"%s\"",tmp);
-				flkill(&fl,0);
-				return S_REDIAL;
+				rc=S_REDIAL;goto failed;
 			    default:
 				DEBUG(('B',2,"got: unknown msg %d, state=%d",rc,txstate));
 			}
@@ -449,8 +466,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		log_rinfo(rnode);
 		write_log("BinkP handshake timeout");
 		msgs(BPM_ERR,"Handshake timeout",NULL);
-		flkill(&fl,0);
-		return S_REDIAL;
+		rc=S_REDIAL;goto failed;
 	}
 	if(!rnode->phone||!*rnode->phone)restrcpy(&rnode->phone,"-Unpublished-");
 	if(!(rnode->options&O_PWD)||opt_md!=O_YES)opt_cr=O_NO;
@@ -475,8 +491,9 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	qemsisend(rnode);
 	qpreset(0);qpreset(1);
 	if(opt_nd&O_WE||(mode&&(opt_nr&O_WANT)&&bp_ver>=11))opt_nr|=O_WE;
+	if((opt_cht&O_WE)&&(opt_cht&O_WANT))opt_cht=O_YES;
 	if(bp_ver>=11||(opt_md&O_WE))opt_mb=O_YES;
-	write_log("options: BinkP%s%s%s%s%s%s%s%s",
+	write_log("options: BinkP%s%s%s%s%s%s%s%s%s",
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
 		(opt_nr&O_WE)?"/NR":"",
@@ -484,7 +501,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		((opt_nd&O_WE)&&!(opt_nd&O_THEY)&&(opt_nd&O_EXT))?"/NDA":"",
 		(opt_mb==O_YES)?"/MB":"",
 		(opt_md==O_YES)?"/MD5":"/Plain",
-		(opt_cr==O_YES)?"/CRYPT":"");
+		(opt_cr==O_YES)?"/CRYPT":"",
+		(opt_cht==O_YES)?"/Chat":"");
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
 	recvf.ttot=rnode->netmail+rnode->files;
 	effbaud=rnode->speed;lst=fl;
@@ -493,8 +511,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	sline("BinkP session");
 	t1=t_set(BP_TIMEOUT);
 	mes=0;cls=0;
-	DEBUG(('B',1,"established binkp ver %d session. nr=%d,nd=%d,md=%d,mb=%d,cr=%d",bp_ver,opt_nr,opt_nd,opt_md,opt_mb,opt_cr));
-	while((sent_eob<2||recv_eob<2)&&!t_exp(t1)) {
+	DEBUG(('B',1,"established binkp ver %d session. nr=%d,nd=%d,md=%d,mb=%d,cr=%d,cht=%d",bp_ver,opt_nr,opt_nd,opt_md,opt_mb,opt_cr,opt_cht));
+	while(((sent_eob<2||recv_eob<2)||(opt_cht==O_YES&&!t_exp(chattimer)))&&!t_exp(t1)) {
 		if(!send_file&&sent_eob<2&&!txfd&&!nofiles) {
 			DEBUG(('B',2,"find files"));
 			if(lst&&lst!=fl)lst=lst->next;
@@ -548,11 +566,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			DEBUG(('B',1,"msgr: connect aborted"));
 			if(send_file)txclose(&txfd,FOP_ERROR);
 			if(recv_file)rxclose(&rxfd,FOP_ERROR);
-			flkill(&fl,0);
-			return S_REDIAL;
+			rc=S_REDIAL;goto failed;
 		}
 		switch(rc) {
-		    case BPM_NONE: case TIMEOUT:
+		    case BPM_NONE: case TIMEOUT: case BPM_RESERVED:
 			break;
 		    case BPM_NUL: {
 			char *n;
@@ -616,8 +633,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				msgs(BPM_ERR,"FILE: ","unparsable arguments");
 				write_log("unparsable file info: \"%s\"",tmp);
 				if(send_file)txclose(&txfd,FOP_ERROR);
-				flkill(&fl,0);
-				return S_FAILURE;
+				rc=S_FAILURE;goto failed;
 			}
 			if(recvf.fname&&!strncasecmp(fname,recvf.fname,MAX_PATH) &&
 			    recvf.mtime==ftime&&recvf.ftot==fsize&&recvf.soff==foffs) {
@@ -706,15 +722,13 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 			DEBUG(('B',1,"got: ERROR, connect aborted"));
 			if(send_file)txclose(&txfd,FOP_ERROR);
 			if(recv_file)rxclose(&rxfd,FOP_ERROR);
-			flkill(&fl,0);
-			return S_REDIAL|S_ADDTRY;
+			rc=S_REDIAL|S_ADDTRY;goto failed;
 		    case BPM_BSY:
 			DEBUG(('B',3,"got: M_%s",mess[rc]));
 			write_log("BinkP busy: \"%s\"",tmp);
 			if(send_file)txclose(&txfd,FOP_ERROR);
 			if(recv_file)rxclose(&rxfd,FOP_ERROR);
-			flkill(&fl,0);
-			return S_REDIAL|S_ADDTRY;
+			rc=S_REDIAL|S_ADDTRY;goto failed;
 		    case BPM_GET:
 			DEBUG(('B',3,"got: M_%s",mess[rc]));
 			t1=t_set(BP_TIMEOUT);
@@ -734,6 +748,12 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 				} else write_log("got M_%s for unknown file",mess[rc]);
 			} else DEBUG(('B',1,"unparsable fileinfo"));
 			break;
+		    case BPM_CHAT:
+			DEBUG(('B',3,"got: M_%s",mess[rc]));
+			t1=t_set(BP_TIMEOUT);
+			if(opt_cht==O_YES)chatrecv(tmp);
+			    else DEBUG(('B',1,"got chat msg with disabled chat"));
+			break;
 		    default:
 			DEBUG(('B',1,"got unknown msg %d",rc));
 		}
@@ -744,12 +764,12 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		msgs(BPM_ERR,"Session timeout",NULL);
 		if(send_file)txclose(&txfd,FOP_ERROR);
 		if(recv_file)rxclose(&rxfd,FOP_ERROR);
-		flkill(&fl,0);
-		return S_REDIAL;
+		rc=S_REDIAL;goto failed;
 	}
+	rc=S_OK;
 	DEBUG(('B',1,"session done"));
-	flkill(&fl,1);
+failed:	flkill(&fl,rc==S_OK);
 	xfree(rxbuf);
 	xfree(txbuf);
-	return S_OK;
+	return rc;
 }

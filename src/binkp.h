@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol defines. by sisoft\\trg'2003.
- * $Id: binkp.h,v 1.6 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: binkp.h,v 1.7 2004/02/02 17:31:45 sisoft Exp $
  ******************************************************************/
 #ifndef __BINKP_H__
 #define __BINKP_H__
@@ -50,9 +50,13 @@ enum {
 	BPM_BSY,		/* All AKAs are busy */
 	BPM_GET,		/* Get a file from offset */
 	BPM_SKIP,		/* Skip a file (RECEIVE LATER) */
+	BPM_RESERVED,		/* Reserved for later */
+	BPM_CHAT,		/* For chat */
 	BPM_MIN = BPM_NUL,	/* Minimal message type value */
-	BPM_MAX = BPM_SKIP	/* Maximal message type value */
+	BPM_MAX = BPM_CHAT	/* Maximal message type value */
 } bp_msg;
 
+extern int bink_devfree();
+extern int bink_devsend(byte *str,word len);
 
 #endif

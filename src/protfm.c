@@ -1,12 +1,13 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.8 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: protfm.c,v 1.9 2004/02/02 17:31:46 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
 #include <fnmatch.h>
 #include "hydra.h"
 #include "ls_zmodem.h"
+#include "binkp.h"
 
 /*  Common protocols' vars */
 FILE   *txfd=NULL,     *rxfd=NULL;
@@ -32,7 +33,7 @@ static unsigned char qsnd_buf[CHAT_BUF]={0};
 static unsigned char ubuf[CHAT_BUF];
 static char hellostr[MAX_STRING];
 static unsigned short qsndbuflen=0;
-int chatprot,chatlg=0,rxstatus=0,skipiftic=0;
+int chatprot=-1,chatlg=0,rxstatus=0,skipiftic=0;
 long chattimer;
 
 static char weskipstr[]="recd: %s, 0 bytes, 0 cps [%sskipped]";
@@ -303,6 +304,8 @@ void chatinit(int prot)
 		case P_JANUS:
 			chatprot=P_JANUS;
 			break;
+		case 0:
+			if(bink)chatprot=P_NCP;
 	}
 }
 
@@ -316,8 +319,8 @@ int c_devfree()
 		case P_HYDRA:
 			rc=hydra_devfree();
 			break;
-		case P_JANUS:
-			break;
+		case P_NCP:
+			rc=bink_devfree();
 	}
 	return rc;
 }
@@ -332,8 +335,8 @@ int c_devsend(unsigned char *str,unsigned len)
 		case P_HYDRA:
 			rc=hydra_devsend("CON",str,len);
 			break;
-		case P_JANUS:
-			break;
+		case P_NCP:
+			rc=bink_devsend(str,len);
 	}
 	return rc;
 }
@@ -348,7 +351,7 @@ int chatsend(unsigned char *str)
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,0);
 		qchat("");
 	} else if(*str!=5) {
-		for(i=0;i<=strlen((char*)str);i++)ubuf[i]=todos(str[i]);
+		for(i=0;i<=strlen((char*)str)&&i<CHAT_BUF;i++)ubuf[i]=todos(str[i]);
 		if(!c_devsend(ubuf,i-1))return 1;
 		if(chatlg)chatlog_write((char*)str,0);
 	} else write_log("Chat already opened!");

@@ -1,3 +1,15 @@
+2004-02-01 21:11  sisoft
+
+	* Changes, configure.in, src/clserv.c, src/daemon.c, src/emsi.c,
+	src/freq.c, src/ftn.c, src/log.c, src/protfm.c, src/session.c,
+	src/tcp.c:
+
+	another paranoidal changes.
+	change f_notify to dnotify (as in kernel).
+	fix crash if bad ip packet recv.
+	fix 'mapout' keyword.
+	use basename() in mapping.
+	
 2004-01-27 00:24  sisoft
 
 	* Changes, src/daemon.c, src/nodelist.c, src/qipc.c:
