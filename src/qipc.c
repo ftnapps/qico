@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.15 2003/03/10 15:58:12 cyrilm Exp $
+ * $Id: qipc.c,v 1.16 2003/03/13 20:30:58 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -92,23 +92,23 @@ void sline(char *str, ...)
 
 void qemsisend(ninfo_t *e)
 {
-	char buf[MSG_BUFFER], *p=buf;
+	unsigned char buf[MSG_BUFFER], *p = buf;
 	falist_t *a;
 	STORE16(p,e->speed);INC16(p);
 	STORE32(p,e->options);INC32(p);
 	STORE32(p,e->starttime);INC32(p);
-	xstrcpy(p, e->name, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
-	xstrcpy(p, e->sysop, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
-	xstrcpy(p, e->place, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
-	xstrcpy(p, e->flags, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
-	xstrcpy(p, e->phone, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
+	xstrcpy((char*)p, e->name , MSG_BUFFER-(p-buf));p+=strlen((char*)p)+1;
+	xstrcpy((char*)p, e->sysop, MSG_BUFFER-(p-buf));p+=strlen((char*)p)+1;
+	xstrcpy((char*)p, e->place, MSG_BUFFER-(p-buf));p+=strlen((char*)p)+1;
+	xstrcpy((char*)p, e->flags, MSG_BUFFER-(p-buf));p+=strlen((char*)p)+1;
+	xstrcpy((char*)p, e->phone, MSG_BUFFER-(p-buf));p+=strlen((char*)p)+1;
 	*p=0;
 	for(a=e->addrs;a;a=a->next) {
 		if(p+strlen(ftnaddrtoa(&a->addr))+1>buf+MSG_BUFFER) break;
-		xstrcat(p, ftnaddrtoa(&a->addr), MSG_BUFFER-(p-(char*)buf));
-		xstrcat(p, " ", MSG_BUFFER-(p-(char*)buf));
+		xstrcat((char*)p, ftnaddrtoa(&a->addr), MSG_BUFFER-(p-buf));
+		xstrcat((char*)p, " ", MSG_BUFFER-(p-buf));
 	}
-	p+=strlen(p)+1;
+	p+=strlen((char*)p)+1;
 	qsendpkt(QC_EMSID, QLNAME, (char *) buf, p-buf);
 }
 
@@ -119,20 +119,21 @@ void qpreset(int snd)
 
 void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags)
 {
-	char buf[MSG_BUFFER], *p=buf, *addr=ftnaddrtoa(a);
+	unsigned char buf[MSG_BUFFER], *p=buf;
+	char *addr=ftnaddrtoa(a);
 
 	STORE32(p,mail);INC32(p);
 	STORE32(p,files);INC32(p);
 	STORE32(p,flags);INC32(p);
 	STORE16(p,try);INC16(p);
 
-	xstrcpy(p, addr, MSG_BUFFER-(p-(char*)buf));p+=strlen(addr)+1;
-	qsendpkt(QC_QUEUE, QLNAME, buf, p-buf);
+	xstrcpy((char*)p, addr, MSG_BUFFER-(p-buf));p+=strlen(addr)+1;
+	qsendpkt(QC_QUEUE, QLNAME, (char*)buf, p-buf);
 }
 
 void qpproto(char type, pfile_t *pf)
 {
-	char buf[MSG_BUFFER], *p=buf;
+	unsigned char buf[MSG_BUFFER], *p=buf;
 	
 	STORE32(p,pf->foff);INC32(p);
 	STORE32(p,pf->ftot);INC32(p);
@@ -145,9 +146,9 @@ void qpproto(char type, pfile_t *pf)
 	STORE32(p,pf->stot);INC32(p);
 	STORE32(p,pf->start);INC32(p);
 	STORE32(p,pf->mtime);INC32(p);
-	xstrcpy(p, pf->fname?pf->fname:"", MSG_BUFFER-(p-(char*)buf));
-	p+=strlen(p)+1;
-	qsendpkt(type, QLNAME, buf, p-buf);
+	xstrcpy((char*)p, pf->fname?pf->fname:"", MSG_BUFFER-(p-buf));
+	p+=strlen((char*)p)+1;
+	qsendpkt(type, QLNAME, (char*)buf, p-buf);
 }
 
 #else
