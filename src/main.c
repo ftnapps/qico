@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.10 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: main.c,v 1.11 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <locale.h>
@@ -9,18 +9,15 @@
 #include <arpa/inet.h>
 #include "tty.h"
 #include "byteop.h"
+#include "clserv.h"
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-extern int hangup();
-extern int stat_collect();
-extern void daemon_mode();
-
 char *configname=CONFIG;
 subst_t *psubsts;
 
-extern int force,qipcr_msg;
+/**/extern int force,qipcr_msg;
 
 static void usage(char *ex)
 {
@@ -55,12 +52,12 @@ static void usage(char *ex)
 void stopit(int rc)
 {
 	vidle();qqreset();
-	write_log("exiting with rc=%d",rc);log_done();
-	qipc_done();
-//	if(ssock>=0)close(ssock);
-//	if(lins_sock>=0){shutdown(lins_sock,3);close(lins_sock);}
-//	if(uis_sock>=0){shutdown(uis_sock,3);close(uis_sock);}
-//	cls_done();
+	write_log("exiting with rc=%d",rc);
+	log_done();
+/**/	qipc_done();
+	cls_close(ssock);
+	cls_shutd(lins_sock);
+	cls_shutd(uis_sock);
 	exit(rc);
 }
 
@@ -68,31 +65,26 @@ void sigerr(int sig)
 {
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig,SIG_DFL);
-
-	msgctl(qipcr_msg,IPC_RMID,0);
-
+/**/	msgctl(qipcr_msg,IPC_RMID,0);
 	if(is_bso()==1)bso_done();
 	if(is_aso()==1)aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
-	if(cfgs(CFG_PIDFILE)) {
-		if(getpid()==islocked(ccs))lunlink(ccs);
-	}
+	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
 	log_done();
 	tty_close();
 	qqreset();sline("");title("");
-	qipc_done();
-//	cls_done();
-//	if(ssock>=0)close(ssock);
-//	if(lins_sock>=0){shutdown(lins_sock,3);close(lins_sock);}
-//	if(uis_sock>=0){shutdown(uis_sock,3);close(uis_sock);}
+/**/	qipc_done();
+	cls_close(ssock);
+	cls_shutd(lins_sock);
+	cls_shutd(uis_sock);
 	switch(sig) {
-		case SIGSEGV:
-		case SIGFPE:
-		case SIGBUS:
-		case SIGABRT:
-			abort();
-		default:
-			exit(1);
+	    case SIGSEGV:
+	    case SIGFPE:
+	    case SIGBUS:
+	    case SIGABRT:
+		abort();
+	    default:
+		exit(1);
 	}
 }
 
@@ -118,27 +110,17 @@ static void answer_mode(int type)
 	rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
-		printf("can't open log %s!\n", ccs);
-//		cls_done();
+		printf("can't open log %s!\n",ccs);
 		exit(0);
 	}
 	signal(SIGINT,SIG_IGN);
 	signal(SIGTERM,sigerr);
 	signal(SIGSEGV,sigerr);
 	signal(SIGFPE,sigerr);
-//	if(cls_init(CLS_L)) {
-//		write_log("cls_init error");
-//		stopit(1);
-//	}
-//	sa.sin_family=AF_INET;
-//	sa.sin_port=htons(60178);
-//	rc=socket(AF_INET,SOCK_DGRAM,0);
-//	if(rc<0)write_log("can't create socket");
-//	    else {
-//		inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
-//		if(connect(rc,(struct sockaddr*)&sa,ss)<0)write_log("can't connect to server");
-//		    else {log_callback=vlogs;ssock=rc;}
-//	}
+
+//	ssock=cls_conn(CLS_LINE);
+//	if(ssock<0)write_log("can't connect to server: %s",str_error(errno));
+//	    else log_callback=vlogs;
 
 	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
 	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
@@ -200,11 +182,11 @@ static void answer_mode(int type)
 	stopit(rc);
 }	
 
-static int force_call(ftnaddr_t *fa, int line, int flags)
+static int force_call(ftnaddr_t *fa,int line,int flags)
 {
+	int rc;
 	char *port=NULL;
 	slist_t *ports=NULL;
-	int rc;
 	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
 	switch(rc) {
 	    case 1:write_log("can't query nodelist, index error");break;
@@ -213,12 +195,12 @@ static int force_call(ftnaddr_t *fa, int line, int flags)
 	}
 	if(!rnode) {
 		rnode=xcalloc(1,sizeof(ninfo_t));
-		falist_add(&rnode->addrs, fa);
+		falist_add(&rnode->addrs,fa);
 		rnode->name=xstrdup("Unknown");
 		rnode->phone=xstrdup("");
 	}
 	rnode->tty=NULL;
-	if((flags & 2) != 2) {
+	if((flags&2)!=2) {
 		ports=cfgsl(CFG_PORT);
 		do {
 			if(!ports)exit(33);
@@ -233,7 +215,7 @@ static int force_call(ftnaddr_t *fa, int line, int flags)
 		if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
 			rnode->tty=xstrdup(baseport(port));
 		} else {
-//			cls_done();
+//			cls_close(ssock);
 			exit(33);
 		}
 	}
@@ -243,31 +225,31 @@ static int force_call(ftnaddr_t *fa, int line, int flags)
 		while(rnode->hidnum&&line!=rnode->hidnum&&applysubst(rnode,psubsts)&&rnode->hidnum!=1);
 		if(line!=rnode->hidnum) {
 			fprintf(stderr,"%s doesn't have line #%d\n",ftnaddrtoa(fa),line);
-//			cls_done();
+//			cls_close(ssock);
 			exit(0);
 		}
 		if(!can_dial(rnode,(flags&1)==1)) {
 			fprintf(stderr,"We should not call to %s #%d at this time\n",ftnaddrtoa(fa),line);
-//			cls_done();
+//			cls_close(ssock);
 			exit(0);
 		}
 	} else {
 		if (!find_dialable_subst(rnode,((flags&1)==1),psubsts)) {
 			fprintf(stderr,"We should not call to %s at this time\n",ftnaddrtoa(fa));
-//			cls_done();
+//			cls_close(ssock);
 			exit(0);
 		}
 	}
 	if(cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n",ccs);
-//		cls_done();
+//		cls_close(ssock);
 		exit(0);
 	}
 	if(rnode->hidnum)
-	    write_log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
-		else write_log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
-	rc=do_call(fa, rnode->phone,port);
+	    write_log("calling %s #%d, %s (%s)",rnode->name,rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+		else write_log("calling %s, %s (%s)",rnode->name,ftnaddrtoa(fa),rnode->phone);
+	rc=do_call(fa,rnode->phone,port);
 	return rc;
 }
                                                                               
@@ -277,7 +259,6 @@ int main(int argc,char *argv[],char *envp[])
 	int c,daemon=-1,rc,sesstype=SESSION_AUTO,line=0,call_flags=0;
 	char *hostname=NULL,*str=NULL;
 	ftnaddr_t fa;
-//	struct sockaddr_in *sa;
 #ifndef HAVE_SETPROCTITLE
 	setargspace(argc,argv,envp);
 #endif
@@ -324,9 +305,9 @@ int main(int argc,char *argv[],char *envp[])
 			bink=1;
 			break;
 #ifdef NEED_DEBUG
-		    case 'f':
-			force=0;
-			break;
+/**/		    case 'f':
+/**/			force=0;
+/**/			break;
 #endif
 		    case 'v':
 			u_vers(progname);
@@ -335,20 +316,16 @@ int main(int argc,char *argv[],char *envp[])
 		}
 	}
 	if(!hostname&&daemon<0)usage(argv[0]);
-	getsysinfo();//ssock=lins_sock=uis_sock=-1;
-//	cls_init(CLS_I);
+	getsysinfo();ssock=lins_sock=uis_sock=-1;
 	if(!readconfig(configname)) {
 		write_log("there was some errors parsing %s, aborting",configname);
-//		cls_done();
 		exit(EXC_BADCONFIG);
 	}
 	if(daemon==3) {
-//		cls_done();
 		exit(EXC_OK);
 	}
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
 		write_log("can't open master log %s!",ccs);
-//		cls_done();
 		exit(1);
 	}
 #ifdef NEED_DEBUG
@@ -368,14 +345,12 @@ int main(int argc,char *argv[],char *envp[])
 	}
 #endif	
 
-	if(!qipc_init()) write_log("can't create ipc key!");
-
+/**/	if(!qipc_init())write_log("can't create ipc key!");
 
 	if(hostname||daemon==12) {
 		if(!parseftnaddr(argv[optind],&fa,&DEFADDR,0)) {
 			write_log("%s: can't parse address '%s'!",argv[0],argv[optind]);
-			qipc_done();
-//			cls_done();
+/**/			qipc_done();
 			exit(1);
 		}
 		optind++;
@@ -387,26 +362,16 @@ int main(int argc,char *argv[],char *envp[])
 		rnode->tty=bink?"binkp":"tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 			write_log("can't open log %s!",ccs);
-			qipc_done();
-//			cls_done();
+/**/			qipc_done();
 			exit(1);
 		}
 		signal(SIGINT,sigerr);
 		signal(SIGTERM,sigerr);
 		signal(SIGSEGV,sigerr);
-//		if(cls_init(CLS_L)) {
-//			write_log("cls_init error");
-//			stopit(1);
-//		}
-//		sa.sin_family=AF_INET;
-//		sa.sin_port=htons(60178);
-//		rc=socket(AF_INET,SOCK_DGRAM,0);
-//	    	if(rc<0)write_log("can't create socket");
-//		    else {
-//			inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
-//			if(connect(rc,(struct sockaddr*)&sa,ss)<0)write_log("can't connect to server");
-//			    else {log_callback=vlogs;ssock=rc;}
-//		}
+
+//		ssock=cls_conn(CLS_LINE)
+//		if(ssock<0)write_log("can't connect to server: %s",str_error(errno));
+//		    else log_callback=vlogs;
 
 		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
 		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
@@ -424,31 +389,21 @@ int main(int argc,char *argv[],char *envp[])
 		if(optind<argc) {
 			if(1!=sscanf(argv[optind],"%d",&line)) {
 				write_log("%s: can't parse line number '%s'!\n",argv[0],argv[optind]);
-				qipc_done();
-//				cls_done();
+/**/				qipc_done();
 				exit(1);
 			}
 		} else line = 0;
-//		if(cls_init(CLS_L)) {
-//			write_log("cls_init error");
-//			stopit(1);
-//		}
-//		sa.sin_family=AF_INET;
-//		sa.sin_port=htons(60178);
-//		rc=socket(AF_INET,SOCK_DGRAM,0);
-//	    	if(rc<0)write_log("can't create socket");
-//		    else {
-//			inet_pton(AF_INET,"127.0.0.1",&sa.sin_addr);
-//			if(connect(rc,(struct sockaddr*)&sa,ss)<0)write_log("can't connect to server");
-//			    else {log_callback=vlogs;ssock=rc;}
-//		}
+
+//		ssock=cls_conn(CLS_LINE)
+//		if(ssock<0)write_log("can't connect to server: %s",str_error(errno));
+//		    else log_callback=vlogs;
 
 		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init BSO",argv[0]);
 		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("%s: can't init ASO",argv[0]);
 		if(is_bso()!=1&&is_aso()!=1) {
 			write_log("%s: No outbound defined",argv[0]);
-			qipc_done();
-//			cls_done();
+/**/			qipc_done();
+//			cls_close(ssock);
 			exit(1);
 		}
 		if(is_bso()==1)locked|=bso_locknode(&fa,LCK_c);
@@ -471,8 +426,7 @@ int main(int argc,char *argv[],char *envp[])
 	    case 0: answer_mode(sesstype); break;
 	    case 2: compile_nodelists(); break;
 	}
-	qipc_done();
-//	cls_done();
-//	if(ssock>=0)close(ssock);
+/**/	qipc_done();
+//	cls_close(ssock);
 	return 0;
 }

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.14 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: session.c,v 1.15 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -11,7 +11,7 @@
 
 int runtoss;
 ftnaddr_t ndefaddr;
-extern int binkpsession(int mode,ftnaddr_t *remaddr);
+int (*receive_callback)(char *fn);
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill, off_t off, FILE *lo, int fromlo)
 {

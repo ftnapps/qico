@@ -1,14 +1,14 @@
-/* $Id: TodayFixes,v 1.10 2004/01/10 09:24:39 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.11 2004/01/12 21:41:56 sisoft Exp $ */
+---
+change IPC to IP in progress..
+.
+previous:
 ---
 add keyword 'rmboxes' - remove empty fileboxes.
 again fix poorly remove outbound dir.
 change faq q about gdb. 
 support for additional info in .qst's for ND mode.
 more fixes..
-.
-previous:
----
-fix crash due to empty domain.
 .
 
 ps: в связи с временным отсутствием фидошки,

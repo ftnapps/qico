@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.9 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: qcc.c,v 1.10 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -10,14 +10,13 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <time.h>
 #include <signal.h>
 #include <ctype.h>
 #include <locale.h>
+#include <errno.h>
 #ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -31,6 +30,10 @@
 #include "qcconst.h"
 #include "ver.h"
 #include "byteop.h"
+#include "clserv.h"
+
+#include <sys/ipc.h>
+#include <sys/msg.h>
 
 /* number of lines for queue. (up window of screen) */
 #define MH 10     
@@ -90,7 +93,7 @@ typedef struct _qslot_t {
 
 void sigwinch(int sig);
 void sighup(int sig);
-void ipcrcvtimeout(int sig);
+/**/void ipcrcvtimeout(int sig);
 extern time_t gmtoff(time_t tt,int mode);
 int getmessages();
 
@@ -165,14 +168,16 @@ NULL
 slot_t *slots[MAX_SLOTS];
 qslot_t *queue;
 int currslot,allslots,q_pos,q_first,q_max,crey=0,crex=0;
-int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0,force=IPC_EXCL;
+int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
+/**/int force=IPC_EXCL;
 
 char *m_header=NULL;
 char *m_status=NULL;
 
 WINDOW *wlog,*wmain,*whdr,*wstat,*whelp;
 
-int qipc_msg,qipc_msgqq;
+//int sock=-1;
+/**/int qipc_msg,qipc_msgqq;
 
 int hstlast=0;
 char *hst[HSTMAX+1],*myaddr;
@@ -185,7 +190,7 @@ void usage(char *ex)
 	printf("usage: %s [options]\n"
 	       "-n           disable sound (silent)\n"
 #ifdef NEED_DEBUG
-	       "-f           force (don't check IPC's queue)\n"
+/**/	       "-f           force (don't check IPC's queue)\n"
 #endif
 	       "-h           this help screen\n"
                "-v           show version\n"
@@ -842,31 +847,31 @@ rei:	zone=strtoul(myaddr,&nm,10);
 	return ou;
 }
 
-void ipcrcvtimeout(int sig)
-{
-	signal(SIGALRM,SIG_DFL);
-	mylog("Error: can't send ipc message, may be daemon is die?");
-}
+/**/void ipcrcvtimeout(int sig)
+/**/{
+/**/	signal(SIGALRM,SIG_DFL);
+/**/	mylog("Error: can't send ipc message, may be daemon is die?");
+/**/}
 
-int ipccmd(char *buf,int cmd,int len)
+int xcmd(char *buf,int cmd,int len)
 {
 	*((int*)buf)=1;
 	*((int*)buf+1)=getpid();
 	buf[8]=cmd;
-	msgsnd(qipc_msgqq,buf,len,0);
-	signal(SIGALRM,ipcrcvtimeout);
-	alarm(3);
-	if(msgrcv(qipc_msgqq,buf,MSG_BUFFER-1,getpid(),0)<4)return -1;
-	signal(SIGALRM,SIG_DFL);
-	alarm(0);
+/**/	msgsnd(qipc_msgqq,buf,len,0);
+/**/	signal(SIGALRM,ipcrcvtimeout);
+/**/	alarm(3);
+/**/	if(msgrcv(qipc_msgqq,buf,MSG_BUFFER-1,getpid(),0)<4)return -1;
+/**/	signal(SIGALRM,SIG_DFL);
+/**/	alarm(0);
 	return buf[4];
 }
 
-void ipccmdslot(char *buf,int cmd,int len)
+void xcmdslot(char *buf,int cmd,int len)
 {
 	*(long*)buf=slots[currslot]->pid;
 	buf[8]=cmd;
-	msgsnd(qipc_msg,buf,len,0);
+/**/	msgsnd(qipc_msg,buf,len,0);
 }
 
 void printinfo(char *addr,int what,char *buf)
@@ -878,7 +883,7 @@ void printinfo(char *addr,int what,char *buf)
 	    else if(what)return;
 	if(!*addr||!addr)return;
 	strncpy(buf+9,addr,64);
-	rc=ipccmd(buf,QR_INFO,strlen(addr)+10);
+	rc=xcmd(buf,QR_INFO,strlen(addr)+10);
 	if(rc)return;
 	for(p=buf+5;strlen(p);rc++) {
 		mylog("%s: %s",infostrs[rc],p);
@@ -905,7 +910,7 @@ int getmessages()
 	char buf[MSG_BUFFER];
 	unsigned char *data,*p;
 	memset(buf,0,MSG_BUFFER);
-	rc=msgrcv(qipc_msg,buf,MSG_BUFFER-1,1,IPC_NOWAIT);
+/**/	rc=msgrcv(qipc_msg,buf,MSG_BUFFER-1,1,IPC_NOWAIT);
 	if(rc>=13) {
 		len=FETCH32(buf+4);
 		pid=FETCH32(buf+8);
@@ -1117,7 +1122,7 @@ int main(int argc,char **argv)
 	char buf[4096],*bf,c;
 	fd_set rfds;
 	time_t tim;
-	key_t qipc_key,qipc_keyqq;
+/**/	key_t qipc_key,qipc_keyqq;
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif
@@ -1138,22 +1143,28 @@ int main(int argc,char **argv)
 		}
 	} 
 
-	if((qipc_keyqq=ftok(QIPC_KEY,QR_MSGQ))<0) {
-		fprintf(stderr,"can't get key\n");
-		return 1;
-	}
-	if((qipc_msgqq=msgget(qipc_keyqq,0666))<0) {
-		fprintf(stderr,"can't get message queue, may be there's no daemon?\n");
-		return 1;
-	}
-	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) {
-		fprintf(stderr,"can't create ipc key\n");
-		return 1;
-	}
-	if((qipc_msg=msgget(qipc_key,0666|IPC_CREAT|force))<0) {
-		fprintf(stderr,"can't get message queue%s\n",force?", may be another qcc is runing?":"");
-		return 1;
-	}
+/**/	if((qipc_keyqq=ftok(QIPC_KEY,QR_MSGQ))<0) {
+/**/		fprintf(stderr,"can't get key\n");
+/**/		return 1;
+/**/	}
+/**/	if((qipc_msgqq=msgget(qipc_keyqq,0666))<0) {
+/**/		fprintf(stderr,"can't get message queue, may be there's no daemon?\n");
+/**/		return 1;
+/**/	}
+/**/	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) {
+/**/		fprintf(stderr,"can't create ipc key\n");
+/**/		return 1;
+/**/	}
+/**/	if((qipc_msg=msgget(qipc_key,0666|IPC_CREAT|force))<0) {
+/**/		fprintf(stderr,"can't get message queue%s\n",force?", may be another qcc is runing?":"");
+/**/		return 1;
+/**/	}
+
+//	sock=cls_conn(CLS_UI);
+//	if(sock<0) {
+//		fprintf(stderr,"can't connect to server: %s\n",str_error(errno));
+//		return 1;
+//	}
 
 	signal(SIGHUP,sighup);
 	signal(SIGTERM,sighup);
@@ -1203,7 +1214,6 @@ int main(int argc,char **argv)
 		ch=getch();
 		if(ch==12/*ctrl+l*/) {
 
-
 		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
 			if(currslot<(allslots-1)||ch=='\t') {
 				currslot++;
@@ -1230,10 +1240,10 @@ int main(int argc,char **argv)
 					if(ch)waddch(slots[currslot]->wlog,ch);
 					    else waddstr(slots[currslot]->wlog,"\nClosing..\n");
 					wrefresh(slots[currslot]->wlog);
-					ipccmdslot(buf,QR_CHAT,11);
+					xcmdslot(buf,QR_CHAT,11);
 				} else if(inputstr(buf+9,"Text: ",0)) {
 					waddstr(slots[currslot]->wlog,buf+9);
-					ipccmdslot(buf,QR_CHAT,10+strlen(buf+9));
+					xcmdslot(buf,QR_CHAT,10+strlen(buf+9));
 			}
 			wrefresh(slots[currslot]->wlog);
 			getyx(slots[currslot]->wlog,slots[currslot]->chaty,slots[currslot]->chatx);
@@ -1251,14 +1261,14 @@ int main(int argc,char **argv)
 				quitflag=1;
 				break;
 			case ' ':
-				ipccmd(buf,QR_RESTMR,9);
+				xcmd(buf,QR_RESTMR,9);
 				break;
 			case 'p':
 				bf=getnode("Create poll for address: ");
 				if(bf&&strchr("HDNCI",toupper(*bf))&&bf[1]) {
 					strncpy(buf+9,bf+1,64);
 					buf[10+strlen(buf+9)]=toupper(*bf);
-					ipccmd(buf,QR_POLL,strlen(buf+9)+11);
+					xcmd(buf,QR_POLL,strlen(buf+9)+11);
 				}
 				break;
 			}
@@ -1299,10 +1309,10 @@ int main(int argc,char **argv)
 				freshqueue();wrefresh(wmain);
 				break;
 			case 'r':
-				ipccmd(buf,QR_SCAN,9);
+				xcmd(buf,QR_SCAN,9);
 				break;
 			case 'R':
-				ipccmd(buf,QR_CONF,9);
+				xcmd(buf,QR_CONF,9);
 				break;
 			case 'w': case 'W': case 'u': case 'U':
 			case 'i': case 'I': case 'h':
@@ -1315,14 +1325,14 @@ int main(int argc,char **argv)
 					    *(unsigned*)(buf+len+2)=(unsigned)strtoul(buf+len+4,NULL,10);
 						else break;
 				}
-				ipccmd(buf,QR_STS,len+4);
+				xcmd(buf,QR_STS,len+4);
 				break;
 			case 'k': case 'K':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que)break;
 				bf=getnode((ch=='k')?"Kill all files for (addr+'y'): ":"Kill all files for current addr? ('y'=yes, any other=no): ");
 				if(bf&&strchr("y",*bf)&&bf[1]) {
 					strncpy(buf+9,(ch=='k')?bf+1:que->addr,64);
-					ipccmd(buf,QR_KILL,strlen(buf+9)+10);
+					xcmd(buf,QR_KILL,strlen(buf+9)+10);
 				}
 				break;
 			case 'f': case 'F':
@@ -1341,7 +1351,7 @@ int main(int argc,char **argv)
 				bf=buf+len+10;
 				if(inputstr(bf,"File for request: ",0)) {
 					while(*bf++)if(*bf==' ')*bf='?';
-					ipccmd(buf,QR_REQ,11+len+strlen(buf+len+10));
+					xcmd(buf,QR_REQ,11+len+strlen(buf+len+10));
 				}
 				break;
 			case 's': case 'S':
@@ -1361,7 +1371,7 @@ int main(int argc,char **argv)
 						break;
 					}
 					while(*bf++)if(*bf==' ')*bf='?';
-					ipccmd(buf,QR_SEND,13+len+strlen(buf+len+12));
+					xcmd(buf,QR_SEND,13+len+strlen(buf+len+12));
 				}
 				break;
 			} else switch(ch) {
@@ -1401,23 +1411,23 @@ int main(int argc,char **argv)
 				} else xbeep();
 				break;
 			case 'X':
-				if(slots[currslot]->session)ipccmdslot(buf,QR_SKIP,9);
+				if(slots[currslot]->session)xcmdslot(buf,QR_SKIP,9);
 				    else xbeep();
 				break;
 			case 'R':
-				if(slots[currslot]->session)ipccmdslot(buf,QR_REFUSE,9);
+				if(slots[currslot]->session)xcmdslot(buf,QR_REFUSE,9);
 				    else xbeep();
 				break;
 			case 'h':
 				strncpy(buf+9,slots[currslot]->tty,16);
 				if(!(slots[currslot]->opt&(MO_IFC|MO_BINKP)))
-					ipccmd(buf,QR_HANGUP,strlen(buf+9)+10);
-				ipccmdslot(buf,QR_HANGUP,9);
+					xcmd(buf,QR_HANGUP,strlen(buf+9)+10);
+				xcmdslot(buf,QR_HANGUP,9);
 				break;
 			case 'c':
 				if((slots[currslot]->opt&MO_CHAT)&&slots[currslot]->session) {
 					buf[9]=5;
-					ipccmdslot(buf,QR_CHAT,10);
+					xcmdslot(buf,QR_CHAT,10);
 				} else xbeep();
 				break;
 		    }
@@ -1427,7 +1437,8 @@ int main(int argc,char **argv)
 	while(allslots)delslot(allslots-1);
 	for(ch=0;ch<HSTMAX;ch++)xfree(hst[ch]);
 	donescreen();
-	msgctl(qipc_msg,IPC_RMID,0);
+/**/	msgctl(qipc_msg,IPC_RMID,0);
+//	cls_close(sock);
 	signal(SIGHUP,SIG_DFL);
 	signal(SIGTERM,SIG_DFL);
 	signal(SIGINT,SIG_DFL);

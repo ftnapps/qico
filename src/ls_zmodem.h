@@ -5,7 +5,7 @@
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
 */
-/* $Id: ls_zmodem.h,v 1.3 2004/01/10 09:24:40 sisoft Exp $ */
+/* $Id: ls_zmodem.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
 
 /* Dirty hack */
 #define LSZ_TRUSTZFINS		3		/* We trust only in MANY ZFINs during initialization */
@@ -177,7 +177,7 @@ extern int ls_SerialNum;		/* Serial number of file -- for Double-skip protection
 extern int ls_HeaderTimeout;	/* Timeout for headers */
 extern int ls_DataTimeout;		/* Timeout for data blocks */
 extern int ls_MaxBlockSize;		/* Maximum block size */
-int ls_SkipGuard;			/* double-skip protection on/off */
+extern int ls_SkipGuard;			/* double-skip protection on/off */
 
 /* Variables to control sender */
 extern int ls_txWinSize;		/* Receiver Window/Buffer size (0 for streaming) */
@@ -198,51 +198,51 @@ typedef struct _ZFILEINFO {
 } ZFILEINFO;
 
 /* Functions */
-int ls_zsendbhdr(int frametype, int len, byte *hdr);
-int ls_zsendhhdr(int frametype, int len, byte *hdr);
-int ls_zrecvhdr(byte *hdr, int *hlen, int timeout);
+extern int ls_zsendbhdr(int frametype, int len, byte *hdr);
+extern int ls_zsendhhdr(int frametype, int len, byte *hdr);
+extern int ls_zrecvhdr(byte *hdr, int *hlen, int timeout);
 
-int ls_zsenddata(byte *data, int len, int frame);
-int ls_zrecvdata16(byte *data, int *len, int timeout);
-int ls_zrecvdata32(byte *data, int *len, int timeout);
+extern int ls_zsenddata(byte *data, int len, int frame);
+extern int ls_zrecvdata16(byte *data, int *len, int timeout);
+extern int ls_zrecvdata32(byte *data, int *len, int timeout);
 #define ls_zrecvdata(data,len,timeout,crc32) ((crc32)?ls_zrecvdata32(data,len,timeout):ls_zrecvdata16(data,len,timeout))
 
-void ls_sendchar(int c);
-void ls_sendhex(int i);
+extern void ls_sendchar(int c);
+extern void ls_sendhex(int i);
 
-int ls_read7bit(int *timeout);
-int ls_readhex(int *timeout);
-int ls_readzdle(int *timeout);
-int ls_readcanned(int *timeout);
+extern int ls_read7bit(int *timeout);
+extern int ls_readhex(int *timeout);
+extern int ls_readzdle(int *timeout);
+extern int ls_readcanned(int *timeout);
 
-void ls_storelong(byte *buf, long l);
-long ls_fetchlong(unsigned char *buf);
+extern void ls_storelong(byte *buf, long l);
+extern long ls_fetchlong(unsigned char *buf);
 
 /* Top-level functions */
 /* Init sender */
-int ls_zinitsender(int protocol, int baud, int window, char *attstr);
+extern int ls_zinitsender(int protocol, int baud, int window, char *attstr);
 /* Send one file */
-int ls_zsendfile(ZFILEINFO *f, unsigned long sernum);
+extern int ls_zsendfile(ZFILEINFO *f, unsigned long sernum);
 /* Done sender -- finish sending */
-int ls_zdonesender();
+extern int ls_zdonesender();
 
-void ls_zabort();
+extern void ls_zabort();
 
 /* Init receiver, return ZFILE, ZFIN or error. Leave ZFILE data frame in buffer */
-int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f);
+extern int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f);
 /* Receive one file form position POS */
-int ls_zrecvfile(int pos);
+extern int ls_zrecvfile(int pos);
 /* Prepare to receive next file (and, any be skeip or refuse current file) */
-int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first);
+extern int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first);
 /* Done receiver */
-int ls_zdonereceiver();
+extern int ls_zdonereceiver();
 
 /* chat */
-void z_devsend_c(int buffr);
-void z_devrecv_c(unsigned char c,int flushed);
+extern void z_devsend_c(int buffr);
+extern void z_devrecv_c(unsigned char c,int flushed);
 
-int z_devfree();
-int z_devsend(unsigned char *data,unsigned short len);
+extern int z_devfree();
+extern int z_devsend(unsigned char *data,unsigned short len);
 
 
 /* Debug logging */

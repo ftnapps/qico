@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.3 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: flagexp.y,v 1.4 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
@@ -17,9 +17,10 @@ extern char yytext[];
 
 #define YY_NO_UNPUT
 #undef ECHO
+
+int yylex();
 	
 int flxpres;
-	
 
 static int logic(int e1, int op,int e2);
 static int checkconnstr(void);
@@ -32,7 +33,6 @@ static int yyerror(char *s);
 extern char *yyPTR;
 
 %}
-
 
 %%
 fullline	: expression
@@ -179,7 +179,6 @@ static int checkfile(void)
 	if(!stat(yytext,&sb)) return 1;
 	return 0;
 }
-
 
 int yyparse();
  

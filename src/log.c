@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: log.c,v 1.6 2004/01/12 21:41:56 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -68,7 +68,6 @@ static FILE *cpkt=NULL;
 static FILE *lemail=NULL;
 static char mchat[4096]={0};
 static char rchat[4096]={0};
-extern int runtoss;
 
 #ifdef NEED_DEBUG
 int facilities_levels[256];

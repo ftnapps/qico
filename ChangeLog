@@ -1,3 +1,31 @@
+2004-01-10 12:26  sisoft
+
+	* src/daemon.c:
+
+	daemon.c added.
+	
+2004-01-10 12:24  sisoft
+
+	* .cvsignore, Changes, FAQ, cvs_com, qico.conf.sample,
+	debian/changelog, debian/conffiles, debian/control,
+	debian/copyright, debian/dirs, debian/examples, debian/inetd.conf,
+	debian/init.d, debian/qcc.8, debian/qcc.files, debian/qctl.8,
+	debian/qctl.files, debian/qico.8, debian/rules, debian/services,
+	src/Makefile.am, src/aso.c, src/binkp.c, src/binkp.h, src/bso.c,
+	src/call.c, src/charset.h, src/config.c, src/emsi.c, src/ftn.c,
+	src/ftn.h, src/hydra.c, src/hydra.h, src/janus.c, src/janus.h,
+	src/log.c, src/ls_zmodem.c, src/ls_zmodem.h, src/mailer.h,
+	src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/qipc.c,
+	src/qipc.h, src/qnlc.c, src/session.c, src/tcp.c, src/tty.c,
+	src/x2c.awk, src/x2h.awk, stuff/fts-0001, stuff/onchat,
+	stuff/tossing:
+
+	add keyword 'rmboxes' - remove empty fileboxes.
+	again fix poorly remove outbound dir.
+	change faq q about gdb.
+	support for additional info in .qst's for ND mode.
+	more fixes..
+	
 2003-10-14 22:44  sisoft
 
 	* src/ftn.h:
