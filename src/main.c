@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.18 2000/11/07 20:57:42 lev Exp $
+ * $Id: main.c,v 1.19 2000/11/08 20:57:37 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -524,6 +524,7 @@ void daemon_mode()
 					case 'C': rc=F_CRSH;break;
 					case 'D': rc=F_DIR;break;
 					case 'H': rc=F_HOLD;break;
+					case 'I': rc=F_IMM;break;
 					default: rc=F_ERR;
 					}
 					if(rc==F_ERR) {
