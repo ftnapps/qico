@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.51 2001/04/14 07:30:15 lev Exp $
+ * $Id: main.c,v 1.52 2001/04/15 17:10:12 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -679,6 +679,8 @@ void answer_mode(int type)
 {
 	int rc, spd;char *cs;
 	struct sockaddr_in sa;int ss=sizeof(sa);
+	sts_t sts;
+
 
 	rnode=xcalloc(1, sizeof(ninfo_t));
 	is_ip=!isatty(0);
@@ -720,6 +722,16 @@ void answer_mode(int type)
 	tty_nolocal();
 	rc=session(0, type, NULL, spd);
 	tty_cooked();
+
+	if ((S_OK == (rc&S_MASK)) && cfgi(CFG_HOLDONSUCCESS)) {
+		bso_getstatus(&rnode->addrs->addr, &sts);
+		sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
+		sts.htime=MAX(t_set(cci*60),sts.htime);
+		write_log("calls to %s delayed for %d min after successuful incoming session",
+					ftnaddrtoa(&rnode->addrs->addr), cci);
+		bso_setstatus(&rnode->addrs->addr, &sts);
+	}
+
 	title("Waiting...");
 	vidle();
 	sline("");
