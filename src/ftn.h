@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.24 2001/03/25 20:30:12 lev Exp $
+ * $Id: ftn.h,v 1.25 2001/04/14 12:44:54 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -135,43 +135,43 @@ typedef struct _subst {
 #define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;}
 
 typedef struct {
-	unsigned short int phONode,       
-		phDNode,       
+	UINT16 phONode,
+		phDNode,
 		phYear,
 		phMonth,
-		phDay,		
-		phHour,	
-		phMinute,	
-		phSecond,	
-		phBaud,	
-		phType,	
-		phONet,	
-		phDNet;	
-	unsigned char	phPCode,	
-		phMajor,	
-		phPass[8];		
-	unsigned short int phQOZone,	
-		phQDZone,	
-		phAuxNet,	
+		phDay,
+		phHour,
+		phMinute,
+		phSecond,
+		phBaud,
+		phType,
+		phONet,
+		phDNet;
+	UINT8	phPCode,
+		phMajor,
+		phPass[8];
+	UINT16 phQOZone,
+		phQDZone,
+		phAuxNet,
 		phCWValidate;
-	unsigned char phPCodeHi,
-		phPRevMinor;		
-	unsigned short int phCaps,		
-		phOZone,		
-		phDZone,		
-		phOPoint,		
-		phDPoint;		
-	unsigned short int phLongData[2];	
+	UINT8 phPCodeHi,
+		phPRevMinor;
+	UINT16 phCaps,
+		phOZone,
+		phDZone,
+		phOPoint,
+		phDPoint;
+	UINT16 phLongData[2];
 } pkthdr_t;
 
 typedef struct {
-	unsigned short int pmType;	
-	unsigned short int pmONode;	
-	unsigned short int pmDNode;	
-	unsigned short int pmONet;	
-	unsigned short int pmDNet;	
-	unsigned short int pmAttr;	
-	unsigned short int pmCost;	
+	UINT16 pmType;	
+	UINT16 pmONode;	
+	UINT16 pmDNode;	
+	UINT16 pmONet;	
+	UINT16 pmDNet;	
+	UINT16 pmAttr;	
+	UINT16 pmCost;	
 } pktmhdr_t;
 
 typedef struct {
