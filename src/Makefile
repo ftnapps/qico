@@ -1,11 +1,12 @@
 # 
-# $Id: Makefile,v 1.5 2000/08/15 16:24:49 lev Exp $
+# $Id: Makefile,v 1.6 2000/10/07 14:22:49 lev Exp $
 #
 include	../CONFIG
 
 STRIP=1
 #DEFS   += -DEMSI_LOG # log emsi in /tmp/emsi.log
 #DEFS   += -DH_DEBUG # Hydra
+#DEFS   += -DJ_DEBUG # Janus
 #DEFS   += -DZ_DEBUG # ZModem
 #DEFS   += -DE_DEBUG # EMSI
 #DEFS   += -DS_DEBUG # Session flow
@@ -33,7 +34,7 @@ QCLIBS  = -L/usr/local/lib -lncurses
 OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
           tty.o globals.o emsi.o crc.o zm.o zmr.o \
           zrecv.o zsend.o session.o call.o qnlc.o qipc.o qcconst.o tcp.o \
-	  hydra.o flagexp.o execsh.o protfm.o
+          hydra.o janus.o flagexp.o execsh.o protfm.o
 
 QCCOBJS	= qcc.o ver.o qcconst.o crc.o
 
