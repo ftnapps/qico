@@ -1,12 +1,13 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.8 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: flagexp.y,v 1.9 2004/02/15 01:22:25 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
-%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS 
+%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS
 %token DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE
 %token GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK
 %token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE
+%expect 2
 %{
 #include "headers.h"
 #include <fnmatch.h>
@@ -16,11 +17,14 @@ extern char *yytext;
 extern char yytext[];
 #endif
 
+#ifdef NEED_DEBUG
+#define YYERROR_VERBOSE 1
+#endif
+
 #define YY_NO_UNPUT
 #undef ECHO
 
 int yylex();
-
 int flxpres;
 
 static int logic(int e1, int op,int e2);
@@ -34,7 +38,6 @@ static int checkhost(void);
 static int checkfile(void);
 static int yyerror(char *s);
 extern char *yyPTR;
-
 %}
 
 %%
@@ -55,8 +58,8 @@ elemexp		: flag
 			{$$ = checkspeed($2,$3,1);}
 		| SPEED AROP NUMBER
 			{$$ = checkspeed($2,$3,0);}
-		| SFREE IDENT AROP NUMBER
-			{$$ = checksfree($3,$4);}
+		| SFREE AROP NUMBER PATHSTR
+			{$$ = checksfree($2,$3);}
 		| CONNSTR CONNSTR
 			{$$ = checkconnstr();}
 		| PHONE PHSTR
@@ -120,7 +123,7 @@ static int checkconnstr(void)
 {
 	DEBUG(('Y',2,"checkconnstr: \"%s\"",yytext));
 	if(!connstr||is_ip) return 0;
-	DEBUG(('Y',2,"checkconnstr: \"%s\" <-> \"%s\"",yytext,connstr));
+	DEBUG(('Y',3,"checkconnstr: \"%s\" <-> \"%s\"",yytext,connstr));
 	if(!strstr(connstr,yytext)) return 1;
 	return 0;
 }
@@ -129,7 +132,7 @@ static int checkspeed(int op, int speed, int real)
 {
 	DEBUG(('Y',2,"checkspeed: \"%s\"",yytext));
 	if(!rnode) return 0;
-	DEBUG(('Y',2,"check%sspeed: %d (%d,%s) %d",real?"real":"",real?rnode->realspeed:rnode->speed,op,
+	DEBUG(('Y',3,"check%sspeed: %d (%d,%s) %d",real?"real":"",real?rnode->realspeed:rnode->speed,op,
 		(EQ==op?"==":
 		(NE==op?"!=":
 	        (GT==op?">":
@@ -153,14 +156,18 @@ static int checkspeed(int op, int speed, int real)
 
 static int checksfree(int op,int sf)
 {
-	const char *path=yytext;
+	int fs;
 	DEBUG(('Y',2,"checksfree: \"%s\"",yytext));
+	fs=(int)getfreespace((const char*)yytext);
+	DEBUG(('Y',3,"checksfree: '%s' %d (%d,%s) %d",yytext,fs,op,
+	        (GT==op?">":(GE==op?">=":
+	        (LT==op?"<":(LE==op?"<=":"???")))),sf));
 	switch (op)
 	{
-	case GT:	return(getfreespace(path) >  (size_t)(sf)*1024);
-	case GE:	return(getfreespace(path) >= (size_t)(sf)*1024);
-	case LT:	return(getfreespace(path) <  (size_t)(sf)*1024);
-	case LE:	return(getfreespace(path) <= (size_t)(sf)*1024);
+	case GT:	return(fs >  sf);
+	case GE:	return(fs >= sf);
+	case LT:	return(fs <  sf);
+	case LE:	return(fs <= sf);
 	default:
 		DEBUG(('Y',1,"Logic: invalid comparsion operator %d",op));
 		return 0;
@@ -213,12 +220,11 @@ static int checkfile(void)
 
 int yyparse();
 
-int flagexp(char *expr)
+int flagexp(char *expr,int strict)
 {
 	char *p;
-
-	DEBUG(('Y',1,"checkexpression: \"%s\"",expr));
-
+	DEBUG(('Y',1,"checkexpression: \"%s\"%s",expr,strict?" (strict)":""));
+	if(!expr||!*expr)return 0;
 	p=xstrdup(expr);
 	yyPTR=p;
 #ifdef FLEX_SCANNER  /* flex requires reinitialization */
@@ -226,9 +232,9 @@ int flagexp(char *expr)
 #endif
 	flxpres=0;
 	if(yyparse()) {
-		DEBUG(('Y',1,"checkexpression: could not parse, assume \"false\""));
+		DEBUG(('Y',1,"checkexpression: couldn't parse%s",strict?"":", assume 'false'",expr));
 		xfree(p);
-		return 0;
+		return(strict?-1:0);
 	}
 	DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
 	xfree(p);
@@ -237,6 +243,6 @@ int flagexp(char *expr)
 
 static int yyerror(char *s)
 {
-	DEBUG(('Y',1,"parser error: \"%s\"",s));
+	DEBUG(('Y',1,"yyerror: %s",s));
 	return 0;
 }

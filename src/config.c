@@ -1,10 +1,10 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.7 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: config.c,v 1.8 2004/02/15 01:22:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-extern int flagexp(char *);
+extern int flagexp(char *expr,int strict);
 
 static slist_t *condlist=NULL;
 static char *curcond=NULL;
@@ -91,7 +91,7 @@ int cfgi(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition &&	flagexp(ci->condition)==1)
+		if(ci->condition && flagexp(ci->condition,0)==1)
 			return  cci=ci->value.v_int;
 		if(!ci->condition) cn=ci;
 	}
@@ -102,7 +102,7 @@ char *cfgs(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition))
+		if(ci->condition && flagexp(ci->condition,0))
 			return  ccs=ci->value.v_char;
 		if(!ci->condition) cn=ci;
 	}
@@ -112,7 +112,7 @@ slist_t *cfgsl(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition))
+		if(ci->condition && flagexp(ci->condition,0))
 			return ccsl =ci->value.v_sl;
 		if(!ci->condition) cn=ci;
 	}
@@ -123,7 +123,7 @@ faslist_t *cfgfasl(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition))
+		if(ci->condition && flagexp(ci->condition,0))
 			return ccfasl=ci->value.v_fasl;
 		if(!ci->condition) cn=ci;
 	}
@@ -134,7 +134,7 @@ falist_t *cfgal(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
 	for(ci=configtab[i].items;ci;ci=ci->next) {
-		if(ci->condition && flagexp(ci->condition))
+		if(ci->condition && flagexp(ci->condition,0))
 			return ccal =ci->value.v_al;
 		if(!ci->condition) cn=ci;
 	}
@@ -205,8 +205,8 @@ int parseconfig(char *cfgname)
 				}
 			} else if(!strcasecmp(p, "if"))	{
 				if(curcond)write_log("%d: warn: 'if' without 'endif' for previous 'if'!",line);
-				if(flagexp(t)<0) {
-					write_log("%d: can't parse expression '%s'",line, t);
+				if(flagexp(t,1)<0) {
+					write_log("%d: can't parse expression '%s'",line,t);
 					rc=0;
 				} else {
 					cc=slist_add(&condlist, t);

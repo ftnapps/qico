@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.5 2004/02/14 11:55:34 sisoft Exp $
+ * $Id: tools.c,v 1.6 2004/02/15 01:22:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -287,8 +287,10 @@ size_t getfreespace(const char *path)
 {
 #ifdef STAT_V_FS
 	struct STAT_V_FS sfs;
-	if(!STAT_V_FS(path,&sfs))return(sfs.f_bsize*sfs.f_bavail);
-	write_log("can't statfs '%s'",path);
+	if(!STAT_V_FS(path,&sfs)) {
+		if(sfs.f_bsize>=1024)return((sfs.f_bsize/1024L)*sfs.f_bavail);
+		    else return(sfs.f_bavail/(1024L/sfs.f_bsize));
+	} else write_log("can't statfs '%s'",path);
 #endif
 	return(~0L);
 }

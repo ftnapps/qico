@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.7 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: flaglex.l,v 1.8 2004/02/15 01:22:25 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -155,6 +155,9 @@ Datestr         {Month}({Day}-{Day})?
 int flagfor(char *str)
 {
 	char *p, *q;
+	if(!str||!*str||!strncasecmp(str,"tty",3)||!strncasecmp(str,"tcp",3)||
+			!strncasecmp(str,"cua",3)||!strncasecmp(str,"bink",4)||
+			!strncasecmp(str,"modem",5))return 0;
 	DEBUG(('Y',2,"flagfor: \"%s\"",str));
 	if(!rnode) return 0;
  	if(!strncasecmp(str,"list",4)) {
