@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.21 2000/12/17 11:15:13 lev Exp $
+ * $Id: ftn.c,v 1.22 2001/02/16 10:43:41 aaz Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -19,7 +19,7 @@ int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 	else { a->z=a->n=a->f=a->p=(wc?-1:0); }
 	pn=p;
 	while(*p && pq) {
-		if(isdigit(*p))
+		if(isdigit((int)*p))
 			wn=1;
 		else if(wc && *p=='*') {
 			wn=2;
@@ -358,7 +358,7 @@ FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to,
 	
 	f=fopen(fn,"w");
 	if(!f) return NULL;
-	bzero(&ph, sizeof(ph));bzero(&mh, sizeof(mh));
+	memset(&ph,0, sizeof(ph));memset(&mh,0, sizeof(mh));
 	ph.phONode=fa->f;ph.phDNode=ta->f;ph.phONet=fa->n;ph.phDNet=ta->n;
 	ph.phYear=t->tm_year+1900;ph.phMonth=t->tm_mon;ph.phDay=t->tm_mday;
 	ph.phHour=t->tm_hour;ph.phMinute=t->tm_min;ph.phSecond=t->tm_sec;
@@ -605,8 +605,8 @@ int isdos83name(char *fn)
     	if('.'==*p) ec++;
     	else {
 			if(!ec) nl++; else el++;
-			if(isalpha(*p)) {
-				if(isupper(*p)) uc++;
+			if(isalpha((int)*p)) {
+				if(isupper((int)*p)) uc++;
 				else lc++;
 			}
 		}

@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.6 2001/01/04 18:17:21 lev Exp $
+ * $Id: nodelist.c,v 1.7 2001/02/16 10:43:41 aaz Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -22,7 +22,7 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	struct stat sb;
 
 	*nl=NULL;
-	bzero(nlent, sizeof(ninfo_t));
+	memset(nlent, 0, sizeof(ninfo_t));
 	sprintf(nlp, "%s/%s.lock", nlpath, NL_IDX);
 	if(islocked(nlp)) return 0;
 	sprintf(nlp, "%s/%s", nlpath, NL_IDX);
@@ -307,8 +307,8 @@ int chktxy(char *p)
 	time_t tim=time(NULL);
 	struct tm *ti=gmtime(&tim);
 	int t=ti->tm_hour*60+ti->tm_min, t1, t2;
-	t1=(toupper(p[1])-'A')*60+(islower(p[1]) ? 30:0);
-	t2=(toupper(p[2])-'A')*60+(islower(p[2]) ? 30:0);
+	t1=(toupper((int)p[1])-'A')*60+(islower((int)p[1]) ? 30:0);
+	t2=(toupper((int)p[2])-'A')*60+(islower((int)p[2]) ? 30:0);
 	return ((t1<=t2 && t>=t1 && t<=t2) || (t1>t2 && (t>=t1 || t<=t2)));
 }
 

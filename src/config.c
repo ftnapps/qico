@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.4 2000/11/26 13:17:33 lev Exp $
+ * $Id: config.c,v 1.5 2001/02/16 10:43:40 aaz Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -186,7 +186,7 @@ int readconfig(char *cfgname)
 					setvalue(ci,configtab[i].def_val ,
 							 configtab[i].type);
 				else
-					bzero(&ci->value, sizeof(ci->value));
+					memset(&ci->value, 0, sizeof(ci->value));
 				ci->condition=NULL;configtab[i].found=1;
 				ci->next=NULL;
 				configtab[i].items=ci;

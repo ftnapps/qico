@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.17 2001/02/03 11:52:28 lev Exp $
+ * $Id: session.c,v 1.18 2001/02/16 10:43:41 aaz Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -592,8 +592,8 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		return S_REDIAL;
 	}
 		
-	bzero(&sendf, sizeof(sendf));
-	bzero(&recvf, sizeof(recvf));
+	memset(&sendf,0, sizeof(sendf));
+	memset(&recvf,0, sizeof(recvf));
 	signal(SIGALRM, sessalarm);
 	signal(SIGTERM, tty_sighup);
 	signal(SIGINT, tty_sighup);

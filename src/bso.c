@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.9 2001/01/07 11:25:26 lev Exp $
+ * $Id: bso.c,v 1.10 2001/02/16 10:43:40 aaz Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -328,7 +328,7 @@ int bso_getstatus(ftnaddr_t *fa, sts_t *st)
 			   &st->htime, &st->utime);fclose(f);
 		return 1;
 	}
-	bzero(st, sizeof(sts_t));
+	memset(st, 0, sizeof(sts_t));
 	return 0;
 }
 
