@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.24 2001/03/20 19:53:15 lev Exp $
+ * $Id: session.c,v 1.25 2001/04/02 19:41:50 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -16,7 +16,7 @@
 #include "janus.h"
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill,
-			   off_t off, FILE *lo, int sort)
+			   off_t off, FILE *lo, int fromlo)
 {
 	flist_t **t, *q;
 	int type;
@@ -25,6 +25,9 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 			loc,rem?rem:"(null)",kill,lo?"yes":"no",off));
 
 	type=whattype(rem);
+	/* If *.PKT from ?LO, sort is as file */
+	if(type==IS_PKT && fromlo) type=IS_FILE;
+
 	if((checktimegaps(cfgs(CFG_MAILONLY)) ||
 		checktimegaps(cfgs(CFG_ZMH))) && type!=IS_PKT) return;
 	switch(type) {
@@ -38,7 +41,7 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 		if(rnode && rnode->options&(O_HXT|O_HAT) && rem) return;
 		break;
 	}
-	for(t=fl;*t && ((*t)->type<=type || !sort);t=&((*t)->next));
+	for(t=fl;*t && ((*t)->type<=type);t=&((*t)->next));
 	q=(flist_t *)xmalloc(sizeof(flist_t));
 	q->next=*t;*t=q;
 	q->kill=kill;q->loff=off;
@@ -123,7 +126,7 @@ int boxflist(flist_t **fl, char *path)
 			if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
 				xstrcpy(mn,de->d_name,MAX_PATH);
 				mapname(mn,cfgs(CFG_MAPOUT),MAX_PATH);
-				addflist(fl, p, xstrdup(mn), '^', 0, NULL, 1);
+				addflist(fl, p, xstrdup(mn), '^', 0, NULL, 0);
 				totalf+=sb.st_size;totaln++;
 			} else xfree(p);
 		}
@@ -143,7 +146,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			snprintf(str, MAX_STRING, "%08lx.pkt", sequencer());
-			addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 1);
+			addflist(fl, xstrdup(bso_tmp), xstrdup(str), '^', 0, NULL, 0);
 			totalm+=sb.st_size;totaln++;
 		}
 	

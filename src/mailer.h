@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.9 2001/02/08 19:25:19 lev Exp $
+ * $Id: mailer.h,v 1.10 2001/04/02 19:41:50 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -156,7 +156,7 @@ extern byte txlastc;
 
 extern void flexecute(flist_t *fl);
 extern void addflist(flist_t **fl, char *loc, char *rem, char kill,
-					 off_t off, FILE *lo, int sort);
+					 off_t off, FILE *lo, int fromlo);
 
 extern void simulate_send(ftnaddr_t *fa);
 
