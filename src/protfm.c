@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.2 2000/07/19 20:21:15 lev Exp $
+ * $Id: protfm.c,v 1.3 2000/07/19 20:47:07 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -146,7 +146,8 @@ int rxclose(FILE **f, int what)
 			while(!stat(p2, &sb) && p2[0]) {
 				if(sifname(ss)) {
 					ss--;
-					if(ss == p2) {
+					while('.' == *ss && ss >= p2) ss--;
+					if(ss < p2) {
 						log("can't find situable name for %s: leaving in temporary directory",p);
 						p2[0] = '\x00';
 					}
