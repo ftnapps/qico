@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.10 2001/02/16 14:45:55 aaz Exp $
+# $Id: Makefile.in,v 1.11 2001/02/18 11:37:41 aaz Exp $
 #
 
 prefix  = @prefix@
@@ -47,9 +47,11 @@ OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
 QCCOBJS	= qcc.o ver.o
 QCTLOBJS= qctl.o ver.o gmtoff.o $(LIBOBJS)
 
+LIBSRCS=$(LIBOBJS:.o=.c)
+
 SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
           tty.c globals.c emsi.c crc.c session.c call.c qnlc.c qipc.c tcp.c \
-          hydra.c execsh.c protfm.c janus.c freq.c gmtoff.c
+          hydra.c execsh.c protfm.c janus.c freq.c gmtoff.c $(LIBSRCS)
 
 ifeq (1,$(NEWZMODEM))
 OBJS    += ls_zmodem.o ls_zglue.o ls_zreceive.o ls_zsend.o
