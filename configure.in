@@ -194,7 +194,7 @@ if test "${enable_qcc}x" != "nox"; then
 	CURSES=curses])])
 	if test $CURSES; then
 		AC_CHECK_LIB($CURSES,mvvline,[AC_DEFINE(CURS_HAVE_MVVLINE,1,[Define to 1 if system (n)curses have mvvline()])])
-		AC_CHECK_LIB($CURSES,wresize,[AC_DEFINE(CURS_HAVE_WRESIZE,1,[Define to 1 if system (n)curses have wresize()])])
+		AC_CHECK_LIB($CURSES,resizeterm,[AC_DEFINE(CURS_HAVE_RESIZETERM,1,[Define to 1 if system (n)curses have wresize()])])
 		QCC=qcc
 		AC_DEFINE(QCC,1,[Build qcc (interface program)])
 		AC_CHECK_HEADERS(curses.h ncurses.h)

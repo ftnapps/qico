@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.20 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: qcc.c,v 1.21 2003/03/12 19:00:52 cyrilm Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
 	struct tm *tt;
 	key_t qipc_key;
 	int lastfirst=1, lastpos=1;
-#ifdef CURS_HAVE_WRESIZE		
+#ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif
 
@@ -490,7 +490,7 @@ int main(int argc, char **argv)
 	bzero(&slots, sizeof(slots));
 	freshall();
 	while(!quitflag) {
-#ifdef CURS_HAVE_WRESIZE		
+#ifdef CURS_HAVE_RESIZETERM
 		if (sizechanged) {
 			if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) {
 				int i;
