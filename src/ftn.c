@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.14 2000/11/09 12:49:04 lev Exp $
+ * $Id: ftn.c,v 1.15 2000/11/16 18:50:52 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -627,7 +627,7 @@ int havestatus(int status, int cfgkey)
 	static int stc[]={Q_NORM,Q_HOLD,Q_DIR,Q_CRASH,Q_IMM};
 	static char stl[]=Q_CHARS;
 	int i;
-    char *callon=cfgs(cfgkey);
+	char *callon=cfgs(cfgkey);
 	for(i=0;i<5;i++) if((status & stc[i]) && (strchr(callon,stl[i]))) return 1;
 	return 0;
 }
