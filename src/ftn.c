@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.9.2.1 2000/11/01 14:05:09 lev Exp $
+ * $Id: ftn.c,v 1.9.2.2 2000/11/01 14:08:20 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -521,14 +521,14 @@ char *fnc(char *s)
 int whattype(char *fn)
 {
 	static char *ext[] = {"su","mo","tu","we","th","fr","sa","pkt","req"};
-	int i, l;char *p, *e;
+	int i, l;char *p;
 	char low;
 	if(!fn) return IS_ERR;
 	p=strrchr(fn,'.');
 	if(!p) return IS_FILE;
 	p++;
 	l=strlen(p);
-	if(l>3 || l<2) return IS_FILE;
+	if(l != 3) return IS_FILE;
 	for(i=0;i<9;i++)
 		if(!strncasecmp(p,ext[i],strlen(ext[i])))
 			switch(i) {
