@@ -249,11 +249,12 @@ dialsuffix	|
 #
 # Outbound falvors and call control
 #
-# N - Normal (*.flo, *.out)
-# D - Direct (*.dlo, *.dut)
-# H - Hold   (*.hlo, *.hut)
-# C - Crash  (*.clo, *.cut)
-# I - Imm    (*.ilo, *.iut)
+# N - Normal       (*.flo, *.out)
+# D - Direct       (*.dlo, *.dut)
+# H - Hold         (*.hlo, *.hut)
+# C - Crash        (*.clo, *.cut)
+# I - Imm          (*.ilo, *.iut)
+# R - File request (*.req)
 #
 # Crash mode (call without pauses) is not supported yet.
 # Hold files and mail will be sent in outbound session, if other flavors
@@ -261,7 +262,7 @@ dialsuffix	|
 #
 # Call to node, if one of these presents in outbound for this node
 # Default is NDCI
-callonflavors NDCI
+callonflavors NDCIR
 
 #
 # Don't check work time, if these flavors present in outbound for this node
@@ -482,4 +483,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.14 2001/03/10 19:50:16 lev Exp $
+# $Id: qico.conf.sample,v 1.15 2001/03/11 20:15:25 lev Exp $

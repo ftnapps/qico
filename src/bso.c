@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.12 2001/02/18 12:23:58 lev Exp $
+ * $Id: bso.c,v 1.13 2001/03/11 20:15:26 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -87,7 +87,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 									if(!strcasecmp(p+2, "ut") && F_ERR != (flv = bso_flavor(p[1])))
 										each(fn, &a, T_NETMAIL, flv);
 									if(!strcasecmp(p+1, "req"))
-										each(fn, &a, T_REQ, F_NORM);
+										each(fn, &a, T_REQ, F_REQ);
 								}
 							}
 							closedir(dp);
@@ -98,7 +98,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 						if(!strcasecmp(p+2, "ut") && F_ERR != (flv = bso_flavor(p[1])))
 							each(fn, &a, T_NETMAIL, flv);
 						if(!strcasecmp(p+1, "req"))
-							each(fn, &a, T_REQ, F_NORM);	
+							each(fn, &a, T_REQ, F_REQ);	
 					}
 				}
 				closedir(dn);
@@ -169,7 +169,7 @@ int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int ))
 		if(!strcasecmp(p+2, "ut"))
 			each(fn, &a, T_NETMAIL, bso_flavor(p[1]));	
 		if(!strcasecmp(p+1, "req"))
-			each(fn, &a, T_REQ, F_NORM);	
+			each(fn, &a, T_REQ, F_REQ);	
 	}	
 		
 	closedir(dz);
@@ -203,6 +203,7 @@ int bso_flavor(char fl)
 	case 'D': return F_DIR;
 	case 'C': return F_CRSH;
 	case 'I': return F_IMM;
+	case 'R': return F_REQ;
 	}
 	return F_ERR;
 }
@@ -212,6 +213,7 @@ char *bso_pktn(ftnaddr_t *fa, int fl)
 	bso_name(fa);
 	switch(fl) {
 	case F_NORM:
+	case F_REQ:
 		strcat(bso_tmp, "out");
 		break;
 	case F_DIR:
@@ -235,6 +237,7 @@ char *bso_flon(ftnaddr_t *fa, int fl)
 	bso_name(fa);
 	switch(fl) {
 	case F_NORM:
+	case F_REQ:
 		strcat(bso_tmp, "flo");
 		break;
 	case F_DIR:

@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.19 2001/03/10 19:50:17 lev Exp $
+ * $Id: ftn.h,v 1.20 2001/03/11 20:15:27 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -16,6 +16,8 @@
 #define F_DIR  3
 #define F_CRSH 4
 #define F_IMM  5
+#define F_REQ  6
+#define F_MAX  F_REQ
 
 #define T_UNKNOWN 0
 #define T_ARCMAIL 1
@@ -109,8 +111,8 @@ typedef struct {
 typedef struct _qitem_t {
 	ftnaddr_t addr;
 	int try, flv, what, touched;
-	off_t sizes[6];
-	time_t times[6];
+	off_t sizes[F_MAX+1];
+	time_t times[F_MAX+1];
 	off_t reqs, pkts;
 	time_t onhold;
 	struct _qitem_t *next;
