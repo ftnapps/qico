@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.34 2001/07/24 13:57:09 lev Exp $
+ * $Id: ftn.c,v 1.35 2001/09/30 15:15:47 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -430,15 +430,34 @@ void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig)
  * often doesn't have much of an environment or arglist to overwrite.
  */
 
+extern char **environ;
+
 static char *cmdstr=NULL;
 static char *cmdstrend=NULL;
 
-void setargspace(char **argv, char **envp)
+void setargspace(int argc, char **argv, char **envp)
 {
-	cmdstr=argv[1];
+	int i = 0
+
+	cmdstr=argv[0];
+
+	while(envp[i]) i++;
+	environ = xmalloc(sizeof(char*)*i);
+	while(envp[i]) {
+		environ[i] = xstrdup(envp[i]);
+		i++;
+	}
+	environ[i] = NULL;
+
 	while (*envp) envp++;
 	envp--;
 	cmdstrend=(*envp)+strlen(*envp);
+
+	cmdstrend = argv[0]+strlen(argv[0]);
+	for(i=1;i<argc;i++)
+		if(cmdstrend+1==argv[i]) cmdstrend = argv[i]+strlen(argv[i]);
+	for(i=0;envp[i];i++)
+		if(cmdstrend+1==envp[i]) cmdstrend = envp[i]+strlen(envp[i]);
 }
 
 void setproctitle(char *str)
