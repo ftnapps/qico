@@ -2,10 +2,43 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.6 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: flaglex.l,v 1.7 2003/02/03 14:38:52 cyrilm Exp $
  **********************************************************/
 %option noyywrap
 %{
+
+char *yyPTR = NULL;
+int yyBUFL;
+
+#ifndef yywrap
+#define yywrap() 1
+#endif
+
+#ifdef FLEX_SCANNER
+#undef YY_INPUT
+#define YY_INPUT(buf,result,max_size) \
+	if ((yyPTR == NULL) || (*yyPTR == '\0')) \
+		result=YY_NULL; \
+	else \
+	{ \
+		yyBUFL=strlen(yyPTR); \
+		if (yyBUFL > max_size) yyBUFL=max_size; \
+		memcpy(buf,yyPTR,yyBUFL); \
+		yyPTR += yyBUFL; \
+		result=yyBUFL; \
+	}
+
+#else /* this is most probably native lex? */
+
+#undef input
+#undef output
+#undef unput
+
+#define input() (((yyPTR == NULL) || (*yyPTR == '\0'))?NULL:*yyPTR++)
+#define output(c)
+#define unput(c) (*--yyPTR = (c))
+
+#endif
 
 #include "flagexp.h"
 #include "headers.h"
