@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.8 2000/11/26 13:17:35 lev Exp $
+ * $Id: tty.c,v 1.9 2000/12/26 12:24:54 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -467,10 +467,16 @@ int tty_hasdata(int sec, int usec)
 }
 
 void tty_purge() {
+#ifdef BUF_READ
+	in_bufmax = in_bufpos = 0;
+#endif
 	tcflush(0, TCIFLUSH);
 }
 
 void tty_purgeout() {
+#ifdef BUF_WRITE
+	out_bufpos = 0;
+#endif
 	tcflush(1, TCOFLUSH);
 }
 
