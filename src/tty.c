@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.3 2000/07/19 12:51:25 lev Exp $
+ * $Id: tty.c,v 1.4 2000/10/08 17:19:17 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -20,6 +20,7 @@
 #include "ftn.h"
 #include "tty.h"
 #include "defs.h"
+#include "qconf.h"
 
 char *tty_errs[]={"Ok","tcget/setattr error", "bad speed", "open error",
 				"read error", "write error", "timeout", "close error",
@@ -38,8 +39,6 @@ unsigned char buffer[MAXBUF];
 int bufpos=0, bufmax=0;
 #endif
 
-#define LCKLOCK LOCK_DIR"/LCK.."
-
 void tty_sighup(int sig)
 {
 	tty_hangedup=1;
@@ -55,7 +54,7 @@ int tty_isfree(char *port, char *nodial)
 	
 	sprintf(lckname, "%s.%s", nodial, port);
 	if(!stat(lckname, &s)) return 0;
-	sprintf(lckname,"%s%s",LCKLOCK,port);
+	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),port);
 	if ((f=fopen(lckname,"r")))	{
 		fscanf(f,"%d",&pid);         
 		fclose(f);		
@@ -93,12 +92,7 @@ void tty_unlock(char *port)
 	FILE *f;
 	
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
-#ifdef SVR4_LOCKS	
-	sprintf(lckname,"%s/LK.%03u.%03u.%03u",	LCKLOCK,
-			major(sb.st_dev), sb.st_rdev>>18, minor(sb.st_rdev));
-#else
-	sprintf(lckname,"%s%s",LCKLOCK,p);
-#endif
+	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
 	if ((f=fopen(lckname,"r")))	{
 		fscanf(f,"%d",&pid);         
 		fclose(f);
@@ -112,7 +106,7 @@ int tty_lock(char *port)
 	int rc=-1;
 	
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
-	sprintf(lckname,"%s%s",LCKLOCK,p);
+	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
 	rc=lockpid(lckname);
 	if(rc) return 0;
 	return -1;

@@ -63,3 +63,4 @@ osname,C_STR,char *,0,NULL
 mincpsin,C_INT,int,0,"0"
 mincpsout,C_INT,int,0,"0"
 clearundial,C_INT,int,0,"0"
+lockdir,C_STR,char *,1,NULL

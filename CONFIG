@@ -24,10 +24,6 @@ MORDA	 = 1
 # Please, set it under FreeBSD
 #FREE_BSD=1
 
-
-# lock dir
-DEFS    += -DLOCK_DIR=\"/var/lock\" 
-
 # communication socket
 DEFS    += -DQIPC_SOCKET=\"/tmp/qlog\"
 
@@ -70,5 +66,5 @@ YACC    = yacc
 #LIBS=-lutil
 
 #
-# $Id: CONFIG,v 1.9 2000/09/25 11:24:39 lev Exp $
+# $Id: CONFIG,v 1.10 2000/10/08 17:19:17 lev Exp $
 #
