@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.8 2001/02/18 15:04:43 lev Exp $
+ * $Id: nodelist.c,v 1.9 2001/03/08 16:51:54 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -434,6 +434,13 @@ int can_dial(ninfo_t *nl, int ct)
 	if(nl->addrs->addr.p==0 && checktimegaps(cfgs(CFG_ZMH)))
 		return 1;
 	return 0;
+}
+
+int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs)
+{
+	int start = nl->hidnum;
+	while (applysubst(nl,subs) && nl->hidnum != start && !can_dial(nl,ct));
+	return can_dial(nl,ct);
 }
 
 void nlkill(ninfo_t **nl)
