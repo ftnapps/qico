@@ -143,8 +143,9 @@ log		/var/log/ftn/qico.log
 #  S -- Session
 #  Y -- Config `if' expressions parsing and executing
 #  Z -- ZModem
+#  M -- Chat with modem
 #
-#loglevels E0,H0,J0,Q0,S0,Y0,Z0
+#loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0
 
 # Write to log estimated transfer time befor each file transfer
 estimatedtime no
@@ -254,6 +255,13 @@ modemringing    RINGING
 # modem commands substs: | - CR/LF, ~ - 1 sec pause.
 # modem hangup sequence (several lines allowed)
 modemhangup	~~+++~~ATH0|
+
+# command to check if modem is alive
+#modemalive	AT|
+
+# commands to gather session statistics (multiple allowed)
+#modemstat	AT%S|
+#modemstat	AT#UD|
 
 # modem reset sequence (usually you needn't it if you have mgetty)
 #modemreset 	ATZ|
@@ -511,4 +519,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.25 2002/07/09 13:44:35 lev Exp $
+# $Id: qico.conf.sample,v 1.26 2003/01/22 07:50:10 cyrilm Exp $

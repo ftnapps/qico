@@ -2,7 +2,7 @@
  * File: call.c
  * Created at Sun Jul 25 22:15:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: call.c,v 1.6 2001/03/20 19:53:13 lev Exp $
+ * $Id: call.c,v 1.7 2003/01/22 07:50:11 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -13,14 +13,73 @@ char *mcs[]={"ok", "fail", "error", "busy"};
 int hangup()
 {
 	slist_t *hc;
-	int rc=MC_OK;
+	int rc=MC_FAILURE;
+	int to=cfgi(CFG_WAITRESET);
+	int t1;
+
 	if(!cfgsl(CFG_MODEMHANGUP)) return MC_OK; 
 	write_log("hanging up...");
-	for(hc=cfgsl(CFG_MODEMHANGUP);hc;hc=hc->next)
-		rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
-					  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
-					  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
-					  cfgi(CFG_WAITRESET), NULL, 0);
+
+	while(rc!=MC_OK && to>0) {
+		for(hc=cfgsl(CFG_MODEMHANGUP);hc;hc=hc->next) {
+			t1=t_start();
+			rc=modem_chat(hc->str, cfgsl(CFG_MODEMOK),
+				cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
+				cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
+				to, NULL, 0);
+			to-=t_time(t1);
+		}
+		sleep(1);
+		tty_purge();
+		rc=alive(); 
+		sleep(1);
+		tty_purge();
+	}
+	if (rc!=MC_OK) DEBUG(('M',3,"hangup: failed, rc=%d",rc));
+	return rc;
+}
+
+int stat_collect()
+{
+	slist_t *hc;
+	int rc=MC_OK;
+	int stat_len=8192;
+	char stat[8192];
+	char *cur_stat, *p;
+	if(!cfgsl(CFG_MODEMSTAT)) return MC_OK; 
+	write_log("collecting statistics...");
+	for(hc=cfgsl(CFG_MODEMSTAT);hc;hc=hc->next)
+		{
+		stat[0]=0;
+		rc=modem_stat(hc->str, cfgsl(CFG_MODEMOK),
+					  cfgsl(CFG_MODEMERROR),
+					  cfgi(CFG_WAITRESET), stat, stat_len);
+		for(cur_stat=stat;*cur_stat;)
+			{
+			for(p=cur_stat;*p && *p!='\n';p++); 
+			if (*p)
+				{
+				*(p++)=0;
+				}
+			write_log("%s",cur_stat);
+			cur_stat=p;
+			}
+		}
+	return rc;
+}
+
+int alive()
+{
+	char *ac;
+	int rc=MC_OK;
+
+	ac=cfgs(CFG_MODEMALIVE);
+	DEBUG(('M',4,"alive: checking modem..."));
+	rc=modem_chat(ac, cfgsl(CFG_MODEMOK),
+			  cfgsl(CFG_MODEMERROR), cfgsl(CFG_MODEMBUSY),
+			  cfgs(CFG_MODEMRINGING), cfgi(CFG_MAXRINGS), 
+			  2, NULL, 0);
+	if (rc!=MC_OK) DEBUG(('M',3,"alive: failed, rc=%d",rc));
 	return rc;
 }
 
@@ -96,6 +155,7 @@ int do_call(ftnaddr_t *fa, char *phone, char *port)
 	sline("");
 	tty_local();
 	hangup();
+	stat_collect();
 	tty_close();
 	return rc;
 }
