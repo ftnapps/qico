@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.8 2003/10/05 17:48:57 sisoft Exp $
+ * $Id: main.c,v 1.9 2003/10/06 13:37:28 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -12,8 +12,6 @@
 #include <sys/msg.h>
 #include "tty.h"
 #include "byteop.h"
-
-#define IP_D 0
 
 extern int hangup();
 extern int stat_collect();
@@ -27,7 +25,7 @@ void usage(char *ex)
 	printf("usage: %s [<options>] [<node>]\n"
  		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h           this help screen\n"
-		   "-I<config>   override default config\n\n"  
+		   "-I<config>   override default config\n"  
 		   "-d           start in daemon (originate) mode\n"
  		   "-a<type>     start in answer mode with <type> session, type can be:\n"
 		   "                       auto - autodetect\n"
@@ -56,9 +54,6 @@ void stopit(int rc)
 {
 	vidle();qqreset();
 	write_log("exiting with rc=%d",rc);log_done();
-#if IP_D	
-	if(is_ip)qlerase();
-#endif	
 	qipc_done();
 	exit(rc);
 }
@@ -71,12 +66,7 @@ void sigerr(int sig)
 	if(is_bso()==1)bso_done();
 	if(is_aso()==1)aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
-#if IP_D	
-	if(is_ip)qlerase();
-#endif
-	if(cfgs(CFG_PIDFILE)) {
-		if(getpid()==islocked(ccs))lunlink(ccs);
-	}
+	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
 	log_done();
 	tty_close();
 	qqreset();sline("");title("");
@@ -338,11 +328,7 @@ void daemon_mode()
 						if(!stat(lckname,&s))goto nlkil;
 						is_ip=1;
 						if(rnode->opt&MO_BINKP)bink=1;
-#if IP_D
-						snprintf(ip_id,10,"ip%d",getpid());
-#else
-						xstrcpy(ip_id,bink?"binkp":"ifcico", 10);
-#endif
+						xstrcpy(ip_id,bink?"binkp":"ifcico",10);
 						rnode->tty=xstrdup(bink?"binkp":"tcpip");
 					} else {
 						port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
@@ -540,12 +526,8 @@ nlkil:				is_ip=0;bink=0;
 					if(is_bso()==1)bso_done();
 					if(is_aso()==1)aso_done();
 					write_log("exiting by request");
-#if IP_D	
-					if(is_ip) qlerase();
-#endif
-					if(cfgs(CFG_PIDFILE)) {
-						if(getpid()==islocked(ccs)) lunlink(ccs);
-					}
+					if(cfgs(CFG_PIDFILE))
+					    if(getpid()==islocked(ccs))lunlink(ccs);
 					log_done();
 					qqreset();sline("");title("");
 					qsendpkt(QC_QUIT,QLNAME,"",1);
@@ -867,11 +849,7 @@ void answer_mode(int type)
 
 	rnode=xcalloc(1, sizeof(ninfo_t));
 	is_ip=!isatty(0);
-#if IP_D	
-	snprintf(ip_id, 10, "ip%d", getpid());
-#else
 	xstrcpy(ip_id, bink?"binkp":"ifcico", 10);
-#endif
 	rnode->tty=xstrdup(is_ip?(bink?"binkp":"tcpip"):basename(ttyname(0)));
 	rnode->options|=O_INB;
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
@@ -1133,11 +1111,7 @@ int main(int argc, char *argv[], char *envp[])
 	if(hostname) {
 		is_ip=1;
 		rnode=xcalloc(1,sizeof(ninfo_t));
-#if IP_D	
-		snprintf(ip_id, 10, "ip%d", getpid());
-#else
 		xstrcpy(ip_id, bink?"binkp":"ifcico", 10);
-#endif
 		rnode->tty=bink?"binkp":"tcpip";
 		if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 			write_log("can't open log %s!", ccs);

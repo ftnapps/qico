@@ -1,7 +1,20 @@
+2003-10-05 23:37  sisoft
+
+	* cvs_com, src/Makefile.am:
+
+	fix makefile for make dist.
+	
+2003-10-05 21:48  sisoft
+
+	* Changes, FAQ, README, TODO, cvs_com, src/main.c, src/qcc.c,
+	src/qctl.c, src/ver.c.in, src/ver.h:
+
+	added -v option for all programs. see this for version.
+	change faq about bugs.
+	
 2003-10-05 19:01  sisoft
 
-	* ChangeLog, TodayFixes, qico.conf.sample, src/binkp.c,
-	src/binkp.h, src/session.c:
+	* qico.conf.sample, src/binkp.c, src/binkp.h, src/session.c:
 
 	apply new exchange-flags algo.
 	add support for CRYPT mode.
@@ -9,8 +22,7 @@
 	
 2003-10-03 04:11  sisoft
 
-	* .cvsignore, ChangeLog, TodayFixes, cvs_com, src/binkp.c,
-	src/binkp.h, src/freq.c:
+	* .cvsignore, cvs_com, src/binkp.c, src/binkp.h, src/freq.c:
 
 	another fix of binkp opt.
 	tested with binkd-0.9.6a and binkleyforce-0.22.8.kst7 - success.
@@ -21,10 +33,10 @@
 	
 2003-10-02 19:17  sisoft
 
-	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,
-	TodayFixes, autogen.sh, configure.in, cvs_com, qico.conf.sample,
-	src/binkp.c, src/binkp.h, src/ftn.c, src/main.c, src/qcc.c,
-	src/qctl.c, src/session.c, src/tcp.c:
+	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
+	configure.in, cvs_com, qico.conf.sample, src/binkp.c, src/binkp.h,
+	src/ftn.c, src/main.c, src/qcc.c, src/qctl.c, src/session.c,
+	src/tcp.c:
 
 	change version to 0.50si-cvs.
 	small change in configure.in.
@@ -43,7 +55,7 @@
 	
 2003-09-23 17:07  sisoft
 
-	* ChangeLog, src/tcp.c:
+	* src/tcp.c:
 
 	fix run ./qico -bi.
 	
@@ -64,12 +76,6 @@
 	new file flag: nodial.tcpip - can't call via ip.
 	add 'p' opt for binkpopt: disable plain auth.
 	
-2003-09-16 15:09  sisoft
-
-	* ChangeLog:
-
-	branching done.
-	
 2003-09-16 15:05  sisoft
 
 	* .cvs2cl, Changes, README, configure.in:
@@ -85,8 +91,8 @@
 	
 2003-09-14 20:45  sisoft
 
-	* ChangeLog, Changes, qico.conf.sample, src/binkp.c, src/qconf.x,
-	src/queue.c, src/session.c, src/tty.c:
+	* Changes, qico.conf.sample, src/binkp.c, src/qconf.x, src/queue.c,
+	src/session.c, src/tty.c:
 
 	add keyword 'defboxflv' - default longbox flavor.
 	small change in binkp.
@@ -94,7 +100,7 @@
 	
 2003-09-13 19:31  sisoft
 
-	* ChangeLog, qico.conf.sample, src/binkp.c, src/ftn.c:
+	* qico.conf.sample, src/binkp.c, src/ftn.c:
 
 	fix binkp.
 	
@@ -118,7 +124,7 @@
 	
 2003-09-08 00:27  sisoft
 
-	* ChangeLog, Changes, FAQ, README, qico.conf.sample, src/qconf.x:
+	* Changes, FAQ, README, qico.conf.sample, src/qconf.x:
 
 	fix descriptions in config sample. add Q in faq. add keyword `binkpopt`.
 	
@@ -130,7 +136,7 @@
 	
 2003-09-03 01:00  sisoft
 
-	* ChangeLog, Changes, src/emsi.c:
+	* Changes, src/emsi.c:
 
 	fix in emsi.
 	
@@ -148,13 +154,13 @@
 	
 2003-08-25 21:28  sisoft
 
-	* ChangeLog, README, configure.in:
+	* README, configure.in:
 
 	correct my email address.
 	
 2003-08-25 19:27  sisoft
 
-	* .cvsignore, ChangeLog, Changes, FAQ, Makefile.am, README, TODO,
+	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO,
 	configure.in, qico.conf.sample, src/Makefile.am, src/crc.c,
 	src/crc.h, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
 	src/globals.c, src/globals.h, src/mailer.h, src/main.c,
@@ -189,12 +195,6 @@
 	src/session.c:
 
 	add work with .csy busy flags, change work with .bsy flags.
-	
-2003-07-24 20:48  sisoft
-
-	* ChangeLog:
-
-	add ChangeLog.
 	
 2003-07-24 20:46  sisoft
 
