@@ -1,6 +1,12 @@
+qico (0.51si-1) unstable; urgency=low
+
+  * See Changes and ChangeLog.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Tue, 13 Jan 2004 13:00:27 +0300
+
 qico (0.50si-1) unstable; urgency=low
 
-  * Initial release.
+  * Initial debian release.
 
  -- Stepan A. Pologov <sisoft@bk.ru>  Wed, 29 Oct 2003 16:56:49 +0300
 

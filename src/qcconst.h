@@ -1,6 +1,6 @@
 /**********************************************************
  * for exchange with qcc
- * $Id: qcconst.h,v 1.4 2003/10/08 01:26:48 sisoft Exp $
+ * $Id: qcconst.h,v 1.5 2004/01/15 23:39:41 sisoft Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -58,6 +58,7 @@ typedef struct {
 #define QR_RESTMR 'O'
 #define QR_CHAT   'P'
 #define QR_SET    'S'
+#define QR_STYPE  'T'
 
 #define QC_LOGIT  'a'
 #define QC_SLINE  'b'

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.6 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: log.c,v 1.7 2004/01/15 23:39:41 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -152,7 +152,6 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(p,MAX_STRING*16-50,fmt,args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
 	vsprintf(p,fmt,args);
 #endif
 	if(log_callback&&dbg)log_callback(str);

@@ -159,8 +159,9 @@ log		/var/log/ftn/qico.log
 #  R -- File requests
 #  X -- Sent debug log to qcc					      (NEW!!!)
 #  B -- BinkP							      (NEW!!!)
+#  I -- IP routines						      (NEW!!!)
 #
-loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0
+loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0
 
 # Write to log estimated transfer time before each file transfer
 estimatedtime no
@@ -224,8 +225,8 @@ dirperm		0755
 # created files permissions
 defperm		0644
 
-# ipc objects permissions
-ipcperm		0666
+# ipc objects permissions					   (removed!!!)
+;;ipcperm	0666
 
 # use setproctitle (default yes)
 ;useproctitle no
@@ -380,6 +381,11 @@ flags		Linux, qico-si team
 ;progname	qico
 ;version    2000
 ;osname     Windows95
+
+# server port. default is 60178.				       (NEW!!!)
+# may use number or name from /etc/services.
+;server		qicoui
+
 
 # Send **EMSI_INQC816 twice, as required by standard (FSC-0056.TXT).
 standardemsi yes
@@ -681,5 +687,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.16 2004/01/10 09:24:39 sisoft Exp $
+# $Id: qico.conf.sample,v 1.17 2004/01/15 23:39:40 sisoft Exp $
 ###############################################################################

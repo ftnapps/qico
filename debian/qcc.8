@@ -1,23 +1,23 @@
-.TH QCC 8 "19 Oct 2003"
+.TH QCC 8 "16 Jan 2004"
 .SH NAME
 qcc \- ncurses frontend for qico ftn mailer.
 .SH SYNOPSIS
 .B qcc
-.RB [ \-nfhv ]
+.RB [ \-nhvP ]
 .SH DESCRIPTION
 .B qcc
 is a graphical ncurses-based frontend for qico ftn mailer.
 .SH OPTIONS
 .TP
+.BI \-P port
+Connect to
+.I port.
+default port is 60178.
+.TP
 .BI \-n
 Start
 .B qcc
 in silent mode (without stupid beeeps).
-.TP
-.BI \-f
-Run
-.B qcc
-force (without checking old IPC messages).
 .TP
 .BI \-h
 Print help message.

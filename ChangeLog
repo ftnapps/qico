@@ -1,3 +1,9 @@
+2004-01-13 12:42  sisoft
+
+	* Makefile.am, debian/init.d, src/main.c, src/qcc.c:
+
+	none.
+	
 2004-01-13 00:41  sisoft
 
 	* src/: Makefile.am, clserv.c, clserv.h, daemon.c, flagexp.y,
