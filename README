@@ -1,6 +1,6 @@
 ,sS$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ss,
 $$$$'                    qico, an ftn compatible mailer                    `$$$$
-$$$$.                           * version 0.45 *                           ,$$$$
+$$$$.                           * version 0.46 *                           ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
 Features:
@@ -124,19 +124,13 @@ Notes:
        
 Authors 
 ~~~~~~~
-Pavel Kurnosoff, 2:5030/736.25, pqr@yasp.com, icq 45906870 
-
-Patches
-~~~~~~~
+Pavel Kurnosoff, 2:5030/736.25, pqr@yasp.com, icq 45906870 (up to 0.45pl3.1)
 Lev Serebryakov, 2:5030/661.0, lev@serebryakov.spb.ru, icq 3670018
 
 Download
 ~~~~~~~~
-   WWW1: http://www.ruxy.org.ru/~aaz/qico
-   WWW2: http://www.friendsnet.spb.ru/~aaz
-   WWW3: http://dtu.tsu.ru/~aaz
-   WWW4: http://lev.serebryakov.spb.ru/
+  http://lev.serebryakov.spb.ru/
   Fido: 2:5030/529 (alias QICO)
-  Fido: 2:5030/661 (alias QICOLS)
+  Fido: 2:5030/661 (alias QICO)
 
-$Id: README,v 1.2 2000/07/18 12:50:32 lev Exp $
+$Id: README,v 1.3 2000/07/18 14:33:46 lev Exp $
