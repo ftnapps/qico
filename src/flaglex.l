@@ -2,7 +2,7 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.2 2000/07/18 12:50:33 lev Exp $
+ * $Id: flaglex.l,v 1.3 2000/10/17 16:44:40 lev Exp $
  **********************************************************/
 %{
 
@@ -54,6 +54,7 @@ Time	[Tt][Ii][Mm][Ee]
 iTime	[Ii][Tt][Ii][Mm][Ee]
 Address	[Aa][Dd][Dd][Rr][Ee][Ss][Ss]
 Port    [Pp][Oo][Rr][Tt]
+Date    [Dd][Aa][Tt][Ee]
 Connect [Cc][Oo][Nn][Nn][Ee][Cc][Tt]
 Cid     [Cc][Ii][Dd]
 Sun		[Ss][Uu][Nn]
@@ -100,7 +101,7 @@ iHour		(([0-1][0-9])|(2[0-3]))
 Minute		[0-5][0-9]
 Decimal		[1-9][0-9]*
 Numeric		[0-9][0-9]*
-Phstr		[0-9-]*-[0-9-]*
+Phstr		[0-9-]+
 Ident		[A-Za-z][A-Za-z0-9]*
 Pathstr		\/([^\/]+\/)*[^\/]+
 Timestr		{Dow}({iHour}{Minute}\-{iHour}{Minute})?

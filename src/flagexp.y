@@ -2,9 +2,9 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.3 2000/10/12 20:32:41 lev Exp $
+ * $Id: flagexp.y,v 1.4 2000/10/17 16:44:40 lev Exp $
  **********************************************************/
-%token DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
+%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
 #include <unistd.h>
 #include <stdlib.h>
@@ -56,17 +56,17 @@ elemexp		: flag
 			{$$ = checkspeed($2,$3,0);}
 		| PHONE PHSTR
 			{$$ = checkphone();}
-		| CID IDENT
+		| CID PHSTR
 			{$$ = checkcid();}
 		| PORT IDENT
 			{$$ = checkport();}
-		| PHONE NUMBER
-			{$$ = checkphone();}
 		| FLFILE PATHSTR
 			{$$ = checkfile();}
 		| ITIME timestring
 			{$$ = $2;}
 		| TIME gapstring
+			{$$ = $2;}
+		| DATE datestring
 			{$$ = $2;}
 		| ADDRESS ADDRSTR
 			{$$ = $2;}
@@ -74,6 +74,11 @@ elemexp		: flag
 flag		:IDENT
 		{$$ = $1;}
 		;
+datestring	: DATESTR
+			{$$ = $1;}
+		| DATESTR COMMA datestring
+			{$$ = logic($1,OR,$3);}
+		;	
 timestring	: TIMESTR
 			{$$ = $1;}
 		| TIMESTR COMMA timestring
