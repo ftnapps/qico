@@ -2,7 +2,7 @@
  * File: hydra.h
  * Created at Tue Aug 10 22:49:42 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: hydra.h,v 1.4 2001/05/25 18:30:43 lev Exp $
+ * $Id: hydra.h,v 1.5 2003/02/25 21:23:02 cyrilm Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -155,7 +155,7 @@ boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
 /* end of hydra.h */
 
 extern unsigned long chattimer, lasttimer, chatfill;
-extern boolean hdxsession, originator;
+extern boolean hdxsession/* CYRILM:, originator*/; 
 extern int hydra_modifier;
 
 #endif

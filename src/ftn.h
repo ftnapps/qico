@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.30 2001/09/30 15:15:48 lev Exp $
+ * $Id: ftn.h,v 1.31 2003/02/25 21:22:59 cyrilm Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -60,8 +60,8 @@ typedef struct {
 
 typedef struct {
 	ftnaddr_t addr;
-	unsigned long offset:24;
-	unsigned char index:8;
+	unsigned offset:24;
+	unsigned index:8;
 } idxent_t;
 
 typedef struct _falist_t {
