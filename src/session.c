@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+ * $Id: session.c,v 1.4 2003/07/23 20:33:27 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -159,7 +159,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 		totalf+=sb.st_size;totaln++;
 	}
 	
-	for(i=0;i<5;i++) floflist(fl, bso_flon(fa, fls[i]));
+	for(i=0;i<(4+cfgi(CFG_HOLDOUT));i++) floflist(fl, bso_flon(fa, fls[i]));
 
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
 		if(ADDRCMP((*fa),j->addr)) {

@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.3 2003/07/23 10:45:27 sisoft Exp $
+#* $Id: qconf.x,v 1.4 2003/07/23 20:33:27 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -40,6 +40,7 @@ freqtime,C_STR,char *,0,NULL
 history,C_PATH,char *,0,NULL
 holdonnodial,C_INT,int,0,"0"
 holdonsuccess,C_INT,int,0,"0"
+holdout,C_YESNO,int,0,"no"
 hrxwin,C_INT,int,0,"0"
 hstimeout,C_INT,int,0,"60"
 htxwin,C_INT,int,0,"0"
