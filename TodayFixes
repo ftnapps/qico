@@ -1,4 +1,10 @@
-/* $Id: TodayFixes,v 1.17 2004/01/19 20:21:31 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.18 2004/01/20 10:42:28 sisoft Exp $ */
+---
+fix send files.
+fix binkp detect NR mode with binkd <= 0.9.5.
+fix binkp crash, if can't lock outbound on incoming call.
+.
+previous:
 ---
 in qcc: fix ESC key.
 perfect daemon latency.
@@ -6,11 +12,6 @@ fix skip/suspend/chat/hup functions.
 in qcc: fix for support multiple ip lines.
 send cmd for remove old ip windows.
 fix binkp.
-.
-previous:
----
-in qcc: fix ESC key.
-perfect daemon latency.
 .
 
 ps: в связи с временным отсутствием фидошки,

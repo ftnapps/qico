@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.17 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: session.c,v 1.18 2004/01/20 10:42:28 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -104,7 +104,6 @@ void floflist(flist_t **fl, char *flon)
 				if(!stat(fp,&sb)) {
 					totalf+=sb.st_size;totaln++;
 				}
-				xfree(fp);
 			}
 			off=ftell(f);
 		}
