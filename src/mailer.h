@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.10 2001/04/02 19:41:50 lev Exp $
+ * $Id: mailer.h,v 1.11 2001/04/03 20:27:21 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -56,11 +56,7 @@ typedef struct _flist_t {
 
 int (*receive_callback)(char *fn);
 
-#ifdef NEWZMODEM
 int zmodem_receive(char *m, int canzap);
-#else
-int zmodem_receive(char *m);
-#endif
 int zmodem_send(slist_t *, slist_t *);
 int zmodem_sendfile(char *tosend, char *sendas,
 					unsigned long *totalleft, unsigned long

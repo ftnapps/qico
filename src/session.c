@@ -2,16 +2,12 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.26 2001/04/03 15:26:15 lev Exp $
+ * $Id: session.c,v 1.27 2001/04/03 20:27:22 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
 #include "qipc.h"
-#ifndef NEWZMODEM
-#	include "zmodem.h"
-#else
-#	include "ls_zmodem.h"
-#endif
+#include "ls_zmodem.h"
 #include "hydra.h"
 #include "janus.h"
 
@@ -299,11 +295,7 @@ int wazoorecv(int zap)
 {
 	int rc;
 	write_log("wazoo receive");
-	rc=zmodem_receive(cfgs(CFG_INBOUND)
-#ifdef NEWZMODEM
-	,zap
-#endif
-	);
+	rc=zmodem_receive(cfgs(CFG_INBOUND),zap);
 	qpreset(0);
 	if(rc==RCDO || rc==ERROR) return 1;
 	return 0;
@@ -474,10 +466,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='H';emsi_lo|=P_HYDRA;break;}
 			if(*t=='J' && rnode->options&P_JANUS)
 				{pr[0]='J';emsi_lo|=P_JANUS;break;}
-#ifdef NEWZMODEM
 			if(*t=='D' && rnode->options&P_DIRZAP)
 				{pr[0]='1';emsi_lo|=P_DIRZAP;break;}
-#endif
 			if(*t=='Z' && rnode->options&P_ZEDZAP)
 				{pr[0]='Z';emsi_lo|=P_ZEDZAP;break;}
 			if(*t=='1' && rnode->options&P_ZMODEM)

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.28 2001/03/25 15:38:21 lev Exp $
+ * $Id: emsi.c,v 1.29 2001/04/03 20:27:21 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -55,9 +55,7 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 		switch(toupper(*p++)) {
 		case '1':xstrcat(dat, ",ZMO", EMSI_BUF);c=1;break;
 		case 'Z':xstrcat(dat, ",ZAP", EMSI_BUF);c=1;break;
-#ifdef NEWZMODEM
 		case 'D':xstrcat(dat, ",DZA", EMSI_BUF);c=1;break;
-#endif
 		case 'H':xstrcat(dat, ",HYD", EMSI_BUF);c=1;break;
 		case '8':xstrcat(dat, ",HY8", EMSI_BUF);c=1;break;
 		case '6':xstrcat(dat, ",H16", EMSI_BUF);c=1;break;
@@ -432,9 +430,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "TCP")) { o|=P_TCPP;continue;}
 		if(!strcmp(p, "ZMO")) { o|=P_ZMODEM;continue;}
 		if(!strcmp(p, "ZAP")) { o|=P_ZEDZAP;continue;}
-#ifdef NEWZMODEM
 		if(!strcmp(p, "DZA")) { o|=P_DIRZAP;continue;}
-#endif
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
 		if(!strcmp(p, "H16")) { o|=P_HYDRA16;continue;}
 		if(!strcmp(p, "HYD")) { o|=P_HYDRA;continue;}
