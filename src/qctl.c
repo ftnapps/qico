@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.8 2000/11/26 13:17:34 lev Exp $
+ * $Id: qctl.c,v 1.9 2001/01/18 18:55:12 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -15,12 +15,14 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <config.h>
+#include <errno.h>
 #include "qcconst.h"
 #include "ver.h"
 
 extern time_t gmtoff(time_t tt);
 
 int qipc_msg;
+char qflgs[Q_MAXBIT]=Q_CHARS;
 
 void usage(char *ex)
 {
@@ -33,6 +35,7 @@ void usage(char *ex)
  		   "-R             reread config\n"
 		   "-K             kill outbound of <node> [<node2> <nodeN>]\n"
 		   "-f             query info about <node>\n"
+		   "-o             query queue (outbound)\n"
 		   "-p[n|c|d|h|i]  poll <node1> [<node2> <nodeN>] with specified flavor\n"
 		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
 		   "-r             freq from <node> files <files>\n"
@@ -122,6 +125,42 @@ int getnodeinfo()
 	return buf[4];
 }
 
+int getqueueinfo()
+{
+	char buf[MSG_BUFFER], *p;
+	char cflags[Q_MAXBIT+1];
+	int rc;
+	char *a, *m, *f, *t;
+	long flags;
+	int k;
+
+	printf("%-20s %10s %10s %10s %10s\n","Address","Mail","Files","Trys","Flags");
+	printf("----------------------------------------------------------------\n");
+	do {
+		signal(SIGALRM, timeout);
+		alarm(5);
+		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, getpid(), 0);
+		alarm(0);
+		if(rc<4) return 1;
+
+		if(buf[4]) {
+			fprintf(stderr, "%s\n", buf+5);
+		} else if(buf[5]) {
+			a = buf + 6; p = a + strlen(a) + 1;
+			m = p; p = m + strlen(m) + 1;
+			f = p; p = f + strlen(f) + 1;
+			t = p; p = t + strlen(t) + 1;
+			sscanf(p,"%ld",&flags);
+			for(k=0;k<Q_MAXBIT;k++) cflags[k] = (flags&(1<<k))?qflgs[k]:'.';
+			cflags[Q_MAXBIT] = '\x00';
+			printf("%-20s %10s %10s %10s %10s\n",a,m,f,t,cflags);
+		}
+	} while (buf[5]);
+	signal(SIGALRM, SIG_DFL);
+	alarm(0);
+	return buf[4];
+}
+
 int main(int argc, char *argv[])
 {
 	key_t qipc_key;
@@ -129,7 +168,7 @@ int main(int argc, char *argv[])
 	char c, *str="", flv='?', buf[MSG_BUFFER];
 	
  	setlocale(LC_ALL, "");
- 	while((c=getopt(argc, argv, "Khqvrp:fkRQs:x:"))!=EOF) {
+ 	while((c=getopt(argc, argv, "Khqovrp:fkRQs:x:"))!=EOF) {
 		switch(c) {
 		case 'k':
 			kfs=1;
@@ -156,6 +195,9 @@ int main(int argc, char *argv[])
 				flv='?';
                 optind--;
 			}
+			break;
+		case 'o':
+			action=QR_QUEUE;
 			break;
 		case 'f':
 			action=QR_INFO;
@@ -186,7 +228,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	if((qipc_msg=msgget(qipc_key, 0666))<0) {
-		fprintf(stderr, "can't get message queue, may be there's no daemon\n");
+		fprintf(stderr, "can't get message queue, may be there's no daemon: %s\n",strerror(errno));
 		return 1;
 	}
 	
@@ -244,6 +286,9 @@ int main(int argc, char *argv[])
 		strcpy(str, "");str+=2;
 		msgsnd(qipc_msg, buf, str-buf, 0);
 		return getanswer();
+	case QR_QUEUE:
+		msgsnd(qipc_msg, buf, 9, 0);
+		return getqueueinfo();
 	default:
 		usage(argv[0]);
 		return 1;
