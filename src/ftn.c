@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.38 2001/10/08 18:42:18 lev Exp $
+ * $Id: ftn.c,v 1.39 2002/03/15 13:12:37 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -444,15 +444,12 @@ void setargspace(int argc, char **argv, char **envp)
 
 	while(envp[i]) i++;
 	environ = xmalloc(sizeof(char*)*(i+1));
+	i = 0;
 	while(envp[i]) {
 		environ[i] = xstrdup(envp[i]);
 		i++;
 	}
 	environ[i] = NULL;
-
-	while (*envp) envp++;
-	envp--;
-	cmdstrend=(*envp)+strlen(*envp);
 
 	cmdstrend = argv[0]+strlen(argv[0]);
 	for(i=1;i<argc;i++)
