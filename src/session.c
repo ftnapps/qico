@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.2 2000/07/18 12:56:19 lev Exp $
+ * $Id: session.c,v 1.3 2000/10/07 13:44:53 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -22,6 +22,7 @@
 #include "qipc.h"
 #include "globals.h"
 #include "hydra.h"
+#include "janus.h"
 #include "ver.h"
 
 void addflist(flist_t **fl, char *loc, char *rem, char kill,
@@ -588,7 +589,11 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		flkill(&fl, !rc);
 		return rc?S_REDIAL:S_OK;
 	case P_JANUS:
-		return S_OK;
+		sendf.allf=totaln;sendf.ttot=totalf+totalm;
+		recvf.ttot=rnode->netmail+rnode->files;
+		rc=janus();
+		flkill(&fl, !rc);
+		return rc?S_REDIAL:S_OK;
 	}
 	return S_OK;
 }

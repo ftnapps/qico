@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5 2000/08/03 15:13:12 lev Exp $
+ * $Id: emsi.c,v 1.6 2000/10/07 13:44:52 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -429,6 +429,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
 		if(!strcmp(p, "H16")) { o|=P_HYDRA16;continue;}
 		if(!strcmp(p, "HYD")) { o|=P_HYDRA;continue;}
+		if(!strcmp(p, "JAN")) { o|=P_JANUS;continue;}
 		if(!strcmp(p, "NCP")) { o|=P_NCP;continue;}
 		if(!strcmp(p, "NRQ")) { o|=O_NRQ;continue;}
 		if(!strcmp(p, "FNC")) { o|=O_FNC;continue;}

@@ -1,3 +1,12 @@
+/******************************************************************
+ * File: janus.c
+ * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
+ * Janus protocol defines
+ * $Id: janus.h,v 1.2 2000/10/07 13:44:53 lev Exp $
+ ******************************************************************/
+#ifndef __JANUS_H__
+#define __JANUS_H__
+
 /* Misc. Constants */
 #define JANUS_EFFICIENCY 90  /* Estimate Janus xfers at 90% throughput       */
 
@@ -7,6 +16,9 @@
 #define XRCVFNACK  2         /* Wait for filename packet ACK                 */
 #define XSENDBLK   3         /* Send next block of file data                 */
 #define XRCVEOFACK 4         /* Wait for EOF packet ACK                      */
+#define XSENDFREQNAK 5
+#define XRCVFRNAKACK 6
+
 
 /* File Reception States */
 #define RDONE      0         /* All done, nothing more to receive            */
@@ -22,21 +34,37 @@
 #define RPOSPKT    'D'       /* Transmitter reposition packet                */
 #define EOFACKPKT  'E'       /* EOF packet ACK                               */
 #define HALTPKT    'F'       /* Immediate screeching halt packet             */
-#define HALTACKPKT 'G'       /* Halt packet ACK for ending batch             */
+#define HALTACKPKT 'G'       /* Halt packet ACK for ending batch   			*/
+
+#define FREQPKT    'H'       /* File request packet */
+#define FREQNAKPKT 'I'       /* Requested file not found */
+#define FRNAKACKPKT 'J'       /* We've understood it */
+
 
 /* Non-byte values returned by rcvbyte() */
-#define BUFEMPTY  (-1)
-#define PKTSTRT   (-2)
-#define PKTEND    (-3)
-#define NOCARRIER (-4)
+#define PKTSTRT   (-16)
+#define PKTSTRT32   (-32)
+#define PKTEND    (-10)
 
 /* Bytes we need to watch for */
 #define PKTSTRTCHR  'a'
 #define PKTENDCHR   'b'
+#define PKTSTRTCHR32    'c'
 
-/* Various action flags */
-#define GOOD_XFER    0
-#define FAILED_XFER  1
-#define INITIAL_XFER 2
-#define ABORT_XFER   3
+#define BUFMAX 8192
 
+#define JCAP_CRC32      0x80
+#define JCAP_FREQ       0x40
+#define JCAP_CLEAR8     0x20
+#define OUR_JCAPS       (JCAP_FREQ|JCAP_CRC32)
+
+
+extern void sendpkt(byte *buf, int len, int type);
+extern void sendpkt32(byte *buf, int len, int type);
+extern byte rcvpkt();
+extern void endbatch();
+extern void txbyte(int c);
+void getfname(flist_t **l);
+extern int janus();
+
+#endif

@@ -1,8 +1,10 @@
 /******************************************************************
  * File: janus.c
  * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
- * Janus protocol implementation
- * $Id: janus.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * Janus protocol implementation with:
+ * - freqs support
+ * - crc32 support 
+ * $Id: janus.c,v 1.2 2000/10/07 13:44:52 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -22,12 +24,20 @@
 #include "globals.h"
 #include "ver.h"
 #include "defs.h"
+#include "zmodem.h"
+#include "qconf.h"
+
+/* #define J_DEBUG */
+
+long   brain_dead;       /* Time at which to give up on other computer     */
+slist_t *reqs=NULL;
+int caps=0;
 
 /*****************************************************************************/
 /* Super-duper neato-whizbang full-duplex streaming ACKless batch file       */
 /* transfer protocol for use in Opus-to-Opus mail sessions                   */
 /*****************************************************************************/
-void janus()
+int janus()
 {
 	byte   pkttype;          /* Type of packet last received                   */
 	word   blklen;           /* Length of last data block sent                 */
@@ -35,19 +45,17 @@ void janus()
 	word   goodblks;         /* Number of good blocks sent at this block size  */
 	word   rpos_count;       /* Number of RPOS packets sent at this position   */
 	long   xmit_retry;       /* Time to retransmit lost FNAMEPKT or EOF packet */
-	long   lasttx;           /* Position within file of last data block we sent*/
-	long   txsttime;         /* Time at which we started sending current file  */
-	long   rxsttime;         /* Time at which we started receiving current file*/
-	long   txoldpos;         /* Last transmission file position displayed      */
-	long   rxoldpos;         /* Last reception file position displayed         */
+	long   lasttx=0;           /* Position within file of last data block we sent*/
 	long   rpos_retry;       /* Time at which to retry RPOS packet             */
-	long   brain_dead;       /* Time at which to give up on other computer     */
 	long   rpos_sttime;      /* Time at which we started current RPOS sequence */
 	long   last_rpostime;    /* Timetag of last RPOS which we performed        */
-	long   last_blkpos;      /* File position of last out-of-sequence BLKPKT   */
+	long   last_blkpos=0;      /* File position of last
+								  out-of-sequence BLKPKT   */
+	flist_t **l;
+	int rc=0;
+	char *p;	
 
-
-	rxbufmax = rxbuf+BUFMAX+8;
+	int capslogged=0;
 
 	/*-------------------------------------------------------------------------*/
 	/* Initialize file transmission variables                                  */
@@ -65,7 +73,16 @@ void janus()
 	goodneeded   = 3;
 	txstate      = XSENDFNAME;
 
-	getfname();
+	txbuf=calloc(txmaxblklen+8,1);
+	rxbuf=calloc(txmaxblklen+8,1);
+
+	rxbufmax = rxbuf+BUFMAX+8;
+
+	zbuffer=malloc(ZBUFFER);
+	
+	l=&fl;getfname(l);
+	
+	sline("Janus session (%d block)", txblklen);
   
 	/*-------------------------------------------------------------------------*/
 	/* Initialize file reception variables                                     */
@@ -93,7 +110,7 @@ void janus()
 		/*-----------------------------------------------------------------------*/
 		if (xmit_retry) {
 			if (t_exp(xmit_retry)) {
-				sline("timeout waiting for ACK - retry");
+				sline("Timeout waiting for ACK - retry");
 				xmit_retry = 0L;
 
 				switch (txstate) {
@@ -101,11 +118,14 @@ void janus()
 					txstate = XSENDFNAME;
 					break;
 				case XRCVEOFACK:
-					if(seek(txfd, txpos=lasttx, SEEK_SET)) {
-						log("seek error");
+					if(fseek(txfd, txpos=lasttx, SEEK_SET)) {
+						log("seek error on %s", sendf.fname);
 						goto giveup;
 					}
 					txstate = XSENDBLK;
+					break;
+				case XRCVFRNAKACK:
+					txstate = XSENDFREQNAK;
 					break;
 				}
 			}
@@ -117,20 +137,21 @@ void janus()
 		switch (txstate) {
 		case XSENDBLK:
 			*((long *)txbuf) = lasttx = txpos;
-			blklen = fread(txbuf+sizeof(txpos), txblklen, txfd);
+			blklen = fread(txbuf+sizeof(txpos),  1, txblklen, txfd);
 			if(blklen<1) {
-				log("read error");
+				log("read error on %s", recvf.fname);
 				goto giveup;
 			}
-			txpos += blklen;
 			sendpkt(txbuf, sizeof(txpos)+blklen, BLKPKT);
+			txpos += blklen;
+			sendf.foff=txpos;
+			check_cps();
+			qpfsend();
 
-			// UPDATE SEND STATUS 
-			
 			if (txpos >= sendf.ftot || blklen < txblklen) {
-				long_set_timer(&xmit_retry,timeout);
+				xmit_retry=t_set(timeout);
 				txstate  = XRCVEOFACK;
-			} else long_set_timer(&brain_dead,120);
+			} else brain_dead=t_set(120);
 
 			if (txblklen < txmaxblklen && ++goodblks > goodneeded) {
 				txblklen <<= 1;
@@ -139,18 +160,30 @@ void janus()
 			break;
 
 		case XSENDFNAME:
-			blklen = strchr( strchr(txbuf,'\0')+1, '\0') - txbuf + 1;
+			blklen = strchr( strchr(txbuf,'\0')+1, '\0') - (char *)txbuf + 3;
 			sendpkt(txbuf,blklen,FNAMEPKT);
-			txoldpos = txoldlen = txoldeta = -1;
 			xmit_retry=t_set(timeout);
 			txstate = XRCVFNACK;
+			sendf.cps=1;
+			qpfsend();
+			break;
+		case XSENDFREQNAK:
+			sendpkt (NULL, 0, FREQNAKPKT);
+			xmit_retry=t_set(timeout);
+			txstate = XRCVFRNAKACK;
 			break;
 		}
 
 		/*-----------------------------------------------------------------------*/
 		/* Catch up on our reading; receive and handle all outstanding packets   */
 		/*-----------------------------------------------------------------------*/
-		while (pkttype = rcvpkt()) {
+		while ((pkttype = rcvpkt())) {
+#ifdef J_DEBUG			
+			log("rcvpkt %d (%c) len=%d at txs=%d rxs=%d",
+				pkttype, C0(pkttype),
+				rxblklen,
+				txstate, rxstate);
+#endif			
 			switch (pkttype) {
 
 				/*-------------------------------------------------------------------*/
@@ -167,7 +200,7 @@ void janus()
 						if (t_exp(rpos_retry))  {
 							if (rpos_count > 5) rpos_count = 0;
 							if (++rpos_count == 1) time(&rpos_sttime);
-							log("Bad packet at %ld", rxpos);
+							sline("Bad packet at %ld", rxpos);
 							*((long *)rxbuf) = rxpos;
 							*((long *)(rxbuf+sizeof(rxpos))) = rpos_sttime;
 							sendpkt(rxbuf, sizeof(rxpos)+sizeof(rpos_sttime), RPOSPKT);
@@ -178,12 +211,14 @@ void janus()
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
 						if(fwrite(rxbuf+sizeof(rxpos),
-								  rxblklen -= sizeof(rxpos), rxfd)<0) {
-							log("write error");goto giveup;
+								  rxblklen -= sizeof(rxpos), 1, rxfd)<0) {
+							log("write error on %s", recvf.fname);
+							goto giveup;
 						}
 						rxpos += rxblklen;
-
-						// UPDATE STATUS RECEIVE
+						recvf.foff=rxpos;
+						check_cps();
+						qpfrecv();
 
 						if (rxpos >= recvf.ftot) {
 							rxclose(&rxfd, FOP_OK);
@@ -198,23 +233,54 @@ void janus()
 				/* Name and other data for next file to receive                      */
 				/*-------------------------------------------------------------------*/
 			case FNAMEPKT:
-				sendpkt((byte *)&rxpos,sizeof(rxpos),FNACKPKT);
-				rxoldpos = rxoldlen = -1;
-				if(rstate==RRCVFNAME) {
-					if(!rxbuf[0]) rxstate=RDONE;
-					else {
-						scanf(rxbuf+strlen(rxbuf)+1, "%lu %lo %*o",
-							  &recvf.ftot, &recvf.mtime);
-						switch(rxopen(rxbuf, recvf.ftot, recvf.mtime, &rxfd)){
-						case FOP_SUSPEND:
-							goto breakout;
-						case FOP_OK:
-							rxstate=RRCVBLK;
-						case FOP_SKIP:
-							rxpos=rxstart=recvf.foff;
-						}
+				p=rxbuf+strlen(rxbuf)+1;
+				if (rxblklen > strlen(rxbuf)+strlen(p)+2
+					&& !caps) {
+					caps=*((char *)strchr(p,0)+1) & OUR_JCAPS;
+					if (!capslogged) {
+						log("janus link options: %dKB%s%s%s",
+							txmaxblklen/1024,
+							caps & JCAP_CRC32?",C32":"", 
+							caps & JCAP_FREQ?",FRQ":"",
+							caps & JCAP_CLEAR8?",CL8":""
+							);
+						capslogged=1;
 					}
 				}
+				if(rxstate==RRCVFNAME) {
+					if(!rxbuf[0]) {
+						if(reqs && (caps&JCAP_FREQ)) {
+							sprintf(txbuf, "%s%c%c", reqs->str, 0, caps);
+							log("sent janus freq: %s", txbuf);
+							sendpkt((byte *)txbuf,strlen(txbuf)+2,FREQPKT);
+							reqs=reqs->next;
+							break;
+						} else {
+							rxstate=RDONE;
+							qpreset(0);
+						}
+					} else {
+						sscanf(p, "%u %lo %*o",
+							  &recvf.ftot, &recvf.mtime);
+						switch(rxopen(rxbuf, recvf.mtime, recvf.ftot, &rxfd)){
+						case FOP_SUSPEND:
+							goto breakout;
+						case FOP_CONT:
+						case FOP_OK:
+							qpfrecv();
+							rxstate=RRCVBLK;
+							rxpos=recvf.foff;
+							break;
+						case FOP_SKIP:
+							rxpos=-1;
+							break;
+						}
+						recvf.cps=1;
+					}
+				}
+				*((int *)txbuf)=rxpos;
+				*((int *)txbuf + 1)=caps;
+				sendpkt((byte *)txbuf,sizeof(rxpos)+2,FNACKPKT);
 				if (!(txstate || rxstate)) goto breakout;
 				break;
 
@@ -224,25 +290,33 @@ void janus()
 			case FNACKPKT:
 				if (txstate == XRCVFNACK) {
 					xmit_retry = 0L;
+					caps=(rxblklen>=5)?*((char*)rxbuf+sizeof(int)):0;
 					if(txfd) {
 						if ((txpos = *((long *)rxbuf)) > -1L) {
 							sendf.soff=txpos;
 							if(fseek(txfd, txstart = txpos,
 									 SEEK_SET)<0) {
-								log("seek error");
+								log("seek error on %s", sendf.fname);
 								goto giveup;
 							}
 							txstate = XSENDBLK;
 						} else {
-							txclose(txfd, FOP_SKIP);
-							getfname(GOOD_XFER);
+							txclose(&txfd, FOP_SKIP);
+							qpreset(1);
+							flexecute(*l);
+							l=&(*l)->next;
+							getfname(l);
 							txstate = XSENDFNAME;
 						}
-					} else txstate = XDONE;
+					} else {
+						qpreset(1);
+						txstate = XDONE;
+					}
 				}
 				if (!(txstate || rxstate)) goto breakout;
 				break;
 
+				
 				/*-------------------------------------------------------------------*/
 				/* ACK to last data block in file                                    */
 				/*-------------------------------------------------------------------*/
@@ -251,12 +325,54 @@ void janus()
 					xmit_retry = 0L;
 					if (txstate == XRCVEOFACK) {
 						txclose(&txfd, FOP_OK);
-						getfname(GOOD_XFER);
+						qpfsend();
+						flexecute(*l);
+						l=&(*l)->next;
+						getfname(l);
 					}
 					txstate = XSENDFNAME;
 				}
 				break;
 
+				/*---------------------------------------------------------------*/
+				/* We've got freq         */
+				/*---------------------------------------------------------------*/
+			case FREQPKT:
+				if (txstate == XRCVFNACK) {
+					caps=*(strchr(rxbuf,'\0')+1);
+					xmit_retry = 0L;
+					log("recd janus freq: %s", rxbuf);
+					// TODO FREQS
+					if(cfgs(CFG_EXTRP)) {
+						slist_t req;
+						req.str=rxbuf;
+						req.next=NULL;
+						freq_ifextrp(&req);
+						getfname(l);
+					}
+					txstate = XSENDFNAME;
+				}
+				break;
+				/*---------------------------------------------------------------*/
+				/* Our last file request didn't match anything; move on to next  */
+				/*---------------------------------------------------------------*/
+			case FREQNAKPKT:
+				log("janus freq: remote hasn't such file");
+				sendpkt (NULL, 0, FRNAKACKPKT);
+				break;
+				
+				/*---------------------------------------------------------------*/
+				/* ACK to no matching files for request error; try to end again  */
+				/*---------------------------------------------------------------*/
+			case FRNAKACKPKT:
+				if (txstate == XRCVFRNAKACK) {
+					xmit_retry = 0L;
+//					if(l) l=&(*l)->next;	
+					getfname(l);
+					txstate = XSENDFNAME;
+				}
+				break;
+				
 				/*-------------------------------------------------------------------*/
 				/* Receiver says "let's try that again."                             */
 				/*-------------------------------------------------------------------*/
@@ -265,10 +381,10 @@ void janus()
 					if (*((long *)(rxbuf+sizeof(txpos))) != last_rpostime) {
 						last_rpostime = *((long *)(rxbuf+sizeof(txpos)));
 						xmit_retry = 0L;
-						if(fseek(Txfile,
+						if(fseek(txfd,
 								 txpos = lasttx = *((long*)rxbuf),
 								 SEEK_SET)<0) {
-							log("seek error");
+							log("seek error on %s", sendf.fname);
 							goto giveup;
 						}
 						sline("Resending from %ld", txpos);
@@ -283,24 +399,31 @@ void janus()
 				/*-------------------------------------------------------------------*/
 				/* Debris from end of previous Janus session; ignore it              */
 				/*-------------------------------------------------------------------*/
-				case HALTACKPKT:
+			case HALTACKPKT:
 				break;
-
+				
 				/*-------------------------------------------------------------------*/
 				/* Abort the transfer and quit                                       */
 				/*-------------------------------------------------------------------*/
 			default:
-				log("Unknown packet type %d",pkttype);
+				log("janus: unknown packet type %d",pkttype);
 				/* fallthrough */
 			case HALTPKT:
 			  giveup:
-			  log("Session aborted");
-			  if(txfd) txclose(&txfd, FOP_ERROR);
-			  if(rxstate==RRCVBLK) rxclose(&txfd, FOP_ERROR);
+			  if(txfd) {
+				  txclose(&txfd, FOP_ERROR);
+				  rc=1;
+			  }
+			  if(rxstate==RRCVBLK) {
+				  rxclose(&txfd, FOP_ERROR);
+				  rc=1;
+			  }
+			  qpreset(0);qpreset(1);
 			  goto breakout;
 			  
 			}  /*  switch (pkttype)  */
 		}  /*  while (pkttype)  */
+		UHASDATA(200);
 	} while (txstate || rxstate);
 		
 	/*-------------------------------------------------------------------------*/
@@ -308,6 +431,15 @@ void janus()
 	/*-------------------------------------------------------------------------*/
   breakout:
 	endbatch();
+	while(*l) {
+		if(!(*l)->sendas) 	flexecute(*l);
+		l=&(*l)->next;
+	}
+	free(txbuf);
+	free(rxbuf);
+	free(zbuffer);
+	slist_kill(&reqs);
+	return rc;
 }
 
 
@@ -324,20 +456,65 @@ void sendpkt(byte *buf, int len, int type)
 {
 	word crc;
 
-	PUTCHAR(DLE);
-	PUTCHAR(PKTSTRTCHR^0x40);
+	if((caps&JCAP_CRC32) && type!=FNAMEPKT) {
+		sendpkt32(buf,len,type);
+		return;
+	}
+
+#ifdef J_DEBUG	
+	log("sendpkt %d bytes, type:%c", len ,type);
+#endif
+
+	BUFCLEAR();
+	
+	BUFCHAR(DLE);
+	BUFCHAR(PKTSTRTCHR^0x40);
 
 	crc=0;
-	while(--len>=0) txbyte(*buf);
+	while(--len>=0) {
+		txbyte(*buf);
+		crc = xcrc(crc, *buf++);
+	}
 
-	PUTCHAR(type);
-	crc=crc16(crc,type);
+	BUFCHAR(type);
+	crc=xcrc(crc,type);
 
-	PUTCHAR(DLE);
-	PUTCHAR(PKTENDCHR^0x40);
+	BUFCHAR(DLE);
+	BUFCHAR(PKTENDCHR^0x40);
 
 	txbyte(crc>>8);
 	txbyte(crc&0xFF);
+
+	BUFFLUSH()
+}
+
+void sendpkt32(byte * buf, register int len, int type)
+{
+	unsigned long crc32;
+
+	BUFCHAR (DLE);
+	BUFCHAR (PKTSTRTCHR32 ^ 0x40);
+
+	crc32 = 0xFFFFFFFF;
+	while (--len >= 0)
+	{
+		txbyte(*buf);
+		crc32=xcrc32(crc32,*buf);
+		++buf;
+	}
+
+	BUFCHAR ((byte) type);
+	crc32 = xcrc32(crc32,type);
+
+	BUFCHAR (DLE);
+	BUFCHAR (PKTENDCHR ^ 0x40);
+
+	txbyte ((byte) (crc32 >> 24));
+	txbyte ((byte) ((crc32 >> 16) & 0xFF));
+	txbyte ((byte) ((crc32 >> 8) & 0xFF));
+	txbyte ((byte) (crc32 & 0xFF));
+
+	BUFFLUSH()
 }
 
 
@@ -350,12 +527,35 @@ void txbyte(int c)
 {
 
 	if((txlastc='@' && c==CR)||c==DLE||c==XON||c==XOFF) {
-		PUTCHAR(DLE);
+		BUFCHAR(DLE);
 		c^=0x40;
 	}
-	PUTCHAR(c);
+	BUFCHAR(c);
 	txlastc=c;
 }
+
+int rcvbyte(int to)
+{
+	int c;
+	if ((c = GETCHAR(to)) == DLE) {
+		if ((c = GETCHAR(timeout)) >= 0) {
+			switch (c ^= 0x40) {
+			case PKTSTRTCHR:
+				c=PKTSTRT;
+				break;
+			case PKTSTRTCHR32:
+				c=PKTSTRT32;
+				break;
+			case PKTENDCHR:
+				c=PKTEND;
+				break;
+			}
+		}
+	}
+	return c;
+}
+
+
 
 
 /*****************************************************************************/
@@ -368,30 +568,24 @@ void txbyte(int c)
 /*****************************************************************************/
 byte rcvpkt()
 {
-	static word crc;
+	static int is32;
 	byte *p;
-	int c;
-	word pktcrc;
-
-	/*-------------------------------------------------------------------------*/
-	/* Abort transfer if operator pressed ESC                                  */
-	/*-------------------------------------------------------------------------*/
-/*  	if (KBD_GiveUp()) { */
-/*  		j_status(GENERIC_ERROR,KBD_msg); */
-/*  		return HALTPKT; */
-/*  	} */
+	int c, i;
+	unsigned int pktcrc;
 
 	/*-------------------------------------------------------------------------*/
 	/* If not accumulating packet yet, find start of next packet               */
 	/*-------------------------------------------------------------------------*/
 	if (!(p=rxbufptr)) {
-		do c=GETCHAR(0);
+		do c=rcvbyte(0);
 		while (c >= 0 || c == PKTEND);
 
 		switch (c) {
 		case PKTSTRT:
-			p = rxbuf;
-			crc = 0;
+			p = rxbuf;is32=0;
+			break;
+		case PKTSTRT32:
+			p = rxbuf;is32=1;
 			break;
 		case ERROR:
 		case RCDO:
@@ -404,7 +598,7 @@ byte rcvpkt()
 	/*-------------------------------------------------------------------------*/
 	/* Accumulate packet data until we empty buffer or find packet delimiter   */
 	/*-------------------------------------------------------------------------*/
-	while((c=GETCHAR(0))>=0 && p<rxbufmax) *p++=c;
+	while((c=rcvbyte(0))>=0 && p<rxbufmax) *p++=c;
 
 	/*-------------------------------------------------------------------------*/
 	/* Handle whichever end-of-packet condition occurred                       */
@@ -414,37 +608,36 @@ byte rcvpkt()
 		/* PKTEND found; verify valid CRC                                        */
 		/*-----------------------------------------------------------------------*/
     case PKTEND:
-		if(GETCHAR(timeout)>=0) {
-			pktcrc=c<<8;
-			if (GETCHAR(timeout)>= 0) {
-				if((pktcrc|c)==crc16(rxbuf, p-rxbuf)) {
-					/*---------------------------------------------------------------*/
-					/* Good packet verified; compute packet data length and return   */
-					/* packet type                                                   */
-					/*---------------------------------------------------------------*/
-					rxbufptr = NULL;
-					rxblklen = --p - rxbuf;
-					return *p;
-				}
-			}
+		pktcrc=0;
+		for (i=is32?4:2;i;--i) {
+			if ((c=rcvbyte(timeout)) < 0) break;
+			pktcrc=(pktcrc<<8)|c;
+		}                                                               
+		
+		if(!i && pktcrc==(is32?crc32cc(rxbuf, p-rxbuf):crc16(rxbuf, p-rxbuf))) {
+			/*---------------------------------------------------------------*/
+			/* Good packet verified; compute packet data length and return   */
+			/* packet type                                                   */
+			/*---------------------------------------------------------------*/
+			rxbufptr = NULL;
+			rxblklen = --p - rxbuf;
+			return *p;
 		}
 		/* fallthrough */
 
-		/*-----------------------------------------------------------------------*/
-		/* Bad CRC, carrier lost, or buffer overflow from munged PKTEND          */
-		/*-----------------------------------------------------------------------*/
     default:
-		if (c==CARRIER) {
+		if (c==RCDO) {
 			return HALTPKT;
 		} else {
 			rxbufptr = NULL;
+			sline("Bad packet or CRC error");
 			return BADPKT;
 		}
 
 		/*-----------------------------------------------------------------------*/
-		/* Emptied buffer; save partial packet and let sender do something       */
+		/* Bad CRC, carrier lost, or buffer overflow from munged PKTEND          */
 		/*-----------------------------------------------------------------------*/
-    case BUFEMPTY:
+    case TIMEOUT:
 		rxbufptr = p;
 		return NOPKT;
 
@@ -453,8 +646,12 @@ byte rcvpkt()
 		/*-----------------------------------------------------------------------*/
     case PKTSTRT:
 		rxbufptr = rxbuf;
-		crc = 0;
+		is32=0;
+		sline("Unexpected packet start");
 		return BADPKT;
+		/*-----------------------------------------------------------------------*/
+		/* Emptied buffer; save partial packet and let sender do something       */
+		/*-----------------------------------------------------------------------*/
 	}
 }
 
@@ -472,21 +669,25 @@ void endbatch()
 	/* Tell the other end to halt if it hasn't already                         */
 	/*-------------------------------------------------------------------------*/
 	done = timeouts = 0;
-	long_set_timer(&brain_dead,120);
-	goto reject;
+	brain_dead=t_set(120);
+	sendpkt(NULL,0,HALTPKT);
+	timeval=t_set(timeout);
 
 	/*-------------------------------------------------------------------------*/
 	/* Wait for the other end to acknowledge that it's halting                 */
 	/*-------------------------------------------------------------------------*/
 	while (!done) {
-		if (long_time_gone(&brain_dead)) break;
+		if (t_exp(brain_dead)) break;
 
 		switch (rcvpkt()) {
 		case NOPKT:
 		case BADPKT:
-			if (long_time_gone(&timeval)) {
+			if (t_exp(timeval)) {
 				if (++timeouts > 2) ++done;
-				else goto reject;
+				else {
+					sendpkt(NULL,0,HALTPKT);
+					timeval=t_set(timeout);
+				}
 			}
 			break;
 
@@ -497,9 +698,8 @@ void endbatch()
 
 		default:
 			timeouts = 0;
-		  reject:
 			sendpkt(NULL,0,HALTPKT);
-			long_set_timer(&timeval,timeout);
+			timeval=t_set(timeout);
 			break;
 		}
 	}
@@ -509,5 +709,49 @@ void endbatch()
 	/*-------------------------------------------------------------------------*/
 	for (done=0; done<10; ++done) sendpkt(NULL,0,HALTACKPKT);
 
+}
+
+slist_t *readreq(slist_t *l, char *fname)
+{
+	FILE *f;
+	char s[MAX_PATH], *p;
+	
+	f=fopen(fname, "rt");
+	if(!f) {
+		log("can't read .req: %s", fname);
+		return l;
+	}
+	
+	while(fgets(s,MAX_PATH-1,f)) {
+		p=s+strlen(s)-1;
+		while(*p=='\r' || *p=='\n') *p--=0;
+		slist_add(&l, s);
+	}
+	fclose(f);
+
+	return l;
+}
+
+void getfname(flist_t **l)
+{
+	while(*l) {
+		if (!(*l)->sendas)
+			flexecute(*l);
+		else {
+			if ((*l)->type==IS_REQ) {
+				reqs=readreq(reqs, (*l)->tosend);
+				/* this isn't right */
+				flexecute(*l);
+			} else break;
+		}
+		l=&(*l)->next;
+	}
+	if(*l) {
+		txfd=txopen((*l)->tosend, (*l)->sendas);
+		sprintf(txbuf, "%s%c%u %lo %o%c%c",  (*l)->sendas, 0,
+				sendf.ftot, sendf.mtime, 0644, 0, OUR_JCAPS);
+	} else {
+		sprintf(txbuf, "%c%c%c", 0, 0, OUR_JCAPS);
+	}
 }
 
