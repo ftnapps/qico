@@ -2,7 +2,7 @@
  * File: qcconst.h
  * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.h,v 1.2 2000/10/07 14:21:42 lev Exp $
+ * $Id: qcconst.h,v 1.3 2000/10/12 18:19:12 lev Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -33,6 +33,8 @@ typedef struct {
 	char addr[24];
 	int mail, files, hmail, hfiles, flags, try;
 } pque_t;
+
+#include "opts.h"
 
 extern char *QC_SIGN;
 extern char *Q_SOCKET;
