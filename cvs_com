@@ -1,9 +1,9 @@
 #!/usr/bin/perl
-if(-f "x.tmp"){goto comm}
-system("mcedit +999 x");
+# $Id: cvs_com,v 1.2 2003/10/03 00:11:35 sisoft Exp $
+if(!-e "ChangeLog"){goto chng}
+system("mcedit +666 x");
 open(X,"x")||die("can't open 'x'-changes\n");
 open(F,"TodayFixes")||die("can't open TodayFixes\n");
-open(T,">x.tmp")||die("can't create x.tmp\n");
 while(<F>) {
     if(/^\/\*/){$id=$_;next};
     if(/^---/){$fixes=$fixes?3:1;next}
@@ -14,18 +14,16 @@ while(<F>) {
 }
 open(F,">TodayFixes")||die("can't create TodayFixes\n");
 print F "$id---\n";
-while(<X>) {
-    print F $_;
-    chomp;
-    print T "$_ \n";
-} 
+while(<X>){print F $_} 
 print F ".\nprevious:\n---\n";
 foreach(@fix){print F $_}
 print F ".\n";
 foreach(@txt){print F $_}
 close(X,F,T);
-truncate("x",0);
+unlink("ChangeLog");
+chng:
 system("cvs2cl -F trunk --no-wrap -S");
 unlink("ChangeLog.bak");
-comm:
-system("cvs com -F x.tmp")==0 and unlink("x.tmp");
+system("cvs com -F x");
+if($?>>8){exit}
+truncate("x",0);
