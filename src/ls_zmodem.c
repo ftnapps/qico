@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.3 2000/11/03 17:15:08 lev Exp $
+ * $Id: ls_zmodem.c,v 1.4 2000/11/03 21:22:17 lev Exp $
  **********************************************************/
 /*
 
@@ -267,6 +267,7 @@ int ls_recvdata(char *data, int timeout)
 {
 	int crc = LSZ_CRC_INIT;
 	int t = time(NULL);
+
 }
 
 
