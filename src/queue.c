@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations
- * $Id: queue.c,v 1.13 2004/02/26 23:55:25 sisoft Exp $
+ * $Id: queue.c,v 1.14 2004/05/29 23:34:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -185,7 +185,6 @@ void rescan_boxes(int rslow)
 
 int q_rescan(qitem_t **curr,int rslow)
 {
-	int rc=0;
 	sts_t sts;
 	qitem_t *q,**p;
 
@@ -194,9 +193,7 @@ int q_rescan(qitem_t **curr,int rslow)
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
 
-	if(BSO)rc=bso_rescan(q_each,rslow);
-	if(ASO)rc+=aso_rescan(q_each,rslow);
-	if(!rc)return 0;
+	if(!aso_rescan(q_each,rslow))return 0;
 	rescan_boxes(rslow);
 	p=&q_queue;
 	qqreset();
@@ -204,19 +201,11 @@ int q_rescan(qitem_t **curr,int rslow)
 		if(!q->touched) {
 			*p=q->next;if(q==*curr)*curr=*p;xfree(q);
 		} else {
-			if(BSO) {
-				bso_getstatus(&q->addr,&sts);
-				q->flv|=sts.flags;q->try=sts.try;
-				if(sts.htime>time(NULL))q->onhold=sts.htime;
-				    else q->flv&=~Q_ANYWAIT;
-				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
-			} else if(ASO) {
-				aso_getstatus(&q->addr,&sts);
-				q->flv|=sts.flags;q->try=sts.try;
-				if(sts.htime>time(NULL))q->onhold=sts.htime;
-				    else q->flv&=~Q_ANYWAIT;
-				qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
-			}
+			aso_getstatus(&q->addr,&sts);
+			q->flv|=sts.flags;q->try=sts.try;
+			if(sts.htime>time(NULL))q->onhold=sts.htime;
+			    else q->flv&=~Q_ANYWAIT;
+			qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
 			p=&((*p)->next);
 		}
 	}

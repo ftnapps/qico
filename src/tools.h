@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.10 2004/05/29 11:54:16 sisoft Exp $ */
+/* $Id: tools.h,v 1.11 2004/05/29 23:34:50 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -12,6 +12,8 @@
 #define C_ADRSTRL 8
 #define C_STRL    9
 #define C_OCT     10
+
+#define LARGE_STRING (MAX_STRING*16)
 
 typedef struct _cfgitem_t {
 	char *condition;

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.29 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: main.c,v 1.30 2004/05/29 23:34:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -65,8 +65,7 @@ void stopit(int rc)
 RETSIGTYPE sigerr(int sig)
 {
 	signal(sig,SIG_DFL);
-	if(BSO)bso_done();
-	if(ASO)aso_done();
+	aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
 	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
 	log_done();
@@ -122,9 +121,8 @@ static void answer_mode(int type)
 	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 	    else log_callback=vlogs;
 
-	if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
-	if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
-	if(!BSO&&!ASO) {
+	rc=aso_init(cfgs(CFG_ASOOUTBOUND),cfgs(CFG_BSOOUTBOUND),cfgs(CFG_QSTOUTBOUND),cfgal(CFG_ADDRESS)->addr.z);
+	if(!rc) {
 		write_log("No outbound defined");
 		stopit(S_FAILURE);
 	}
@@ -155,29 +153,18 @@ static void answer_mode(int type)
 	if((S_OK==(rc&S_MASK))&&cfgi(CFG_HOLDONSUCCESS)) {
 		log_done();
 		log_init(cfgs(CFG_MASTERLOG),NULL);
-		if(BSO) {
-			bso_getstatus(&rnode->addrs->addr, &sts);
-			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
-			sts.htime=MAX(t_set(cci*60),sts.htime);
-			write_log("calls to %s delayed for %d min after successful incoming session",
-					ftnaddrtoa(&rnode->addrs->addr),cci);
-			bso_setstatus(&rnode->addrs->addr,&sts);
-		}
-		if(ASO) {
-			aso_getstatus(&rnode->addrs->addr,&sts);
-			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
-			sts.htime=MAX(t_set(cci*60),sts.htime);
-			if(!BSO)write_log("calls to %s delayed for %d min after successful incoming session",
-					ftnaddrtoa(&rnode->addrs->addr),cci);
-			aso_setstatus(&rnode->addrs->addr,&sts);
-		}
+		aso_getstatus(&rnode->addrs->addr, &sts);
+		sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
+		sts.htime=MAX(t_set(cci*60),sts.htime);
+		write_log("calls to %s delayed for %d min after successful incoming session",
+				ftnaddrtoa(&rnode->addrs->addr),cci);
+		aso_setstatus(&rnode->addrs->addr,&sts);
 		log_done();
 		log_init(cfgs(CFG_LOG),rnode->tty);
 	}
 	title("Waiting...");
 	vidle();sline("");
-	if(BSO)bso_done();
-	if(ASO)aso_done();
+	aso_done();
 	stopit(rc);
 }
 
@@ -298,19 +285,16 @@ int main(int argc,char *argv[],char *envp[])
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
 
-		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
-		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
-		if(!BSO&&!ASO) {
+		rc=aso_init(cfgs(CFG_ASOOUTBOUND),cfgs(CFG_BSOOUTBOUND),cfgs(CFG_QSTOUTBOUND),cfgal(CFG_ADDRESS)->addr.z);
+		if(!rc) {
 			write_log("No outbound defined");
 			stopit(S_FAILURE);
 		}
 		rc=do_call(&fa,hostname,NULL);
-		if(BSO)bso_done();
-		if(ASO)aso_done();
+		aso_done();
 		stopit(rc);
 	}
 	if(daemon==12) {
-		int locked=0;
 		if(optind<argc) {
 			if(1!=sscanf(argv[optind],"%d",&line)) {
 				write_log("can't parse line number '%s'!\n",argv[optind]);
@@ -323,27 +307,22 @@ int main(int argc,char *argv[],char *envp[])
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
 
-		if(!bso_init(cfgs(CFG_BSOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init BSO");
-		if(!aso_init(cfgs(CFG_ASOOUTBOUND),cfgal(CFG_ADDRESS)->addr.z)&&ccs)write_log("can't init ASO");
-		if(!BSO&&!ASO) {
+		rc=aso_init(cfgs(CFG_ASOOUTBOUND),cfgs(CFG_BSOOUTBOUND),cfgs(CFG_QSTOUTBOUND),cfgal(CFG_ADDRESS)->addr.z);
+		if(!rc) {
 			write_log("No outbound defined");
 			cls_close(ssock);
 			exit(S_FAILURE);
 		}
-		if(BSO)locked|=bso_locknode(&fa,LCK_c);
-		if(ASO)locked|=aso_locknode(&fa,LCK_c);
-		if(locked) {
+		if(aso_locknode(&fa,LCK_c)) {
 			signal(SIGINT,sigerr);
 			signal(SIGTERM,sigerr);
 			signal(SIGSEGV,sigerr);
 			signal(SIGPIPE,SIG_IGN);
 			rc=force_call(&fa,line,call_flags);
-			if(BSO)bso_unlocknode(&fa,LCK_x);
-			if(ASO)aso_unlocknode(&fa,LCK_x);
+			aso_unlocknode(&fa,LCK_x);
 		} else rc=S_FAILURE;
 		if(rc&S_MASK)write_log("can't call to %s",ftnaddrtoa(&fa));
-		if(BSO)bso_done();
-		if(ASO)aso_done();
+		aso_done();
 		stopit(rc);
 	}
 	switch(daemon) {

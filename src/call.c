@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.11 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: call.c,v 1.12 2004/05/29 23:34:45 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -47,8 +47,7 @@ int do_call(ftnaddr_t *fa,char *site,char *port)
 		    else tcp_done(fd);
 		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
 			write_log("creating poll for %s",ftnaddrtoa(fa));
-			if(BSO)bso_poll(fa,F_ERR);
-			    else if(ASO)aso_poll(fa,F_ERR);
+			aso_poll(fa,F_ERR);
 		}
 	}
 	title("Waiting...");

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.19 2004/05/27 18:50:03 sisoft Exp $
+ * $Id: log.c,v 1.20 2004/05/29 23:34:49 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -56,7 +56,7 @@ static SLNCODE prioritynames[] =
 };
 #endif
 
-#define CHATLOG_BUF 4096
+#define CHATLOG_BUF LARGE_STRING
 static int log_type=0,mcpos,rcpos;
 static int syslog_priority=LOG_INFO;
 static ftnaddr_t *adr;
@@ -142,22 +142,22 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 	FILE *log_f;
 	struct tm *t;
 	struct timeval tv;
-	char str[MAX_STRING*16]={0},*p=NULL;
+	char str[LARGE_STRING]={0},*p=NULL;
 	gettimeofday(&tv,NULL);
 	t=localtime(&tv.tv_sec);
 	strftime(str,20,"%d %b %y %H:%M:%S",t);
 #ifdef NEED_DEBUG
 	if(facilities_levels['T']>=1)
-	snprintf(str+18,MAX_STRING*16-24,".%03u %s[%ld]: ",(unsigned)(tv.tv_usec/1000),SS(log_tty),(long)getpid());
+	snprintf(str+18,LARGE_STRING-24,".%03u %s[%ld]: ",(unsigned)(tv.tv_usec/1000),SS(log_tty),(long)getpid());
 	else
 #endif
-	snprintf(str+18,MAX_STRING*16-18," %s[%ld]: ",SS(log_tty),(long)getpid());
+	snprintf(str+18,LARGE_STRING-18," %s[%ld]: ",SS(log_tty),(long)getpid());
 	p=str+strlen(str);
 	if(prefix&&*prefix) {
 		xstrcpy(p,prefix,p-(char*)str);
 		p=str+strlen(str);
 	}
-	vsnprintf(p,MAX_STRING*16-50,fmt,args);
+	vsnprintf(p,LARGE_STRING-50,fmt,args);
 	if(log_callback&&dbg)log_callback(str);
 	switch(log_type) {
 		case 0:
@@ -215,7 +215,7 @@ int chatlog_init(char *remname,ftnaddr_t *ra,int side)
 {
 	FILE *chatlog=NULL;
 	time_t tt;struct tm *t;
-	char str[MAX_STRING*4]={0};
+	char str[MAX_STRING]={0};
 	write_log("Chat opened%s",side?" by remote side":"");
 	adr=&cfgal(CFG_ADDRESS)->addr;
 	if(cfgs(CFG_RUNONCHAT)&&side)execnowait("/bin/sh","-c",ccs,ftnaddrtoa(adr));
@@ -232,8 +232,8 @@ int chatlog_init(char *remname,ftnaddr_t *ra,int side)
 	if(cfgs(CFG_CHATLOG))chatlog=fopen(ccs,"at");
 	if(ccs&&!chatlog)write_log("can't open chat log %s",ccs);
 	tt=time(NULL);t=localtime(&tt);
-	snprintf(str,MAX_STRING*2,"[Chat with: %s (%u:%u/%u.%u) open by %s at ",remname,ra->z,ra->n,ra->f,ra->p,side?"remote":"my");
-	strftime(str+strlen(str),MAX_STRING*2-1,"%d %b %y %H:%M:%S]\n",t);
+	snprintf(str,MAX_STRING,"[Chat with: %s (%u:%u/%u.%u) open by %s at ",remname,ra->z,ra->n,ra->f,ra->p,side?"remote":"my");
+	strftime(str+strlen(str),MAX_STRING-1,"%d %b %y %H:%M:%S]\n",t);
 	if(chatlog){fwrite(str,strlen(str),1,chatlog);fclose(chatlog);}
 	if(lemail)fwrite(str,strlen(str),1,lemail);
 	if(cpkt) {
@@ -292,7 +292,7 @@ void chatlog_done()
 {
 	FILE *chatlog=NULL;
 	time_t tt;struct tm *t;
-	char str[MAX_STRING*2]={0};
+	char str[MAX_STRING]={0};
 	write_log("Chat closed");
 	if(rcpos)chatlog_write("\n",1);
 	if(mcpos)chatlog_write("\n",0);
@@ -306,13 +306,13 @@ void chatlog_done()
 		strtr(str,'\n','\r');
 		fwrite(str,strlen(str)-1,1,cpkt);
 		closeqpkt(cpkt,adr);
-		snprintf(str,MAX_STRING,"%s/%s",cfgs(CFG_INBOUND),basename(pktname));
+		snprintf(str,MAX_STRING-1,"%s/%s",cfgs(CFG_INBOUND),basename(pktname));
 		if(rename(pktname,str))write_log("can't rename %s to %s: %s",pktname,str,strerror(errno));
 		    else chmod(str,cfgi(CFG_DEFPERM));
 	}
 	if(lemail) {
 		fclose(lemail);
-		snprintf(str,MAX_STRING*2-1,"mail -s chatlog %s < /tmp/qlemail.%04lx",cfgs(CFG_CHATTOEMAIL),(long)getpid());
+		snprintf(str,MAX_STRING-1,"mail -s chatlog %s < /tmp/qlemail.%04lx",cfgs(CFG_CHATTOEMAIL),(long)getpid());
 		execsh(str);
 		lunlink(strrchr(str,'<')+1);
 	}

@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.14 2004/05/29 11:54:16 sisoft Exp $
+ * $Id: mailer.h,v 1.15 2004/05/29 23:34:49 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -50,14 +50,6 @@
 #define RX_SUSPEND	2
 
 #define TIM_CHAT	90
-
-typedef struct _flist_t {
-	struct _flist_t *next;
-	char *tosend, *sendas, kill;
-	FILE *lo;
-	off_t loff;
-	int type;
-} flist_t;
 
 /* z*.c */
 extern int zmodem_receive(char *m, int canzap);

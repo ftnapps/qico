@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.17 2004/05/27 18:50:03 sisoft Exp $ */
+/* $Id: ftn.h,v 1.18 2004/05/29 23:34:45 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -32,6 +32,9 @@
 #define LCK_c	1
 #define LCK_t	2
 #define LCK_s   3
+
+#define BSO	1
+#define ASO	2
 
 typedef struct {
 	short z,n,f,p;
@@ -67,6 +70,14 @@ typedef struct _faslist_t {
 	char *str;
 	struct _faslist_t *next;
 } faslist_t;
+
+typedef struct _flist_t {
+	struct _flist_t *next;
+	char *tosend, *sendas, kill;
+	FILE *lo;
+	off_t loff;
+	int type;
+} flist_t;
 
 typedef struct {
 	falist_t *addrs;
@@ -197,45 +208,18 @@ extern void nlfree(ninfo_t *nl);
 extern void nlkill(ninfo_t **nl);
 extern int compile_nodelists();
 /* aso.c */
-#define ASO (aso_tmp)
-extern int aso_init(char *asopath, int def_zone);
-extern void aso_done(void);
-extern char *aso_name(ftnaddr_t *fa);
-extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow);
+extern int aso_init(char *asopath,char *bsopath,char *stspath,int def_zone);
+extern void aso_done();
 extern int aso_flavor(char fl);
-extern char *aso_pktn(ftnaddr_t *fa, int fl);
-extern char *aso_flon(ftnaddr_t *fa, int fl);
-extern char *aso_bsyn(ftnaddr_t *fa,char b);
-extern char *aso_reqn(ftnaddr_t *fa);
-extern char *aso_stsn(ftnaddr_t *fa);
+extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow);
 extern int aso_locknode(ftnaddr_t *adr,int lev);
 extern int aso_unlocknode(ftnaddr_t *adr,int lev);
 extern int aso_attach(ftnaddr_t *adr, int flv, slist_t *files);
 extern int aso_request(ftnaddr_t *adr, slist_t *files);
-extern int aso_rmstatus(ftnaddr_t *adr);
+extern int aso_poll(ftnaddr_t *fa, int flavor);
 extern int aso_setstatus(ftnaddr_t *fa, sts_t *st);
 extern int aso_getstatus(ftnaddr_t *fa, sts_t *st);
-extern int aso_poll(ftnaddr_t *fa, int flavor);
-/* bso.c */
-#define BSO (bso_tmp)
-extern int bso_init(char *bsopath, int def_zone);
-extern void bso_done(void);
-extern char *bso_name(ftnaddr_t *fa);
-extern int bso_rescan(void (*each)(char *, ftnaddr_t *, int, int, int),int rslow);
-extern int bso_flavor(char fl);
-extern char *bso_pktn(ftnaddr_t *fa, int fl);
-extern char *bso_flon(ftnaddr_t *fa, int fl);
-extern char *bso_bsyn(ftnaddr_t *fa,char b);
-extern char *bso_reqn(ftnaddr_t *fa);
-extern char *bso_stsn(ftnaddr_t *fa);
-extern int bso_locknode(ftnaddr_t *adr,int lev);
-extern int bso_unlocknode(ftnaddr_t *adr,int lev);
-extern int bso_attach(ftnaddr_t *adr, int flv, slist_t *files);
-extern int bso_request(ftnaddr_t *adr, slist_t *files);
-extern int bso_rmstatus(ftnaddr_t *adr);
-extern int bso_setstatus(ftnaddr_t *fa, sts_t *st);
-extern int bso_getstatus(ftnaddr_t *fa, sts_t *st);
-extern int bso_poll(ftnaddr_t *fa, int flavor);
+extern int asoflist(flist_t **fl,ftnaddr_t *fa,int mode);
 /* queue.c */
 extern qitem_t *q_find(ftnaddr_t *fa);
 extern int q_rescan(qitem_t **curr,int rslow);
