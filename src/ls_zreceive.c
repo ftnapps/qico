@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.6 2001/01/13 12:03:42 lev Exp $
+ * $Id: ls_zreceive.c,v 1.7 2001/01/21 18:12:39 lev Exp $
  **********************************************************/
 /*
 
@@ -373,12 +373,17 @@ int ls_zdonereceiver()
 	int rc;
 	int trys = 0;
 	int hlen;
+	int retransmit = 1;
 #ifdef Z_DEBUG
 	write_log("ls_zdonereceiver");
 #endif
 	do {
-		ls_storelong(ls_txHdr,0);
-		if((rc=ls_zsendhhdr(ZFIN,4,ls_txHdr))<0) return rc;
+		if (retransmit) {
+			ls_storelong(ls_txHdr,0);
+			if((rc=ls_zsendhhdr(ZFIN,4,ls_txHdr))<0) return rc;
+			retransmit = 0;
+			trys++;
+		}
 		switch (rc=GETCHAR(ls_HeaderTimeout)) {
 		case 'O':				/* Ok, GOOD */
 #ifdef Z_DEBUG2
@@ -386,19 +391,29 @@ int ls_zdonereceiver()
 #endif
 			rc = GETCHAR(0);
 			return LSZ_OK;
+		case XON: case XOFF:
+		case XON | 0x80: case XOFF | 0x80:
+#ifdef Z_DEBUG2
+			write_log("ls_zdonereceiver: XON/XOFF, skip it");
+#endif
+			break;
 		case ZPAD:
 #ifdef Z_DEBUG2
 			write_log("ls_zdonereceiver: ZPAD");
 #endif
 			if((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))<0) return rc;
 			if(ZFIN != rc) return LSZ_OK;
+			retransmit = 1;
+			break;
 		default:
 #ifdef Z_DEBUG
 			write_log("ls_zdonereceiver: something strange %d",rc);
 #endif
 			if(rc<0) return rc;
+			retransmit = 1;
+			break;
 		}
-	} while (++trys < 10);
+	} while (trys < 10);
 #ifdef Z_DEBUG
 	write_log("ls_zdonereceiver: timeout or something strange %d",rc);
 #endif
