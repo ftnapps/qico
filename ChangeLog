@@ -1,3 +1,14 @@
+2004-02-27 02:55  sisoft
+
+	* configure.in, src/aso.c, src/binkp.c, src/bso.c, src/config.c,
+	src/daemon.c, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
+	src/globals.c, src/hydra.c, src/janus.c, src/ls_zreceive.c,
+	src/main.c, src/nodelist.c, src/protfm.c, src/qcc.c, src/qctl.c,
+	src/queue.c, src/session.c, src/ver.c.in:
+
+	remove compiler warnings under gcc3.
+	fix segfault crash on some systems.
+	
 2004-02-23 04:02  sisoft
 
 	* Changes, configure.in, qico.conf.sample, debian/copyright,

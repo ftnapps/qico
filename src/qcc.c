@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.26 2004/02/26 23:55:25 sisoft Exp $
+ * $Id: qcc.c,v 1.27 2004/03/03 15:12:58 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -1276,7 +1276,7 @@ int main(int argc,char **argv)
 		ch=getch();
 		if(ch==0x1b)ch=getch();
 		if(ch==ERR)continue;
-		if(ch==('@'-'L')) {
+		if(ch==('L'-'@')) {
 			freshall();
 			refresh();
 		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
