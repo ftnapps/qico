@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.9 2000/12/26 12:24:54 lev Exp $
+ * $Id: tty.c,v 1.10 2001/02/08 19:24:53 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -19,14 +19,9 @@ struct termios savetios;
 char *tty_port=NULL;
 int tty_hangedup=0;
 
-#define BUF_READ
-#define BUF_WRITE
-
-#ifdef BUF_READ
 #define IN_MAXBUF       16384
 unsigned char in_buffer[IN_MAXBUF];
 int in_bufpos=0, in_bufmax=0;
-#endif
 
 #define OUT_MAXBUF       16384
 unsigned char out_buffer[OUT_MAXBUF];
@@ -49,8 +44,8 @@ int tty_isfree(char *port, char *nodial)
 	if(!stat(lckname, &s)) return 0;
 	sprintf(lckname,"%s/LCK..%s",cfgs(CFG_LOCKDIR),port);
 	if ((f=fopen(lckname,"r")))	{
-		fscanf(f,"%d",&pid);         
-		fclose(f);		
+		fscanf(f,"%d",&pid);
+		fclose(f);
 		if (kill(pid,0) && (errno ==  ESRCH)) {
 			unlink(lckname);
 			return 1;
@@ -351,42 +346,39 @@ int tty_put(char *buf, int size)
 	if(tty_hangedup) return RCDO;
 	rc=write(1, buf, size);
 	if(rc!=size) {
-		if(tty_hangedup || errno==EPIPE) 
-			return RCDO;
-		else
-			return ERROR;
+		if(tty_hangedup || errno==EPIPE) return RCDO;
+		else return ERROR;
 	}		
 	return OK;
 }
 		
-int tty_get(char *buf, int size, int timeout)
+int tty_get(char *buf, int size, int *timeout)
 {
 	fd_set rfds, efds, wfds;
 	struct timeval tv;
 	int rc;
+	time_t t;
 	
 	if(tty_hangedup) return RCDO;
 	FD_ZERO(&rfds);FD_ZERO(&wfds);FD_ZERO(&efds);
 	FD_SET(0,&rfds);FD_SET(0,&efds);
-	tv.tv_sec=timeout;
+	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
-
+	
+	t = time(NULL);
 	rc=select(1, &rfds, &wfds, &efds, &tv);
 	if(rc<0) {
-		if(tty_hangedup) 
-			return RCDO;
-		else
-			return ERROR;
+		if(tty_hangedup) return RCDO;
+		else return ERROR;
 	}
+	*timeout -= (time(NULL)-t);
 	if(rc==0) return TIMEOUT;
 	if(FD_ISSET(0, &efds)) return ERROR;
 	
 	rc=read(0, buf, size);
 	if(rc<1) {
-		if(tty_hangedup || errno==EPIPE)
-			return RCDO;
-		else
-			return (errno!=EAGAIN && errno!=EINTR)?ERROR:TIMEOUT;
+		if(tty_hangedup || errno==EPIPE) return RCDO;
+		else return (errno!=EAGAIN && errno!=EINTR)?ERROR:TIMEOUT;
 	}
 	return rc;
 }
@@ -402,6 +394,8 @@ int tty_bufc(char ch)
 	out_buffer[out_bufpos++]=ch;
 	return rc;
 }
+
+
 int tty_bufflush()
 {	int rc=tty_put(out_buffer,out_bufpos);
 	out_bufpos=0;
@@ -411,31 +405,27 @@ int tty_bufflush()
 void tty_bufclear() { out_bufpos = 0; }
 
 
-int tty_putc(char ch)
-{
-	return tty_put(&ch, 1);
-}
+int tty_putc(char ch) { return tty_put(&ch, 1); }
 
 
-#ifdef BUF_READ
 int tty_getc(int timeout)
 {
- 	int rc;
- 	if(in_bufpos<in_bufmax) return in_buffer[in_bufpos++];
- 	rc=tty_get(in_buffer, IN_MAXBUF, timeout);
- 	if(rc<0) return rc;
- 	in_bufpos=0;in_bufmax=rc;
+	int rc;
+	if(in_bufpos<in_bufmax) return in_buffer[in_bufpos++];
+	if((rc=tty_get(in_buffer, IN_MAXBUF, &timeout))<0) return rc;
+	in_bufpos=0;in_bufmax=rc;
  	return in_buffer[in_bufpos++];
 }
-#else
-int tty_getc(int timeout)
+
+int tty_getc_timed(int *timeout)
 {
-	int ch, rc;
-	rc=tty_get((char *)&ch, 1, timeout);
-	if(rc<0) return rc;
-	return ch&255;
+	int rc;
+	if(in_bufpos<in_bufmax) return in_buffer[in_bufpos++];
+	if((rc=tty_get(in_buffer, IN_MAXBUF, timeout))<0) return rc;
+	in_bufpos=0;in_bufmax=rc;
+ 	return in_buffer[in_bufpos++];
 }
-#endif
+
 
 int tty_hasdata(int sec, int usec)
 {
@@ -444,9 +434,7 @@ int tty_hasdata(int sec, int usec)
 	int rc;
 
 	if(tty_hangedup) return RCDO;
-#ifdef BUF_READ	
-  	if(in_bufpos<in_bufmax) return OK; 
-#endif
+	if(in_bufpos<in_bufmax) return OK; 
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);
 	FD_SET(0,&rfds);
@@ -456,27 +444,51 @@ int tty_hasdata(int sec, int usec)
 
 	rc=select(1, &rfds, NULL, &efds, &tv);
 	if(rc<0) {
-		if(tty_hangedup) 
-			return RCDO;
-		else
-			return ERROR;
+		if(tty_hangedup) return RCDO;
+		else return ERROR;
 	}
 	if(rc==0) return TIMEOUT;
 	if(rc>0) if(FD_ISSET(0, &efds) || !FD_ISSET(0, &rfds)) return ERROR;
 	return OK;
 }
 
+
+int tty_hasdata_timed(int *timeout)
+{
+	fd_set rfds, efds;
+	struct timeval tv;
+	int rc;
+	time_t t;
+
+	if(tty_hangedup) return RCDO;
+	if(in_bufpos<in_bufmax) return OK; 
+	FD_ZERO(&rfds);
+	FD_ZERO(&efds);
+	FD_SET(0,&rfds);
+	FD_SET(0,&efds);
+	tv.tv_sec=*timeout;
+	tv.tv_usec=0;
+
+	t=time(NULL);
+	rc=select(1, &rfds, NULL, &efds, &tv);
+	if(rc<0) {
+		if(tty_hangedup) return RCDO;
+		else return ERROR;
+	}
+	*timeout -= (time(NULL)-t);
+	if(rc==0) return TIMEOUT;
+	if(rc>0) if(FD_ISSET(0, &efds) || !FD_ISSET(0, &rfds)) return ERROR;
+	return OK;
+}
+
+
 void tty_purge() {
-#ifdef BUF_READ
 	in_bufmax = in_bufpos = 0;
-#endif
 	tcflush(0, TCIFLUSH);
 }
 
 void tty_purgeout() {
-#ifdef BUF_WRITE
 	out_bufpos = 0;
-#endif
 	tcflush(1, TCOFLUSH);
 }
 
@@ -508,7 +520,6 @@ int tty_expect(char *what, int timeout)
 	while(!got && to>0) {
 		t1=t_start();
 		ch=tty_getc(to);
-/* 		write_log("getc got '%c' %03d", C0(ch), ch); */
 		if(ch<0) return ch;
 		to-=t_time(t1);
 		if(ch==what[p]) p++;else p=0;
@@ -560,7 +571,6 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	while(ISTO(rc) && !t_exp(t1) && (!maxr || nrng<maxr)) {
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
 		if(!*buf) continue;
-/*      		write_log("gets got %d '%s'", rc, buf);  */
 		if(rc!=OK) {
 			if(rest) strcpy(rest, "FAILURE");
 			return MC_FAIL;
@@ -592,4 +602,3 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 	}
 	return MC_FAIL;
 }
-
