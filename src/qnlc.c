@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.12 2001/07/24 13:57:09 lev Exp $
+ * $Id: qnlc.c,v 1.13 2002/05/29 21:18:06 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -77,7 +77,7 @@ int compile_nodelists()
 			}
 			max=-1;
 			while((de=readdir(d))) 
-				if(!strncmp(de->d_name, s, strlen(s))) {
+				if(!strncasecmp(de->d_name, s, strlen(s))) {
 					p=de->d_name+strlen(s);				
 					if ((*p == '.') && (strlen(p) == 4) &&
 						(strspn(p+1,"0123456789") == 3)) {
