@@ -1,3 +1,10 @@
+2004-06-15 00:29  sisoft
+
+	* Changes, src/flaglex.l, src/session.c:
+
+	fix compile with old flex.
+	fix kill files from *.hlo and *.hut, when holdout=yes.
+
 2004-06-13 21:05  sisoft
 
 	* Changes, debian/changelog, debian/examples, debian/inetd.conf,

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.34 2004/06/11 20:30:24 sisoft Exp $
+ * $Id: daemon.c,v 1.35 2004/06/16 03:42:20 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -579,11 +579,11 @@ void daemon_mode()
 							write_log("can't init log %s.%s",ccs,port);
 							exit(S_BUSY);
 						}
-						IFPerl(perl_on_reload(1));
 						DEBUG(('I',4,"connecting to daemon"));
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
+						IFPerl(perl_on_reload(1));
 						if(is_ip)rc=do_call(&current->addr,rnode->host,NULL);
 						    else {
 							if(rnode->hidnum) {
@@ -595,6 +595,7 @@ void daemon_mode()
 							}
 							rc=do_call(&current->addr,rnode->phone,port);
 						}
+						IFPerl(perl_done(0));
 						log_done();hld=0;
 						if(!log_init(cfgs(CFG_MASTERLOG),NULL))write_log("can't init master log %s",ccs);
 						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
@@ -657,7 +658,6 @@ void daemon_mode()
 								break;
 						}
 						aso_unlocknode(&current->addr,LCK_x);
-						IFPerl(perl_done(0));
 						log_done();
 						cls_close(ssock);
 						exit(rc);

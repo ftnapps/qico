@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.12 2004/05/29 23:34:45 sisoft Exp $
+ * $Id: call.c,v 1.13 2004/06/16 03:42:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -14,6 +14,7 @@ int do_call(ftnaddr_t *fa,char *site,char *port)
 		snprintf(buf,MAX_PATH,"%s %s %s",ccs,ftnaddrtoa(fa),port?port:site);
 		if((rc=execsh(buf)))write_log("exec '%s' returned rc=%d",buf,rc);
 	}
+	IFPerl(if((rc=perl_on_call(fa,site,port))!=S_OK)return rc);
 	if(port) {
 		rc=mdm_dial(site,port);
 		switch(rc) {

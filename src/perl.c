@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.3 2004/06/11 20:30:24 sisoft Exp $
+ * $Id: perl.c,v 1.4 2004/06/16 03:42:20 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -12,47 +12,57 @@
 #	define sv_undef PL_sv_undef
 #endif
 #define pladd_int(_sv,_name,_v) if((_sv=perl_get_sv(_name,TRUE))) { \
-	sv_setiv(_sv,_v);SvREADONLY_on(_sv);}
+	sv_setiv(_sv,(_v));SvREADONLY_on(_sv);}
 #define pladd_str(_sv,_name,_v) if((_sv=perl_get_sv(_name,TRUE))) { \
-	if(_v)sv_setpv(_sv,_v);else sv_setsv(_sv,&sv_undef);SvREADONLY_on(_sv);}
+	if(_v)sv_setpv(_sv,(_v));else sv_setsv(_sv,&sv_undef);SvREADONLY_on(_sv);}
 #define pladd_strz(_sv,_name,_v) if((_sv=perl_get_sv(_name,TRUE))) { \
 	sv_setpv(_sv,SS(_v));SvREADONLY_on(_sv);}
 #define plhadd_sv(_hv,_sv,_name) if(_sv) { \
 	SvREADONLY_on(_sv);hv_store(_hv,_name,strlen(_name),_sv,0);}
-#define plhadd_str(_hv,_sv,_name,_value) if((_value)&&(_sv=newSVpv(_value,0))) \
+#define plhadd_str(_hv,_sv,_name,_v) if((_v)&&(_sv=newSVpv((_v),0))) \
 	{ SvREADONLY_on(_sv);hv_store(_hv,_name,strlen(_name),_sv,0); \
 	} else hv_store(_hv,_name,strlen(_name),&sv_undef,0);
-#define plhadd_int(_hv,_sv,_name,_value) if(_sv=newSViv(_value)) { \
+#define plhadd_int(_hv,_sv,_name,_v) if(_sv=newSViv((_v))) { \
 	SvREADONLY_on(_sv);hv_store(_hv,_name,strlen(_name),_sv,0);}
 #define ploffRO(_sv) if(_sv) {SvREADONLY_off(_sv);}
 #define PerlHave(_t) (perl&&(perl_nc&(1<<(_t))))
 
 typedef enum {
-	PERL_ON_LOAD,
+	PERL_ON_INIT,
 	PERL_ON_EXIT,
 	PERL_ON_LOG,
 	PERL_ON_CALL,
-	PERL_ON_HS,
-	PERL_END_HS,
 	PERL_ON_SESSION,
 	PERL_END_SESSION,
 	PERL_ON_RECV,
-	PERL_RECV_CB,
-	PERL_ON_SEND
+	PERL_END_RECV,
+	PERL_ON_SEND,
+	PERL_END_SEND
 } perl_subs;
 
 static char *perl_subnames[]={
-	"on_load",
+	"on_init",
 	"on_exit",
 	"on_log",
 	"on_call",
-	"on_handshake",
-	"end_handshake",
 	"on_session",
 	"end_session",
 	"on_recv",
-	"recv_cb",
-	"on_send"
+	"end_recv",
+	"on_send",
+	"end_send"
+};
+
+static struct {char *name;int val;} perl_const[]={
+	{"S_OK",S_OK},
+	{"S_NODIAL",S_NODIAL},
+	{"S_REDIAL",S_REDIAL},
+	{"S_BUSY",S_BUSY},
+	{"S_FAILURE",S_FAILURE},
+	{"S_HOLDR",S_HOLDR},
+	{"S_HOLDX",S_HOLDX},
+	{"S_HOLDA",S_HOLDA},
+	{"S_ADDTRY",S_ADDTRY}
 };
 
 static PerlInterpreter *perl = NULL;
@@ -70,11 +80,14 @@ static void sub_err(int sub)
 static XS(perl_wlog)
 {
 	dXSARGS;
+	int lvl=0;
 	char *str;
 	STRLEN len;
-	if(items==1) {
-		str=(char*)SvPV(ST(0),len);
-		write_log("%s",len?str:"(empty perl log)");
+	if(items==1||items==2) {
+		if(items==2)lvl=SvIV(ST(0));
+		str=(char*)SvPV(ST((items-1)),len);
+		if(!lvl)write_log("%s",len?str:"(empty perl log)");
+		    else DEBUG(('P',lvl,"%s",len?str:NULL));
 	} else write_log("perl wlog() error: wrong number of args");
 	XSRETURN_EMPTY;
 }
@@ -86,7 +99,7 @@ static XS(perl_setflag)
 	if(items==2) {
 		num=SvIV(ST(0));
 		arg=SvIV(ST(1));
-		DEBUG(('P',2,"perl setflag(%d,%d)",num,arg));
+		DEBUG(('P',3,"perl setflag(%d,%d)",num,arg));
 		if(num<0||num>9||arg<0)write_log("perl setflags() error: illegal argument");
 		    else {
 			if(arg)perl_flg|=1<<num;
@@ -117,7 +130,6 @@ static void perl_setup(int daemon,int init)
 	pladd_int(sv,"init",init);
 	pladd_int(sv,"daemon",daemon);
 	pladd_str(sv,"conf",configname);
-	pladd_strz(sv,"version",version);
 	hv=perl_get_hv("conf",TRUE);
 	hv_clear(hv);
 	for(i=0;i<CFG_NNN;i++)
@@ -176,8 +188,9 @@ static void perl_setup(int daemon,int init)
 int perl_init(char *script,int mode)
 {
 	int rc;
+	SV *sv;
 	char *perlargs[]={"",NULL,NULL};
-	DEBUG(('P',1,"perl_init(%s, %d)",script,mode));
+	DEBUG(('P',2,"perl_init(%s, %d)",script,mode));
 	if(access(script,R_OK)) {
 		perl=NULL;
 		write_log("can't access perlfile %s: %s",script,strerror(errno));
@@ -200,10 +213,17 @@ int perl_init(char *script,int mode)
 		return 0;
 	}
 	perl_run(perl);
-	perl_setup(mode,1);
 	for(rc=0,perl_nc=0;rc<sizeof(perl_subnames)/sizeof(*perl_subnames);rc++)
 		if(perl_get_cv(perl_subnames[rc],FALSE))perl_nc|=1<<rc;
-	perl_on_std(PERL_ON_LOAD);
+	if(!perl_nc) {
+		perl_done(0);
+		return 0;
+	}
+	pladd_strz(sv,"version",version);
+	perl_setup(mode,1);
+	for(rc=0;rc<sizeof(perl_const)/sizeof(*perl_const);rc++)
+		pladd_int(sv,perl_const[rc].name,perl_const[rc].val);
+	perl_on_std(PERL_ON_INIT);
 	return 1;
 }
 
@@ -211,7 +231,7 @@ void perl_done(int rc)
 {
 	if(perl) {
 		SV *sv;
-		DEBUG(('P',1,"perl_done(%d)",rc));
+		DEBUG(('P',2,"perl_done(%d)",rc));
 		pladd_int(sv,"emerg",rc);
 		perl_on_std(PERL_ON_EXIT);
 		perl_destruct(perl);
@@ -224,9 +244,9 @@ void perl_done(int rc)
 void perl_on_reload(int mode)
 {
 	if(perl) {
-		DEBUG(('P',3,"perl_reload(%d)",mode));
+		DEBUG(('P',4,"perl_reload(%d)",mode));
 		perl_setup(!mode,0);
-		perl_on_std(PERL_ON_LOAD);
+		perl_on_std(PERL_ON_INIT);
 	}
 }
 
@@ -234,7 +254,7 @@ void perl_on_std(int sub)
 {
 	if(PerlHave(sub)) {
 		dSP;
-		DEBUG(('P',3,"perl_on_std(%s)",perl_subnames[sub]));
+		DEBUG(('P',4,"perl_on_std(%s)",perl_subnames[sub]));
 		ENTER;
 		SAVETMPS;
 		PUSHMARK(SP);
@@ -248,7 +268,7 @@ void perl_on_std(int sub)
 	}
 }
 
-int perl_on_log(char *str)
+void perl_on_log(char *str)
 {
 	static int Lock=0;
 	if(!Lock&&PerlHave(PERL_ON_LOG)) {
@@ -257,7 +277,7 @@ int perl_on_log(char *str)
 		int rc=0;
 		dSP;
 		Lock=1;
-		DEBUG(('P',3,"perl_on_log(%s)",str));
+		DEBUG(('P',4,"perl_on_log(%s)",str));
 		pladd_strz(sv,"_",str);ploffRO(sv);
 		ENTER;
 		SAVETMPS;
@@ -276,59 +296,145 @@ int perl_on_log(char *str)
 		} else if(rc&&sv) {
 			char *p=SvPV(sv,len);
 			if(p&&len)strncpy(str,p,MIN(len+1,LARGE_STRING-1));
-			    else rc=0;
-		} else rc=1;
+		}
 		Lock=0;
-		return rc;
 	}
-	return 1;
 }
 
-int perl_on_call()
+int perl_on_call(ftnaddr_t *fa,char *site,char *port)
 {
 	if(PerlHave(PERL_ON_CALL)) {
-
-		DEBUG(('P',3,"perl_on_call()"));
-
+		SV *sv,*svret;
+		int rc=S_OK;
+		dSP;
+		DEBUG(('P',4,"perl_on_call(%s, %s, %s)",ftnaddrtoa(fa),site,port));
+		pladd_strz(sv,"addr",ftnaddrtoa(fa));
+		pladd_int(sv,"tcpip",port?0:1);
+		pladd_int(sv,"binkp",bink);
+		pladd_str(sv,"port",port?port:"ip");
+		pladd_str(sv,"site",site);
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_ON_CALL],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret))rc=SvIV(svret);
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_ON_CALL);
+			rc=S_OK;
+		}
+		DEBUG(('P',5,"perl_on_call() return %d",rc));
+		return rc;
 	}
-	return 1;
+	return S_OK;
 }
 
-int perl_on_hs()
-{
-	if(PerlHave(PERL_ON_HS)) {
-
-		DEBUG(('P',3,"perl_on_hs()"));
-
-	}
-	return 1;
-}
-
-int perl_end_hs()
-{
-	if(PerlHave(PERL_END_HS)) {
-
-		DEBUG(('P',3,"perl_end_hs()"));
-
-	}
-	return 1;
-}
-
-int perl_on_session()
+int perl_on_session(int mode,char *sysflags)
 {
 	if(PerlHave(PERL_ON_SESSION)) {
-
-		DEBUG(('P',3,"perl_on_session()"));
-
+		SV *sv,*svret;
+		falist_t *fa;
+		flist_t *lst;
+		int rc=S_OK;
+		char *p;
+		AV *av;
+		HV *hv;
+		dSP;
+		DEBUG(('P',4,"perl_on_session(%d, %s)",mode,sysflags));
+		pladd_int(sv,"start",rnode->starttime);
+		strtr(sysflags,'/',' ');
+		pladd_strz(sv,"flags",sysflags);
+		av=perl_get_av("addrs",TRUE);
+		av_clear(av);
+		for(fa=cfgal(CFG_ADDRESS);fa;fa=fa->next) {
+			p=ftnaddrtoa(&fa->addr);
+			sv=newSVpv(p,0);
+			SvREADONLY_on(sv);
+			av_push(av,sv);
+		}
+		av=perl_get_av("akas",TRUE);
+		av_clear(av);
+		for(fa=rnode->addrs;fa;fa=fa->next) {
+			p=ftnaddrtoa(&fa->addr);
+			sv=newSVpv(p,0);
+			SvREADONLY_on(sv);
+			av_push(av,sv);
+		}
+		hv=perl_get_hv("info",TRUE);
+		hv_clear(hv);
+		plhadd_str(hv,sv,"sysop",rnode->sysop);
+		plhadd_str(hv,sv,"mailer",rnode->mailer);
+		plhadd_str(hv,sv,"station",rnode->name);
+		plhadd_str(hv,sv,"place",rnode->place);
+		plhadd_str(hv,sv,"flags",rnode->flags);
+		plhadd_str(hv,sv,"wtime",rnode->haswtime?rnode->wtime:NULL);
+		plhadd_str(hv,sv,"password",rnode->pwd);
+		plhadd_int(hv,sv,"time",rnode->time);
+		plhadd_int(hv,sv,"speed",rnode->speed);
+		plhadd_int(hv,sv,"connect",rnode->realspeed);
+		hv=perl_get_hv("flags",TRUE);
+		hv_clear(hv);
+		plhadd_int(hv,sv,"in",!mode);
+		plhadd_int(hv,sv,"out",mode);
+		plhadd_int(hv,sv,"secure",(rnode->options&O_PWD)?1:0);
+		plhadd_int(hv,sv,"listed",(rnode->options&O_LST)?1:0);
+		hv=perl_get_hv("queue",TRUE);
+		hv_clear(hv);
+		plhadd_int(hv,sv,"mail",totalm);
+		plhadd_int(hv,sv,"files",totalf);
+		plhadd_int(hv,sv,"num",totaln);
+		for(lst=fl;lst;lst=lst->next) {
+			sv=newSVpv(lst->tosend,0);
+			SvREADONLY_on(sv);
+			av_push(av,sv);
+		}
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_ON_SESSION],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret))rc=SvIV(svret);
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_ON_SESSION);
+			rc=S_OK;
+		}
+		DEBUG(('P',5,"perl_on_session() return %d",rc));
+		return rc;
 	}
-	return 1;
+	return S_OK;
 }
 
 int perl_end_session()
 {
 	if(PerlHave(PERL_END_SESSION)) {
+		SV *sv,*svret;
+		dSP;
+		DEBUG(('P',4,"perl_end_session()"));
 
-		DEBUG(('P',3,"perl_end_session()"));
+		ENTER;
+		SAVETMPS;
+		PUSHMARK(SP);
+		PUTBACK;
+		perl_call_pv(perl_subnames[PERL_END_SESSION],G_EVAL|G_SCALAR);
+		SPAGAIN;
+		svret=POPs;
+		if(SvOK(svret))rc=SvIV(svret);
+		PUTBACK;
+		FREETMPS;
+		LEAVE;
+		if(SvTRUE(ERRSV)) {
+			sub_err(PERL_END_SESSION);
+		}
 
 	}
 	return 1;
