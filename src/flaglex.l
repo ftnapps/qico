@@ -1,19 +1,12 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.19 2004/06/11 20:30:24 sisoft Exp $
+ * $Id: flaglex.l,v 1.20 2004/06/14 20:29:32 sisoft Exp $
  **********************************************************/
-%option noyywrap noyyalloc noyyrealloc 
-%option case-insensitive never-interactive
+%option noyywrap case-insensitive never-interactive
 %{
 
 #ifndef yywrap
 #define yywrap() 1
-#endif
-#ifndef yyalloc
-#define yyalloc xmalloc
-#endif
-#ifndef yyrealloc
-#define yyrealloc xrealloc
 #endif
 
 #undef ECHO
