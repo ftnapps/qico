@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.50 2001/04/13 20:24:56 lev Exp $
+ * $Id: main.c,v 1.51 2001/04/14 07:30:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -191,7 +191,7 @@ void daemon_mode()
 	time_t t;
 	ftnaddr_t fa;
 	slist_t *sl;
-	int mailonly;
+	int mailonly, hld;
 
 	if(getppid()!=1) {
 		signal(SIGTTOU, SIG_IGN);
@@ -350,14 +350,16 @@ void daemon_mode()
 									ccs, port);
 						}
 							
+						hld=0;
 						if(rc&S_ANYHOLD) {
 							bso_getstatus(&current->addr, &sts);
 							if(rc&S_HOLDA) sts.flags|=Q_WAITA; 
 							if(rc&S_HOLDR) sts.flags|=Q_WAITR;
 							if(rc&S_HOLDX) sts.flags|=Q_WAITX;
+							hld=cfgi(CFG_WAITHRQ);
 							write_log("calls to %s delayed for %d min %s",
-								ftnaddrtoa(&current->addr), cfgi(CFG_WAITHRQ), sts_str(sts.flags));
-							sts.htime=t_set(cci*60);
+								ftnaddrtoa(&current->addr), hld, sts_str(sts.flags));
+							sts.htime=t_set(hld*60);
 							bso_setstatus(&current->addr, &sts);
 						}
 						if(rc!=S_BUSY) t_rescan=cfgi(CFG_RESCANPERIOD)-1;
@@ -366,10 +368,11 @@ void daemon_mode()
 						case S_OK:
 							bso_getstatus(&current->addr, &sts);
 							if (cfgi(CFG_HOLDONSUCCESS)) {
-								sts.flags |= S_ANYHOLD;
-								sts.htime=t_set(cci*60);
+								hld=MAX(hld,cci);
+								sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
+								sts.htime=t_set(hld*60);
 								write_log("calls to %s delayed for %d min after successuful session",
-								ftnaddrtoa(&current->addr), cci);
+									ftnaddrtoa(&current->addr), hld);
 							}
 							sts.try=0;
 							bso_setstatus(&current->addr, &sts);
