@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.16 2001/03/25 20:30:13 lev Exp $
+ * $Id: tty.c,v 1.17 2001/05/07 19:16:48 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -304,6 +304,16 @@ int tty_cooked()
 	return rc;
 }
 
+int tty_setdtr(int dtr)
+{
+	int status;
+	if(ioctl(STDIN_FILENO, TIOCMGET, &status)<0) return 0;
+	if(dtr) status |= TIOCM_DTR;
+	else status &= ~TIOCM_DTR;
+	if(ioctl(STDIN_FILENO, TIOCMSET, status)<0) return 0;
+	return 1;
+}
+
 int tty_close()
 {
 	if(!tty_port) return ME_CLOSE;
@@ -560,6 +570,8 @@ int modem_sendstr(char *cmd)
 		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000);break;
 		case '~': sleep(1);rc=1;break;
 		case '\'': usleep(200000L);rc=1;break;
+		case '^': rc=tty_setdtr(1); break;
+		case 'v': rc=tty_setdtr(0); break;
 		default: rc=write(STDOUT_FILENO, cmd, 1);
 		}
 		cmd++;
