@@ -3,17 +3,10 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.13 2000/11/26 12:25:47 lev Exp $
+ * $Id: ftn.h,v 1.14 2000/11/26 12:36:08 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
-
-#include <config.h>
-#include <sys/types.h>
-#include <string.h>
-#include <dirent.h>
-#include <stdio.h>
-#include <time.h>
 
 #define EXC_OK 0
 #define EXC_BADCONFIG 1
@@ -222,7 +215,6 @@ extern char *xstrcat(char **to, char *from);
 extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
-extern time_t gmtoff(time_t tt);
 /* nodelist.c */
 extern char *NL_SIGN;
 extern char *NL_IDX;
@@ -326,5 +318,8 @@ extern unsigned long crc32cc(char *str, int l);
 
 #define xcrc(crc,c) (crc16tab[(((crc >> 8) & 0xff) ^ (c)) & 0xff] ^ (crc << 8))
 #define xcrc32(crc,c) (crc32tab[( crc ^ (c)) & 0xff] ^ ((crc >> 8) & 0x00ffffffL))
+
+/* gmtoff.c */
+extern time_t gmtoff(time_t tt);
 
 #endif
