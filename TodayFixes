@@ -1,14 +1,17 @@
-/* $Id: TodayFixes,v 1.23 2004/02/01 18:11:42 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.24 2004/02/02 17:31:38 sisoft Exp $ */
+---
+in qcc: fix get info about node.
+free unused memory after binkp.
+fix making emsi data.
+added chat for binkp and option 'T' for 'binkpopt'.
+.
+previous:
 ---
 another paranoidal changes.
 change f_notify to dnotify (as in kernel).
 fix crash if bad ip packet recv.
 fix 'mapout' keyword.
 use basename() in mapping.
-.
-previous:
----
-fix 'translatesubst' on outgoing from daemon.
 .
 
 ps: в связи с временным отсутствием фидошки,

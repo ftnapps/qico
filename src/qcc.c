@@ -1,6 +1,6 @@
 /**********************************************************
- * qico damned rind.
- * $Id: qcc.c,v 1.17 2004/01/23 12:44:24 sisoft Exp $
+ * qico control center.
+ * $Id: qcc.c,v 1.18 2004/02/02 17:31:46 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -145,7 +145,8 @@ char *infostrs[]={
 	"  Sysop",
 	"  Phone",
 	"  Flags",
-	"  Speed"
+	"  Speed",
+NULL
 };
 char *help[]={
 	"\01* qico control center %s, sisoft\\\\trg edition. help about keys:",
@@ -1439,7 +1440,7 @@ int main(int argc,char **argv)
 				xcmdslot(buf,QR_HANGUP,3);
 				break;
 			case 'c':
-				if((slots[currslot]->opt&MO_CHAT)&&slots[currslot]->session) {
+				if((slots[currslot]->opt&MO_CHAT||slots[currslot]->opt&MO_BINKP)&&slots[currslot]->session) {
 					buf[3]=5;
 					xcmdslot(buf,QR_CHAT,4);
 				} else xbeep();
