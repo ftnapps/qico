@@ -1,9 +1,6 @@
-/* $Id: ftn.h,v 1.10 2004/01/12 21:41:56 sisoft Exp $ */
+/* $Id: ftn.h,v 1.11 2004/02/05 19:51:17 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
-
-#define EXC_OK 0
-#define EXC_BADCONFIG 1
 
 #define F_ERR  0
 #define F_NORM 1
@@ -18,17 +15,6 @@
 #define T_ARCMAIL 1
 #define T_NETMAIL 2
 #define T_REQ     4
-
-#define C_INT     1
-#define C_STR     2
-#define C_ADDR    3
-#define C_ADRSTR  4
-#define C_PATH    5
-#define C_YESNO   6
-#define C_ADDRL   7
-#define C_ADRSTRL 8
-#define C_STRL    9
-#define C_OCT     10
 
 #define NT_NORMAL 0
 #define NT_DOWN   1
@@ -89,25 +75,6 @@ typedef struct {
 	char *tty;
 } ninfo_t;
 
-typedef struct _cfgitem_t {
-	char *condition;
-	union {
-		int v_int;
-		char *v_char;
-		falist_t *v_al;
-		faslist_t *v_fasl;
-		slist_t *v_sl;
-	} value;
-	struct _cfgitem_t *next;
-} cfgitem_t;
-
-typedef struct {
-	char *keyword;
-	int type, required, found;	
-	cfgitem_t *items;
-	char *def_val;
-} cfgstr_t;
-
 typedef struct _qitem_t {
 	ftnaddr_t addr;
 	int try, flv, what, touched;
@@ -131,14 +98,8 @@ typedef struct _subst {
 	struct _subst *next;
 } subst_t;
 
-#define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)  
+#define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)
 #define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=/*b.d?xstrdup(b.d):*/NULL;}
-
-#define MAX(a,b) ((a>b)?a:b)
-#define MIN(a,b) ((a<b)?a:b)
-#define C0(c) ((c>=32)?c:'.')
-#define SIZES(x) (((x)<1024)?(x):((x)/1024))
-#define SIZEC(x) (((x)<1024)?'b':'k')
 
 typedef struct {
 	UINT16 phONode,
@@ -171,13 +132,13 @@ typedef struct {
 } pkthdr_t;
 
 typedef struct {
-	UINT16 pmType;	
-	UINT16 pmONode;	
-	UINT16 pmDNode;	
-	UINT16 pmONet;	
-	UINT16 pmDNet;	
-	UINT16 pmAttr;	
-	UINT16 pmCost;	
+	UINT16 pmType;
+	UINT16 pmONode;
+	UINT16 pmDNode;
+	UINT16 pmONet;
+	UINT16 pmDNet;
+	UINT16 pmAttr;
+	UINT16 pmCost;
 } pktmhdr_t;
 
 typedef struct {
@@ -193,7 +154,6 @@ typedef struct {
 	bp_status_t bp;
 } sts_t;
 
-/* ftn.c */
 extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
 extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
@@ -205,31 +165,12 @@ extern slist_t *slist_add(slist_t **l, char *s);
 extern void slist_kill(slist_t **l);
 extern void faslist_add(faslist_t **l, char *s, ftnaddr_t *a);
 extern void faslist_kill(faslist_t **l);
-extern void strlwr(char *s);
-extern void strupr(char *s);
-extern void strtr(char *s, char a, char b);
-extern unsigned char todos(unsigned char c);
-extern unsigned char tokoi(unsigned char c);
-extern void stodos(unsigned char *str);
-extern void stokoi(unsigned char *str);
-extern char *chop(char *s, int n);
-extern unsigned long filesize(char *fname);
-extern int lockpid(char *pidfn);
-extern int islocked(char *pidfn);
 extern char *strip8(char *s);
-extern unsigned long sequencer(void);
 extern int has_addr(ftnaddr_t *a, falist_t *l);
-extern int mkdirs(char *name);
-extern void rmdirs(char *name);
-extern FILE *mdfopen(char *fn, char *pr);
 extern char *engms[];
 extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn,unsigned attr);
 extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
 extern void closeqpkt(FILE *f,ftnaddr_t *fa);
-#ifndef HAVE_SETPROCTITLE
-extern void setargspace(int argc, char **argv, char **envp);
-extern void setproctitle(char *str);
-#endif
 extern falist_t *falist_find(falist_t *, ftnaddr_t *);
 extern int havestatus(int status, int cfgkey);
 extern int needhold(int status, int what);
@@ -252,23 +193,6 @@ extern int can_dial(ninfo_t *nl, int ct);
 extern int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs);
 extern void nlfree(ninfo_t *nl);
 extern void nlkill(ninfo_t **nl);
-/* config.c */
-extern int cci;
-extern char *ccs;
-extern slist_t *ccsl;
-extern faslist_t *ccfasl;
-extern falist_t *ccal;
-extern int cfgi(int i);
-extern char *cfgs(int i);
-extern slist_t *cfgsl(int i);
-extern faslist_t *cfgfasl(int i);
-extern falist_t *cfgal(int i);
-extern int readconfig(char *cfgname);
-extern int parseconfig(char *cfgname);
-extern void killconfig(void);
-#ifdef NEED_DEBUG
-extern void dumpconfig();
-#endif
 /* aso.c */
 extern char *aso_tmp;
 extern int is_aso();
@@ -311,27 +235,6 @@ extern int bso_rmstatus(ftnaddr_t *adr);
 extern int bso_setstatus(ftnaddr_t *fa, sts_t *st);
 extern int bso_getstatus(ftnaddr_t *fa, sts_t *st);
 extern int bso_poll(ftnaddr_t *fa, int flavor);
-/* log.c */
-extern void (*log_callback)(char *str);
-extern int log_init(char *, char *);
-extern void write_log(char *fmt, ...);
-extern int chatlog_init(char *remname,ftnaddr_t *remaddr,int side);
-extern void chatlog_write(char *text,int side);
-extern void chatlog_done();
-#ifdef NEED_DEBUG
-extern int facilities_levels[256];
-extern void parse_log_levels();
-extern void write_debug_log(unsigned char facility, int level, char *fmt, ...);
-#ifdef __GNUC__
-#	define DEBUG(all)	 __DEBUG all
-#	define __DEBUG(F,L,A...)	do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
-#else
-#	define DEBUG(all)	 write_debug_log all
-#endif
-#else
-#	define DEBUG(all)
-#endif
-extern void log_done(void);
 /* queue.c */
 extern qitem_t *q_queue;
 extern qitem_t *q_find(ftnaddr_t *fa);
@@ -350,15 +253,7 @@ extern int istic(char *fn);
 extern int hangup();
 extern int stat_collect();
 int do_call(ftnaddr_t *fa, char *phone, char *port);
-/* gmtoff.c */
-extern time_t gmtoff(time_t tt,int mode);
 /* main.c */
-extern void to_dev_null();
-extern void sigerr(int sig);
-extern char *configname;
 extern subst_t *psubsts;
-extern void stopit(int rc);
-/* daemon.c */
-extern void daemon_mode();
 
 #endif

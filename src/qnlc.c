@@ -1,6 +1,6 @@
 /**********************************************************
  * nodelist compiler
- * $Id: qnlc.c,v 1.4 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: qnlc.c,v 1.5 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -54,7 +54,7 @@ int compile_nodelists()
 	if(!(idx=fopen(fn,"wb"))) {
 		write_log("can't open nodelist index %s for writing: %s",fn,strerror(errno));
 		snprintf(fn,MAX_PATH,"%s%s.lock",ccs,NL_IDX);unlink(fn);
-		return 0;		
+		return 0;
 	}
 	fseek(idx,sizeof(idxh),SEEK_SET);
 	printf("compiling nodelists...\n");
@@ -73,9 +73,9 @@ int compile_nodelists()
 				return 0;
 			}
 			max=-1;
-			while((de=readdir(d))) 
+			while((de=readdir(d)))
 				if(!strncasecmp(de->d_name,s,strlen(s))) {
-					p=de->d_name+strlen(s);				
+					p=de->d_name+strlen(s);
 					if((*p=='.')&&(strlen(p)==4)&&(strspn(p+1,"0123456789")==3)) {
 						num=atoi(p+1);
 						if(num>max) {

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.10 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: log.c,v 1.11 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -48,7 +48,7 @@ static SLNCODE prioritynames[] =
 	{"emerg",LOG_EMERG,},
 	{"err",LOG_ERR,},
 	{"error",LOG_ERR,},	/* DEPRECATED */
-	{"info",LOG_INFO,},                      
+	{"info",LOG_INFO,},
 	{"notice",LOG_NOTICE,},
 	{"panic",LOG_EMERG,},	/* DEPRECATED */
 	{"warn",LOG_WARNING,},	/* DEPRECATED */
@@ -245,7 +245,7 @@ int chatlog_init(char *remname,ftnaddr_t *ra,int side)
 	}
 	mcpos=rcpos=0;*rchat=0;*mchat=0;
 	return(cpkt!=NULL||chatlog!=NULL||lemail!=NULL);
-}	
+}
 
 void chatlog_write(char *text,int side)
 {

@@ -5,11 +5,11 @@
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
 */
-/* $Id: ls_zmodem.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
+/* $Id: ls_zmodem.h,v 1.5 2004/02/05 19:51:17 sisoft Exp $ */
 
 /* Dirty hack */
 #define LSZ_TRUSTZFINS		3		/* We trust only in MANY ZFINs during initialization */
- 
+
 /* ZModem constants */
 
 #define LSZ_MAXHLEN			16		/* Max header information length  NEVER CHANGE */

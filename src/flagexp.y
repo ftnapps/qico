@@ -1,6 +1,6 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.5 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: flagexp.y,v 1.6 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 %token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR HOST
 %{
@@ -19,7 +19,7 @@ extern char yytext[];
 #undef ECHO
 
 int yylex();
-	
+
 int flxpres;
 
 static int logic(int e1, int op,int e2);
@@ -37,14 +37,14 @@ extern char *yyPTR;
 
 %%
 fullline	: expression
-                {flxpres=$1;}    
+                {flxpres=$1;}
 		;
 expression	: elemexp
 			{$$ = $1;}
 		| NOT expression
 		        {$$ = !($2);}
 		| expression LOGOP expression
-			{$$ = logic($1,$2,$3);}      
+			{$$ = logic($1,$2,$3);}
 		| LB expression RB
 			{$$ = $2;}
 		;
@@ -81,12 +81,12 @@ datestring	: DATESTR
 			{$$ = $1;}
 		| DATESTR COMMA datestring
 			{$$ = logic($1,OR,$3);}
-		;	
+		;
 timestring	: TIMESTR
 			{$$ = $1;}
 		| TIMESTR COMMA timestring
 			{$$ = logic($1,OR,$3);}
-		;	
+		;
 gapstring	: GAPSTR
 			{$$ = $1;}
 		| GAPSTR COMMA gapstring
@@ -192,7 +192,7 @@ static int checkfile(void)
 }
 
 int yyparse();
- 
+
 int flagexp(char *expr)
 {
 	char *p;

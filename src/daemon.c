@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.11 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: daemon.c,v 1.12 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -70,7 +70,7 @@ static char *sts_str(int flags)
 	return s;
 }
 
-void to_dev_null() 
+void to_dev_null()
 {
 	int fd;
 	close(STDIN_FILENO);close(STDOUT_FILENO);close(STDERR_FILENO);
@@ -102,7 +102,7 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
 #else
 	rc=vsprintf(buf+3,fmt,args);
-#endif	
+#endif
 	va_end(args);
 	if(xsend(sock,buf,rc+3)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
@@ -516,7 +516,7 @@ void daemon_mode()
 			exit(1);
 		}
 	}
-	signal(SIGINT,sigerr);	
+	signal(SIGINT,sigerr);
 	signal(SIGTERM,sigerr);
 	signal(SIGFPE,sigerr);
 	signal(SIGCHLD,sigchild);
@@ -545,7 +545,7 @@ void daemon_mode()
 		write_log("No outbound defined");
 		cls_shutd(lins_sock);cls_shutd(uis_sock);
 		exit(1);
-	} 
+	}
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
 #ifdef HAVE_DNOTIFY
@@ -612,7 +612,7 @@ void daemon_mode()
 							write_log("changing status of %s to [%s]",ftnaddrtoa(&current->addr),sts_str(sts.flags));
 						}
 					}
-					
+
 				}
  				if(falist_find(cfgal(CFG_ADDRESS),&current->addr)||
 					f&Q_UNDIAL||!havestatus(f,CFG_CALLONFLAVORS)||
@@ -661,7 +661,7 @@ void daemon_mode()
 						setsid();
 #ifdef HAVE_DNOTIFY
 						signal(SIGRTMIN,SIG_IGN);
-#endif						
+#endif
 						if(is_bso()==1)if(!bso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(is_aso()==1)if(!aso_locknode(&current->addr,LCK_c))exit(S_BUSY);
 						if(!is_ip&&cfgi(CFG_TRANSLATESUBST))phonetrans(&rnode->phone,cfgsl(CFG_PHONETR));
@@ -775,9 +775,9 @@ void daemon_mode()
 									sts.utime=t_set(cfgi(CFG_CLEARUNDIAL)*60);
 									if(is_bso()!=1)write_log("fatal handshake error, %s undialable",ftnaddrtoa(&current->addr));
 									aso_setstatus(&current->addr,&sts);
-								}								
+								}
 								break;
-							case S_REDIAL:							
+							case S_REDIAL:
 								if(!(rc&S_ADDTRY))break;
 								if(is_bso()==1) {
 									bso_getstatus(&current->addr,&sts);
@@ -822,7 +822,7 @@ nlkil:				is_ip=0;bink=0;
 				current=current->next;
 				if(!current) current=q_queue;
 				i=i->next;
-			} 
+			}
 		}
 		t=time(NULL);
 		while(do_rescan!=1&&(time(NULL)-t)<1) {

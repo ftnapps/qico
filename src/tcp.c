@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.13 2004/02/05 13:09:01 sisoft Exp $
+ * $Id: tcp.c,v 1.14 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -293,9 +293,9 @@ int opentcp(char *name,char *prx,int sp)
 void closetcp(int fd)
 {
 	close(fd);
-#ifdef HAVE_SHUTDOWN	
+#ifdef HAVE_SHUTDOWN
 	shutdown(STDIN_FILENO,2);
-#endif  
+#endif
 	signal(SIGPIPE,SIG_DFL);
 }
 

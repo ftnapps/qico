@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.15 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: main.c,v 1.16 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <locale.h>
@@ -17,9 +17,9 @@ subst_t *psubsts;
 static void usage(char *ex)
 {
 	printf("usage: %s [<options>] [<node>]\n"
- 		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
+ 		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n"
 		   "-h           this help screen\n"
-		   "-I<config>   override default config\n"  
+		   "-I<config>   override default config\n"
 		   "-d           start in daemon (originate) mode\n"
  		   "-a<type>     start in answer mode with <type> session, type can be:\n"
 		   "                       auto - autodetect\n"
@@ -124,7 +124,7 @@ static void answer_mode(int type)
 	if(is_ip&&!getpeername(0,(struct sockaddr*)&sa,&ss)) {
 		write_log("remote is %s",inet_ntoa(sa.sin_addr));
 		spd=TCP_SPEED;
-	} else {	
+	} else {
 		cs=getenv("CONNECT");spd=cs?atoi(cs):0;
 		xfree(connstr);connstr=xstrdup(cs);
 		if(cs&&spd)write_log("*** CONNECT %s",cs);
@@ -171,7 +171,7 @@ static void answer_mode(int type)
 	if(is_bso()==1)bso_done();
 	if(is_aso()==1)aso_done();
 	stopit(rc);
-}	
+}
 
 static int force_call(ftnaddr_t *fa,int line,int flags)
 {
@@ -316,7 +316,7 @@ int main(int argc,char *argv[],char *envp[])
 #ifdef NEED_DEBUG
 	parse_log_levels();
 	if(facilities_levels['C']>=1)dumpconfig();
-#endif	
+#endif
 	psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
 	if(facilities_levels['C']>=1) {
@@ -328,7 +328,7 @@ int main(int argc,char *argv[],char *envp[])
 				write_log(" * %s,%s,%s,%d,%d\n",l->phone,l->host,l->timegaps,l->flags,l->num);
 		}
 	}
-#endif	
+#endif
 
 	if(hostname||daemon==12) {
 		if(!parseftnaddr(argv[optind],&fa,&DEFADDR,0)) {

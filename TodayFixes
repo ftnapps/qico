@@ -1,13 +1,13 @@
-/* $Id: TodayFixes,v 1.25 2004/02/05 13:09:00 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.26 2004/02/05 19:51:15 sisoft Exp $ */
 ---
-added socks4 and socks5 support. added keword 'socks'.
+in conf.sample: remove (new!) markers and some corrections.
+remove trailing spaces from sources.
+add makefile in /debian.
+strip down ftn* to tools*.
 .
 previous:
 ---
-in qcc: fix get info about node.
-free unused memory after binkp.
-fix making emsi data.
-added chat for binkp and option 'T' for 'binkpopt'.
+added socks4 and socks5 support. added keword 'socks'.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,6 +1,6 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.3 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: headers.h,v 1.4 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -52,6 +52,7 @@
 #include "types.h"
 #include "crc.h"
 #include "ftn.h"
+#include "tools.h"
 #include "qcconst.h"
 #include "qconf.h"
 #include "mailer.h"

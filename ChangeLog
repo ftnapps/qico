@@ -1,3 +1,9 @@
+2004-02-05 16:09  sisoft
+
+	* Changes, qico.conf.sample, src/ftn.c, src/qconf.x, src/tcp.c:
+
+	added socks4 and socks5 support. added keword 'socks'.
+	
 2004-02-02 20:31  sisoft
 
 	* cvs_com, qico.conf.sample, src/binkp.c, src/binkp.h, src/emsi.c,

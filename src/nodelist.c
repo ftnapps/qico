@@ -1,6 +1,6 @@
 /**********************************************************
  * work with nodelists
- * $Id: nodelist.c,v 1.4 2004/01/26 21:24:47 sisoft Exp $
+ * $Id: nodelist.c,v 1.5 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -150,7 +150,7 @@ int is_listed_one(ftnaddr_t *addr, char *nlpath)
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
 		return 0;
 	}
-	if(strcmp(ih.sign, NL_SIGN)) 
+	if(strcmp(ih.sign, NL_SIGN))
 		return 0;
 	if(fstat(fileno(idx),&sb)) {
 		fclose(idx);
@@ -253,8 +253,8 @@ int checktimegaps(char *ranges)
 		if(!strcasecmp(r, "never")) { xfree(rs); return 0;}
 		if(r[0]=='T') {
 			if(chktxy(r)) { xfree(rs); return 1;}
-			else continue;     
-		} 
+			else continue;
+		}
 
 		firstDay = -1;
 		secondDay = -1;
@@ -262,7 +262,7 @@ int checktimegaps(char *ranges)
 		firstMinute = -1;
 		secondHour = -1;
 		secondMinute = -1;
-			
+
 		if((p = strchr(r, '-'))) {
 			if((s = strchr(r, '.')))
 				{
@@ -270,7 +270,7 @@ int checktimegaps(char *ranges)
 					firstHour = atoi(s + 1);
 					if((f = strchr(s + 1, ':')) && f < p)
 						firstMinute = atoi(f + 1);
-							
+
 					if((s = strchr(p + 1, '.'))) {
 						secondDay = atoi(s - 1);
 						secondHour = atoi(s + 1);
@@ -280,7 +280,7 @@ int checktimegaps(char *ranges)
 						xfree(rs);
 						return 0;
 					}
-				} else {						
+				} else {
 					firstHour = atoi(r);
 					if((f = strchr(r, ':')) && f < p)
 						firstMinute = atoi(f + 1);
@@ -299,7 +299,7 @@ int checktimegaps(char *ranges)
 				if((p = strchr(r,':'))) firstMinute = atoi(p + 1);
 			}
 		}
-			
+
 		if( firstDay < -1 || firstDay > 7 ||
 			firstDay == 0 || firstHour < -1 ||
 			firstHour > 23 || firstMinute< -1 ||
@@ -312,11 +312,11 @@ int checktimegaps(char *ranges)
 		ti=localtime(&tim);
 		Day=ti->tm_wday;if(!Day) Day = 7;
 		Hour=ti->tm_hour;Min=ti->tm_min;
-		firstMark = firstHour * 60; 
+		firstMark = firstHour * 60;
 		if(firstMinute != -1) firstMark += firstMinute;
-		secondMark = secondHour * 60;   
+		secondMark = secondHour * 60;
 		if(secondMinute != -1) secondMark += secondMinute;
-		currentMark = Hour * 60 + Min;  
+		currentMark = Hour * 60 + Min;
 
 /* 			write_log("%d.%d:%d-%d.%d:%d %d.%d:%d", */
 /* 				firstDay,firstHour,firstMinute, */
@@ -382,7 +382,7 @@ int checktimegaps(char *ranges)
 			}
 		}
     }
-			
+
 	xfree(rs);
 	return 0;
 }
@@ -403,7 +403,7 @@ int checktxy(char *flags)
 {
 	char *u, *p, *w;
 	int i;
-	
+
 	w=xstrdup(flags);u=w;
 	while((p=strsep(&u, ","))) {
 		if(!strcmp(p,"CM")) {
@@ -435,7 +435,7 @@ subst_t *parsesubsts(faslist_t *sbs)
 		q=findsubst(&sbs->addr, subs);
 		if(!q) {
 			q=xmalloc(sizeof(subst_t));
-			q->next=subs;subs=q;			
+			q->next=subs;subs=q;
 			ADDRCPY(q->addr, sbs->addr);
 			q->hiddens=q->current=NULL;
 			q->nhids=0;
@@ -446,7 +446,7 @@ subst_t *parsesubsts(faslist_t *sbs)
 		c=q->hiddens;
 		if(!c) { q->current=q->hiddens=d;
 		} else { while(c->next)c=c->next; c->next=d; }
-		
+
     		d->next=NULL;
 		d->num=++q->nhids;
 		d->phone=NULL;
@@ -482,7 +482,7 @@ subst_t *parsesubsts(faslist_t *sbs)
 	}
 	return subs;
 }
-	
+
 int applysubst(ninfo_t *nl, subst_t *subs)
 {
 	subst_t *sb=findsubst(&nl->addrs->addr, subs);

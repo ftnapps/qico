@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.13 2004/02/05 13:09:01 sisoft Exp $
+#* $Id: qconf.x,v 1.14 2004/02/05 19:51:17 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -16,7 +16,7 @@ binkpopt,C_STR,char *,0,"MB"
 bsooutbound,C_PATH,char *,0,NULL
 callonflavors,C_STR,char *,0,"NDCIR"
 cancall,C_STR,char *,0,"CM"
-chathallostr,C_STR,char *,0,"\n * Hallo %s!\n"
+chathallostr,C_STR,char *,0,"\n * Hello %s!\n"
 chatlog,C_PATH,char *,0,NULL
 chatlognetmail,C_YESNO,int,0,"no"
 chattoemail,C_STR,char *,0,NULL
@@ -99,7 +99,7 @@ proxy,C_STR,char *,0,NULL
 qstoutbound,C_PATH,char *,0,NULL
 realmincps,C_YESNO,int,0,"yes"
 recodetable,C_PATH,char *,0,NULL
-remoterecode,C_YESNO,int,0,"yes"
+remoterecode,C_YESNO,int,0,"no"
 rescanperiod,C_INT,int,0,"300"
 rmboxes,C_YESNO,int,0,"no"
 rootdir,C_PATH,char *,0,NULL

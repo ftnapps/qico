@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.h,v 1.4 2004/01/12 21:41:56 sisoft Exp $ */
+/* $Id: hydra.h,v 1.5 2004/02/05 19:51:17 sisoft Exp $ */
 #ifndef __HYDRA_H__
 #define __HYDRA_H__
 #include "mailer.h"
@@ -123,7 +123,7 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define HOPT_FPT      (0x00000400L)     /* Can handle filenames with paths   */
 
 /* What we can do */
-#define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE) 
+#define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE)
 /* Vital options if we ask for any; abort if other side doesn't support them */
 #define HNEC_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANBRK)
 /* Non-vital options; nice if other side supports them, but doesn't matter */

@@ -1,6 +1,6 @@
 /**********************************************************
  * bso management
- * $Id: bso.c,v 1.6 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: bso.c,v 1.7 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -96,13 +96,13 @@ int bso_rescan(void (*each)(char *,ftnaddr_t *,int,int,int),int rslow)
 								}
 							}
 							closedir(dp);
-						}						
+						}
 					} else {
 						if(!strcasecmp(p+2,"lo")&&F_ERR!=(flv=bso_flavor(p[1])))
 							each(fn,&a,T_ARCMAIL,flv,rslow);
 						if(!strcasecmp(p+2,"ut")&&F_ERR!=(flv=bso_flavor(p[1])))
 							each(fn,&a,T_NETMAIL,flv,rslow);
-						if(!strcasecmp(p+1,"req"))each(fn,&a,T_REQ,F_REQ,rslow);	
+						if(!strcasecmp(p+1,"req"))each(fn,&a,T_REQ,F_REQ,rslow);
 					}
 				}
 				closedir(dn);

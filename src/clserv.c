@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.6 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: clserv.c,v 1.7 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -51,7 +51,7 @@ void cls_close(int sock)
 
 void cls_shutd(int sock)
 {
-#ifdef HAVE_SHUTDOWN	
+#ifdef HAVE_SHUTDOWN
 	if(sock>=0)shutdown(sock,3);
 #endif
 	cls_close(sock);

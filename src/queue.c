@@ -1,6 +1,6 @@
 /**********************************************************
- * Queue operations 
- * $Id: queue.c,v 1.8 2004/01/23 12:44:37 sisoft Exp $
+ * Queue operations
+ * $Id: queue.c,v 1.9 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -48,7 +48,7 @@ void q_recountflo(char *name,off_t *size,time_t *mtime,int rslow)
 			f=fopen(name,"rt");
 			if(f) {
 				while(fgets(s,MAX_STRING-1,f)) {
-					if(*s=='~')continue; 
+					if(*s=='~')continue;
 					p=strrchr(s,'\r');if(p)*p=0;
 					p=strrchr(s,'\n');if(p)*p=0;
 					p=s;if(*p=='^'||*p=='#')p++;
@@ -101,7 +101,7 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 	char *p;
 	off_t total=0;
 	int len;
-	
+
 	if(!stat(name,&sb)&&((sb.st_mode&S_IFMT)==S_IFDIR||(sb.st_mode&S_IFMT)==S_IFLNK)) {
 		if(sb.st_mtime!=*mtime||rslow) {
 			DEBUG(('Q',4,"scan box '%s'",name));
@@ -126,7 +126,7 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 		*mtime=0;
 		*size=0;
 	}
-}	
+}
 
 void rescan_boxes(int rslow)
 {
@@ -161,7 +161,7 @@ void rescan_boxes(int rslow)
 						p=xmalloc(len);
 						snprintf(p,len,"%s/%s",ccs,de->d_name);
 						q=q_add(&a);
-						q_recountbox(p,&q->sizes[5],&q->times[5],rslow); 
+						q_recountbox(p,&q->sizes[5],&q->times[5],rslow);
 						if(q->sizes[5]!=0) {
 							q->touched=1;
 							q->what|=T_ARCMAIL;
@@ -195,7 +195,7 @@ int q_rescan(qitem_t **curr,int rslow)
 	for(q=q_queue;q;q=q->next) {
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
-	
+
 	if(is_bso()==1)rc=bso_rescan(q_each,rslow);
 	if(is_aso()==1)rc+=aso_rescan(q_each,rslow);
 	if(!rc)return 0;
@@ -229,7 +229,7 @@ int q_rescan(qitem_t **curr,int rslow)
 
 void qsendqueue()
 {
-	qitem_t *q;	
+	qitem_t *q;
 	qqreset();
 	for(q=q_queue;q;q=q->next)qpqueue(&q->addr,q->pkts,q_sum(q)+q->reqs,q->try,q->flv);
 }

@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.5 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: flaglex.l,v 1.6 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -146,7 +146,7 @@ Datestr         {Month}({Day}-{Day})?
 {Time}		{yylval=TIME;return(TIME);}
 {iTime}		{yylval=ITIME;return(ITIME);}
 {Address}	{yylval=ADDRESS;return(ADDRESS);}
-{Ident}		{yylval=flagfor(yytext);return(IDENT);} 
+{Ident}		{yylval=flagfor(yytext);return(IDENT);}
 {Addrstr}	{yylval=chkaddr(yytext);return(ADDRSTR);}
 %%
 
@@ -210,7 +210,7 @@ int chkaddr(char *str)
 		return 0;
 	}
 	if(!rnode) return 0;
-	
+
 	if(!rnode->addrs) {
 		DEBUG(('Y',2,"chkaddr: check %d:%d/%d.%d",ndefaddr.z,ndefaddr.n,ndefaddr.f,ndefaddr.p));
 		if((addr.z<0 || ndefaddr.z==addr.z) &&
@@ -271,7 +271,7 @@ int chktime(char *str)
 		case -3: dayok=((now->tm_wday == 0) || (now->tm_wday == 6)); break;
 		case -2: dayok=((now->tm_wday != 0) && (now->tm_wday != 6)); break;
 		case -1: dayok=1; break;
-		default: 
+		default:
 				DEBUG(('Y',1,"chktime: bad day %d",day));
 				dayok=0;
 				break;
