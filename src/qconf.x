@@ -83,4 +83,4 @@ estimatedtime,C_YESNO,int,0,"no"
 loglevels,C_STR,char *,0,""
 rootdir,C_STR,char *,0,NULL
 alwayskillfiles,C_YESNO,int,0,"no"
-
+needalllisted,C_YESNO,int,0,"no"

@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.14 2001/04/13 17:47:18 lev Exp $
+ * $Id: nodelist.c,v 1.15 2001/07/12 21:43:02 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -127,7 +127,8 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	return 0;
 }
 
-int is_listed(ftnaddr_t *addr, char *nlpath)
+
+int is_listed_one(ftnaddr_t *addr, char *nlpath)
 {
 	FILE *idx;
 	idxh_t ih;
@@ -174,6 +175,19 @@ int is_listed(ftnaddr_t *addr, char *nlpath)
 	}
 	fclose(idx);
 	return rc == 0;
+}
+
+int is_listed(falist_t *addrs, char *nlpath, int needall)
+{
+	falist_t *i;
+	for(i=addrs;i;i=i->next) {
+		if(needall) {
+			if(is_listed_one(&i->addr,nlpath)) return 0;
+		} else {
+			if(is_listed_one(&i->addr,nlpath)) return 1;
+		}
+	}
+	return needall;
 }
 
 void phonetrans(char **pph, slist_t *phtr)

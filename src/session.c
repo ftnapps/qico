@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.32 2001/07/12 21:41:28 lev Exp $
+ * $Id: session.c,v 1.33 2001/07/12 21:43:02 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -446,7 +446,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			}
 		}
 
-		if(is_listed(&rnode->addrs->addr, cfgs(CFG_NLPATH)))
+		if(is_listed(rnode->addrs, cfgs(CFG_NLPATH), cfgi(CFG_NEEDALLLISTED)))
 			rnode->options|=O_LST;
 		if(rc) {
 			emsi_lo|=O_BAD;
