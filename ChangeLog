@@ -1,3 +1,13 @@
+2004-06-23 21:59  sisoft
+
+	* Changes, qico.conf.sample, debian/control, src/Makefile.am,
+	  src/config.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/perl.c, src/session.c, src/tools.c, src/tools.h,
+	  stuff/test.pl:
+
+	now show remote time in node info again (was buggy local).
+	add support for defines in config (see conf.sample).
+
 2004-06-22 18:26  sisoft
 
 	* qico.conf.sample, src/config.c, src/flagexp.y, src/flaglex.l,

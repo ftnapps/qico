@@ -1,8 +1,8 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.23 2004/06/23 17:59:35 sisoft Exp $
+ * $Id: flaglex.l,v 1.24 2004/06/24 09:53:32 sisoft Exp $
  **********************************************************/
-%option noyywrap case-insensitive never-interactive
+%option noyywrap case-insensitive never-interactive nounput
 %{
 
 #ifndef yywrap
@@ -10,6 +10,10 @@
 #endif
 
 #undef ECHO
+#undef malloc
+#undef realloc
+#define malloc xmalloc
+#define realloc xrealloc
 
 #define YY_NO_UNPUT
 #ifdef FLEX_SCANNER

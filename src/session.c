@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.36 2004/06/23 17:59:35 sisoft Exp $
+ * $Id: session.c,v 1.37 2004/06/24 09:53:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -580,8 +580,8 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 			fclose(h);
 		}
 	}
-	while(--freq_pktcount) {
-		snprintf(s,MAX_STRING,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
+	while(freq_pktcount) {
+		snprintf(s,MAX_STRING,"/tmp/qpkt.%04lx%02x",(long)getpid(),--freq_pktcount);
 		if(fexist(s))lunlink(s);
 	}
 	if(chatlg)chatlog_done();

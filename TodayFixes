@@ -1,11 +1,10 @@
-/* $Id: TodayFixes,v 1.93 2004/06/23 17:59:35 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.94 2004/06/24 09:53:32 sisoft Exp $ */
 ---
-now show remote time in node info again (was buggy local).
-add support for defines in config (see conf.sample).
+add lost files slists.[ch].
+remove unused /tmp/qpkt*.pkt's.
 .
 previous:
 ---
-fix parse short time expressions, such as 'time 1-2'.
-perl: add function qexpr(string) - test qico expression.
-perl: speedup execute and support for END perl blocks.
+now show remote time in node info again (was buggy local).
+add support for defines in config (see conf.sample).
 .
