@@ -2,7 +2,7 @@
  * File: hydra.h
  * Created at Tue Aug 10 22:49:42 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: hydra.h,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: hydra.h,v 1.2 2000/11/06 21:46:15 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -105,6 +105,10 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define H_TXTIME      (-4)              /* Transmitter timeout               */
 #define H_DEVTXTIME   (-5)              /* Device transmitter timeout        */
 #define H_BRAINTIME   (-6)              /* Braindead timeout (quite fatal)   */
+
+/* HYDRA Specila file offsets ---------------------------------------------- */
+#define H_SKIP      (-1L)               /* Skip file                         */
+#define H_SUSPEND   (-2L)               /* Suspend (refuse) file             */
 
 /* HYDRA Packet Format: START[<data>]<type><crc>END ------------------------ */
 #define HCHR_PKTEND    'a'              /* End of packet (any format)        */
