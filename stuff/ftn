@@ -4,6 +4,7 @@
 #
 # This is a script for RedHat's startup process.
 #
+# $Id: ftn,v 1.2 2004/02/11 12:44:03 sisoft Exp $
 # chkconfig: 345 86 14
 # description: FTN services
 #
@@ -13,7 +14,6 @@ case "$1" in
   start)
         echo $PATH
 	echo -n "Starting FTN services: "
-	export LANG=ru # dirty hack for russian in log 
 	su news -c 'qico -d'
 	echo qico
 	touch /var/lock/subsys/fido
