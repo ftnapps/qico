@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.4 2000/11/06 08:56:54 lev Exp $
+ * $Id: qnlc.c,v 1.5 2000/11/06 21:57:32 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,7 +122,7 @@ int compile_nodelists()
 					ie.addr.f=nl_ext(s);ie.addr.p=0;
 				}					
 				if(ie.addr.z < 0 || ie.addr.n < 0 || ie.addr.f < 0 || ie.addr.p < 0) {
-					log("can not parse address in %s at line %d!",basename(fn),line);
+					write_log("can not parse address in %s at line %d!",basename(fn),line);
 					fclose(idx);
 					sprintf(fn,"%s/%s.lock", ccs, NL_IDX);unlink(fn);
 					return 0;
