@@ -41,6 +41,7 @@ dnl Config file
 AC_MSG_CHECKING([for config path])
 AC_ARG_WITH(config,[  --with-config           specifies config path (default is /etc/ftn/qico.conf) ], , with_config=/etc/ftn/qico.conf)
 AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
+CONFIG=$with_config
 AC_MSG_RESULT($with_config)
 
 dnl TCP Speed
