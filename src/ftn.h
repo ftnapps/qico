@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.12 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: ftn.h,v 1.13 2004/02/13 22:29:01 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -34,7 +34,7 @@
 #define LCK_s   3
 
 typedef struct {
-	short int z,n,f,p;
+	short z,n,f,p;
 	char *d;
 } ftnaddr_t;
 
@@ -68,37 +68,36 @@ typedef struct _faslist_t {
 
 typedef struct {
 	falist_t *addrs;
-	char *name, *place, *sysop, *phone, *wtime, *flags, *pwd, *mailer,*host;
-	int options, speed, realspeed, netmail, files, haswtime, hidnum,
-		type, holded, opt;
-	long int time, starttime;
+	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host;
+	int options,speed,realspeed,netmail,files,haswtime,hidnum,type,holded,opt;
+	time_t time,starttime;
 	char *tty;
 } ninfo_t;
 
 typedef struct _qitem_t {
 	ftnaddr_t addr;
-	int try, flv, what, touched;
+	int try,flv,what,touched;
 	off_t sizes[F_MAX+1];
 	time_t times[F_MAX+1];
-	off_t reqs, pkts;
+	off_t reqs,pkts;
 	time_t onhold;
 	struct _qitem_t *next;
 } qitem_t;
 
 typedef struct _dialine_t {
-	char *phone, *timegaps,*host;
+	char *phone,*timegaps,*host;
 	int num,flags;
 	struct _dialine_t *next;
 } dialine_t;
 
 typedef struct _subst {
 	ftnaddr_t addr;
-	dialine_t *hiddens, *current;
+	dialine_t *hiddens,*current;
 	int nhids;
 	struct _subst *next;
 } subst_t;
 
-#define ADDRCMP(a,b) (a.z==b.z && a.n==b.n && a.f==b.f && a.p==b.p)
+#define ADDRCMP(a,b) (a.z==b.z&&a.n==b.n&&a.f==b.f&&a.p==b.p)
 #define ADDRCPY(a,b) {a.z=b.z;a.n=b.n;a.f=b.f;a.p=b.p;a.d=/*b.d?xstrdup(b.d):*/NULL;}
 
 typedef struct {
@@ -149,8 +148,8 @@ typedef struct {
 } bp_status_t;
 
 typedef struct {
-	int try, flags;
-	time_t htime, utime;
+	int try,flags;
+	time_t htime,utime;
 	bp_status_t bp;
 } sts_t;
 

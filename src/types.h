@@ -1,6 +1,6 @@
 /**********************************************************
  * common types
- * $Id: types.h,v 1.4 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: types.h,v 1.5 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #ifndef __TYPES_H__
 #define __TYPES_H__
@@ -9,9 +9,9 @@
 #if SIZEOF_CHAR==1
 typedef signed char		SINT8;
 typedef signed char		INT8;
-typedef signed char		BYTE;
+typedef signed char		CHAR;
 typedef unsigned char	UINT8;
-typedef unsigned char	CHAR;
+typedef unsigned char	BYTE;
 #else
 #	error "There is no 8-bit integer type in your compiler, sorry"
 #endif
@@ -47,6 +47,13 @@ typedef unsigned int	DWORD;
 #		error "There is no 32-bit integer type in your compiler, sorry"
 #	endif
 #endif
+
+#undef word
+#undef byte
+#undef dword
+#define dword DWORD
+#define word WORD
+#define byte BYTE
 
 #ifdef WORDS_BIGENDIAN
 /* We are on non-Intel-like processor */

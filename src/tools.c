@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.3 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: tools.c,v 1.4 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -22,18 +22,18 @@ static char *hexdigits="0123456789abcdef";
 
 void strlwr(char *s)
 {
-	while(s && *s) { *s=tolower(*s);s++; }
+	while(s&&*s)*s=tolower(*s++);
 }
 
 void strupr(char *s)
 {
-	while(s && *s) { *s=toupper(*s);s++; };
+	while(s&&*s)*s=toupper(*s++);
 }
 
-void strtr(char *s, char a, char b)
+void strtr(char *s,char a,char b)
 {
 	while(s&&*s) {
-		if(*s==a) *s=b;
+		if(*s==a)*s=b;
 		s++;
 	}
 }
@@ -52,30 +52,28 @@ unsigned char tokoi(unsigned char c)
 
 void stodos(unsigned char *s)
 {
-	while(s&&*s){*s=todos(*s);s++;}
+	while(s&&*s)*s=todos(*s++);
 }
 
 void stokoi(unsigned char *s)
 {
-	while(s&&*s){*s=tokoi(*s);s++;}
+	while(s&&*s)*s=tokoi(*s++);
 }
 
-char *chop(char *s,int n)
+void chop(char *s,int n)
 {
-	int i=0;char *p=strchr(s,0);
-	for(i=0;i<n;i++) *--p=0;
-	return s;
+	char *p=strchr(s,0);
+	while(p&&n--)*--p=0;
 }
 
-void strbin2hex(char *string,const unsigned char *binptr,int binlen)
+void strbin2hex(char *s,const unsigned char *bptr,size_t blen)
 {
-	int i;
-	for(i=0;i<binlen;i++) {
-		*string++=hexdigits[(*binptr>>4)&0x0f];
-		*string++=hexdigits[(*binptr)&0x0f];
-		++binptr;
+	while(blen--) {
+		*s++=hexdigits[(*bptr>>4)&0x0f];
+		*s++=hexdigits[(*bptr)&0x0f];
+		bptr++;
 	}
-	*string=0;
+	*s=0;
 }
 
 int strhex2bin(unsigned char *binptr,const char *string)
@@ -95,42 +93,49 @@ int strhex2bin(unsigned char *binptr,const char *string)
 	return(dest-binptr);
 }
 
-unsigned long filesize(char *fname)
+size_t filesize(char *fname)
 {
-	int s;
-	FILE *f=fopen(fname, "r");
-	if(!f) return 0;
-	fseek(f, 0L, SEEK_END);s=ftell(f);fclose(f);
+	size_t s;
+	FILE *f=fopen(fname,"r");
+	if(!f)return 0;
+	fseek(f,0L,SEEK_END);
+	s=ftell(f);fclose(f);
 	return s;
+}
+
+int islocked(char *pidfn)
+{
+	FILE *f;
+	pid_t pid;
+	if((f=fopen(pidfn,"rt"))) {
+		fscanf(f,"%ld",&pid);
+		fclose(f);
+		if(kill(pid,0)&&(errno==ESRCH))lunlink(pidfn);
+		else return((int)pid);
+	}
+	return 0;
 }
 
 int lockpid(char *pidfn)
 {
-	FILE *f;long pid;
-	char tmpname[MAX_PATH], *p;
 	int rc;
-
-	f=fopen(pidfn, "rt");
-	if(f) {
-		fscanf(f, "%ld", &pid);
-		fclose(f);
-		if(kill(pid, 0)&&(errno==ESRCH)) lunlink(pidfn);
-		else return 0;
-	}
-
+	FILE *f;
+	char tmpname[MAX_PATH],*p;
+	if(islocked(pidfn))return 0;
 #ifndef LOCKSTYLE_OPEN
-	xstrcpy(tmpname, pidfn, MAX_PATH);
-	p=strrchr(tmpname, '/');if(!p) p=tmpname;
-	snprintf(tmpname+(p-tmpname), MAX_PATH-(p-tmpname+1), "/QTEMP.%ld", (long)getpid());
-	if ((f=fopen(tmpname,"w")) == NULL) return 0;
+	xstrcpy(tmpname,pidfn,MAX_PATH);
+	p=strrchr(tmpname,'/');
+	if(!p)p=tmpname;
+	snprintf(tmpname+(p-tmpname),MAX_PATH-(p-tmpname+1),"/QTEMP.%ld",(long)getpid());
+	if(!(f=fopen(tmpname,"w")))return 0;
 	fprintf(f,"%10ld\n",(long)getpid());
 	fclose(f);
 	rc=link(tmpname,pidfn);
 	lunlink(tmpname);
-	if(rc) return 0;
+	if(rc)return 0;
 #else
 	rc=open(pidfn,O_WRONLY|O_CREAT|O_EXCL,0644);
-	if(rc<0) return 0;
+	if(rc<0)return 0;
 	snprintf(tmpname,MAX_PATH,"%10ld\n",(long)getpid());
 	write(rc,tmpname,strlen(tmpname));
 	close(rc);
@@ -138,34 +143,16 @@ int lockpid(char *pidfn)
 	return 1;
 }
 
-int islocked(char *pidfn)
-{
-	FILE *f;long pid;
-
-	f=fopen(pidfn, "rt");
-	if(f) {
-		fscanf(f, "%ld", &pid);
-		fclose(f);
-		if(kill(pid, 0)&&(errno==ESRCH)) lunlink(pidfn);
-		else return pid;
-	}
-	return 0;
-}
-
 unsigned long sequencer()
 {
-	if(seq==0xFFFFFFFF)
-		seq=time(NULL);
-	else
-		if(time(NULL)>seq)
-			seq=time(NULL);
-		else seq++;
+	if(seq==0xFFFFFFFF||time(NULL)>seq)seq=time(NULL);
+	    else seq++;
 	return seq;
 }
 
 int touch(char *fn)
 {
-	FILE *f=fopen(fn, "a");
+	FILE *f=fopen(fn,"a");
  	if(f) {
  		fclose(f);
  		return 1;
@@ -175,11 +162,11 @@ int touch(char *fn)
 
 int mkdirs(char *name)
 {
-	char *p,*q;int rc=0;
-	p=name+1;
-	while ((q=strchr(p,'/'))&&!rc) {
-		*q=0;rc=mkdir(name,cfgi(CFG_DIRPERM));*q='/';
-		p=q+1;
+	int rc=0;
+	char *p=name+1,*q;
+	while((q=strchr(p,'/'))&&!rc) {
+		*q=0;rc=mkdir(name,cfgi(CFG_DIRPERM));
+		*q='/';p=q+1;
 	}
 	return rc;
 }
@@ -187,8 +174,7 @@ int mkdirs(char *name)
 void rmdirs(char *name)
 {
 	int rc=0;
-	char *q,*t;
-	q=strrchr(name,'/');
+	char *q=strrchr(name,'/'),*t;
 	while(q&&q!=name&&!rc) {
 		*q=0;rc=rmdir(name);
 		t=strrchr(name,'/');
@@ -196,21 +182,19 @@ void rmdirs(char *name)
 	}
 }
 
-FILE *mdfopen(char *fn, char *pr)
+FILE *mdfopen(char *fn,char *pr)
 {
 	FILE *f;
 	struct stat sb;
 	int nf=(stat(fn,&sb))?1:0;
-
- 	f=fopen(fn,pr);
-	if(f) {
-		if(nf) fchmod(fileno(f), cfgi(CFG_DEFPERM));
+ 	if((f=fopen(fn,pr))) {
+		if(nf)fchmod(fileno(f),cfgi(CFG_DEFPERM));
 		return f;
 	}
 	if(errno==ENOENT) {
 		mkdirs(fn);
 		f=fopen(fn,pr);
-		if(f&&nf) fchmod(fileno(f), cfgi(CFG_DEFPERM));
+		if(f&&nf)fchmod(fileno(f),cfgi(CFG_DEFPERM));
 		return f;
 	}
 	return NULL;
@@ -219,51 +203,43 @@ FILE *mdfopen(char *fn, char *pr)
 int fexist(char *s)
 {
 	struct stat sb;
-	return !stat(s, &sb) &&	S_ISREG(sb.st_mode);
+	return(!stat(s,&sb)&&S_ISREG(sb.st_mode));
 }
 
 int dosallowin83(int c)
 {
-	static char dos_allow[] = "!@#$%^&()~`'-_{}";
-
-	if((c >= 'a' && c <= 'z') ||
-		(c >= 'A' && c <= 'Z') ||
-		(c >= '0' && c <= '9') ||
-		strchr(dos_allow,c)) return 1;
+	static char dos_allow[]="!@#$%^&()~`'-_{}";
+	if((c>='a'&&c <= 'z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||
+		strchr(dos_allow,c))return 1;
 	return 0;
 }
 
 char *fnc(char *s)
 {
-	static char s8[13];
-	char *p, *q;
+	char *p,*q;
 	unsigned int i=0;
-
-	if (!s) return NULL;
-
-	if (NULL == (p=strrchr(s,'/'))) p=s; else s=p;
-	while (*p && *p!='.' && i<8) {
-		if (dosallowin83(*p)) s8[i++]=tolower(*p);
+	static char s8[13];
+	if(!s)return NULL;
+	if(!(p=strrchr(s,'/')))p=s; else s=p;
+	while(*p&&*p!='.'&&i<8) {
+		if(dosallowin83(*p))s8[i++]=tolower(*p);
 		p++;
 	}
-	s8[i]='\0';
-
-	if (strstr(s,".tar.gz")) xstrcat (s8, ".tgz", 14);
-	else if (strstr(s,".tar.bz2")) xstrcat (s8, ".tb2", 14);
-	else if (strstr(s,".html")) xstrcat (s8, ".htm", 14);
-	else if (strstr(s,".jpeg")) xstrcat (s8, ".jpg", 14);
-	else if (strstr(s,".desc")) xstrcat (s8, ".dsc", 14);
-	else {
-		p=strrchr(s, '.');
-		if (p) {
-			xstrcat(s8, ".", 14);
-			q=p+4;
-			i=strlen(s8);
-			while (*p && q>p) {
-				if(dosallowin83(*p)) s8[i++]=tolower(*p);
+	s8[i]=0;
+	if(strstr(s,".tar.gz"))xstrcat(s8,".tgz",14);
+	else if(strstr(s,".tar.bz2"))xstrcat(s8,".tb2",14);
+	else if(strstr(s,".html"))xstrcat (s8,".htm",14);
+	else if(strstr(s,".jpeg"))xstrcat (s8,".jpg",14);
+	else if(strstr(s,".desc"))xstrcat (s8,".dsc",14);
+	    else {
+		if((p=strrchr(s,'.'))) {
+			xstrcat(s8,".",14);
+			q=p+4;i=strlen(s8);
+			while(*p&&q>p) {
+				if(dosallowin83(*p))s8[i++]=tolower(*p);
 				p++;
 			}
-			s8[i]='\0';
+			s8[i]=0;
 		}
 	}
 	return s8;
@@ -272,28 +248,30 @@ char *fnc(char *s)
 int lunlink(char *s)
 {
 	int rc=unlink(s);
-	if(rc<0 && errno!=ENOENT)
-		write_log("can't delete file %s: %s", s, strerror(errno));
+	if(rc<0&&errno!=ENOENT)write_log("can't delete file %s: %s",s,strerror(errno));
 	return rc;
 }
 
 int isdos83name(char *fn)
 {
 	int nl=0,el=0,ec=0,uc=0,lc=0,f=1;
-	char *p=fn;
-	while(*p) {
-		if(!dosallowin83(*p)&&('.'!=*p)){f=0;break;}
-	    	if('.'==*p)ec++;
+	while(*fn) {
+		if(!dosallowin83(*fn)&&(*fn!='.')) {
+			f=0;
+			break;
+		}
+	    	if(*fn=='.')ec++;
 	    	    else {
-			if(!ec)nl++; else el++;
-			if(isalpha((int)*p)) {
-				if(isupper((int)*p))uc++;
+			if(!ec)nl++;
+			    else el++;
+			if(isalpha((int)*fn)) {
+				if(isupper((int)*fn))uc++;
 				    else lc++;
 			}
 		}
-	    	p++;
+	    	fn++;
 	}
-	return (f&&ec<2&&el<4&&nl<9&&(!lc||!uc));
+	return(f&&ec<2&&el<4&&nl<9&&(!lc||!uc));
 }
 
 #ifdef HAVE_STATFS
@@ -340,34 +318,28 @@ extern char **environ;
 static char *cmdstr=NULL;
 static char *cmdstrend=NULL;
 
-void setargspace(int argc, char **argv, char **envp)
+void setargspace(int argc,char **argv,char **envp)
 {
-	int i = 0;
-
+	int i=0;
 	cmdstr=argv[0];
-
-	while(envp[i]) i++;
-	environ = xmalloc(sizeof(char*)*(i+1));
-	i = 0;
+	while(envp[i])i++;
+	environ=xmalloc(sizeof(char*)*(i+1));
+	i=0;
 	while(envp[i]) {
-		environ[i] = xstrdup(envp[i]);
+		environ[i]=xstrdup(envp[i]);
 		i++;
 	}
-	environ[i] = NULL;
-
-	cmdstrend = argv[0]+strlen(argv[0]);
-	for(i=1;i<argc;i++)
-		if(cmdstrend+1==argv[i]) cmdstrend = argv[i]+strlen(argv[i]);
-	for(i=0;envp[i];i++)
-		if(cmdstrend+1==envp[i]) cmdstrend = envp[i]+strlen(envp[i]);
+	environ[i]=NULL;
+	cmdstrend=argv[0]+strlen(argv[0]);
+	for(i=1;i<argc;i++)if(cmdstrend+1==argv[i])cmdstrend=argv[i]+strlen(argv[i]);
+	for(i=0;envp[i];i++)if(cmdstrend+1==envp[i])cmdstrend=envp[i]+strlen(envp[i]);
 }
 
 void setproctitle(char *str)
 {
 	char *p;
-	/* make ps print our process name */
-	if(!cmdstr) return;
-	for (p=cmdstr;(p < cmdstrend) && (*str);p++,str++) *p=*str;
-	while (p < cmdstrend) *p++ = ' ';
+	if(!cmdstr)return;
+	for(p=cmdstr;p<cmdstrend&&*str;p++,str++)*p=*str;
+	while(p<cmdstrend)*p++=' ';
 }
 #endif

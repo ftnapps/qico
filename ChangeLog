@@ -1,3 +1,10 @@
+2004-02-11 15:44  sisoft
+
+	* Changes, src/main.c, src/tty.c, stuff/Makefile.am, stuff/ftn,
+	stuff/fts-0001, stuff/qico.xpm, stuff/tossing:
+
+	update stat scripts in stuff.
+	
 2004-02-10 15:08  sisoft
 
 	* Changes, TODO, src/freq.c, src/queue.c:

@@ -2,7 +2,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support
- * $Id: janus.c,v 1.5 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: janus.c,v 1.6 2004/02/13 22:29:01 sisoft Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -12,9 +12,6 @@
 /*---------------------------------------------------------------------------*/
 #include "headers.h"
 #include "janus.h"
-#include "byteop.h"
-#include "defs.h"
-#include "qipc.h"
 #include "tty.h"
 #include "crc.h"
 

@@ -1,4 +1,4 @@
-/* $Id: qipc.h,v 1.8 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: qipc.h,v 1.9 2004/02/13 22:29:01 sisoft Exp $ */
 #ifndef __QIPC_H__
 #define __QIPC_H__
 
@@ -6,12 +6,12 @@ extern void vlogs(char *str);
 extern void vlog(char *str, ...);
 extern void sline(char *str, ...);
 extern void title(char *str, ...);
-extern void qsendpkt(char what, char *line, char *buff, int len);
+extern void qsendpkt(char what, char *line, char *buff,size_t len);
 extern void qpreset(int snd);
 extern void qemsisend(ninfo_t *e);
 extern void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags);
 extern void qpproto(char type, pfile_t *pf);
-extern int qrecvpkt(char *str);
+extern size_t qrecvpkt(char *str);
 extern void qpmydata();
 
 #define QLNAME log_tty?(is_ip?ip_id:log_tty):"master"

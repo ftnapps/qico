@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol defines. by sisoft\\trg'2003.
- * $Id: binkp.h,v 1.7 2004/02/02 17:31:45 sisoft Exp $
+ * $Id: binkp.h,v 1.8 2004/02/13 22:29:01 sisoft Exp $
  ******************************************************************/
 #ifndef __BINKP_H__
 #define __BINKP_H__
@@ -58,5 +58,6 @@ enum {
 
 extern int bink_devfree();
 extern int bink_devsend(byte *str,word len);
+extern int binkpsession(int mode,ftnaddr_t *remaddr);
 
 #endif

@@ -1,12 +1,11 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.10 2004/02/11 12:44:03 sisoft Exp $
+ * $Id: tty.c,v 1.11 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
-#include "defs.h"
 #include "tty.h"
 
 #define DEBUG_SLEEP 0
@@ -410,7 +409,7 @@ int tty_block()
 	return ME_OK;
 }
 
-int tty_put(byte *buf, int size)
+int tty_put(byte *buf, size_t size)
 {
 	int rc;
 	if(tty_hangedup) return RCDO;
@@ -428,7 +427,7 @@ int tty_put(byte *buf, int size)
 	return OK;
 }
 
-int tty_get(byte *buf, int size, int *timeout)
+int tty_get(byte *buf, size_t size, int *timeout)
 {
 	fd_set rfds, efds, wfds;
 	struct timeval tv;
@@ -578,7 +577,7 @@ char canistr[] = {
  24,24,24,24,24,24,24,24,24,24,8,8,8,8,8,8,8,8,8,8,0
 };
 
-int tty_gets(char *what, int n, int timeout)
+int tty_gets(char *what, size_t n, int timeout)
 {
 	int to=timeout,p=0,ch=0;
 	time_t t1;

@@ -1,9 +1,8 @@
 /**********************************************************
  * CRC tables.
- * $Id: crc.c,v 1.4 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: crc.c,v 1.5 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
-#include <config.h>
-#include "types.h"
+#include "headers.h"
 #include "crc.h"
 
 UINT32 crc32_tab[256] =			/* CRC polynomial 0xedb88320 -- CCITT CRC32. */
@@ -121,7 +120,7 @@ UINT32 crc32s(char *str)
 	return crc;
 }
 
-UINT32 crc32(char *data,int size)
+UINT32 crc32(char *data,size_t size)
 {
 	UINT32 crc;
 	for(crc=CRC32_INIT;size--;data++)crc=CRC32_UPDATE(*data,crc);
@@ -135,7 +134,7 @@ UINT16 crc16usds(char *str)
 	return crc;
 }
 
-UINT16 crc16usd(char *data,int size)
+UINT16 crc16usd(char *data,size_t size)
 {
 	UINT16 crc;
 	for(crc=CRC16USD_INIT;size--;data++)crc=CRC16USD_UPDATE(*data,crc);
@@ -149,7 +148,7 @@ UINT16 crc16prps(char *str)
 	return crc;
 }
 
-UINT16 crc16prp(char *data,int size)
+UINT16 crc16prp(char *data,size_t size)
 {
 	UINT16 crc;
 	for(crc=CRC16PRP_INIT;size--;data++)crc=CRC16PRP_UPDATE(*data,crc);
@@ -201,7 +200,7 @@ void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3])
 }
 
 static char b64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-int base64(char *data,int size,char *p)
+int base64(char *data,size_t size,char *p)
 {
 	int i,c;
 	char *s=p;

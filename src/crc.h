@@ -1,6 +1,6 @@
 /**********************************************************
  * operations with CRC
- * $Id: crc.h,v 1.4 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: crc.h,v 1.5 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #ifndef __CRC_H__
 #define __CRC_H__
@@ -31,13 +31,13 @@ extern UINT16 crc16prp_tab[256];		/* CRC polynomial 0x8408 -- CCITT proper CRC16
 
 
 extern UINT32 crc32s(char *str);
-extern UINT32 crc32(char *data, int size);
+extern UINT32 crc32(char *data,size_t size);
 
 extern UINT16 crc16usds(char *str);
-extern UINT16 crc16usd(char *data, int size);
+extern UINT16 crc16usd(char *data,size_t size);
 
 extern UINT16 crc16prps(char *str);
-extern UINT16 crc16prp(char *data, int size);
+extern UINT16 crc16prp(char *data,size_t size);
 
 extern int update_keys(unsigned long keys[3],int c);
 extern void init_keys(unsigned long keys[3],char *passwd);
@@ -45,6 +45,6 @@ extern int decrypt_byte(unsigned long keys[3]);
 extern void decrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 extern void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 
-extern int base64(char *data,int size,char *p);
+extern int base64(char *data,size_t size,char *p);
 
 #endif

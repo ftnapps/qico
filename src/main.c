@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.19 2004/02/11 12:44:03 sisoft Exp $
+ * $Id: main.c,v 1.20 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -16,8 +16,6 @@
 #include <arpa/inet.h>
 #endif
 #include <sys/utsname.h>
-#include "qipc.h"
-#include "byteop.h"
 #include "clserv.h"
 #include "tty.h"
 

@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.3 2004/02/09 01:05:33 sisoft Exp $ */
+/* $Id: tools.h,v 1.4 2004/02/13 22:29:01 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -30,18 +30,18 @@ typedef struct _cfgitem_t {
 
 typedef struct {
 	char *keyword;
-	int type, required, found;
+	int type,required,found;
 	cfgitem_t *items;
 	char *def_val;
 } cfgstr_t;
 
 #ifndef MAX
-#define MAX(a,b) ((a>b)?a:b)
+#define MAX(a,b) (((a)>(b))?(a):(b))
 #endif
 #ifndef MIN
-#define MIN(a,b) ((a<b)?a:b)
+#define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
-#define C0(c) ((c>=32)?c:'.')
+#define C0(c) (((c)>=' ')?(c):'.')
 #define SIZES(x) (((x)<1024)?(x):((x)/1024))
 #define SIZEC(x) (((x)<1024)?'b':'k')
 
@@ -52,21 +52,21 @@ extern unsigned char todos(unsigned char c);
 extern unsigned char tokoi(unsigned char c);
 extern void stodos(unsigned char *str);
 extern void stokoi(unsigned char *str);
-extern char *chop(char *s, int n);
-extern void strbin2hex(char *string,const unsigned char *binptr,int binlen);
+extern void chop(char *s, int n);
+extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
 extern int strhex2bin(unsigned char *binptr,const char *string);
-extern unsigned long filesize(char *fname);
+extern size_t filesize(char *fname);
 extern int lockpid(char *pidfn);
 extern int islocked(char *pidfn);
 extern unsigned long sequencer(void);
 extern int mkdirs(char *name);
 extern void rmdirs(char *name);
-extern FILE *mdfopen(char *fn, char *pr);
+extern FILE *mdfopen(char *fn,char *pr);
 extern size_t getfreespace(const char *path);
 extern int randper(int base,int diff);
 extern void to_dev_null();
 #ifndef HAVE_SETPROCTITLE
-extern void setargspace(int argc, char **argv, char **envp);
+extern void setargspace(int argc,char **argv,char **envp);
 extern void setproctitle(char *str);
 #endif
 /* config.c */
@@ -83,7 +83,7 @@ extern void dumpconfig();
 #endif
 /* log.c */
 extern void (*log_callback)(char *str);
-extern int log_init(char *, char *);
+extern int log_init(char *,char *);
 extern void write_log(char *fmt, ...);
 extern int chatlog_init(char *remname,ftnaddr_t *remaddr,int side);
 extern void chatlog_write(char *text,int side);
@@ -91,15 +91,15 @@ extern void chatlog_done();
 #ifdef NEED_DEBUG
 extern int facilities_levels[256];
 extern void parse_log_levels();
-extern void write_debug_log(unsigned char facility, int level, char *fmt, ...);
+extern void write_debug_log(unsigned char facility,int level,char *fmt,...);
 #ifdef __GNUC__
-#	define DEBUG(all)	 __DEBUG all
-#	define __DEBUG(F,L,A...)	do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
+#define DEBUG(all) __DEBUG all
+#define __DEBUG(F,L,A...) do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
 #else
-#	define DEBUG(all)	 write_debug_log all
+#define DEBUG(all) write_debug_log all
 #endif
 #else
-#	define DEBUG(all)
+#define DEBUG(all)
 #endif
 extern void log_done(void);
 /* gmtoff.c */

@@ -1,13 +1,10 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.11 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: mailer.h,v 1.12 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
-#include "opts.h"
 #include "qcconst.h"
-
-#define ZMAXBLOCK  8192
 
 #define P_NCP		0x0001
 #define P_ZMODEM	0x0002
@@ -67,9 +64,8 @@ extern int zmodem_sendfile(char *tosend, char *sendas,
 					*filesleft);
 extern int zmodem_sendinit(int canzap);
 extern int zmodem_senddone();
-/* diff */
+/* differ */
 extern int session(int mode, int type, ftnaddr_t *calladdr, int speed);
-extern int binkpsession(int mode,ftnaddr_t *remaddr);
 extern int compile_nodelists();
 extern int tcp_call(char *host, ftnaddr_t *fa);
 /* execsh.c */
@@ -92,14 +88,6 @@ extern FILE *txopen(char *tosend, char *sendas);
 extern int txclose(FILE **f, int what);
 extern void log_rinfo(ninfo_t *e);
 extern void check_cps();
-
-#undef word
-#undef byte
-#undef dword
-#define dword unsigned long
-#define word unsigned short
-#define byte unsigned char
-
 extern FILE *txfd;
 extern FILE *rxfd;
 extern long txpos;
@@ -126,24 +114,6 @@ extern long rxstart;
 extern word txmaxblklen;
 extern word timeout;
 extern byte txlastc;
-
-#define GETCHAR(t) tty_getc(t)
-#define GETCHART(t) tty_getc_timed(t)
-#define PUTCHAR(c) tty_putc(c)
-#define PUTSTR(s) tty_put(s, strlen((char *)s))
-#define HASDATA(t) tty_hasdata(t,0)
-#define UHASDATA(t) tty_hasdata(0,t)
-#define HASDATAT(t) tty_hasdata_timed(t)
-#define PURGE() tty_purge()
-#define PURGEOUT() tty_purgeout()
-#define PURGEALL() {tty_purge();tty_purgeout();}
-#define CARRIER() (!tty_hangedup)
-#define PUTBLK(bl, size) tty_put(bl,size)
-#define CANCEL() tty_put((unsigned char *)canistr, strlen(canistr))
-#define BUFCHAR(c) tty_bufc(c)
-#define BUFFLUSH() tty_bufflush()
-#define BUFCLEAR() tty_bufclear()
-
 /* session.c */
 extern int (*receive_callback)(char *fn);
 extern void makeflist(flist_t **fl, ftnaddr_t *fa,int mode);

@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.16 2004/02/09 01:05:33 sisoft Exp $
+ * $Id: tcp.c,v 1.17 2004/02/13 22:29:01 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_SOCKET_H
@@ -15,7 +15,6 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#include "defs.h"
 #include "qipc.h"
 #include "tty.h"
 #include "crc.h"
@@ -165,8 +164,9 @@ static int socks_conn(char *name)
 		PUTBLK((unsigned char*)buf,n-buf);
 	}
 	for(i=0;i<MAX_STRING;i++) {
+		getevt();
 		rc=GETCHAR(45);
-		if(rc<0) {
+		if(rc<0||tty_hangedup) {
 			write_log("connection lost %d,%d",rc,errno);
 			return 1;
 		}

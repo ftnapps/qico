@@ -2,11 +2,10 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zmodem.c,v 1.6 2004/02/06 21:54:46 sisoft Exp $
+   $Id: ls_zmodem.c,v 1.7 2004/02/13 22:29:01 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
-#include "defs.h"
 #include "crc.h"
 #include "tty.h"
 
