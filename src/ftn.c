@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.20 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: ftn.c,v 1.21 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -482,6 +482,7 @@ int xfnmatch(char *pat,char *name,int flags)
 			return FNM_NOMATCH;
 		}
 	} else q=!fnmatch(pat,name,flags);
+	write_log("xfnm: '%s', pat='%s'. type=%d, q=%d, rc=%d",name,pat,type,q,rc);
 	return((rc^q)?0:FNM_NOMATCH);
 }
 

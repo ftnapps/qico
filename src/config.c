@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.14 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: config.c,v 1.15 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -150,8 +150,7 @@ int readconfig(char *cfgname)
 	for(i=0;i<CFG_NNN;i++) {
 		if(!configtab[i].found) {
 			if(configtab[i].required) {
-				write_log("required value '%s' not defined!",
-						configtab[i].keyword);
+				write_log("required keyword '%s' not defined!",configtab[i].keyword);
 				rc=0;
 			} else {
 				ci=xcalloc(1,sizeof(cfgitem_t));
@@ -171,12 +170,12 @@ int readconfig(char *cfgname)
 	return rc;
 }
 
-int parsekeyword(char *kw,char *arg,int line)
+int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 {
 	int i=0,rc=1;
 	cfgitem_t *ci;
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
-	DEBUG(('C',2,"parse: '%s', '%s' [%d] on line %d",kw,arg,i,line));
+	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d",kw,arg,i,cfgname,line));
 	if(configtab[i].keyword) {
 		for(ci=configtab[i].items;ci;ci=ci->next)
 			if(ci->condition==curcond)break;
@@ -190,11 +189,11 @@ int parsekeyword(char *kw,char *arg,int line)
 			if(!curcond)configtab[i].found=1;
 		} else {
 			xfree(ci);
-			write_log("line %d: can't parse '%s %s'",line,kw,arg);
+			write_log("%s:%d: can't parse '%s %s'",cfgname,line,kw,arg);
 			rc=0;
 		}
 	} else {
-		write_log("line %d: unknown keyword '%s'",line,kw);
+		write_log("%s:%d: unknown keyword '%s'",cfgname,line,kw);
 		rc=0;
 	}
 	return rc;
@@ -208,7 +207,7 @@ int parseconfig(char *cfgname)
 	slist_t *cc;
 	f=fopen(cfgname, "rt");
 	if(!f) {
-		fprintf(stderr,"can't open config '%s': %s\n",cfgname,strerror(errno));
+		fprintf(stderr,"can't open config file '%s': %s\n",cfgname,strerror(errno));
 		return 0;
 	}
 	curcond=NULL;
@@ -233,14 +232,17 @@ contl:		line++;p=s;
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
 			if(!strcasecmp(p,"include")) {
 				if(!strncmp(cfgname,t,MAX_STRING)) {
-					write_log("line %d: include itself -> infinity loop",line);
+					write_log("%s:%d: include itself -> infinity loop",cfgname,line);
 					rc=0;
 				} else if(!parseconfig(t)) {
-					write_log("line %d: was errors parsing included file '%s'",line,p);
+					write_log("%s:%d: was errors parsing included file '%s'",cfgname,line,t);
 					rc=0;
 				}
 			} else if(!strcasecmp(p,"if"))	{
-				if(curcond)write_log("line %d: warn: 'if' without 'endif' for previous 'if'!",line);
+				if(curcond) {
+					write_log("%s:%d: second <if> before <endif>",cfgname,line);
+					rc=0;
+				}
 				for(k=t;*k&&(*k!=':'||k[1]!=' ');k++);
 				if(*k==':'&&k[1]==' ') {
 					*k++=0;
@@ -250,24 +252,24 @@ contl:		line++;p=s;
 					*p++=0;
 					while(*p==' ')p++;
 					if(!*p) {
-						write_log("line %d: inline if-expression witout keyword");
+						write_log("%s:%d: inline <if>-expression witout argument",cfgname,line);
 						rc=0;k=NULL;
 					}
 				} else k=NULL;
 				if(flagexp(t,1)<0) {
-					write_log("line %d: can't parse expression '%s'",line,t);
+					write_log("%s:%d: can't parse expression '%s'",cfgname,line,t);
 					rc=0;
 				} else {
 					cc=slist_add(&condlist,t);
 					curcond=cc->str;
 				}
 				if(k&&curcond) {
-					rc=parsekeyword(k,p,line);
+					if(!parsekeyword(k,p,cfgname,line))rc=0;
 					curcond=NULL;
 				}
 			} else if(!strcasecmp(p,"else")) {
 				if(!curcond) {
-					write_log("line %d: misplaced 'else' without 'if'!",line);
+					write_log("%s:%d: misplaced <else> without <if>!",cfgname,line);
 					rc=0;
 				} else {
 					snprintf(s,MAX_STRING,"! ( %s )",curcond);
@@ -276,14 +278,17 @@ contl:		line++;p=s;
 				}
 			} else if(!strcasecmp(p,"endif")) {
 				if(!curcond) {
-					write_log("line %d: misplaced 'endif' without 'if'!",line);
+					write_log("%s:%d: misplaced <endif> without <if>",cfgname,line);
 					rc=0;
 				} else curcond=NULL;
-			} else rc=parsekeyword(p,t,line);
+			} else if(!parsekeyword(p,t,cfgname,line))rc=0;
 		}
 	}
 	fclose(f);
-	if(curcond)write_log("warn: last 'if' expression unclosed!");
+	if(curcond) {
+		write_log("%s:%d: unclosed last <if>",cfgname,line);
+		rc=0;
+	}
 	return rc;
 }
 

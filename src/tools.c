@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.9 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: tools.c,v 1.10 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -44,7 +44,6 @@ static int initcharset(char *name,unsigned char *tab)
 	int rev=0;
 	unsigned i,c;
 	char buf[MAX_STRING];
-	//write_log("init_charset: '%s' %p",name,tab);
 	if(!name||!strcasecmp(name,"none"))return -1;
 	if(!strcasecmp(name,"internal"))return 1;
 	if(!strncasecmp(name,"revert",6)) {
@@ -60,17 +59,12 @@ static int initcharset(char *name,unsigned char *tab)
 	while(fgets(buf,MAX_STRING,f)) {
 		if(!isdigit(*buf))continue;
 		if(*buf=='0'&&buf[1]=='x') {
-			//write_log("hb_s '%s'",buf);
 			if(sscanf(buf,"0x%x 0x%x",&i,&c)!=2)continue;
-			//write_log("hb_d %d %d",i,c);
 		} else {
-			//write_log("db_s '%s'",buf);
 			if(sscanf(buf,"%u %u",&i,&c)!=2)continue;
-			//write_log("db_d %d %d",i,c);
 		}
 		if(rev) { rev=i;i=c;c=rev; }
 		if(c>255||i<128||i>255)continue;
-		//write_log("ctab: %d=%d",i,c);
 		tab[i-128]=c;
 	}
 	for(rev=0;rev<128;rev++)if(!tab[rev])tab[rev]=rev+128;

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.34 2004/04/11 01:03:02 sisoft Exp $
+ * $Id: qcc.c,v 1.35 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -1419,16 +1419,21 @@ int main(int argc,char **argv)
 			case 'e': case 'E':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que&&ch=='E')break;
 				if(ch=='e') {
-					bf=getnode("Request file from node: ");
+					bf=getnode("Request file(s) from node: ");
 					if(!bf||*bf!='n'||!bf[1])break;
 					bf++;
 				} else bf=que->addr;
 				len=strlen(bf);
 				xstrcpy(buf+3,bf,MSG_BUFFER-3);
 				bf=buf+len+4;
-				if(inputstr(bf,"File for request: ",0)) {
-					while(*bf++)if(*bf==' ')*bf='?';
-					xcmd(buf,QR_REQ,5+len+strlen(buf+len+4));
+				if(inputstr(bf,"File(s) for request: ",0)) {
+					len+=strlen(bf);
+					while(bf&&*bf) {
+						if(*bf=='"')bf=strchr(bf+1,'"');
+						if(bf)bf=strchr(bf,' ');
+						if(bf)*bf++=0;
+					}
+					xcmd(buf,QR_REQ,5+len);
 				}
 				break;
 			case 's': case 'S':

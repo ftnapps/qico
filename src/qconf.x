@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.16 2004/03/24 17:50:04 sisoft Exp $
+#* $Id: qconf.x,v 1.17 2004/04/13 17:37:05 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -55,7 +55,7 @@ jrxwin,C_INT,int,0,"0"
 jtxwin,C_INT,int,0,"0"
 killbadpkt,C_YESNO,int,0,"no"
 localcp,C_PATH,char *,0,"none"
-lockdir,C_PATH,char *,1,NULL
+lockdir,C_PATH,char *,0,"/tmp"
 log,C_PATH,char *,1,NULL
 loglevels,C_STR,char *,0,""
 longboxpath,C_PATH,char *,0,NULL
@@ -73,12 +73,12 @@ mincpsin,C_INT,int,0,"0"
 mincpsout,C_INT,int,0,"0"
 minspeed,C_INT,int,0,"0"
 modemalive,C_STR,char *,0,"AT|"
-modembusy,C_STRL,slist_t *,1,NULL
-modemconnect,C_STRL,slist_t *,1,NULL
-modemerror,C_STRL,slist_t *,1,NULL
+modembusy,C_STRL,slist_t *,0,NULL
+modemconnect,C_STRL,slist_t *,0,NULL
+modemerror,C_STRL,slist_t *,0,NULL
 modemhangup,C_STRL,slist_t *,0,NULL
 modemnodial,C_STRL,slist_t *,0,NULL
-modemok,C_STRL,slist_t *,1,NULL
+modemok,C_STRL,slist_t *,0,NULL
 modemreset,C_STRL,slist_t *,0,NULL
 modemringing,C_STR,char *,0,"RINGING"
 modemstat,C_STRL,slist_t *,0,NULL
@@ -89,11 +89,11 @@ nodial,C_PATH,char *,0,NULL
 osname,C_STR,char *,0,NULL
 password,C_ADRSTRL,faslist_t *,0,NULL
 phone,C_STR,char *,0,""
-phonetr,C_STRL,slist_t *,1,NULL
+phonetr,C_STRL,slist_t *,0,NULL
 pidfile,C_PATH,char *,1,NULL
 place,C_STR,char *,0,""
 pollflavor,C_STR,char *,0,"N"
-port,C_STRL,slist_t *,1,NULL
+port,C_STRL,slist_t *,0,NULL
 progname,C_STR,char *,0,NULL
 protorder,C_STR,char *,0,"JHZ1C"
 proxy,C_STR,char *,0,NULL

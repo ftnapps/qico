@@ -1,10 +1,13 @@
-/* $Id: TodayFixes,v 1.58 2004/04/11 01:03:01 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.59 2004/04/13 17:37:03 sisoft Exp $ */
 ---
-fix configure without --with-config.
+in qcc: now screen splitted at: lines>=20?10:lines/2.
+improve config parsing error reports.
+add support for filename escaping to binkp.
+support for recode codepages of name/station/place/phone in binkp.
+now keywords 'lockdir', 'modem*', 'phonetr' and 'port' not required.
+in qcc: support for request many space-separated files. filenames, containing spaces must be quoted.
 .
 previous:
 ---
-configure: change default config location to {sysconfdir} (was {prefix}/etc).
-configure: test for config is not a directory.
-in qcc: fix inputstr() windows on short terminals.
+fix configure without --with-config.
 .

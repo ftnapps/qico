@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.25 2004/03/27 21:38:40 sisoft Exp $
+ * $Id: main.c,v 1.26 2004/04/13 17:37:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -155,7 +155,7 @@ static void answer_mode(int type)
 			bso_getstatus(&rnode->addrs->addr, &sts);
 			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 			sts.htime=MAX(t_set(cci*60),sts.htime);
-			write_log("calls to %s delayed for %d min after successuful incoming session",
+			write_log("calls to %s delayed for %d min after successful incoming session",
 					ftnaddrtoa(&rnode->addrs->addr),cci);
 			bso_setstatus(&rnode->addrs->addr,&sts);
 		}
@@ -163,7 +163,7 @@ static void answer_mode(int type)
 			aso_getstatus(&rnode->addrs->addr,&sts);
 			sts.flags|=(Q_WAITA|Q_WAITR|Q_WAITX);
 			sts.htime=MAX(t_set(cci*60),sts.htime);
-			if(!BSO)write_log("calls to %s delayed for %d min after successuful incoming session",
+			if(!BSO)write_log("calls to %s delayed for %d min after successful incoming session",
 					ftnaddrtoa(&rnode->addrs->addr),cci);
 			aso_setstatus(&rnode->addrs->addr,&sts);
 		}
@@ -196,8 +196,8 @@ static int force_call(ftnaddr_t *fa,int line,int flags)
 		rnode->phone=xstrdup("");
 	}
 	rnode->tty=NULL;
+	ports=cfgsl(CFG_PORT);
 	if((flags&2)!=2) {
-		ports=cfgsl(CFG_PORT);
 		do {
 			if(!ports)exit(33);
 			port=tty_findport(ports,cfgs(CFG_NODIAL));
@@ -208,7 +208,7 @@ static int force_call(ftnaddr_t *fa,int line,int flags)
 		} while(!checktimegaps(cfgs(CFG_CANCALL)));
 		if(!checktimegaps(cfgs(CFG_CANCALL)))exit(33);
 	} else {
-		if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
+		if((port=tty_findport(ports,cfgs(CFG_NODIAL)))) {
 			rnode->tty=xstrdup(baseport(port));
 		} else {
 			cls_close(ssock);
