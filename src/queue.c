@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations 
- * $Id: queue.c,v 1.6 2003/09/14 16:45:20 sisoft Exp $
+ * $Id: queue.c,v 1.7 2003/09/16 10:05:55 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -162,6 +162,7 @@ void rescan_boxes(int rslow)
 							if(n==4)flv=*cfgs(CFG_DEFBOXFLV);
 							switch(tolower(flv)) {
 							    case 'h': q->flv|=Q_HOLD;break;
+							    case 'n':
 							    case 'f': q->flv|=Q_NORM;break;
 							    case 'd': q->flv|=Q_DIR;break;
 							    case 'c': q->flv|=Q_CRASH;break;

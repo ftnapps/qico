@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.5 2003/09/14 16:45:20 sisoft Exp $
+ * $Id: binkp.c,v 1.6 2003/09/16 10:05:55 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -138,7 +138,6 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	if(!mode&&bp_opt&BP_OPT_MD5) {
 		long rnd=(long)random(),utm=time(NULL);
 		int pid=((int)getpid())^((int)random());
-		bp_opt|=BP_OPT_MD5;
 		*chal=(unsigned char)rnd;
 		chal[1]=(unsigned char)(rnd>>8);
 		chal[2]=(unsigned char)(rnd>>16);
