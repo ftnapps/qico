@@ -1,0 +1,117 @@
+# 
+# $Id: Makefile.in,v 1.2 2000/10/12 19:38:58 lev Exp $
+#
+
+prefix  = @prefix@
+exec_prefix = @exec_prefix@
+BINDIR  = @bindir@
+SBINDIR  = @sbindir@
+
+SHELL   = /bin/sh
+CC      = @CC@
+AWK     = @AWK@
+INSTALL = @INSTALL@
+LEX     = @LEX@
+YACC    = @YACC@
+
+QCC     = @QCC@
+
+#DEFS   += -DEMSI_LOG # log emsi in /tmp/emsi.log
+#DEFS   += -DH_DEBUG # Hydra
+#DEFS   += -DZ_DEBUG # ZModem
+#DEFS   += -DJ_DEBUG # Janus
+#DEFS   += -DE_DEBUG # EMSI
+#DEFS   += -DS_DEBUG # Session flow
+#DEFS   += -DQ_DEBUG # Queue management
+#DEFS   += -DC_DEBUG # Config & Substs
+#DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
+
+# ipc key file
+DEFS    += -DQIPC_KEY=\"$(BINDIR)/qico\" -I. -I..
+
+DEFS    += -DSHELL=\"$(SHELL)\"
+CFLAGS	= $(DEFS) -Wall -m486 -O3 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1 @CFLAGS@
+LFLAGS  += @LIBS@
+CFLAGS  += @CFLAGS@
+
+QCLIBS  = @QCCLIBS@
+
+OBJS	= ftn.o nodelist.o main.o config.o bso.o log.o ver.o queue.o qconf.o \
+          tty.o globals.o emsi.o crc.o zm.o zmr.o \
+          zrecv.o zsend.o session.o call.o qnlc.o qipc.o tcp.o \
+	  hydra.o flagexp.o execsh.o protfm.o janus.o freq.o
+
+QCCOBJS	= qcc.o ver.o
+QCTLOBJS= qctl.o ver.o
+
+SRCS    = ftn.c nodelist.c main.c config.c bso.c log.c queue.c \
+          tty.c globals.c emsi.c crc.c zm.c zmr.c \
+          zrecv.c zsend.c session.c call.c qnlc.c qipc.c tcp.c \
+	  hydra.c execsh.c protfm.c janus.c freq.c
+
+AUTOH = qconf.h 
+AUTOC = qconf.c flagexp.c flaglex.c ver.c
+
+.c.o:
+	$(CC) -c $(CFLAGS) -o $*.o $< 
+
+###############################################################################
+ifeq (1,$(QCC))
+DEFS    += -DQCC
+all:	qico qcc qctl
+else
+all:	qico qctl
+endif
+
+qico:	$(OBJS) 
+	$(CC) $(CFLAGS) -o qico $(OBJS) $(LIBS) $(LIBS) 
+
+qcc:	$(QCCOBJS)
+	$(CC) $(CFLAGS) -o qcc $(QCCOBJS) $(QCLIBS) $(LIBS)
+
+qctl:	$(QCTLOBJS)
+	$(CC) $(CFLAGS) -o qctl $(QCTLOBJS) $(DLIBS)
+
+qconf.c: qconf.x qconf.h
+	$(AWK) -F, -f x2c.awk qconf.x > qconf.c
+
+qconf.h: qconf.x
+	$(AWK) -F, -f x2h.awk qconf.x > qconf.h
+
+flaglex.c: flaglex.l
+	$(LEX) flaglex.l
+	mv -f lex.yy.c flaglex.c
+
+flagexp.c: flagexp.y flaglex.c
+	$(YACC) flagexp.y
+	mv -f y.tab.c flagexp.c
+
+*.c:	../config.h
+
+$(SRCS): $(AUTOH)
+
+ifeq (1,$(QCC))
+install: install-qico install-qcc install-qctl
+install-strip: install-qico-strip install-qcc-strip install-qctl-strip
+else
+install: install-qico install-qctl
+install-strip: install-qico-strip install-qctl-strip
+endif
+
+install-qico: qico
+	$(INSTALL) -m 755 qico $(SBINDIR)
+install-qcc: qcc
+	$(INSTALL) -m 755 qcc $(BINDIR)
+install-qctl: qctl
+	$(INSTALL) -m 755 qctl $(BINDIR)
+
+install-qico-strip: qico
+	$(INSTALL) -m 755 -s qico $(SBINDIR)
+install-qcc-strip: qcc
+	$(INSTALL) -m 755 -s qcc $(BINDIR)
+install-qctl-strip: qctl
+	$(INSTALL) -m 755 -s qctl $(BINDIR)
+
+clean:
+	rm -f *.o core qico qcc qctl $(AUTOH) $(AUTOC) *~
+

@@ -1,0 +1,60 @@
+# 
+# $Id: Makefile.in,v 1.2 2000/10/12 19:38:57 lev Exp $
+#
+
+prefix  = @prefix@
+exec_prefix = @exec_prefix@
+BINDIR  = @bindir@
+SBINDIR  = @sbindir@
+
+CONFIG = @CONFIG@
+INSTALL = @INSTALL@
+VERSION = @VERSION@
+
+DIRS    = src
+
+DIST    = qico-$(VERSION).tar.gz
+DIST_DIRS = src stuff
+DIST_FILES = stuff/* src/*.[chlyx] src/*.in src/*.awk \
+Changes FAQ LICENSE README *.in acconfig.h configure install-sh \
+qico.conf.sample mkinstalldirs qico.spec
+
+DOCS = Changes FAQ LICENSE README stuff qico.conf.sample
+
+###############################################################################
+all:
+	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
+
+clean:
+	for d in ${DIRS}; do (cd $$d && ${MAKE} $@) || exit; done;
+	rm -f qico-$(VERSION).tar.gz *~
+
+install:  install-bin
+install-strip: install-bin-strip
+
+install-bin: 
+	./mkinstalldirs $(BINDIR)
+	./mkinstalldirs $(SBINDIR)
+	for d in ${DIRS}; do (cd $$d && ${MAKE} install) || exit; done;
+install-bin-strip: install-docs
+	./mkinstalldirs $(BINDIR)
+	./mkinstalldirs $(SBINDIR)
+	for d in ${DIRS}; do (cd $$d && ${MAKE} install-strip) || exit; done;
+
+install-conf:
+	$(INSTALL) -m 644 qico.conf.sample $(CONFIG).sample
+
+install-docs:
+	./mkinstalldirs $(prefix)/doc/qico-$(VERSION)
+	cp -Rf $(DOCS) $(prefix)/doc/qico-$(VERSION)
+
+dist: clean
+	autoheader
+	autoconf
+	mkdir qico-$(VERSION)
+	for i in $(DIST_DIRS); do mkdir qico-$(VERSION)/$$i; done
+	for i in $(DIST_FILES); do cp -f $$i qico-$(VERSION)/$$i; done
+	tar -chf - qico-$(VERSION) | gzip -f -9 > $(DIST)
+	rm -rf qico-$(VERSION)
+
+

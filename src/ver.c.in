@@ -1,0 +1,4 @@
+#include "ver.h"
+
+char progname[]="qico";
+char version[]="@VERSION@";
