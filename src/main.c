@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.71 2003/05/17 19:01:21 raorn Exp $
+ * $Id: main.c,v 1.72 2003/05/17 19:03:28 raorn Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -45,6 +45,7 @@ void usage(char *ex)
 		   "             A - call on <a>ny free port (don't check cancall setting)\n"
 		   "             You could specify line after <node>, lines are numbered from 1\n"
 		   "-n           compile nodelists\n"
+		   "-t           check config file for errors\n"
 		   "\n", progname, version, ex);
 	exit(0);
 }
@@ -852,7 +853,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
  	setlocale(LC_ALL, "");	 
 
-	while((c=getopt(argc, argv, "hI:da:ni:c:"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:ni:c:t"))!=EOF) {
 		switch(c) {
 		case 'c':                                                       
 			daemon=12;
@@ -888,6 +889,9 @@ int main(int argc, char *argv[], char *envp[])
 		case 'n':
 			daemon=2;
 			break;
+		case 't':
+			daemon=3;
+			break;
 		}
 	}
 
@@ -898,6 +902,10 @@ int main(int argc, char *argv[], char *envp[])
 		write_log("there was some errors parsing %s, aborting",
 				configname);
 		exit(EXC_BADCONFIG);
+	}
+
+	if(daemon==3){
+		exit(EXC_OK);
 	}
 
 	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
