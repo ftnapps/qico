@@ -1,6 +1,9 @@
-/*
- * Copyright (c) 1989, 1993
+/*-
+ * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * Chris Torek.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,30 +35,31 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-#if 0
-static char sccsid[] = "@(#)usleep.c	8.1 (Berkeley) 6/4/93";
-#endif
-static char rcsid[] =
-  "$FreeBSD: src/lib/libc/gen/usleep.c,v 1.25 2000/01/27 23:06:22 jasone Exp $";
+static char sccsid[] = "@(#)memcmp.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
-
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-#if HAVE_TIME_H
-# include <time.h>
-#endif
-#if HAVE_TIME_H
-# include <unistd.h>
+#ifndef lint
+static const char rcsid[] =
+  "$FreeBSD: src/lib/libc/string/memcmp.c,v 1.1.1.1.14.1 2001/07/09 23:30:03 obrien Exp $";
 #endif
 
+#include <sys/cdefs.h>
+#include <string.h>
+
+/*
+ * Compare memory regions.
+ */
 int
-usleep(useconds)
-	unsigned int useconds;
+memcmp(s1, s2, n)
+	const void *s1, *s2;
+	size_t n;
 {
-	struct timespec time_to_sleep;
+	if (n != 0) {
+		register const unsigned char *p1 = s1, *p2 = s2;
 
-	time_to_sleep.tv_nsec = (useconds % 1000000) * 1000;
-	time_to_sleep.tv_sec = useconds / 1000000;
-	return (_nanosleep(&time_to_sleep, NULL));
+		do {
+			if (*p1++ != *p2++)
+				return (*--p1 - *--p2);
+		} while (--n != 0);
+	}
+	return (0);
 }
