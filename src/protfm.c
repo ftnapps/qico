@@ -2,7 +2,7 @@
  * File: protfm.c
  * Created at Sun Jan  2 16:00:15 2000 by pk // aaz@ruxy.org.ru
  * common protocols' file management  
- * $Id: protfm.c,v 1.18 2001/03/20 16:54:41 lev Exp $
+ * $Id: protfm.c,v 1.19 2001/03/20 19:53:15 lev Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -56,8 +56,11 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 {
 	struct stat sb;
 	slist_t *i;
-	char p[MAX_PATH], *bn=mapname(basename(name), cfgs(CFG_MAPIN));
+	char p[MAX_PATH], bn[MAX_PATH];
 	int prevcps = (recvf.start&&(time(NULL)-recvf.start>2))?recvf.cps:effbaud/10;
+
+	xstrcpy(bn, basename(name), MAX_PATH);
+	mapname(bn, cfgs(CFG_MAPIN), MAX_PATH);
 
  	recvf.start=time(NULL);
 	xfree(recvf.fname);

@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.15 2001/03/20 16:54:40 lev Exp $
+ * $Id: bso.c,v 1.16 2001/03/20 19:53:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -41,11 +41,11 @@ char *bso_name(ftnaddr_t *fa)
 	char t[30];
 	snprintf(bso_tmp, bso_tmp_len, "%s/%s", bso_base, p_domain);
 	if(fa->z!=bso_defzone) {
-		snprintf(t, 30, ".%03x", fa->z);strcat(bso_tmp, t);
+		snprintf(t, 30, ".%03x", fa->z);xstrcat(bso_tmp, t, bso_tmp_len);
 	}
-	snprintf(t, 30, "/%04x%04x.", fa->n, fa->f);strcat(bso_tmp, t);
+	snprintf(t, 30, "/%04x%04x.", fa->n, fa->f);xstrcat(bso_tmp, t, bso_tmp_len);
 	if(fa->p) {
-		snprintf(t, 30, "pnt/%08x.", fa->p);strcat(bso_tmp, t);
+		snprintf(t, 30, "pnt/%08x.", fa->p);xstrcat(bso_tmp, t, bso_tmp_len);
 	}
 	return bso_tmp;
 }
@@ -217,19 +217,19 @@ char *bso_pktn(ftnaddr_t *fa, int fl)
 	switch(fl) {
 	case F_NORM:
 	case F_REQ:
-		strcat(bso_tmp, "out");
+		xstrcat(bso_tmp, "out", bso_tmp_len);
 		break;
 	case F_DIR:
-		strcat(bso_tmp, "dut");
+		xstrcat(bso_tmp, "dut", bso_tmp_len);
 		break;
 	case F_CRSH:
-		strcat(bso_tmp, "cut");
+		xstrcat(bso_tmp, "cut", bso_tmp_len);
 		break;
 	case F_HOLD:
-		strcat(bso_tmp, "hut");
+		xstrcat(bso_tmp, "hut", bso_tmp_len);
 		break;
 	case F_IMM:
-		strcat(bso_tmp, "iut");
+		xstrcat(bso_tmp, "iut", bso_tmp_len);
 		break;
 	}
 	return bso_tmp;
@@ -241,19 +241,19 @@ char *bso_flon(ftnaddr_t *fa, int fl)
 	switch(fl) {
 	case F_NORM:
 	case F_REQ:
-		strcat(bso_tmp, "flo");
+		xstrcat(bso_tmp, "flo", bso_tmp_len);
 		break;
 	case F_DIR:
-		strcat(bso_tmp, "dlo");
+		xstrcat(bso_tmp, "dlo", bso_tmp_len);
 		break;
 	case F_CRSH:
-		strcat(bso_tmp, "clo");
+		xstrcat(bso_tmp, "clo", bso_tmp_len);
 		break;
 	case F_HOLD:
-		strcat(bso_tmp, "hlo");
+		xstrcat(bso_tmp, "hlo", bso_tmp_len);
 		break;
 	case F_IMM:
-		strcat(bso_tmp, "ilo");
+		xstrcat(bso_tmp, "ilo", bso_tmp_len);
 		break;
 	}
 	return bso_tmp;
@@ -262,19 +262,19 @@ char *bso_flon(ftnaddr_t *fa, int fl)
 
 char *bso_bsyn(ftnaddr_t *fa)
 {
-	bso_name(fa);strcat(bso_tmp, "bsy");
+	bso_name(fa);xstrcat(bso_tmp, "bsy", bso_tmp_len);
 	return bso_tmp;
 }
 
 char *bso_reqn(ftnaddr_t *fa)
 {
-	bso_name(fa);strcat(bso_tmp, "req");
+	bso_name(fa);xstrcat(bso_tmp, "req", bso_tmp_len);
 	return bso_tmp;
 }
 
 char *bso_stsn(ftnaddr_t *fa)
 {
-	bso_name(fa);strcat(bso_tmp, STS_EXT);
+	bso_name(fa);xstrcat(bso_tmp, STS_EXT, bso_tmp_len);
 	return bso_tmp;
 }
 

@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.21 2001/03/20 15:02:35 lev Exp $
+ * $Id: ftn.h,v 1.22 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -305,7 +305,7 @@ extern int fexist(char *s);
 extern char *fnc(char *s);
 extern int whattype(char *fn);
 extern int lunlink(char *s);
-extern char *mapname(char *fn, char *map);
+extern char *mapname(char *fn, char *map, size_t size);
 extern int isdos83name(char *fn);
 
 /* crc.c */

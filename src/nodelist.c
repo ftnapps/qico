@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.12 2001/03/20 16:54:41 lev Exp $
+ * $Id: nodelist.c,v 1.13 2001/03/20 19:53:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -40,8 +40,8 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 	} while(rc>=NL_RECS && i==rc);
 	fclose(idx);
 	if(i==rc) { xfree(nlent);return 0; }
-	strcpy(nlp, nlpath);strcat(nlp, "/");
-	strcat(nlp, ih.nlname[ie[i].index]);
+	xstrcpy(nlp, nlpath, MAX_PATH);xstrcat(nlp, "/", MAX_PATH);
+	xstrcat(nlp, ih.nlname[ie[i].index], MAX_PATH);
 	if(stat(nlp,&sb)) {
 		xfree(nlent);return 2;
 	} else
@@ -98,8 +98,8 @@ int is_listed(ftnaddr_t *addr, char *nlpath)
 	int rc;
 	char nlp[MAX_PATH];
 
-	strcpy(nlp, nlpath);
-	strcat(nlp, NL_IDX);
+	xstrcpy(nlp, nlpath, MAX_PATH);
+	xstrcat(nlp, NL_IDX, MAX_PATH);
 	idx=fopen(nlp, "rb");
 	if(!idx) { return 0; }
 	if(fread(&ih, sizeof(idxh_t), 1, idx)!=1) {
@@ -117,7 +117,8 @@ void phonetrans(char **pph, slist_t *phtr)
 {
 	int rc=1;slist_t *pht;
 	char *s, *t,*p, tmp[MAX_STRING];
-        char *ph = *pph;
+	char *ph = *pph;
+	int len=0;
 
 	if(!*pph || !*ph) return;
 	for(pht=phtr;pht && rc;pht=pht->next) {
@@ -130,17 +131,19 @@ void phonetrans(char **pph, slist_t *phtr)
 			if(t) *t='\0';
 		}
 		if(strncmp(ph, s, strlen(s))==0) {
-			if(p) strcpy(tmp, p);else *tmp=0;
-			strcat(tmp, ph+strlen(s));
-			xfree(ph); ph=xmalloc(strlen(tmp)+1); *pph=ph;
-			strcpy(ph, tmp);xfree(s);
+			if(p) xstrcpy(tmp, p, MAX_STRING);else *tmp=0;
+			xstrcat(tmp, ph+strlen(s), MAX_STRING);
+			len=strlen(tmp)+1;
+			xfree(ph); ph=xmalloc(len); *pph=ph;
+			xstrcpy(ph, tmp, len);xfree(s);
 			return;
 		}
 		if(s[0]=='=') {
 			if(p) strcpy(tmp, p);else *tmp=0;
-			strcat(tmp, ph);
-			xfree(ph); ph=xmalloc(strlen(tmp)+1); *pph=ph;
-			strcpy(ph, tmp);xfree(s);
+			xstrcat(tmp, ph, MAX_STRING);
+			len=strlen(tmp)+1;
+			xfree(ph); ph=xmalloc(len); *pph=ph;
+			xstrcpy(ph, tmp, len);xfree(s);
 			return;
 		}
 		xfree(s);

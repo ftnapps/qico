@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.9 2001/01/09 20:14:15 aaz Exp $
+ * $Id: qipc.c,v 1.10 2001/03/20 19:53:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -53,7 +53,7 @@ void qsendpkt(char what, char *line, char *buff, int len)
 	STORE32(buf+4,len);
 	STORE32(buf+8,getpid());
 	buf[12]=what;
-	strncpy(buf+13,line,8);
+	xstrcpy(buf+13,line,8);
 	memcpy(buf+13+strlen(line)+1, buff, len);
 //	write_log("sendpkt %s %d", line, len);
 	rc=msgsnd(qipc_msg, buf, 13+strlen(line)+1+len, IPC_NOWAIT);
@@ -97,16 +97,16 @@ void qemsisend(ninfo_t *e)
 	STORE16(p,e->speed);INC16(p);
 	STORE32(p,e->options);INC32(p);
 	STORE32(p,e->starttime);INC32(p);
-	strncpy(p, e->name, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
-	strncpy(p, e->sysop, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
-	strncpy(p, e->place, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
-	strncpy(p, e->flags, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
-	strncpy(p, e->phone, buf+MSG_BUFFER-1-p);p+=strlen(p)+1;
+	xstrcpy(p, e->name, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
+	xstrcpy(p, e->sysop, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
+	xstrcpy(p, e->place, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
+	xstrcpy(p, e->flags, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
+	xstrcpy(p, e->phone, MSG_BUFFER-(p-(char*)buf));p+=strlen(p)+1;
 	*p=0;
 	for(a=e->addrs;a;a=a->next) {
 		if(p+strlen(ftnaddrtoa(&a->addr))+1>buf+MSG_BUFFER) break;
-		strcat(p, ftnaddrtoa(&a->addr));
-		strcat(p, " ");
+		xstrcat(p, ftnaddrtoa(&a->addr), MSG_BUFFER-(p-(char*)buf));
+		xstrcat(p, " ", MSG_BUFFER-(p-(char*)buf));
 	}
 	p+=strlen(p)+1;
 	qsendpkt(QC_EMSID, QLNAME, (char *) buf, p-buf);
@@ -126,7 +126,7 @@ void qpqueue(ftnaddr_t *a, int mail, int files, int try, int flags)
 	STORE32(p,flags);INC32(p);
 	STORE16(p,try);INC16(p);
 
-	strcpy(p, addr);p+=strlen(addr)+1;
+	xstrcpy(p, addr, MSG_BUFFER-(p-(char*)buf));p+=strlen(addr)+1;
 	qsendpkt(QC_QUEUE, QLNAME, buf, p-buf);
 }
 
@@ -145,7 +145,7 @@ void qpproto(char type, pfile_t *pf)
 	STORE32(p,pf->stot);INC32(p);
 	STORE32(p,pf->start);INC32(p);
 	STORE32(p,pf->mtime);INC32(p);
-	strncpy(p, pf->fname?pf->fname:"", MSG_BUFFER-(p-buf)-1);
+	xstrcpy(p, pf->fname?pf->fname:"", MSG_BUFFER-(p-(char*)buf));
 	p+=strlen(p)+1;
 	qsendpkt(type, QLNAME, buf, p-buf);
 }

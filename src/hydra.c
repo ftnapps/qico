@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.15 2001/03/20 16:54:40 lev Exp $
+ * $Id: hydra.c,v 1.16 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -172,8 +172,7 @@ boolean hydra_devsend (char *dev, byte *data, word len)
 	if (!dev || !data || !len || !hydra_devfree())
 		return (false);
 
-	strncpy(devtxdev,dev,H_FLAGLEN);
-	devtxdev[H_FLAGLEN] = '\0';
+	xstrcpy(devtxdev,dev,H_FLAGLEN+1);
 	strupr(devtxdev);
 	devtxbuf = data;
 	devtxlen = (len > H_MAXBLKLEN(hydra_modifier))? H_MAXBLKLEN(hydra_modifier) : len;
@@ -231,7 +230,7 @@ static void hydra_devrecv (void)
 
 
 /*---------------------------------------------------------------------------*/
-static void put_flags (char *buf, struct _h_flags flags[], long val)
+static void put_flags (char *buf, struct _h_flags flags[], long val, size_t size)
 {
 	register char *p;
 	register int   i;
@@ -240,7 +239,7 @@ static void put_flags (char *buf, struct _h_flags flags[], long val)
 	for (i = 0; flags[i].val; i++) {
 		if (val & flags[i].val) {
 			if (p > buf) *p++ = ',';
-			strcpy(p,flags[i].str);
+			xstrcpy(p,flags[i].str,size-(p-buf));
 			p += H_FLAGLEN;
 		}
 	}
@@ -746,7 +745,7 @@ int hydra_file(char *txpathname, char *txalias)
 			if (txstate > HTX_RINIT) {
 				STORE32(txbufin,devtxid);
 				p = txbufin + 4;
-				strcpy(p,devtxdev);
+				xstrcpy(p,devtxdev,1020);
 				p += H_FLAGLEN + 1;
 				memcpy(p,devtxbuf,devtxlen);
 				txpkt(4 + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
@@ -778,14 +777,14 @@ int hydra_file(char *txpathname, char *txalias)
 			snprintf(p,1024-(p-(char*)txbufin),"%08lx%s,%s %s",
 					H_REVSTAMP, progname, version, osname);
 			p += ((int) strlen(p)) + 1;/* our app info & HYDRA rev. */
-			put_flags(p,h_flags,HCAN_OPTIONS);    /* what we CAN  */
+			put_flags(p,h_flags,HCAN_OPTIONS,1024-(p-(char*)txbufin));    /* what we CAN  */
 			p += ((int) strlen(p)) + 1;
-			put_flags(p,h_flags,options);         /* what we WANT */
+			put_flags(p,h_flags,options,1024-(p-(char*)txbufin));         /* what we WANT */
 			p += ((int) strlen(p)) + 1;
 			snprintf(p,1024-(p-(char*)txbufin),"%08lx%08lx",               /* TxRx windows */
 					hydra_txwindow,hydra_rxwindow);
 			p += ((int) strlen(p)) + 1;
-			strcpy(p,pktprefix);     /* pkt prefix string we want */
+			xstrcpy(p,pktprefix,1024-(p-(char*)txbufin));     /* pkt prefix string we want */
 			p += ((int) strlen(p)) + 1;
 
 			txoptions = HTXI_OPTIONS;
@@ -798,20 +797,21 @@ int hydra_file(char *txpathname, char *txalias)
 			/*---------------------------------------------------------*/
 		case HTX_FINFO:
 			if (txfd) {
+				int off;
 				snprintf((char *) txbufin, 1024, "%08lx%08x%08lx%08lx%08x%s",
 						sendf.mtime, sendf.ftot, 0L, 0L,
 						(sendf.nf==1)?sendf.allf:sendf.nf,
 						fnc(sendf.fname));
 				strlwr((char *) txbufin + 40);
-				strcpy((char *)txbufin+strlen((char *)txbufin)+1,
-					   sendf.fname);
+				off=strlen((char *)txbufin)+1;
+				xstrcpy((char *)txbufin+off,sendf.fname,1024-off);
 				i=strlen(sendf.fname)+strlen((char *)txbufin)+2;
 			} else {
 				if (!txretries) {
 /* 					write_log("hydra: End of batch"); */
 					qpreset(1);
 				}
-				strcpy((char *) txbufin,"");
+				xstrcpy((char *) txbufin,"",2);
 				i=1;
 			}
 			txpkt(i, HPKT_FINFO);
@@ -996,8 +996,7 @@ int hydra_file(char *txpathname, char *txalias)
 						(!txwindow || hydra_txwindow < txwindow))
 						txwindow = hydra_txwindow;
 					p += ((int) strlen(p)) + 1;
-					strncpy(txpktprefix,p,H_PKTPREFIX);
-					txpktprefix[H_PKTPREFIX] = '\0';
+					xstrcpy(txpktprefix,p,H_PKTPREFIX+1);
 
 					if (!batchesdone) {
 						long revstamp;
@@ -1008,7 +1007,7 @@ int hydra_file(char *txpathname, char *txalias)
 						if ((q = strchr(p,',')) != NULL) *q = ' ';
 						if ((q = strchr(p,',')) != NULL) *q = '/';
 						DEBUG(('H',1,"other end hydra is %s, rev %u",p,revstamp));
-						put_flags((char *) rxbuf,h_flags,rxoptions);
+						put_flags((char *) rxbuf,h_flags,rxoptions,1024);
 						if (txwindow || rxwindow)
 							write_log("hydra link options: %s [%d/%d]",rxbuf,
 								txwindow,rxwindow);

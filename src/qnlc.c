@@ -2,7 +2,7 @@
  * File: qnlc.c
  * Created at Tue Jul 27 13:28:49 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qnlc.c,v 1.8 2001/03/20 16:54:42 lev Exp $
+ * $Id: qnlc.c,v 1.9 2001/03/20 19:53:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -27,7 +27,7 @@ int compile_nodelists()
 	unsigned long pos;
 	struct stat sb;
 
-	strcpy(idxh.sign, NL_SIGN);
+	xstrcpy(idxh.sign, NL_SIGN, sizeof(idxh.sign));
 	ie.addr.z=cfgal(CFG_ADDRESS)->addr.z;
 	ie.addr.n=cfgal(CFG_ADDRESS)->addr.n;
 	ie.addr.f=0;ie.addr.p=0;
@@ -45,7 +45,7 @@ int compile_nodelists()
 	fseek(idx, sizeof(idxh), SEEK_SET);
 	printf("compiling nodelists...\n");
 	for(n=cfgsl(CFG_NODELIST);n;n=n->next) {
-		strcpy(s, n->str);*fn=0;
+		xstrcpy(s, n->str, MAX_STRING);*fn=0;
 		if((p=strchr(s, ' '))) {
 			*p++=0;
 			ie.addr.z=atoi(p);
@@ -73,11 +73,11 @@ int compile_nodelists()
 			if(max<0) 
 				write_log("no lists matching %s.[0-9]", s);
 			else {
-				snprintf(idxh.nlname[i],20,"%s.%03d", s, max);
+				snprintf(idxh.nlname[i],sizeof(idxh.nlname[0]),"%s.%03d", s, max);
 				snprintf(fn,MAX_PATH,"%s/%s.%03d", ccs, s, max);
 			}
 		} else {
-			strcpy(idxh.nlname[i], s);
+			xstrcpy(idxh.nlname[i], s, sizeof(idxh.nlname[0]));
 			snprintf(fn, MAX_PATH, "%s/%s", ccs, s);
 		}
 		if(!*fn) continue;

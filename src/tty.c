@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.14 2001/03/20 16:54:42 lev Exp $
+ * $Id: tty.c,v 1.15 2001/03/20 19:53:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -68,7 +68,7 @@ int tty_openport(char *port)
 {
 	char str[20]="/dev/", *p;
 	int speed = 0;
-	if(*port!='/') strcat(str, port);else strcpy(str, port);
+	if(*port!='/') xstrcat(str, port, sizeof(str));else xstrcpy(str, port, sizeof(str));
 	p=strchr(str, ':');
 	if (p) {
 		*p++=0;
@@ -534,7 +534,7 @@ char *baseport(char *p)
 {
 	static char pn[20];
 	char *q;
-	strcpy(pn, basename(p));
+	xstrcpy(pn, basename(p), sizeof(pn));
 	if((q=strrchr(pn,':'))) *q=0;
 	return pn;
 }
@@ -564,7 +564,7 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 
 	rc=modem_sendstr(cmd);
 	if(rc!=1) {
-		if(rest) strcpy(rest, "FAILURE");
+		if(rest) xstrcpy(rest, "FAILURE", restlen);
 		return MC_FAIL;
 	}
 	if(!oks && !ers && !bys) return MC_OK;
@@ -573,7 +573,7 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
 		if(!*buf) continue;
 		if(rc!=OK) {
-			if(rest) strcpy(rest, "FAILURE");
+			if(rest) xstrcpy(rest, "FAILURE", restlen);
 			return MC_FAIL;
 		}
 		if(ringing && !strncmp(buf, ringing, strlen(ringing))) {
@@ -582,24 +582,24 @@ int modem_chat(char *cmd, slist_t *oks, slist_t *ers, slist_t *bys,
 		}
 		for(cs=oks;cs;cs=cs->next)
 			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) strcpy(rest, buf);
+				if(rest) xstrcpy(rest, buf, restlen);
 				return MC_OK;
 			}
 		for(cs=ers;cs;cs=cs->next)
 			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) strcpy(rest, buf);
+				if(rest) xstrcpy(rest, buf, restlen);
 				return MC_ERROR;
 			}
 		for(cs=bys;cs;cs=cs->next)
 			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(rest) strcpy(rest, buf);
+				if(rest) xstrcpy(rest, buf, restlen);
 				return MC_BUSY;
 			}
 	}
 	
 	if(rest) {
 		if(nrng && maxr && nrng>=maxr) snprintf(rest, restlen, "%d RINGINGs", nrng);
-		else strcpy(rest, "TIMEOUT");
+		else xstrcpy(rest, "TIMEOUT", restlen);
 	}
 	return MC_FAIL;
 }

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.25 2001/03/20 16:54:40 lev Exp $
+ * $Id: emsi.c,v 1.26 2001/03/20 19:53:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -26,52 +26,52 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 	falist_t *cs;ftnaddr_t *ba;
 	time_t tm=time(NULL);
 	
-	strcpy(dat, "**EMSI_DAT0000{EMSI}{");
+	xstrcpy(dat, "**EMSI_DAT0000{EMSI}{", EMSI_BUF);
 	ba=akamatch(remaddr, adrs?adrs:cfgal(CFG_ADDRESS));
-	strcat(dat, ftnaddrtoa(ba));
+	xstrcat(dat, ftnaddrtoa(ba), EMSI_BUF);
 	for(cs=cfgal(CFG_ADDRESS);cs;cs=cs->next)
 		if(&cs->addr!=ba) {
-			strcat(dat," ");				   
-			strcat(dat, ftnaddrtoa(&cs->addr));
+			xstrcat(dat," ", EMSI_BUF);
+			xstrcat(dat, ftnaddrtoa(&cs->addr), EMSI_BUF);
 		}
-	strcat(dat, "}{");
+	xstrcat(dat, "}{", EMSI_BUF);
 	if(showpwd) {
-		p=findpwd(remaddr);if(p) strcat(dat, p);
+		p=findpwd(remaddr);if(p) xstrcat(dat, p, EMSI_BUF);
 	}
-	strcat(dat, "}{8N1");
+	xstrcat(dat, "}{8N1", EMSI_BUF);
 	if(strchr(protos,'H')
 		|| strchr(protos,'h')
 		|| strchr(protos,'8')
-		|| strchr(protos,'6')) strcat(dat,",RH1");
-	if(lopt&O_PUA) strcat(dat,",PUA");
-	if(lopt&O_PUP) strcat(dat,",PUP");
-	if(lopt&O_HRQ) strcat(dat,",HRQ");
-	if(lopt&O_HXT) strcat(dat,",HXT");
-	if(lopt&O_HAT) strcat(dat,",HAT");
-	strcat(dat, "}{XMA");
-	if(lopt&O_NRQ) strcat(dat,",NRQ");
+		|| strchr(protos,'6')) xstrcat(dat,",RH1", EMSI_BUF);
+	if(lopt&O_PUA) xstrcat(dat,",PUA",EMSI_BUF);
+	if(lopt&O_PUP) xstrcat(dat,",PUP",EMSI_BUF);
+	if(lopt&O_HRQ) xstrcat(dat,",HRQ",EMSI_BUF);
+	if(lopt&O_HXT) xstrcat(dat,",HXT",EMSI_BUF);
+	if(lopt&O_HAT) xstrcat(dat,",HAT",EMSI_BUF);
+	xstrcat(dat, "}{XMA",EMSI_BUF);
+	if(lopt&O_NRQ) xstrcat(dat,",NRQ",EMSI_BUF);
 	p=protos;c=0;
 	if(!(lopt&P_NCP)) while(*p) {
 		switch(toupper(*p++)) {
-		case '1':strcat(dat, ",ZMO");c=1;break;
-		case 'Z':strcat(dat, ",ZAP");c=1;break;
+		case '1':xstrcat(dat, ",ZMO", EMSI_BUF);c=1;break;
+		case 'Z':xstrcat(dat, ",ZAP", EMSI_BUF);c=1;break;
 #ifdef NEWZMODEM
-		case 'D':strcat(dat, ",DZA");c=1;break;
+		case 'D':xstrcat(dat, ",DZA", EMSI_BUF);c=1;break;
 #endif
-		case 'H':strcat(dat, ",HYD");c=1;break;
-		case '8':strcat(dat, ",HY8");c=1;break;
-		case '6':strcat(dat, ",H16");c=1;break;
-		case 'J':strcat(dat, ",JAN");c=1;break;
+		case 'H':xstrcat(dat, ",HYD", EMSI_BUF);c=1;break;
+		case '8':xstrcat(dat, ",HY8", EMSI_BUF);c=1;break;
+		case '6':xstrcat(dat, ",H16", EMSI_BUF);c=1;break;
+		case 'J':xstrcat(dat, ",JAN", EMSI_BUF);c=1;break;
 		}
 	}
-	if(!c) strcat(dat, ",NCP");
+	if(!c) xstrcat(dat, ",NCP", EMSI_BUF);
 
 	snprintf(tmp, 1024, "}{FE}{%s}{%s}{%s}",
 		cfgs(CFG_PROGNAME) == NULL ? progname :	strip8(cfgs(CFG_PROGNAME)),
 		cfgs(CFG_VERSION)  == NULL ? version  :	strip8(cfgs(CFG_VERSION)),
 		cfgs(CFG_OSNAME)   == NULL ? osname   : strip8(cfgs(CFG_OSNAME)));
 
-	strcat(dat, tmp);
+	xstrcat(dat, tmp, EMSI_BUF);
 	/* TODO: 8bit conversion */
 	snprintf(tmp, 1024,
 			"{IDENT}{[%s][%s][%s][%s][%d][%s]}{TRAF}{%lX %lX}{OHFR}{%s %s}{TRX#}{[%lX]}{TZUTC}{[%+03ld00]}",
@@ -82,11 +82,11 @@ char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 			cfgs(CFG_FREQTIME)?cfgs(CFG_FREQTIME):"Never",
 			time(NULL)+gmtoff(tm),gmtoff(tm)/3600
 		);
-	strcat(dat, tmp);
+	xstrcat(dat, tmp, EMSI_BUF);
 	snprintf(tmp, 1024, "%04X", strlen(dat)-14);
 	memcpy(dat+10,tmp,4);
 	snprintf(tmp, 1024, "%04X",crc16s(dat+2));
-	strcat(dat, tmp);
+	xstrcat(dat, tmp, EMSI_BUF);
 	return dat;
 }
 

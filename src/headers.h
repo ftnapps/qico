@@ -2,7 +2,7 @@
  * File: headers.h
  * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.5 2001/03/20 15:02:35 lev Exp $
+ * $Id: headers.h,v 1.6 2001/03/20 19:53:14 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -40,6 +40,7 @@
 
 #include "replace.h"
 #include "xmem.h"
+#include "xstr.h"
 #include "types.h"
 #include "ftn.h"
 #include "qcconst.h"
