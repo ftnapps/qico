@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.64 2003/02/02 20:18:56 cyrilm Exp $
+ * $Id: main.c,v 1.65 2003/02/04 09:34:02 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -315,10 +315,10 @@ void daemon_mode()
 					rnode->name=xstrdup("Unknown");
 					rnode->phone=xstrdup("");
 				}
+				rnode->tty=xstrdup(baseport(port));
 				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 				DEBUG(('Q',1,"%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
-				rnode->tty=xstrdup(baseport(port));
 				if(checktimegaps(cfgs(CFG_CANCALL)) &&
 					find_dialable_subst(rnode, havestatus(f,CFG_IMMONFLAVORS), psubsts)) {
 					dable=1;current->flv|=Q_DIAL;
@@ -776,7 +776,6 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 		rnode->name=xstrdup("Unknown");
 		rnode->phone=xstrdup("");
 	}
-	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	rnode->tty=NULL;
 
 	if((flags & 2) != 2) {
@@ -797,6 +796,7 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 			exit(33);
 		}
 	}
+	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 
 	if(line) {
 		applysubst(rnode, psubsts);
