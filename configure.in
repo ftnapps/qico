@@ -177,6 +177,18 @@ AC_TRY_COMPILE([#include <stdlib.h>
 #include <sys/syslog.h>], [ char *p=prioritynames[0].c_name; ],
 AC_DEFINE(HAVE_SYSLOG_PRI_NAMES)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 
+dnl Check for TIOCSCTTY
+AC_MSG_CHECKING([for ioctl(TIOCSCTTY)])
+AC_TRY_COMPILE([#include <stdlib.h>
+#include <termios.h>], [ ioctl(0,TIOCSCTTY); ],
+AC_DEFINE(HAVE_TIOCSCTTY)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
+dnl Check for STD*_FILENO
+AC_MSG_CHECKING([for STDxxx_FILENO])
+AC_TRY_COMPILE([#include <unistd.h>],
+[ int fd1=STDIN_FILENO, fd2=STDOUT_FILENO, fd3=STDERR_FILENO; ],
+AC_DEFINE(HAVE_STDXXX_FILENO)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+
 dnl Socket functions are in libnsl.a on SunOS 5.5
 AC_CHECK_FUNC(socket,,AC_CHECK_LIB(socket,socket))
 AC_CHECK_FUNC(getpeername,,AC_CHECK_LIB(socket,getpeername))

@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.46 2001/03/20 16:54:41 lev Exp $
+ * $Id: main.c,v 1.47 2001/03/25 20:30:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -158,6 +158,25 @@ int randper(int base, int diff)
 	return base-diff+(int)(diff*2.0*rand()/(RAND_MAX+1.0));
 }
 
+void to_dev_null() 
+{
+	int fd;
+
+	close(STDIN_FILENO);close(STDOUT_FILENO);close(STDERR_FILENO);
+
+	fd=open(devnull,O_RDONLY);
+	if(dup2(STDIN_FILENO,fd)!=STDIN_FILENO) { write_log("reopening of stdin failed");exit(-1); }
+	if(fd!=STDIN_FILENO) close(fd);
+
+	fd=open(devnull,O_WRONLY | O_APPEND | O_CREAT,0600);
+	if(dup2(STDOUT_FILENO,fd)!=STDOUT_FILENO) { write_log("reopening of stdout failed");exit(-1); }
+	if(fd!=STDOUT_FILENO) close(fd);
+
+	fd=open(devnull,O_WRONLY | O_APPEND | O_CREAT,0600);
+	if(dup2(STDERR_FILENO,fd)!=STDERR_FILENO) { write_log("reopening of stderr failed");exit(-1); }
+	if(fd!=STDERR_FILENO) close(fd);
+}
+
 
 void daemon_mode()
 {
@@ -183,6 +202,7 @@ void daemon_mode()
 			write_log("can't spawn daemon!");
 			exit(1);
 		}
+		to_dev_null();
 		setsid();
 	}
 
@@ -295,6 +315,7 @@ void daemon_mode()
 					DEBUG(('Q',1,"forking %s",ftnaddrtoa(&current->addr)));
 					
 					if(chld==0) {
+						setsid();
 						if(!bso_locknode(&current->addr)) exit(S_BUSY);
 						log_done();
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {

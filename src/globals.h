@@ -1,4 +1,5 @@
 /* globals.c */
+extern char *devnull;
 extern char *osname;
 extern int is_ip;
 extern int do_rescan;

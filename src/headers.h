@@ -2,7 +2,7 @@
  * File: headers.h
  * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.7 2001/03/25 15:38:21 lev Exp $
+ * $Id: headers.h,v 1.8 2001/03/25 20:30:13 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,6 +36,12 @@
 
 #ifdef HAVE_LIBGEN_H
 #	include <libgen.h>
+#endif
+
+#ifndef HAVE_STDXXX_FILENO
+#	define STDIN_FILENO		0
+#	define STDOUT_FILENO	1
+#	define STDERR_FILENO	2
 #endif
 
 #include "replace.h"

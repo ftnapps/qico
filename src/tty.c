@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.15 2001/03/20 19:53:15 lev Exp $
+ * $Id: tty.c,v 1.16 2001/03/25 20:30:13 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -118,11 +118,13 @@ int tty_open(char *port, int speed)
 	
 	fflush(stdin);fflush(stdout);
 	setbuf(stdin, NULL);setbuf(stdout, NULL);
-	close(0);close(1);
+	close(STDIN_FILENO);close(STDOUT_FILENO);
 	fd=open(port, O_RDONLY|O_NONBLOCK);
-	if(fd!=0) return ME_OPEN;
+	if(dup2(STDIN_FILENO,fd)!=STDIN_FILENO) return ME_OPEN;
+	if(fd!=STDIN_FILENO) close(fd);
 	fd=open(port, O_WRONLY|O_NONBLOCK);
-	if(fd!=1) return ME_OPEN;
+	if(dup2(STDOUT_FILENO,fd)!=STDOUT_FILENO) return ME_OPEN;
+	if(fd!=STDOUT_FILENO) close(fd);
 	clearerr(stdin);clearerr(stdout);
 
 	rc=tty_setattr(speed);
@@ -133,6 +135,7 @@ int tty_open(char *port, int speed)
 
 int tty_setattr(int speed)
 {
+	pid_t me = getpid();
 	int rc;
 	struct termios tios;
 	speed_t tspeed=tty_transpeed(speed);
@@ -140,7 +143,15 @@ int tty_setattr(int speed)
 	signal(SIGHUP, tty_sighup);
 	signal(SIGPIPE, tty_sighup);
 
-	rc=tcgetattr(0, &savetios);
+	if(getsid(me) == me) {
+#ifdef HAVE_TIOCSCTTY
+		/* We are on BSD system, set this terminal as out control terminal */
+		ioctl(STDIN_FILENO,TIOCSCTTY);
+#endif
+		tcsetpgrp(STDIN_FILENO,me);
+	}
+
+	rc=tcgetattr(STDIN_FILENO, &savetios);
 	if(rc) {
 		rc=ME_ATTRS;
 		return rc;
@@ -157,13 +168,13 @@ int tty_setattr(int speed)
 		cfsetispeed(&tios,tspeed);
 		cfsetospeed(&tios,tspeed);
 		/* Speed is zero on answer, and we don't want to flush incoming EMSI_DAT */
-		tcflush(0, TCIFLUSH);
+		tcflush(STDIN_FILENO, TCIFLUSH);
 	}
 		
 	tios.c_cc[VTIME]=0;
 	tios.c_cc[VMIN]=1;
 
-	rc=tcsetattr(0, TCSANOW, &tios);
+	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
 	if(rc) rc=ME_ATTRS;
 	return rc;
 }	
@@ -251,14 +262,14 @@ int tty_local()
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
 		
-	if(!isatty(0)) return ME_NOTATT;
+	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 
-	rc=tcgetattr(0, &tios);
+	rc=tcgetattr(STDIN_FILENO, &tios);
 	if(rc) return ME_ATTRS;
 	tios.c_cflag|=CLOCAL;
 	tios.c_cflag|=CRTSCTS;
 
-	rc=tcsetattr(0, TCSANOW, &tios);
+	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
 	return rc;
 }
 
@@ -270,14 +281,14 @@ int tty_nolocal()
 	signal(SIGHUP, tty_sighup);
 	signal(SIGPIPE, tty_sighup);
 
-	if(!isatty(0)) return ME_NOTATT;
+	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 	
-	rc=tcgetattr(0, &tios);
+	rc=tcgetattr(STDIN_FILENO, &tios);
 	if(rc) return ME_ATTRS;
 	tios.c_cflag&=~CLOCAL;
 	tios.c_cflag|=CRTSCTS;
 
-	rc=tcsetattr(0, TCSANOW, &tios);
+	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
 	if(rc) rc=ME_ATTRS;
 	return rc;
 }
@@ -287,8 +298,8 @@ int tty_cooked()
 	int rc;
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	if(!isatty(0)) return ME_NOTATT;
-	rc=tcsetattr(0, TCSAFLUSH, &savetios);
+	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
+	rc=tcsetattr(STDIN_FILENO, TCSAFLUSH, &savetios);
 	if(rc) rc=ME_ATTRS;
 	return rc;
 }
@@ -308,16 +319,16 @@ int tty_unblock()
 {
 	int flags, rc=0;
 	
-	flags=fcntl(0, F_GETFL, 0L);
+	flags=fcntl(STDIN_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags|=O_NONBLOCK;
-	rc|=fcntl(0, F_SETFL, flags);
+	rc|=fcntl(STDIN_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
 	
-	flags=fcntl(1, F_GETFL, 0L);
+	flags=fcntl(STDOUT_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags|=O_NONBLOCK;
-	rc|=fcntl(1, F_SETFL, flags);
+	rc|=fcntl(STDOUT_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
 	return ME_OK;
 }
@@ -326,16 +337,16 @@ int tty_block()
 {
 	int flags, rc=0;
 	
-	flags=fcntl(0, F_GETFL, 0L);
+	flags=fcntl(STDIN_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags&=~O_NONBLOCK;
-	rc|=fcntl(0, F_SETFL, flags);
+	rc|=fcntl(STDIN_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
 	
-	flags=fcntl(1, F_GETFL, 0L);
+	flags=fcntl(STDOUT_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags&=~O_NONBLOCK;
-	rc|=fcntl(1, F_SETFL, flags);
+	rc|=fcntl(STDOUT_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
 	return ME_OK;
 }
@@ -345,7 +356,7 @@ int tty_put(char *buf, int size)
 	int rc;
 
 	if(tty_hangedup) return RCDO;
-	rc=write(1, buf, size);
+	rc=write(STDOUT_FILENO, buf, size);
 	if(rc!=size) {
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return ERROR;
@@ -362,7 +373,7 @@ int tty_get(char *buf, int size, int *timeout)
 	
 	if(tty_hangedup) return RCDO;
 	FD_ZERO(&rfds);FD_ZERO(&wfds);FD_ZERO(&efds);
-	FD_SET(0,&rfds);FD_SET(0,&efds);
+	FD_SET(STDIN_FILENO,&rfds);FD_SET(STDIN_FILENO,&efds);
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
 	
@@ -374,9 +385,9 @@ int tty_get(char *buf, int size, int *timeout)
 	}
 	*timeout-=(time(NULL)-t);
 	if(rc==0) return TIMEOUT;
-	if(FD_ISSET(0, &efds)) return ERROR;
+	if(FD_ISSET(STDIN_FILENO, &efds)) return ERROR;
 	
-	rc=read(0, buf, size);
+	rc=read(STDIN_FILENO, buf, size);
 	if(rc<1) {
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return (errno!=EAGAIN && errno!=EINTR)?ERROR:TIMEOUT;
@@ -438,8 +449,8 @@ int tty_hasdata(int sec, int usec)
 	if(in_bufpos<in_bufmax) return OK; 
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);
-	FD_SET(0,&rfds);
-	FD_SET(0,&efds);
+	FD_SET(STDIN_FILENO,&rfds);
+	FD_SET(STDIN_FILENO,&efds);
 	tv.tv_sec=sec;
 	tv.tv_usec=usec;
 
@@ -449,7 +460,7 @@ int tty_hasdata(int sec, int usec)
 		else return ERROR;
 	}
 	if(rc==0) return TIMEOUT;
-	if(rc>0) if(FD_ISSET(0, &efds) || !FD_ISSET(0, &rfds)) return ERROR;
+	if(rc>0) if(FD_ISSET(STDIN_FILENO, &efds) || !FD_ISSET(STDIN_FILENO, &rfds)) return ERROR;
 	return OK;
 }
 
@@ -465,8 +476,8 @@ int tty_hasdata_timed(int *timeout)
 	if(in_bufpos<in_bufmax) return OK; 
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);
-	FD_SET(0,&rfds);
-	FD_SET(0,&efds);
+	FD_SET(STDIN_FILENO,&rfds);
+	FD_SET(STDIN_FILENO,&efds);
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
 
@@ -478,19 +489,19 @@ int tty_hasdata_timed(int *timeout)
 	}
 	*timeout-=(time(NULL)-t);
 	if(rc==0) return TIMEOUT;
-	if(rc>0) if(FD_ISSET(0, &efds) || !FD_ISSET(0, &rfds)) return ERROR;
+	if(rc>0) if(FD_ISSET(STDIN_FILENO, &efds) || !FD_ISSET(STDIN_FILENO, &rfds)) return ERROR;
 	return OK;
 }
 
 
 void tty_purge() {
 	in_bufmax = in_bufpos = 0;
-	tcflush(0, TCIFLUSH);
+	tcflush(STDIN_FILENO, TCIFLUSH);
 }
 
 void tty_purgeout() {
 	out_bufpos = 0;
-	tcflush(1, TCOFLUSH);
+	tcflush(STDOUT_FILENO, TCOFLUSH);
 }
 
 char canistr[] = {
@@ -546,10 +557,10 @@ int modem_sendstr(char *cmd)
 	if(!cmd) return 1;
 	while(*cmd && rc>0) {
 		switch(*cmd) {
-		case '|': rc=write(1, "\r", 1);usleep(300000);break;
+		case '|': rc=write(STDOUT_FILENO, "\r", 1);usleep(300000);break;
 		case '~': sleep(1);rc=1;break;
 		case '\'': usleep(200000L);rc=1;break;
-		default: rc=write(1, cmd, 1);
+		default: rc=write(STDOUT_FILENO, cmd, 1);
 		}
 		cmd++;
 	}
