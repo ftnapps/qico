@@ -2,7 +2,7 @@
  * File: xmem.c
  * Created at Tue Feb 13 23:12:00 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: xmem.c,v 1.2 2001/02/17 13:43:57 lev Exp $
+ * $Id: xmem.c,v 1.3 2001/03/20 13:43:01 lev Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -28,7 +28,7 @@ void *xrealloc(void *ptr, size_t size)
 {
 	void *p = realloc(ptr,size);
 	if (p) return p;
-	write_log("!!! xrelloc(): could not allocate %d bytes of memory",size);
+	write_log("!!! xrealloc(): could not allocate %d bytes of memory",size);
 	abort();
 	return NULL;
 }
@@ -84,8 +84,8 @@ char *restrcpy(char **dst, char *src)
 
 char *restrcat(char **dst, char *src)
 {
-	if (*dst) free(*dst);
-	if (!src) return *dst=xstrdup(src?src:"");
-	*dst = xmalloc(strlen(*dst) + strlen(src) + 1);
+	if (!src) return *dst;
+	if (!*dst) return *dst=xstrdup(src?src:"");
+	*dst = xrealloc(strlen(*dst) + strlen(src) + 1);
 	return strcat(*dst,src);
 }
