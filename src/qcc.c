@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.6 2000/11/16 18:50:27 lev Exp $
+ * $Id: qcc.c,v 1.7 2001/01/09 20:14:15 aaz Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -26,8 +26,10 @@
 #endif
 #include "qcconst.h"
 #include "ver.h"
+#include "byteop.h"
 
-#define MAX_QUEUE 256
+#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
+
 #define SAFE(s) s?s:nothing
 #define MH 10
 #define MAX_SLOTS 9
@@ -54,6 +56,13 @@ typedef struct {
 	WINDOW *wlog;
 } slot_t;
 
+typedef struct _qslot_t {
+	int n;
+	char *addr;
+	int mail, files, flags, try;
+	struct _qslot_t *next, *prev;
+} qslot_t;
+
 void sigwinch(int s);
 char *nothing="";
 char *helpl[]={
@@ -71,15 +80,15 @@ char *helpl[]={
 };
 
 slot_t *slots[MAX_SLOTS];
-pque_t queue[MAX_QUEUE];
-int currslot, allslots, q_size;
+qslot_t *queue;
+int currslot, allslots, q_pos, q_first, q_max;
 
 char *m_header=NULL;
 char *m_status=NULL;
 
 WINDOW *wlog, *wmain, *whdr, *wstat;
 
-int qipc_msg, qpos=0;
+int qipc_msg;
 
 #ifndef CURS_HAVE_MVVLINE
 void mvvline (int y,int x,int ch,int n)
@@ -125,6 +134,9 @@ void initscreen()
 	init_pair(13, COLOR_WHITE, COLOR_BLUE);
 	init_pair(14, COLOR_CYAN, COLOR_BLUE);
 	init_pair(15, COLOR_GREEN, COLOR_BLUE);
+	
+	init_pair(16, COLOR_BLACK, COLOR_CYAN);
+	
 	attrset(COLOR_PAIR(2));
 	bkgd(COLOR_PAIR(2)|' ');
 	mvvline(1, 0, ACS_VLINE, LINES-3);
@@ -310,6 +322,28 @@ void mylog(char *str, ...)
 	if(currslot<0) wrefresh(wlog);
 }
 
+qslot_t *addqueue(qslot_t **l)
+{
+	qslot_t **t, *p=NULL;
+	for(t=l;*t;t=&((*t)->next)) p=*t;
+	*t=(qslot_t *)malloc(sizeof(qslot_t));
+	bzero(*t,sizeof(qslot_t));
+	(*t)->prev=p;
+	(*t)->n=p?p->n+1:1;
+	return *t;
+}
+
+void killqueue(qslot_t **l)
+{
+	qslot_t *t;
+	while(*l) {
+		t=(*l)->next;
+		sfree((*l)->addr);
+		sfree(*l);
+		*l=t;
+	}
+}
+
 
 char qflgs[Q_MAXBIT]=Q_CHARS;
 int  qclrs[Q_MAXBIT]=Q_COLORS;
@@ -317,23 +351,29 @@ void freshqueue()
 {
 	int i,k,l;
 	char str[MAX_STRING];
+	qslot_t *q;
 	
 	werase(wmain);
 	wattrset(wmain,COLOR_PAIR(6)|A_BOLD);
 	mvwaddstr(wmain,0,0,"* Address");
 	mvwaddstr(wmain,0,COLS-20-Q_MAXBIT,"Mail  Files  Try  Flags");
-	for(i=0;i<q_size && i<MH-1;i++) {
-		wattrset(wmain,COLOR_PAIR(3)|(queue[i+qpos].flags&Q_DIAL?A_BOLD:0));
-		mvwaddstr(wmain, i+1, 2, queue[i+qpos].addr);
+
+	for(q=queue;q && q->n<q_first;q=q->next);
+	for(i=0;q && i<MH-1;i++,q=q->next) {
+		wattrset(wmain,COLOR_PAIR(3)|(q->flags&Q_DIAL?A_BOLD:0));
+		if(q_pos==q->n) wattrset(wmain,COLOR_PAIR(16));
+		mvwaddstr(wmain, i+1, 0, "  ");
+		waddstr(wmain, q->addr);
+		for(k=0;k<COLS-23-Q_MAXBIT-strlen(q->addr);k++)	waddch(wmain, ' ');
 		str[0]=0;
-		sscat(str, queue[i+qpos].mail);strcat(str, "  ");
-		sscat(str, queue[i+qpos].files);
-		sprintf(str+strlen(str), "  %3d  ", queue[i+qpos].try);
-		mvwaddstr(wmain, i+1, COLS-2-Q_MAXBIT-strlen(str), str);
+		sscat(str, q->mail);strcat(str, "  ");
+		sscat(str, q->files);
+		sprintf(str+strlen(str), "  %3d  ", q->try);
+		waddstr(wmain, str);
 		l=1;
 		for(k=0;k<Q_MAXBIT;k++) {
-			wattron(wmain, COLOR_PAIR(qclrs[k]));
-			waddch(wmain, (queue[i+qpos].flags&l) ? qflgs[k] : '.');
+			if(q_pos!=q->n) wattron(wmain, COLOR_PAIR(qclrs[k]));
+			waddch(wmain, (q->flags&l) ? qflgs[k] : '.');
 			l=l<<1;
 		}
 	}
@@ -407,6 +447,7 @@ int main(int argc, char **argv)
 	time_t tim;
 	struct tm *tt;
 	key_t qipc_key;
+	int lastfirst=1, lastpos=1;
 
  	while((c=getopt(argc, argv, "h"))!=EOF) {
 		switch(c) {
@@ -432,8 +473,7 @@ int main(int argc, char **argv)
 	currslot=-1;
 	allslots=0;
 	freshhdr();wrefresh(whdr);
-	bzero(&slots, sizeof(slots));bzero(&queue, sizeof(queue));
-	q_size=0;
+	bzero(&slots, sizeof(slots));
 	freshall();
 	while(!quitflag) {
 		tim=time(NULL);
@@ -450,10 +490,11 @@ int main(int argc, char **argv)
 		bzero(buf, MSG_BUFFER);
 		rc=msgrcv(qipc_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
 		if(rc>=13) {
-			len=*((int *)buf+1);
-			pid=*((int *)buf+2);
+			len=FETCH32(buf+4);
+			pid=FETCH32(buf+8);
 			type=buf[12];
 			data=strchr(buf+13,0)+1;
+			data[len]=0;
 			if(strcmp(buf+13, "master")) {
 				rc=findslot(buf+13);
 				if(type==QC_ERASE) {
@@ -497,9 +538,9 @@ int main(int argc, char **argv)
 						slots[rc]->session=0;
 					} else {
 						p=data;
-						slots[rc]->speed=*((int *)p++);
-						slots[rc]->options=*((int *)p++);
-						slots[rc]->start=*((int *)p++);
+						slots[rc]->speed=FETCH16(p);INC16(p);
+						slots[rc]->options=FETCH32(p);INC32(p);
+						slots[rc]->start=FETCH32(p);INC32(p);
 						strefresh(&slots[rc]->name, p);p+=strlen(p)+1;
 						strefresh(&slots[rc]->sysop, p);p+=strlen(p)+1;
 						strefresh(&slots[rc]->city, p);p+=strlen(p)+1;
@@ -526,11 +567,24 @@ int main(int argc, char **argv)
 					if(!len) {
 						bzero(&slots[rc]->s, sizeof(pfile_t));
 					} else {
+						char *p=data;
+						
 						slots[rc]->session=1;
 						sfree(slots[rc]->s.fname);
-						memcpy(&slots[rc]->s, data,
-							   sizeof(pfile_t));
-						slots[rc]->s.fname=strdup(data+sizeof(pfile_t));
+
+						slots[rc]->s.foff=FETCH32(p);INC32(p);
+						slots[rc]->s.ftot=FETCH32(p);INC32(p);
+						slots[rc]->s.toff=FETCH32(p);INC32(p);
+						slots[rc]->s.ttot=FETCH32(p);INC32(p);
+						slots[rc]->s.nf=FETCH32(p);INC32(p);
+						slots[rc]->s.allf=FETCH32(p);INC32(p);
+						slots[rc]->s.cps=FETCH32(p);INC32(p);
+						slots[rc]->s.soff=FETCH32(p);INC32(p);
+						slots[rc]->s.stot=FETCH32(p);INC32(p);
+						slots[rc]->s.start=FETCH32(p);INC32(p);
+						slots[rc]->s.mtime=FETCH32(p);INC32(p);
+						
+						slots[rc]->s.fname=strdup(p);
 					}
 					if(currslot==rc) {								
 						freshslot();wrefresh(wmain);
@@ -540,11 +594,24 @@ int main(int argc, char **argv)
 					if(!len) {
 						bzero(&slots[rc]->r, sizeof(pfile_t));
 					} else {
+						char *p=data;
+						
 						slots[rc]->session=1;
 						sfree(slots[rc]->r.fname);
-						memcpy(&slots[rc]->r, data,
-							   sizeof(pfile_t));
-						slots[rc]->r.fname=strdup(data+sizeof(pfile_t));
+
+						slots[rc]->r.foff=FETCH32(p);INC32(p);
+						slots[rc]->r.ftot=FETCH32(p);INC32(p);
+						slots[rc]->r.toff=FETCH32(p);INC32(p);
+						slots[rc]->r.ttot=FETCH32(p);INC32(p);
+						slots[rc]->r.nf=FETCH16(p);INC16(p);
+						slots[rc]->r.allf=FETCH16(p);INC16(p);
+						slots[rc]->r.cps=FETCH32(p);INC32(p);
+						slots[rc]->r.soff=FETCH32(p);INC32(p);
+						slots[rc]->r.stot=FETCH32(p);INC32(p);
+						slots[rc]->r.start=FETCH32(p);INC32(p);
+						slots[rc]->r.mtime=FETCH32(p);INC32(p);
+						
+						slots[rc]->r.fname=strdup(p);
 					}
 					if(currslot==rc) {								
 						freshslot();wrefresh(wmain);
@@ -572,12 +639,25 @@ int main(int argc, char **argv)
 				}
 				if(type==QC_QUEUE) {
 					if(!len) {
-						bzero(&queue, sizeof(pque_t));
-						q_size=0;qpos=0;
+						lastfirst=q_first;
+						lastpos=q_pos;
+						killqueue(&queue);
+						q_max=0;
+						q_first=1;
+						q_pos=1;
 					} else {
-						memcpy(&queue[q_size], data,
-							   sizeof(pque_t));
-						q_size++;
+						char *p=data;
+						qslot_t *q=addqueue(&queue);
+						q_max=q->n;
+						
+						q->mail=FETCH32(p);INC32(p);
+						q->files=FETCH32(p);INC32(p);
+						q->flags=FETCH32(p);INC32(p);
+						q->try=FETCH16(p);INC16(p);
+						q->addr=strdup(p);
+
+						if(lastfirst>=q->n) q_first=q->n;
+						if(lastpos>=q->n) q_pos=q->n;
 					}
 					if(currslot<0) {								
 						freshqueue();wrefresh(wmain);
@@ -607,11 +687,17 @@ int main(int argc, char **argv)
 			}
 			if(currslot<0) switch(ch) {
 			case KEY_UP:
-				if(qpos>0) qpos--;
+				if(q_pos>1) {
+					q_pos--;
+					if(q_pos<q_first) q_first--;
+				}				
 				freshqueue();wrefresh(wmain);
 				break;
 			case KEY_DOWN:
-				if(qpos+MH<=q_size) qpos++;
+				if(q_pos<q_max) {
+					q_pos++;
+					if(q_pos>=q_first+MH-1) q_first++;
+				}
 				freshqueue();wrefresh(wmain);
 				break;
 			}
