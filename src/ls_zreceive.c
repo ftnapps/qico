@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.4 2001/01/04 11:46:17 lev Exp $
+ * $Id: ls_zreceive.c,v 1.5 2001/01/06 14:49:20 lev Exp $
  **********************************************************/
 /*
 
@@ -23,7 +23,7 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 {
 
 #ifdef Z_DEBUG
-	write_log("ls_zinitreceiver: %08x, %dbaud, %d bytes",protocol,baud,window);
+	write_log("ls_zinitreceiver: %08x, %d baud, %d bytes",protocol,baud,window);
 #endif
 
 	/* Set all options to requested state -- this may be alerted by other side in ZSINIT */
@@ -372,6 +372,7 @@ int ls_zdonereceiver()
 {
 	int rc;
 	int trys = 0;
+	int hlen;
 #ifdef Z_DEBUG
 	write_log("ls_zdonereceiver");
 #endif
@@ -380,8 +381,17 @@ int ls_zdonereceiver()
 		if((rc=ls_zsendhhdr(ZFIN,4,ls_txHdr))<0) return rc;
 		switch (rc=GETCHAR(ls_HeaderTimeout)) {
 		case 'O':				/* Ok, GOOD */
+#ifdef Z_DEBUG2
+			write_log("ls_zdonereceiver: O");
+#endif
 			rc = GETCHAR(0);
 			return LSZ_OK;
+		case ZPAD:
+#ifdef Z_DEBUG2
+			write_log("ls_zdonereceiver: ZPAD");
+#endif
+			if((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))<0) return rc;
+			if(ZFIN != rc) return LSZ_OK;
 		default:
 #ifdef Z_DEBUG
 			write_log("ls_zdonereceiver: something strange %d",rc);
