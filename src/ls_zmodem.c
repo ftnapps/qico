@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.13 2001/02/04 14:33:22 lev Exp $
+ * $Id: ls_zmodem.c,v 1.14 2001/02/08 19:43:55 lev Exp $
  **********************************************************/
 /*
 
@@ -87,14 +87,6 @@ static int HEADER_TYPE[2][2][2] = {{{ZBIN,-1},{ZVBIN,-1}},
 static char HEX_DIGITS[] = "0123456789abcdef";
 
 /* Functions */
-
-/* Special -- t_rest, but 0 if it is < 0 */
-int t_rest0(time_t t)
-{
-	int r = t_rest(t);
-	if(r>0) return r;
-	return 0;
-}
 
 /* Send binary header. Use proper CRC, send var. len. if could */
 int ls_zsendbhdr(int frametype, int len, char *hdr)
@@ -220,9 +212,9 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 	static int len = 4;					/* Length of header (4 is default) */
 	static int got = 0;					/* Number of header bytes already got */
 	static int inhex = 0;
-	int t = t_set(timeout);				/* Timer */
 	int c = -1;
 	int rc;
+	int zero = 0;
 
 #ifdef Z_DEBUG
 	write_log("ls_zrecvhdr: timeout %d",timeout);
@@ -243,13 +235,12 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 		readmode = rm7BIT;
 	}
 
-	while(OK == (rc = HASDATA(t_rest0(t)))) {
-		if(t_rest(t)<0) return LSZ_TIMEOUT;
+	while(OK == (rc = HASDATAT(&timeout))) {
 		switch(readmode) {
-		case rm8BIT: c = ls_readcanned(t_rest0(t)); break;
-		case rm7BIT: c = ls_read7bit(t_rest0(t));   break;
-		case rmZDLE: c = ls_readzdle(t_rest0(t));   break;
-		case rmHEX:  c = ls_readhex(t_rest0(t));    break;
+		case rm8BIT: c = ls_readcanned(&zero); break;
+		case rm7BIT: c = ls_read7bit(&zero);   break;
+		case rmZDLE: c = ls_readzdle(&zero);   break;
+		case rmHEX:  c = ls_readhex(&zero);    break;
 		}
 		if(c < 0) return c;								/* Here is error */
 		c &= 0xff;										/* Strip high bits */
@@ -474,7 +465,6 @@ int ls_zsenddata(char *data, int len, int frame)
 int ls_zrecvdata16(char *data, int *len, int timeout)
 {
 	int c;
-	int t = t_set(timeout);			/* Timer */
 	int got = 0;					/* Bytes total got */
 	long incrc = LSZ_INIT_CRC16;	/* Calculated CRC */
 	long crc = 0;					/* Received CRC */
@@ -485,16 +475,16 @@ int ls_zrecvdata16(char *data, int *len, int timeout)
 	write_log("ls_zrecvdata16: timeout %d",timeout);
 #endif
 
-	while(rcvdata && ((c = ls_readzdle(t_rest0(t))) >= 0)) {
+	while(rcvdata && ((c = ls_readzdle(&timeout)) >= 0)) {
 		if(c < 256) {
-			*data++ = c & 0xff; got++;
-			incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc);
-			if(got > ls_MaxBlockSize) {
+			*data++ = c & 0xff;
+			if(++got > ls_MaxBlockSize) {
 #ifdef Z_DEBUG
 				write_log("ls_zrecvdata16: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
 #endif
 				return LSZ_BADCRC;
 			}
+			incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc);
 		} else {
 			switch(c) {
 			case LSZ_CRCE:
@@ -525,9 +515,9 @@ int ls_zrecvdata16(char *data, int *len, int timeout)
 	}
 
 	/* Loops ar unrolled */
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc = (unsigned char)c;
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc <<= 8; crc |= (unsigned char)c;
 	crc = STOH(crc);
 	incrc = LSZ_FINISH_CRC16(incrc);
@@ -547,7 +537,6 @@ int ls_zrecvdata16(char *data, int *len, int timeout)
 int ls_zrecvdata32(char *data, int *len, int timeout)
 {
 	int c;
-	int t = t_set(timeout);			/* Timer */
 	int got = 0;					/* Bytes total got */
 	long incrc = LSZ_INIT_CRC32;	/* Calculated CRC */
 	long crc = 0;					/* Received CRC */
@@ -558,16 +547,16 @@ int ls_zrecvdata32(char *data, int *len, int timeout)
 	write_log("ls_zrecvdata32: timeout %d",timeout);
 #endif
 
-	while(rcvdata && ((c = ls_readzdle(t_rest0(t))) >= 0)) {
+	while(rcvdata && ((c = ls_readzdle(&timeout)) >= 0)) {
 		if(c < 256) {
-			*data++ = c & 0xff; got++;
-			incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc);
-			if(got > ls_MaxBlockSize) {
+			*data++ = c & 0xff;
+			if(++got > ls_MaxBlockSize) {
 #ifdef Z_DEBUG
 				write_log("ls_zrecvdata32: Block is too big (%d/%d, %02x and %02x)",got,ls_MaxBlockSize,*(data-1),c);
 #endif
 				return LSZ_BADCRC;
 			}
+			incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc);
 		} else {
 			switch(c) {
 			case LSZ_CRCE:
@@ -598,13 +587,13 @@ int ls_zrecvdata32(char *data, int *len, int timeout)
 	}
 
 	/* Loops ar unrolled */
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc |= (unsigned long)c << 0x00;
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc |= (unsigned long)c << 0x08;
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc |= (unsigned long)c << 0x10;
-	if((c = ls_readzdle(t_rest0(t))) < 0) return c;
+	if((c = ls_readzdle(&timeout)) < 0) return c;
 	crc |= (unsigned long)c << 0x18;
 	crc = LTOH(crc);
 	incrc = LSZ_FINISH_CRC32(incrc);
@@ -660,13 +649,12 @@ void ls_sendhex(int i)
 }
 
 /* Retrun 7bit character, strip XON/XOFF if not DirZap, with timeout */
-int ls_read7bit(int timeout)
+int ls_read7bit(int *timeout)
 {
 	int c;
-	int t = t_set(timeout);
 
 	do {
-		if((c = GETCHAR(t_rest0(t))) < 0) return c;
+		if((c = GETCHART(timeout)) < 0) return c;
 	} while((0 == (ls_Protocol & LSZ_OPTDIRZAP)) && (XON == c || XOFF == c));
 
 	if (CAN == c) { if (++ls_CANCount == 5) return LSZ_CAN; }
@@ -675,7 +663,7 @@ int ls_read7bit(int timeout)
 }
 
 /* Read one hex character */
-int ls_readhexnibble(int timeout) {
+int ls_readhexnibble(int *timeout) {
 	int c;
 	if((c = ls_readcanned(timeout)) < 0) return c;
 	if(c >= '0' && c <= '9') {
@@ -688,17 +676,16 @@ int ls_readhexnibble(int timeout) {
 }
 
 /* Read chracter as two hex digit */
-int ls_readhex(int timeout)
+int ls_readhex(int *timeout)
 {
 	static int c = 0;
 	int c2;
-	int t = t_set(timeout);
 
 	if(!ls_GotHexNibble) {
-		if((c = ls_readhexnibble(t_rest0(t))) < 0) return c;
+		if((c = ls_readhexnibble(timeout)) < 0) return c;
 		c <<= 4;
 	}
-	if((c2 = ls_readhexnibble(t_rest0(t))) >= 0) {
+	if((c2 = ls_readhexnibble(timeout)) >= 0) {
         ls_GotHexNibble = 0;
 		return c | c2;
 	} else {
@@ -708,14 +695,13 @@ int ls_readhex(int timeout)
 }
 
 /* Retrun 8bit character, strip <DLE> */
-int ls_readzdle(int timeout)
+int ls_readzdle(int *timeout)
 {
 	int c;
-	int t = t_set(timeout);
 
 	if(!ls_GotZDLE) { /* There was no ZDLE in stream, try to read one */
 		do {
-			if((c = ls_readcanned(t_rest0(t))) < 0) return c;
+			if((c = ls_readcanned(timeout)) < 0) return c;
 
 			if(!(ls_Protocol & LSZ_OPTDIRZAP)) { /* Check for unescaped XON/XOFF */
 				switch(c) {
@@ -730,7 +716,7 @@ int ls_readzdle(int timeout)
 		} while(LSZ_XONXOFF == c);
 	}
 	/* We will be here only in case of DLE */
-	if((c = ls_readcanned(t_rest0(t))) >= 0) { /* We have data */
+	if((c = ls_readcanned(timeout)) >= 0) { /* We have data */
 		ls_GotZDLE = 0;
         switch(c) {
 		case ZCRCE:
@@ -759,10 +745,10 @@ int ls_readzdle(int timeout)
 }
 
 /* Read one character, check for five CANs */
-int ls_readcanned(int timeout)
+int ls_readcanned(int *timeout)
 {
 	int c;
-	if ((c = GETCHAR(timeout)) < 0) return c;
+	if ((c = GETCHART(timeout)) < 0) return c;
 	if (CAN == c) { if (++ls_CANCount == 5) return LSZ_CAN; }
 	else { ls_CANCount = 0; }
 	return c & 0xff;
