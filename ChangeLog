@@ -1,3 +1,20 @@
+2004-03-24 20:50  sisoft
+
+	* Changes, configure.in, qico.conf.sample, debian/examples,
+	  src/Makefile.am, src/charset.h, src/config.c, src/daemon.c,
+	  src/emsi.c, src/flaglex.l, src/freq.c, src/ftn.c, src/log.c,
+	  src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/qipc.c,
+	  src/tools.c, src/tools.h, stuff/Makefile.am:
+
+	fix compile on old systems without socklen_t.
+	fix logging about qico execute errors.
+	in qcc: print qcc's log time with strftime().
+	don't try exchange with daemon, if its not exists.
+	new option for map(in|out): 'r' - recode filenames in *.req files (was: always recode).
+	add keyword 'recodepkts' - recode freq-report packets to transport charset. (was: always recode).
+	add keywords 'remotecp' and 'localcp' - see conf.sample for description.
+	remove obsoleted keyword 'remoterecode'.
+
 2004-03-21 13:42  sisoft
 
 	* Changes, configure.in, src/daemon.c, src/flagexp.y,
