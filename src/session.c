@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.2.2.3 2001/02/03 12:08:27 lev Exp $
+ * $Id: session.c,v 1.2.2.4 2001/03/30 18:33:51 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -497,8 +497,6 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='6';emsi_lo|=P_HYDRA16;break;}
 			if(*t=='H' && rnode->options&P_HYDRA)
 				{pr[0]='H';emsi_lo|=P_HYDRA;break;}
-			if(*t=='J' && rnode->options&P_JANUS)
-				{pr[0]='J';emsi_lo|=P_JANUS;break;}
 			if(*t=='Z' && rnode->options&P_ZEDZAP)
 				{pr[0]='Z';emsi_lo|=P_ZEDZAP;break;}
 			if(*t=='1' && rnode->options&P_ZMODEM)
@@ -541,10 +539,6 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="Hydra-16k";break;
 	case P_HYDRA:
 		t="Hydra";break;
-	case P_JANUS:
-		t="Janus";break;
-	case P_TCPP:
-		t="IFCTCP";break;
 	default:
 		t="Unknown";		
 	}
@@ -590,8 +584,6 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		rc=hydra(mode, rc, rnode->options&O_RH1);
 		flkill(&fl, !rc);
 		return rc?S_REDIAL:S_OK;
-	case P_JANUS:
-		return S_OK;
 	}
 	return S_OK;
 }

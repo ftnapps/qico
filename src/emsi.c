@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.5.2.8 2001/03/08 12:22:07 lev Exp $
+ * $Id: emsi.c,v 1.5.2.9 2001/03/30 18:33:50 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -447,7 +447,6 @@ int emsi_parsecod(char *lcod, char *ccod)
 
 	q=ccod;
 	while((p=strsep(&q, ","))) {
-		if(!strcmp(p, "TCP")) { o|=P_TCPP;continue;}
 		if(!strcmp(p, "ZMO")) { o|=P_ZMODEM;continue;}
 		if(!strcmp(p, "ZAP")) { o|=P_ZEDZAP;continue;}
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
