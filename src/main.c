@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.14 2001/02/18 15:05:18 lev Exp $
+ * $Id: main.c,v 1.4.2.15 2001/03/08 16:52:23 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -247,10 +247,9 @@ void daemon_mode()
 				log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum);
 #endif
-				applysubst(rnode, psubsts);
 				rnode->tty=strdup(baseport(port));
-				if(can_dial(rnode, current->flv&Q_IMM) &&
-				   checktimegaps(cfgs(CFG_CANCALL))) {
+				if(checktimegaps(cfgs(CFG_CANCALL)) &&
+				   find_dialable_subst(rnode,  current->flv&Q_IMM, psubsts)) {
 					dable=1;current->flv|=Q_DIAL;
 					chld=fork();
 #ifdef Q_DEBUG			

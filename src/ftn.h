@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.3.2.2 2001/01/04 18:10:57 lev Exp $
+ * $Id: ftn.h,v 1.3.2.3 2001/03/08 16:52:23 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -233,6 +233,7 @@ extern subst_t *parsesubsts(faslist_t *sbs);
 extern int applysubst(ninfo_t *nl, subst_t *subs);
 extern void killsubsts(subst_t **l);
 extern int can_dial(ninfo_t *nl, int ct);
+extern int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs);
 extern void nlkill(ninfo_t **nl);
 /* config.c */
 extern int cci;
