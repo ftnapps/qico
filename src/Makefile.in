@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.18 2003/01/17 06:55:22 cyrilm Exp $
+# $Id: Makefile.in,v 1.19 2003/01/17 09:02:55 cyrilm Exp $
 #
 
 prefix  = @prefix@
@@ -17,7 +17,8 @@ QCC     = @QCC@
 
 LIBOBJS= @LIBOBJS@
 
-DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
+#DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
+DEFS    += -I. -I..
 
 CFLAGS	+= $(DEFS) -Wall -D_GNU_SOURCE=1 -D_BSD_SOURCE=1
 LFLAGS  += @LIBS@
