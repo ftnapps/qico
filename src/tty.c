@@ -2,7 +2,7 @@
  * File: tty.c
  * Created at Thu Jul 15 16:14:24 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: tty.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: tty.c,v 1.2 2000/07/18 12:56:19 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -312,7 +312,7 @@ int tty_close()
 	tty_cooked();
 	fclose(stdin);fclose(stdout);
 	tty_unlock(tty_port);
-	free(tty_port);
+	sfree(tty_port);
 	return ME_OK;
 }
 

@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: emsi.c,v 1.2 2000/07/18 12:56:16 lev Exp $
  **********************************************************/
 #include "mailer.h"
 #include <ctype.h>
@@ -200,7 +200,7 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 	log("emsi codes %s/%s",lcod,ccod); 
 #endif
 
-	free(dat->wtime);dat->wtime=NULL;
+	sfree(dat->wtime);
 	while((p=emsi_tok(&t,"{}"))) {
 		if(!strcmp(p, "IDENT")) {
 			p=emsi_tok(&t,"{}");
@@ -357,6 +357,7 @@ int emsi_init(int mode)
 	int ch, got=0;
 	time_t t1, t2;
 	char str[EMSI_BUF], *p=str;
+	int tries = 0;
 
 	if(mode) {
 		t1=t_set(HS_TIMEOUT);
@@ -364,10 +365,11 @@ int emsi_init(int mode)
 		do {
 /* 			PUTCHAR('\r');   */
 			ch=HASDATA(0);
-		} while (!ISTO(ch) && !t_isexp(t1, HS_TIMEOUT));
+		} while (!ISTO(ch) && !t_exp(t1));
 
-/* 		if(NOTTO(ch)) return ch; */
-/* 		if(t_exp(t1)) return TIMEOUT; */
+		if(NOTTO(ch)) return ch;
+ 		if(t_exp(t1)) return TIMEOUT;
+ 		t1=t_set(HS_TIMEOUT);
 		t2=t_set(5);
 		while(1) {
 			ch=GETCHAR(MIN(t_rest(t1),t_rest(t2)));
@@ -375,6 +377,7 @@ int emsi_init(int mode)
 			log("getchar '%c' %d", C0(ch), ch);
 #endif
 			if(NOTTO(ch)) return ch;
+	 		if(t_exp(t1)) return TIMEOUT;
 			if(!got) got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
 				*p=0;p=str;got=0;
@@ -396,8 +399,12 @@ int emsi_init(int mode)
 			}
 			if(t_exp(t2)) {
 				t2=t_set(5);
-				PUTSTR(emsiinq);PUTCHAR('\r');
-/* 				PUTSTR(emsiinq);PUTCHAR('\r'); */
+				tries++;
+				if(tries > 10) return TIMEOUT;
+				sline("Sending EMSI_INQ (Try %d of %d)...",tries,10);
+				PUTSTR(emsiinq);
+				PUTSTR(emsiinq);
+				PUTCHAR('\r');
 			}
 		}
 		return OK;
@@ -406,7 +413,7 @@ int emsi_init(int mode)
 	sline("Sending EMSI_REQ...");
 	PUTSTR(emsireq);PUTCHAR('\r');
 	sline("Waiting for EMSI_INQ...");
-	ch=tty_expect(emsiinq, HS_TIMEOUT);  /* ???????????????????????? */
+	ch=tty_expect(emsiinq, HS_TIMEOUT);
 	return ch;
 }
 

@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: session.c,v 1.2 2000/07/18 12:56:19 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -48,7 +48,7 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 	q->kill=kill;q->loff=off;
 	if((rnode->options&O_FNC) && rem) {
 	    q->sendas=strdup(fnc(rem));
-	    free(rem);
+	    sfree(rem);
 	} else q->sendas=rem;
 	q->lo=lo;q->tosend=loc;
 	q->type=type;
@@ -122,7 +122,7 @@ int boxflist(flist_t **fl, char *path)
 						 strdup(mapname(de->d_name, cfgs(CFG_MAPOUT))),
 						 '^', 0, NULL);
 				totalf+=sb.st_size;totaln++;
-			} else free(p);
+			} else sfree(p);
 		}
 		closedir(d);
 	}
@@ -192,7 +192,7 @@ void flexecute(flist_t *fl)
 			}
 			fseek(fl->lo, fl->loff, SEEK_SET);
 			fwrite(&cmt, 1, 1, fl->lo);
-			free(fl->sendas);fl->sendas=NULL;
+			sfree(fl->sendas);
 		}
  	} else if(fl->sendas) {
 		switch(fl->kill) {
@@ -204,7 +204,7 @@ void flexecute(flist_t *fl)
 			else log("can't truncate %s!", fl->tosend);
 			break;
 		}
-		free(fl->sendas);fl->sendas=NULL;
+		sfree(fl->sendas);
 	}
 }
 
@@ -217,10 +217,10 @@ void flkill(flist_t **l, int rc)
 			fclose((*l)->lo);
 		}
 		if((*l)->type==IS_REQ && rc && !(*l)->sendas) lunlink((*l)->tosend);
-		if((*l)->sendas) free((*l)->sendas);
-		if((*l)->tosend) free((*l)->tosend);
+		sfree((*l)->sendas);
+		sfree((*l)->tosend);
 		t=(*l)->next;
-		free(*l);*l=t;
+		sfree(*l);*l=t;
 	}	
 }
 
@@ -420,7 +420,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		}
 		mydat=emsi_makedat(calladdr, totalm, totalf, O_PUA,
 						   cfgs(CFG_PROTORDER), NULL, 1);
-		rc=emsi_send(mode, mydat);free(mydat);
+		rc=emsi_send(mode, mydat);sfree(mydat);
 		if(rc<0) return S_REDIAL;
 		rc=emsi_recv(mode, rnode);
 		if(rc<0) return S_REDIAL;
@@ -504,7 +504,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		if(!pr[0]) emsi_lo|=P_NCP;
 		mydat=emsi_makedat(&rnode->addrs->addr, totalm, totalf, emsi_lo,
 						   pr, NULL, !(emsi_lo&O_BAD));
-		rc=emsi_send(0, mydat);free(mydat);
+		rc=emsi_send(0, mydat);sfree(mydat);
 		if(rc<0) {
 			flkill(&fl,0);
 			return S_REDIAL;

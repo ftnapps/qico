@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.2 2000/07/18 12:50:33 lev Exp $
+ * $Id: ftn.h,v 1.3 2000/07/18 12:56:16 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -286,6 +286,8 @@ extern int q_rescan(qitem_t **curr);
 extern off_t q_sum(qitem_t *q);
 
 #define bso_poll(adr) bso_attach(adr, F_NORM, NULL)
+
+#define sfree(p) do { if(p) free(p); p = NULL; } while(0)
 
 #define MAX(a,b) ((a>b)?a:b)
 #define MIN(a,b) ((a<b)?a:b)

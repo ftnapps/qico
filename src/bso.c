@@ -2,7 +2,7 @@
  * File: bso.c
  * Created at Thu Jul 15 16:10:30 1999 by pk // aaz@ruxy.org.ru
  * bso management
- * $Id: bso.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: bso.c,v 1.2 2000/07/18 12:56:15 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -30,9 +30,9 @@ int bso_init(char *bsopath, int def_zone)
 
 void bso_done()
 {
-	free(bso_base);
-	free(p_domain);
-	free(bso_tmp);
+	sfree(bso_base);
+	sfree(p_domain);
+	sfree(bso_tmp);
 }
 
 char *bso_name(ftnaddr_t *fa)
@@ -122,8 +122,8 @@ int bso_init(char *bsopath, int def_zone)
 
 void bso_done()
 {
-	free(bso_base);
-	free(bso_tmp);
+	sfree(bso_base);
+	sfree(bso_tmp);
 }
 
 char *bso_name(ftnaddr_t *fa)

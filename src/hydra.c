@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: hydra.c,v 1.2 2000/07/18 12:56:16 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -704,7 +704,7 @@ void hydra_init (dword want_options, boolean orig, int hmod)
 void hydra_deinit (void)
 {
 	qpreset(0);qpreset(1);
-	free(txbuf);free(rxbuf);
+	sfree(txbuf);sfree(rxbuf);
 }/*hydra_deinit()*/
 
 

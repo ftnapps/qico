@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.2 2000/07/18 12:50:33 lev Exp $
+ * $Id: ftn.c,v 1.3 2000/07/18 12:56:16 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -146,7 +146,7 @@ void falist_kill(falist_t **l)
 	falist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		free(*l);
+		sfree(*l);
 		*l=t;
 	}
 }
@@ -172,8 +172,8 @@ void slist_kill(slist_t **l)
 	slist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		free((*l)->str);
-		free(*l);
+		sfree((*l)->str);
+		sfree(*l);
 		*l=t;
 	}
 }
@@ -194,8 +194,8 @@ void faslist_kill(faslist_t **l)
 	faslist_t *t;
 	while(*l) {
 		t=(*l)->next;
-		free((*l)->str);
-		free(*l);
+		sfree((*l)->str);
+		sfree(*l);
 		*l=t;
 	}
 }
@@ -437,13 +437,13 @@ void setproctitle(char *str){}
 
 char *xstrcpy(char **to, char *from)
 {
-	if(*to) free(*to);
+	sfree(*to);
 	return *to=strdup(from?from:"");
 }
 
 char *xstrncpy(char **to, char *from, int n)
 {
-	if(*to) free(*to);
+	sfree(*to);
 	*to=malloc(MIN(n,strlen(from))+1);
 	strncpy(*to, from, n);
 	return *to;
@@ -496,7 +496,7 @@ char *fnc(char *s)
 			    q[i++]=tolower(*s);
 	    q[i]=0;
 	}
-	free(t);
+	sfree(t);
 	return s8;
 }
 	

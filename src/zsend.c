@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: zsend.c,v 1.2 2000/07/18 12:56:19 lev Exp $
  **********************************************************/
 
 #include <sys/stat.h>
@@ -435,13 +435,13 @@ int zmodem_senddone()
 			PUTCHAR('O');PUTCHAR('O');/* FLUSH(); */
 		case ZCAN:
 		case TIMEOUT:
-			free(txbuf);
-			free(zbuffer);
+			sfree(txbuf);
+			sfree(zbuffer);
 			return OK;
 		case ERROR:
 		case RCDO:
-			free(txbuf);
-			free(zbuffer);
+			sfree(txbuf);
+			sfree(zbuffer);
 			return RCDO;
 		}
 	}

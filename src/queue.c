@@ -2,7 +2,7 @@
  * File: queue.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Queue operations 
- * $Id: queue.c,v 1.1 2000/07/18 12:37:21 lev Exp $
+ * $Id: queue.c,v 1.2 2000/07/18 12:56:18 lev Exp $
  **********************************************************/
 #include <unistd.h>
 #include <stdio.h>
@@ -123,7 +123,7 @@ void q_recountbox(char *name, off_t *size, time_t *mtime)
 					sprintf(p,"%s/%s", name, de->d_name);
 					if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) 
 						total+=sb.st_size;
-					free(p);
+					sfree(p);
 				}
 				closedir(d);
 			} else log("can't open %s: %s", name, strerror(errno));
@@ -167,7 +167,7 @@ void rescan_boxes()
 						q->flv|=Q_HOLD;
 						q->what|=T_ARCMAIL;
 					}
-					free(p);
+					sfree(p);
 			}
 			closedir(d);
 		} else log("can't open %s: %s", ccs, strerror(errno));
@@ -189,7 +189,7 @@ int q_rescan(qitem_t **curr)
 	p=&q_queue;
 	while((q=*p)) {
 		if(!q->touched) {
-			*p=q->next;if(q==*curr) *curr=*p;free(q);
+			*p=q->next;if(q==*curr) *curr=*p;sfree(q);
 		} else {
 			bso_getstatus(&q->addr, &sts);
 			q->flv|=sts.flags;q->try=sts.try;

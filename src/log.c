@@ -2,7 +2,7 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.1 2000/07/18 12:37:20 lev Exp $
+ * $Id: log.c,v 1.2 2000/07/18 12:56:17 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <stdlib.h>
@@ -97,8 +97,8 @@ void log(char *fmt, ...)
 void log_done()
 {
 	if(log_type==2) closelog();
-	if(log_name) free(log_name);
-	if(log_tty) free(log_tty);
+	if(log_name) sfree(log_name);
+	if(log_tty) sfree(log_tty);
 	log_name=NULL;log_tty=NULL;
 	log_type=0;
 }

@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: config.c,v 1.2 2000/07/18 12:56:15 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -261,7 +261,7 @@ int parseconfig(char *cfgname)
 					if(setvalue(ci, t, configtab[i].type)) {
 						if(!curcond) configtab[i].found=1;
 					} else {
-						free(ci);
+						sfree(ci);
 						log("%d: can't parse '%s %s'",  line, p, t);
 						rc=0;
 					}
@@ -332,7 +332,7 @@ void killconfig()
 			switch(configtab[i].type) {
 			case C_PATH:    
 			case C_STR:	
-				if(c->value.v_char) free(c->value.v_char);
+				if(c->value.v_char) sfree(c->value.v_char);
 				else c->value.v_char=NULL;
 				break;
 			case C_STRL:
@@ -350,7 +350,7 @@ void killconfig()
 				c->value.v_int=0;
 				break;
 			}
-			free(c);
+			sfree(c);
 			c=t;
 		}
 		configtab[i].items=NULL;
