@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.27 2001/04/03 20:27:22 lev Exp $
+ * $Id: session.c,v 1.28 2001/04/18 12:29:31 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -376,8 +376,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	int rc, emsi_lo=0, proto;
 	unsigned long nfiles;
 	char *mydat, *t, pr[2];
-	falist_t *pp;
-	qitem_t *q;
+	falist_t *pp = NULL;
+	qitem_t *q = NULL;
 
 	was_req=0;got_req=0;receive_callback=receivecb;
 	totaln=0;totalf=0;totalm=0;emsi_lo=0;
