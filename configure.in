@@ -154,4 +154,4 @@ AC_SUBST(LOCKSTYLE_OPEN)
 AC_SUBST(QIPC_KEY)
 AC_SUBST(NEWZMODEM)
 
-AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)
+AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec, [echo timestamp > stamp-h])

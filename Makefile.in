@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.8 2001/01/08 16:09:03 lev Exp $
+# $Id: Makefile.in,v 1.9 2001/01/09 11:31:31 lev Exp $
 #
 
 prefix  = @prefix@
@@ -61,25 +61,23 @@ configure: configure.in
 	@rm -rf configure
 	autoconf
 
-config.h.in: acconfig.h
-	@rm -rf config.h.in
+config.h.in: stamp-h.in
+stamp-h.in: configure.in acconfig.h
 	autoheader
+	@echo timestamp > stamp-h.in
 
-Makefile: configure Makefile.in
-	@echo "+====================================================+"
-	@echo "|  configure or Makefile.in is newer, than Makefile  |"
-	@echo "|   Please, run ./configure with needed parameters   |"
-	@echo "+====================================================+"
-	@exit 1
 
-config.h: config.h.in
-	@echo "+================================================+"
-	@echo "|      config.h.in is newer, than config.h       |"
-	@echo "| Please, run ./configure with needed parameters |"
-	@echo "+================================================+"
-	@exit 1
+config.h: stamp-h
+stamp-h: config.h.in config.status
+	./config.status
 
-dist: clean config.h.in configure 
+Makefile: Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck
+
+dist: clean config.h.in configure
 	mkdir qico-$(VERSION)
 	for i in $(DIST_DIRS); do mkdir qico-$(VERSION)/$$i; done
 	for i in $(DIST_FILES); do cp -f $$i qico-$(VERSION)/$$i; done
