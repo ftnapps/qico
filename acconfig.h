@@ -27,3 +27,5 @@
 #undef TM_HAVE_GMTOFF
 
 #undef LOCKSTYLE_OPEN
+
+#undef NEWZMODEM

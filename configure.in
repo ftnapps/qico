@@ -58,6 +58,18 @@ AC_DEFINE_UNQUOTED(CONFIG, "$with_config")
 CONFIG=$with_config
 AC_MSG_RESULT($with_config)
 
+dnl ZModem
+AC_MSG_CHECKING([for zmodem implemetation])
+AC_ARG_WITH(new_zmodem,[  --with-new-zmodem        Use new ZModem implementation ], , with_new_modem=no)
+if test x$with_new_modem != xno; then
+	AC_MSG_RESULT(new ZModem)
+	AC_DEFINE(NEWZMODEM)
+    NEWZMODEM=1
+else 
+	AC_MSG_RESULT(Original ZModem)
+fi
+
+
 dnl TCP Speed
 AC_MSG_CHECKING([for TCP connection speed])
 AC_ARG_WITH(tcp-speed,[  --with-tcp-speed        specifies TCP connection speed (default is 115200) ], , with_tcp_speed=115200)
@@ -139,5 +151,6 @@ AC_SUBST(SHELL)
 AC_SUBST(TM_HAVE_GMTOFF)
 AC_SUBST(LOCKSTYLE_OPEN)
 AC_SUBST(QIPC_KEY)
+AC_SUBST(NEWZMODEM)
 
 AC_OUTPUT(src/ver.c src/Makefile Makefile qico.spec)
