@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.18 2004/03/09 23:11:57 sisoft Exp $
+ * $Id: daemon.c,v 1.19 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -83,11 +83,7 @@ static void sendrpkt(char what,int sock,char *fmt,...)
 	STORE16(buf,0);
 	buf[2]=what;
 	va_start(args,fmt);
-#ifdef HAVE_VSNPRINTF
 	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
-#else
-	rc=vsprintf(buf+3,fmt,args);
-#endif
 	va_end(args);
 	if(xsend(sock,buf,rc+3)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
@@ -574,7 +570,7 @@ void daemon_mode()
 						current->onhold=0;
 						f&=~Q_ANYWAIT;
 					}
-				if(f&Q_UNDIAL && cfgi(CFG_CLEARUNDIAL)!=0) {
+				if(f&Q_UNDIAL&&cfgi(CFG_CLEARUNDIAL)!=0) {
 					if(BSO) {
 						bso_getstatus(&current->addr,&sts);
 						if (t_exp(sts.utime)) {
@@ -597,7 +593,6 @@ void daemon_mode()
 							write_log("changing status of %s to [%s]",ftnaddrtoa(&current->addr),sts_str(sts.flags));
 						}
 					}
-
 				}
  				if(falist_find(cfgal(CFG_ADDRESS),&current->addr)||
 					f&Q_UNDIAL||!havestatus(f,CFG_CALLONFLAVORS)||
@@ -810,7 +805,7 @@ nlkil:				is_ip=0;bink=0;
 				nlkill(&rnode);
 				DEBUG(('Q',1,"nlkill"));
 				current=current->next;
-				if(!current) current=q_queue;
+				if(!current)current=q_queue;
 				i=i->next;
 			}
 		}

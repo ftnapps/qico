@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.15 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: qipc.c,v 1.16 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LIBUTIL_H
@@ -51,11 +51,7 @@ void vlog(char *str,...)
 	char lin[MAX_STRING];
 
 	va_start(args, str);
-#ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
-#else
-	vsprintf(lin,str,args);
-#endif
 	va_end(args);
 	qsendpkt(QC_LOGIT,QLNAME,lin,strlen(lin)+1);
 }
@@ -66,11 +62,7 @@ void sline(char *str,...)
 	char lin[MAX_STRING];
 
 	va_start(args,str);
-#ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
-#else
-	vsprintf(lin,str,args);
-#endif
 	va_end(args);
 	qsendpkt(QC_SLINE,QLNAME,lin,strlen(lin)+1);
 }
@@ -149,11 +141,7 @@ void title(char *str,...)
 	va_list args;
 	char lin[MAX_STRING];
 	va_start(args,str);
-#ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
-#else
-	vsprintf(lin,str,args);
-#endif
 	va_end(args);
 	qsendpkt(QC_TITLE,QLNAME,lin,strlen(lin)+1);
 	if(cfgi(CFG_USEPROCTITLE)) {

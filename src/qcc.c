@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.29 2004/03/20 16:04:16 sisoft Exp $
+ * $Id: qcc.c,v 1.30 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -448,11 +448,7 @@ static void mylog(char *str,...)
 	tim=time(NULL);
 	tt=localtime(&tim);
 	va_start(args,str);
-#ifdef HAVE_VSNPRINTF
 	vsnprintf(s,MAX_STRING,str,args);
-#else
-	vsprintf(s,str,args);
-#endif
 	va_end(args);
 	getyx(wlog,y,x);
 	wattron(wlog,A_BOLD);

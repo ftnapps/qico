@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.14 2004/02/14 15:58:54 sisoft Exp $
+ * $Id: log.c,v 1.15 2004/03/21 10:42:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -152,11 +152,7 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 		xstrcpy(p,prefix,p-(char*)str);
 		p=str+strlen(str);
 	}
-#ifdef HAVE_VSNPRINTF
 	vsnprintf(p,MAX_STRING*16-50,fmt,args);
-#else
-	vsprintf(p,fmt,args);
-#endif
 	if(log_callback&&dbg)log_callback(str);
 	switch(log_type) {
 		case 0:
