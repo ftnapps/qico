@@ -470,16 +470,16 @@ mapout 		bS
 # ex:
 #
 #subst	1:2345/123		-			23:30-8:00
-#subst	1:2345/546		123-4567	-
-#subst	1:2345/666		02			CM 		
+#subst	1:2345/546		7-095-123-4567	-
+#subst	1:2345/666		7-812-02			CM 		
 #
 # Subst override nodelist, so for second (hidden) line you must specify
 # two (or more) `subst':
 #		One for nodelist line
 #subst 111:222/33		-			-		
 #		One (ore more) for hidden line(s)
-#subst 111:222/33		987-6543	18:00-9:00
-# warning! subst phones are used without translation!
+#subst 111:222/33		7-095-987-6543	18:00-9:00
+# WARNING! subst phones are used WITH translation!
 
 # You could include subst file.
 #include /etc/ftn/substs
@@ -519,4 +519,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.26 2003/01/22 07:50:10 cyrilm Exp $
+# $Id: qico.conf.sample,v 1.27 2003/02/04 17:30:42 cyrilm Exp $

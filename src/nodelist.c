@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.19 2002/04/17 18:51:47 lev Exp $
+ * $Id: nodelist.c,v 1.20 2003/02/04 17:30:46 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -480,7 +480,7 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 	} else if(from_nl && from_nl->phone) {
 		if(nl->phone) xfree(nl->phone);
 		nl->phone=xstrdup(from_nl->phone);
-		phonetrans(&nl->phone, cfgsl(CFG_PHONETR));
+		if(cfgi(CFG_TRANSLATESUBST) == 0) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	}
 	if(d->timegaps) {
 		if(nl->wtime) xfree(nl->wtime);

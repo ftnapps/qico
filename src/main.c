@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.65 2003/02/04 09:34:02 cyrilm Exp $
+ * $Id: main.c,v 1.66 2003/02/04 17:30:45 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -316,7 +316,7 @@ void daemon_mode()
 					rnode->phone=xstrdup("");
 				}
 				rnode->tty=xstrdup(baseport(port));
-				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+				if(cfgi(CFG_TRANSLATESUBST) == 0) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 				DEBUG(('Q',1,"%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum));
 				if(checktimegaps(cfgs(CFG_CANCALL)) &&
@@ -329,6 +329,7 @@ void daemon_mode()
 						setsid();
 						if(!bso_locknode(&current->addr)) exit(S_BUSY);
 						log_done();
+						if(cfgi(CFG_TRANSLATESUBST) == 1) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 						if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 							fprintf(stderr, "can't init log %s!",ccs);
 							exit(S_BUSY);
@@ -796,7 +797,7 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 			exit(33);
 		}
 	}
-	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
+	if(cfgi(CFG_TRANSLATESUBST) == 0) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 
 	if(line) {
 		applysubst(rnode, psubsts);
@@ -816,6 +817,7 @@ int force_call(ftnaddr_t *fa, int line, int flags)
 		}
 	}
 
+	if(cfgi(CFG_TRANSLATESUBST) == 1) phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 		printf("can't open log %s!\n", ccs);
 		exit(0);
