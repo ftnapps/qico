@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.55si],[sisoft@bk.ru])
-AM_INIT_AUTOMAKE([qico],[0.55si])
+AC_REVISION([$Id: configure.in,v 1.30 2004/06/19 22:31:57 sisoft Exp $])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.29 2004/06/07 18:50:51 sisoft Exp $])
-AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
+AC_CONFIG_SRCDIR([src/main.c])
+AM_INIT_AUTOMAKE([qico],[0.55si])
 AM_MAINTAINER_MODE
 
 dnl Checks for programs.
@@ -42,10 +42,9 @@ AC_FUNC_MEMCMP
 AC_FUNC_STRFTIME
 AC_FUNC_UTIME_NULL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([dup2 getcwd getpass gettimeofday memmove mktime])
-AC_CHECK_FUNCS([select setlocale statfs statvfs strcasecmp])
-AC_CHECK_FUNCS([strchr strdup strerror strncasecmp strrchr])
-AC_CHECK_FUNCS([strspn strstr strtol strtoul uname vsnprintf])
+AC_CHECK_FUNCS([getcwd getpass gettimeofday memmove mktime])
+AC_CHECK_FUNCS([setlocale statfs statvfs strcasecmp strerror])
+AC_CHECK_FUNCS([strncasecmp strspn strtol strtoul uname vsnprintf])
 AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
 
 dnl Checks for typedefs, structures, and compiler characteristics.

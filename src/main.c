@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.33 2004/06/09 22:25:50 sisoft Exp $
+ * $Id: main.c,v 1.34 2004/06/19 22:31:57 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -142,9 +142,9 @@ static void answer_mode(int type)
 	}
 	if((cs=getenv("CALLER_ID"))&&strcasecmp(cs,"none")&&strlen(cs)>3)write_log("caller-id: %s",cs);
 	tty_setattr(0);
-	tty_nolocal();
+	tty_local(0);
 	rc=session(0,type,NULL,spd);
-	tty_local();
+	tty_local(1);
 	if(!is_ip) {
 		hangup();
 		stat_collect();

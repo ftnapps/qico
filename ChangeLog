@@ -1,3 +1,10 @@
+2004-06-17 00:24  sisoft
+
+	* src/binkp.c, src/mailer.h, src/perl.c, src/protfm.c,
+	  src/session.c, stuff/test.pl:
+
+	perl: fix on_session and implement on_recv/end_recv/on_send/end_send hooks.
+
 2004-06-16 10:22  sisoft
 
 	* debian/copyright, src/mailer.h, src/perl.c, src/session.c,
