@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.6 2001/01/08 19:37:06 lev Exp $
+ * $Id: ls_zglue.c,v 1.7 2001/01/09 16:38:38 lev Exp $
  **********************************************************/
 /*
 
@@ -161,7 +161,7 @@ int zmodem_receive(char *c, int canzap) {
 				write_log("zmodem: file %s information bad, skip it",f.name);
 				frame = ZSKIP;
 			} else {
-				switch(rxopen(f.name,f.size,f.mtime,&rxfd)) {
+				switch(rxopen(f.name,f.mtime,f.size,&rxfd)) {
 				case FOP_SKIP:
 #ifdef Z_DEBUG2
 					write_log("zmodem_receive: SKIP %s",f.name);
