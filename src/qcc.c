@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.5 2000/10/12 19:43:52 lev Exp $
+ * $Id: qcc.c,v 1.6 2000/11/16 18:50:27 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -311,8 +311,8 @@ void mylog(char *str, ...)
 }
 
 
-char qflgs[5]="NIHUW";
-int  qclrs[5]={7,2,3,4,6};
+char qflgs[Q_MAXBIT]=Q_CHARS;
+int  qclrs[Q_MAXBIT]=Q_COLORS;
 void freshqueue()
 {
 	int i,k,l;
@@ -321,7 +321,7 @@ void freshqueue()
 	werase(wmain);
 	wattrset(wmain,COLOR_PAIR(6)|A_BOLD);
 	mvwaddstr(wmain,0,0,"* Address");
-	mvwaddstr(wmain,0,COLS-25,"Mail  Files  Try  Flags");
+	mvwaddstr(wmain,0,COLS-20-Q_MAXBIT,"Mail  Files  Try  Flags");
 	for(i=0;i<q_size && i<MH-1;i++) {
 		wattrset(wmain,COLOR_PAIR(3)|(queue[i+qpos].flags&Q_DIAL?A_BOLD:0));
 		mvwaddstr(wmain, i+1, 2, queue[i+qpos].addr);
@@ -329,15 +329,13 @@ void freshqueue()
 		sscat(str, queue[i+qpos].mail);strcat(str, "  ");
 		sscat(str, queue[i+qpos].files);
 		sprintf(str+strlen(str), "  %3d  ", queue[i+qpos].try);
-		mvwaddstr(wmain, i+1, COLS-7-strlen(str), str);
+		mvwaddstr(wmain, i+1, COLS-2-Q_MAXBIT-strlen(str), str);
 		l=1;
-		for(k=0;k<4;k++) {
+		for(k=0;k<Q_MAXBIT;k++) {
 			wattron(wmain, COLOR_PAIR(qclrs[k]));
 			waddch(wmain, (queue[i+qpos].flags&l) ? qflgs[k] : '.');
 			l=l<<1;
 		}
-		wattron(wmain, COLOR_PAIR(qclrs[4]));
-		waddch(wmain, (queue[i+qpos].flags&Q_ANYWAIT) ? qflgs[4] : '.');
 	}
 }
 void freshall()

@@ -2,7 +2,7 @@
  * File: qcconst.h
  * Created at Sun Aug  8 20:57:15 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qcconst.h,v 1.6 2000/11/09 12:49:04 lev Exp $
+ * $Id: qcconst.h,v 1.7 2000/11/16 18:50:27 lev Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
@@ -27,6 +27,7 @@ typedef struct {
 #define MSG_BUFFER 2048
 
 #define Q_CHARS		"NHDCIUdrxw"
+#define Q_COLORS	{7,3,1,2,2,4,7,6,6,6}
 #define Q_NORM		0x0000001
 #define Q_HOLD		0x0000002
 #define Q_DIR		0x0000004
