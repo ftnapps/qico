@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.8 2000/12/26 12:14:32 lev Exp $
+ * $Id: ls_zmodem.c,v 1.9 2000/12/30 19:39:42 lev Exp $
  **********************************************************/
 /*
 
@@ -287,7 +287,6 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			}
 			break;
 		case rhZVBIN32:
-		case rhZVBINR32:
 			crcl = 4;
 			/* Fall throught */
 		case rhZVBIN:
@@ -306,7 +305,6 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			state = rhFrameType;
 			break;
 		case rhZBIN32:
-		case rhZBINR32:
 			crcl = 4;
 			/* Fall throught */
 		case rhZBIN:
@@ -364,8 +362,19 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 			if(++crcgot == crcl)  { /* Crc finished */
 				state = rhInit;
 				ls_Garbage = 0;
-				if(2 == crcl) { incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xffff); }
-				else { incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc); }
+				if(2 == crcl) {
+#ifdef Z_DEBUG
+					if(ls_Protocol&LSZ_OPTCRC32 && rmHEX!=readmode) write_log("Was CRC32, got CRC16 binary header");
+#endif
+					incrc = LSZ_FINISH_CRC16(incrc); crc = STOH(crc & 0xffff);
+					if(rmHEX!=readmode) ls_Protocol &= (~LSZ_OPTCRC32);
+				} else {
+#ifdef Z_DEBUG
+					if(!(ls_Protocol&LSZ_OPTCRC32)) write_log("Was CRC16, got CRC32 binary header");
+#endif
+					incrc = LSZ_FINISH_CRC32(incrc); crc = LTOH(crc);
+					ls_Protocol |= LSZ_OPTCRC32;
+				}
 #ifdef Z_DEBUG2
 				write_log("lsrecvhdr: CRC%d got %08x, claculated %08x",(2==crcl)?16:32,incrc,crc);
 #endif
