@@ -270,9 +270,9 @@ speed		33600
 flags		Linux, anti-ifcico team
 
 # mailer info. qico-<version>/<your_os> will be used, if not defined.
-progname	qico
-version         2000
-osname          Windows95
+#progname	qico
+#version         2000
+#osname          Windows95
 
 # ZMH (better use Txy)
 zmh		Tcd
@@ -439,4 +439,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.7 2000/11/09 13:42:16 lev Exp $
+# $Id: qico.conf.sample,v 1.8 2000/11/16 18:44:08 lev Exp $
