@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.33 2001/01/21 20:51:29 lev Exp $
+ * $Id: main.c,v 1.34 2001/01/21 20:52:44 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
