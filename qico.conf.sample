@@ -93,7 +93,7 @@ address 	111:222/44
 #password	2:2345/1234		COOLPASS
 #password	111:222/13		SOMEPWD
 
-# You rcould include passwords file
+# You could include passwords file
 #include		/etc/ftn/qico.passwd
 
 
@@ -511,4 +511,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.24 2002/06/16 17:44:44 lev Exp $
+# $Id: qico.conf.sample,v 1.25 2002/07/09 13:44:35 lev Exp $
