@@ -1,0 +1,9 @@
+Makefile
+config.h.in
+config.h
+configure
+config.log
+config.status
+config.cache
+qico.spec
+
