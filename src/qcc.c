@@ -2,7 +2,7 @@
  * File: qcc.c
  * Created at Sun Aug  8 16:23:15 1999 by pk // aaz@ruxy.org.ru
  * qico control center
- * $Id: qcc.c,v 1.11 2001/01/12 13:13:10 lev Exp $
+ * $Id: qcc.c,v 1.12 2001/01/19 15:18:22 lev Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -138,8 +138,8 @@ void draw_screen() {
 	wmain=newwin(MH, COLS-2, 1, 1);
 	wbkgd(wmain, COLOR_PAIR(6)|' ');
 	
-/* 	wlog=newwin(LINES-MH-4, COLS-2, MH+2, 1); */
-/*	wbkgd(wlog, COLOR_PAIR(7)|' ');*/
+ 	wlog=newwin(LINES-MH-4, COLS-2, MH+2, 1);
+	wbkgd(wlog, COLOR_PAIR(7)|' ');
 	scrollok(wlog, TRUE);	
 
 	wstat=newwin(1, COLS-4, LINES-2, 2);
@@ -151,7 +151,7 @@ void draw_screen() {
 	wrefresh(wmain);
 	wrefresh(wstat);
 	wrefresh(whdr);
-/* 	wrefresh(wlog); */
+ 	wrefresh(wlog);
 }	
 
 void initscreen()
