@@ -1,4 +1,4 @@
-/* $Id: clserv.h,v 1.8 2004/05/17 22:29:04 sisoft Exp $ */
+/* $Id: clserv.h,v 1.9 2004/05/24 03:21:36 sisoft Exp $ */
 #ifndef __CLSERV_H__
 #define __CLSERV_H__
 
@@ -19,6 +19,7 @@
 
 typedef struct _cls_cl_t {
 	struct _cls_cl_t *next;
+	unsigned char *auth;
 	short id;
 	int sock;
 	char type;

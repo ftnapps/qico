@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.7 2004/04/13 17:37:05 sisoft Exp $ */
+/* $Id: tools.h,v 1.8 2004/05/24 03:21:36 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -45,12 +45,8 @@ typedef struct {
 #define SIZES(x) (((x)<1024)?(x):((x)/1024))
 #define SIZEC(x) (((x)<1024)?'b':'k')
 
-extern void strlwr(char *s);
-extern void strupr(char *s);
-extern void strtr(char *s, char a, char b);
 extern void recode_to_remote(char *str);
 extern void recode_to_local(char *str);
-extern void chop(char *s, int n);
 extern int hexdcd(char d,char c);
 extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
 extern int strhex2bin(unsigned char *binptr,const char *string);
@@ -64,6 +60,14 @@ extern FILE *mdfopen(char *fn,char *pr);
 extern size_t getfreespace(const char *path);
 extern int randper(int base,int diff);
 extern void to_dev_null();
+extern int fexist(char *s);
+extern char *fnc(char *s);
+extern int whattype(char *fn);
+extern int lunlink(char *s);
+extern char *mapname(char *fn, char *map, size_t size);
+extern int isdos83name(char *fn);
+extern char *qver(int what);
+extern int istic(char *fn);
 #ifndef HAVE_SETPROCTITLE
 extern void setargspace(int argc,char **argv,char **envp);
 extern void setproctitle(char *str);

@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.17 2004/05/21 14:15:38 sisoft Exp $
+ * $Id: qctl.c,v 1.18 2004/05/24 03:21:36 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -42,10 +42,12 @@
 #include "qcconst.h"
 #include "byteop.h"
 #include "xstr.h"
+#include "xmem.h"
 #include "clserv.h"
 #include "ver.h"
 
 extern time_t gmtoff(time_t tt,int mode);
+extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,int challenge_length,unsigned char *digest);
 
 static int sock=-1;
 static char qflgs[Q_MAXBIT]=Q_CHARS;
@@ -53,11 +55,12 @@ static char buf[MSG_BUFFER];
 
 static void usage(char *ex)
 {
-	printf("usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
+	printf("usage: %s [<options>] [<node>] [<files>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n"
 		   "-h             this help screen\n"
 	           "-P port        connect to <port> (default: qicoui or %u)\n"
 	           "-a host        connect to <host> (default: localhost)\n"
+	           "-w password    set <password> for connect\n"
  		   "-q             stop daemon\n"
  		   "-Q             force queue rescan\n"
  		   "-R             reread config\n"
@@ -72,15 +75,25 @@ static void usage(char *ex)
 		   "-k             kill attached files after transmission (for -s)\n"
 		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
 		   "               <u>ndialable, <i>mmediate, <w>ait\n"
-		   "-H             hangup modem session on <tty>\n"
+		   "-H tty         hangup modem session on <tty>\n"
                    "-v             show version\n"
 		   "\n",ex,DEF_SERV_PORT);
 	exit(0);
 }
 
+void write_log(char *str,...)
+{
+	va_list args;
+	char tmp[MAX_STRING];
+	va_start(args,str);
+	vsnprintf(tmp,MAX_STRING-1,str,args);
+	va_end(args);
+	fprintf(stderr,"%s.\n",tmp);
+}
+
 static RETSIGTYPE timeout(int sig)
 {
-	fprintf(stderr,"got timeout\n");
+	write_log("got timeout");
 	exit(1);
 }
 
@@ -91,12 +104,12 @@ static int getanswer()
 	alarm(5);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
 	if(!rc) {
-		fprintf(stderr,"connection to server broken.\n");
+		write_log("connection to server broken");
 		return 1;
 	}
 	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
 	if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid()))return 1;
-	if(buf[2])fprintf(stderr, "%s\n", buf+3);
+	if(buf[2])write_log(buf+3);
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
 	return buf[2];
@@ -182,18 +195,22 @@ int main(int argc, char *argv[])
 {
 	int action=-1, kfs=0, len=0,lkfs,rc=1;
 	char filename[MAX_PATH];
-	char c,*str="",flv='?',*port=NULL,*addr=NULL;
+	unsigned char digest[16]={0};
+	char c,*str="",flv='?',*port=NULL,*addr=NULL,*tty=NULL,*pwd=NULL;
 	struct stat filestat;
 #ifdef HAVE_SETLOCALE
  	setlocale(LC_ALL, "");
 #endif
- 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:P:a:"))!=EOF) {
+ 	while((c=getopt(argc, argv, "Khqovrp:fkRQH:s:x:P:a:w:"))!=EOF) {
 		switch(c) {
 		case 'P':
-			if(optarg&&*optarg)port=strdup(optarg);
+			if(optarg&&*optarg)port=xstrdup(optarg);
 			break;
 		case 'a':
-			if(optarg&&*optarg)addr=strdup(optarg);
+			if(optarg&&*optarg)addr=xstrdup(optarg);
+			break;
+		case 'w':
+			if(optarg&&*optarg)pwd=xstrdup(optarg);
 			break;
 		case 'k':
 			kfs=1;
@@ -240,6 +257,7 @@ int main(int argc, char *argv[])
 			action=QR_SCAN;
 			break;
 		case 'H':
+			if(optarg&&*optarg)tty=xstrdup(optarg);
 			action=QR_HANGUP;
 			break;
 		case 'v':
@@ -257,14 +275,32 @@ int main(int argc, char *argv[])
 	signal(SIGPIPE,SIG_IGN);
 	sock=cls_conn(CLS_UI,port,addr);
 	if(sock<0) {
-		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
+		write_log("can't connect to server: %s",strerror(errno));
 		return 1;
 	}
-
+	signal(SIGALRM, timeout);
+	alarm(6);
+	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+	if(!rc) {
+		write_log("connection to server broken");
+		return 1;
+	}
+	alarm(0);
+	signal(SIGALRM, SIG_DFL);
+	if(strcmp(buf,"qs-noauth")) {
+		if(!pwd) {
+			write_log("can't connect: password required");
+			cls_close(sock);
+			return 1;
+		}
+		md5_cram_get((unsigned char*)pwd,(unsigned char*)buf,10,digest);
+	}
 	STORE16(buf,0);
 	buf[2]=QR_STYPE;
-	snprintf(buf+3,MSG_BUFFER-4,"cqctl-%s",version);
-	xsend(sock,buf,strlen(buf+3)+4);
+	buf[3]='c';/*control*/
+	memcpy(buf+4,digest,16);
+	snprintf(buf+20,MSG_BUFFER-21,"qctl-%s",version);
+	xsend(sock,buf,strlen(buf+20)+20);
 	if(getanswer()) {
 		cls_close(sock);
 		return 1;
@@ -293,8 +329,10 @@ int main(int argc, char *argv[])
 		} while(optind<argc);
 		break;
 	    case QR_HANGUP:
-		strncpy(buf+3,argv[optind],16);
-		rc=xsendget(sock,buf,strlen(buf+3));
+		if(tty) {
+			strncpy(buf+3,tty,16);
+			rc=xsendget(sock,buf,strlen(buf+3));
+		} else usage(argv[0]);
 		break;
 	    case QR_STS:
 		xstrcpy(buf+3, argv[optind], MSG_BUFFER-3);
@@ -324,19 +362,19 @@ int main(int argc, char *argv[])
 			}
 			xstrcat(filename, argv[optind], MAX_PATH);
 			if(access(filename,R_OK) == -1) {
-				fprintf(stderr,"can't access to %s: %s. skipped\n",filename,strerror(errno));
+				write_log("can't access to %s: %s. skipped",filename,strerror(errno));
 				continue;
 			}
 			if(stat(filename,&filestat) == -1) {
-				fprintf(stderr,"can't stat file %s: %s. skipped\n",filename,strerror(errno));
+				write_log("can't stat file %s: %s. skipped",filename,strerror(errno));
 				continue;
 			}
 			if(!S_ISREG(filestat.st_mode)) {
-				fprintf(stderr,"file %s is not regular file. skipped\n",filename);
+				write_log("file %s is not regular file. skipped",filename);
 				continue;
 			}
 			if(lkfs && (access(filename,W_OK )== -1)) {
-				fprintf(stderr,"have no write access to %s. file wouldn't be removed\n",filename);
+				write_log("have no write access to %s. file wouldn't be removed",filename);
 				lkfs=0;
 			}
 			str[0]=lkfs?'^':0;str[1]=0;
@@ -346,7 +384,7 @@ int main(int argc, char *argv[])
 		if(nf) {
 			xstrcpy(str, "", 2);str+=2;
 			rc=xsendget(sock,buf,str-buf);
-		} else fprintf(stderr,"no files to send.\n");
+		} else write_log("no files to send");
 	      } break;
 	    case QR_QUEUE:
 		xsend(sock,buf,3);

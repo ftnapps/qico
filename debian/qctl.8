@@ -1,9 +1,9 @@
-.TH QCTL 8 "18 May 2004"
+.TH QCTL 8 "24 May 2004"
 .SH NAME
 qctl \- control tool for qico ftn mailer.
 .SH SYNOPSIS
 .B qctl
-.RB [ \-PaqQRKfoprskxhv ]
+.RB [ \-PaqQRKfoprskxHhv ]
 .RB [
 .I node
 ]
@@ -78,6 +78,10 @@ is:
 (wait), or
 .B I
 (immediate). Capital letter for set flag, or small for unset.
+.TP
+.BI \-H tty
+Hangup session on
+.I tty.
 .TP
 .BI \-h
 Print help message.

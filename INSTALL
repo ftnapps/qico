@@ -261,7 +261,7 @@ Extra `configure' options
     Set default TTY-connections(modem) speed to SPEED.
 
 `--with-shell=SHELL'
-    Set shell, used for execute external programms and scripts.
+    Set shell, used for execute external programs and scripts.
 
 `--with-lock-style=STYLE'
     Where STYLE is 'link' or 'open'. used 'link' by default.
