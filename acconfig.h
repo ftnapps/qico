@@ -31,3 +31,5 @@
 #undef LOCKSTYLE_OPEN
 
 #undef NEWZMODEM
+
+#undef HAVE_SYSLOG_NAMES
