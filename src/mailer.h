@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.4 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: mailer.h,v 1.5 2003/10/08 01:26:48 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -51,10 +51,6 @@
 #define RX_SUSPEND	2
 
 #define TIM_CHAT	90
-
-#define MO_IFC		1
-#define MO_BINKP	2
-#define MO_CHAT		4
 
 typedef struct _flist_t {
 	struct _flist_t *next;
