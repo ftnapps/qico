@@ -1,4 +1,4 @@
-/* $Id: strcspn.c,v 1.2 2004/03/08 22:02:43 sisoft Exp $
+/* $Id: strcspn.c,v 1.3 2004/03/20 16:04:16 sisoft Exp $
  *
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -39,9 +39,7 @@
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 /*
  * Span the complement of string s2.

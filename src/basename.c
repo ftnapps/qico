@@ -1,4 +1,4 @@
-/* $Id: basename.c,v 1.3 2004/03/08 22:02:43 sisoft Exp $
+/* $Id: basename.c,v 1.4 2004/03/20 16:04:16 sisoft Exp $
  *
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -35,9 +35,7 @@
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif

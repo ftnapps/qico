@@ -1,3 +1,13 @@
+2004-03-20 19:04  sisoft
+
+	* Changes, configure.in, debian/rules, src/basename.c,
+	  src/headers.h, src/memcmp.c, src/qcc.c, src/qctl.c,
+	  src/strcspn.c, src/strsep.c, src/tcp.c, src/tools.c:
+
+	try to fix compile under Solaris.
+	fix [n]curses library detection.
+	fix stat[v]fs struct detection.
+
 2004-03-18 00:28  sisoft
 
 	* Changes, src/protfm.c:

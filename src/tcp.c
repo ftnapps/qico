@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.17 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: tcp.c,v 1.18 2004/03/20 16:04:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_SOCKET_H
@@ -148,7 +148,7 @@ static int socks_conn(char *name)
 		PUTBLK((unsigned char*)buf,9);
 	} else {
 		*buf=5;buf[1]=1;buf[2]=0;
-		if(isdigit(*name)&&(da.s_addr=inet_addr(name))!=INADDR_NONE) {
+		if(isdigit(*name)&&(da.s_addr=inet_addr(name))!=-1) {
 			buf[3]=1;
 			memcpy(buf+4,&da,4);
 			n=buf+8;
