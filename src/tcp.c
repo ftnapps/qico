@@ -2,7 +2,7 @@
  * File: tcp.c
  * Created at Tue Aug 10 14:05:19 1999 by pk // aaz@ruxy.org.ru
  * tcp open
- * $Id: tcp.c,v 1.6 2001/02/16 14:45:56 aaz Exp $
+ * $Id: tcp.c,v 1.7 2001/06/09 22:18:47 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -47,27 +47,24 @@ int opentcp(char *name)
 	sline("Connecting to %s:%d",
 		  inet_ntoa(server.sin_addr),(int)ntohs(server.sin_port));
 	signal(SIGPIPE,tty_sighup);
-	fflush(stdin);
-	fflush(stdout);
-	setbuf(stdin,NULL);
-	setbuf(stdout,NULL);
-	close(0);
-	close(1);
-	if ((fd=socket(AF_INET,SOCK_STREAM,0)) != 0) {
-		write_log("cannot create socket");
-		open("/dev/null",O_RDONLY);
-		open("/dev/null",O_WRONLY);
+	if ((fd=socket(AF_INET,SOCK_STREAM,0))<0) {
+		write_log("cannot create socket: %s",strerror(errno));
 		return 0;
 	}
-	if (dup(0) != 1) {
-		write_log("cannot dup socket");
-		open("/dev/null",O_WRONLY);
+	fflush(stdin); fflush(stdout);
+	setbuf(stdin,NULL); setbuf(stdout,NULL);
+	close(STDIN_FILENO); close(STDOUT_FILENO);
+	if (dup2(STDIN_FILENO,fd) != STDIN_FILENO) {
+		write_log("cannot dup socket: %s",strerror(errno));
 		return 0;
 	}
-	clearerr(stdin);
-	clearerr(stdout);
+	if (dup2(STDOUT_FILENO,fd) != STDOUT_FILENO) {
+		write_log("cannot dup socket: %s",strerror(errno));
+		return 0;
+	}
+	clearerr(stdin);clearerr(stdout);
 	if (connect(fd,(struct sockaddr *)&server,sizeof(server))<0) {
-		write_log("cannot connect %s",inet_ntoa(server.sin_addr));
+		write_log("cannot connect %s: %s",inet_ntoa(server.sin_addr),strerror(errno));
 		return 0;
 	}
 	write_log("TCP/IP connection with %s",inet_ntoa(server.sin_addr));
@@ -78,7 +75,7 @@ int opentcp(char *name)
 void closetcp(void)
 {
 #ifdef HAVE_SHUTDOWN	
-  shutdown(0,2);
+  shutdown(STDIN_FILENO,2);
 #endif  
   signal(SIGPIPE,SIG_DFL);
 }
