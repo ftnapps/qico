@@ -2,7 +2,7 @@
  * File: janus.c
  * Created at Thu Jan  6 19:24:06 2000 by pk // aaz@ruxy.org.ru
  * Janus protocol defines
- * $Id: janus.h,v 1.2 2000/10/07 13:44:53 lev Exp $
+ * $Id: janus.h,v 1.3 2000/10/22 18:55:03 lev Exp $
  ******************************************************************/
 #ifndef __JANUS_H__
 #define __JANUS_H__
@@ -51,7 +51,7 @@
 #define PKTENDCHR   'b'
 #define PKTSTRTCHR32    'c'
 
-#define BUFMAX 8192
+#define BUFMAX 2048
 
 #define JCAP_CRC32      0x80
 #define JCAP_FREQ       0x40
