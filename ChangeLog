@@ -1,3 +1,11 @@
+2004-01-13 00:41  sisoft
+
+	* src/: Makefile.am, clserv.c, clserv.h, daemon.c, flagexp.y,
+	ftn.h, globals.c, globals.h, hydra.h, log.c, ls_zmodem.h, mailer.h,
+	main.c, qcc.c, qctl.c, qipc.c, qipc.h, session.c, xmem.h, xstr.h:
+
+	change IPC to IP in progress..
+	
 2004-01-10 12:26  sisoft
 
 	* src/daemon.c:
