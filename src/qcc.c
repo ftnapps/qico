@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.35 2004/04/13 17:37:05 sisoft Exp $
+ * $Id: qcc.c,v 1.36 2004/04/14 22:21:26 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -882,11 +882,11 @@ rei:	zone=strtoul(myaddr,&nm,10);
 		sprintf(ou,"%c%lu:%lu/%lu",flv,zone,net,node);
 		if(point)sprintf(ou+strlen(ou),".%lu",point);
 		if(flv=='e') {
-			mylog("Error: input: '%s', treat as '%s', but ignore",buf,ou);
+			mylog("Err: in: '%s', ident as '%s', ignored",buf,ou);
 			*(int*)ou=0;
 		}
 #if QDEBUG==1
-		else mylog("input '%s', treat as '%s'",buf,ou);
+		else mylog("in: '%s', ident as '%s'",buf,ou);
 #endif
 	}
 	return ou;

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.17 2004/03/27 21:38:40 sisoft Exp $
+ * $Id: log.c,v 1.18 2004/04/14 22:21:26 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -140,12 +140,17 @@ int log_init(char *ln, char *tn)
 void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 {
 	FILE *log_f;
-	time_t tt;struct tm *t;
+	struct tm *t;
+	struct timeval tv;
 	char str[MAX_STRING*16]={0},*p=NULL;
-
-	tt=time(NULL);t=localtime(&tt);
+	gettimeofday(&tv,NULL);
+	t=localtime(&tv.tv_sec);
 	strftime(str,20,"%d %b %y %H:%M:%S",t);
-
+#ifdef NEED_DEBUG
+	if(facilities_levels['T']>=1)
+	snprintf(str+18,MAX_STRING*16-24,".%03u %s[%ld]: ",(unsigned)(tv.tv_usec/1000),SS(log_tty),(long)getpid());
+	else
+#endif
 	snprintf(str+18,MAX_STRING*16-18," %s[%ld]: ",SS(log_tty),(long)getpid());
 	p=str+strlen(str);
 	if(prefix&&*prefix) {
