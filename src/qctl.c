@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.3 2000/10/12 19:43:52 lev Exp $
+ * $Id: qctl.c,v 1.4 2000/10/17 16:49:07 lev Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -29,9 +29,9 @@ void usage(char *ex)
  		   "-q           stop daemon\n"
  		   "-Q           force queue rescan\n"
  		   "-R           reread config\n"
-		   "-K           kill outbound of <node>\n"
+		   "-K           kill outbound of <node> [<node2> <nodeN>]\n"
 		   "-f           query info about <node>\n"
-		   "-p           poll <node>\n"
+		   "-p           poll <node1> [<node2> <nodeN>]\n"
 		   "-r           freq from <node> files <files>\n"
 		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
 		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
@@ -196,8 +196,10 @@ int main(int argc, char *argv[])
 		return getnodeinfo();
 	case QR_KILL:
 	case QR_POLL:
-		strcpy(buf+9, argv[optind]);
-		msgsnd(qipc_msg, buf, strlen(argv[optind])+10, 0);
+		while(optind<argc){		
+  		    strcpy(buf+9, argv[optind]);
+		    msgsnd(qipc_msg, buf, strlen(argv[optind++])+10, 0);
+		}
 		return getanswer();
 	case QR_STS:
 		strcpy(buf+9, argv[optind]);
