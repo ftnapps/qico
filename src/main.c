@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.12 2001/01/04 18:37:09 lev Exp $
+ * $Id: main.c,v 1.4.2.13 2001/01/04 18:40:04 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -67,7 +67,6 @@ void usage(char *ex)
 		   "-k             kill attached files after transmission (for -s)\n"
 		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
 		   "               <u>ndialable, <i>mmediate, <w>ait\n"
-/* 		   "-K           kill all outbound .?lo and .?ut for <node>\n" */
 		   "\n", progname, version, ex);
 	exit(0);
 }
