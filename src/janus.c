@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.11 2001/01/08 16:06:50 lev Exp $
+ * $Id: janus.c,v 1.12 2001/02/13 21:49:20 aaz Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -17,12 +17,13 @@
 #include "defs.h"
 #include "qipc.h"
 #include "janus.h"
+#include "byteop.h"
 
 /* #define J_DEBUG */
 
 long   brain_dead;       /* Time at which to give up on other computer     */
 slist_t *reqs=NULL;
-int caps=0;
+unsigned int caps=0;
 
 void preparereqs(flist_t *l);
 
@@ -129,13 +130,14 @@ int janus()
 		/*-----------------------------------------------------------------------*/
 		switch (txstate) {
 		case XSENDBLK:
-			*((long *)txbuf) = lasttx = txpos;
-			blklen = fread(txbuf+sizeof(txpos),  1, txblklen, txfd);
+			lasttx = txpos;
+			STORE32(txbuf,lasttx);
+			blklen = fread(txbuf+4,  1, txblklen, txfd);
 			if(blklen<1) {
 				write_log("read error on %s", sendf.fname);
 				goto giveup;
 			}
-			sendpkt(txbuf, sizeof(txpos)+blklen, BLKPKT);
+			sendpkt(txbuf, 4+blklen, BLKPKT);
 			txpos += blklen;
 			sendf.foff=txpos;
 			check_cps();
@@ -185,26 +187,27 @@ int janus()
 			case BADPKT:
 			case BLKPKT:
 				if (rxstate == RRCVBLK) {
-					if (pkttype == BADPKT || *((long *)rxbuf) != rxpos) {
+					unsigned int ln = FETCH32(rxbuf);
+					if (pkttype == BADPKT || ln != rxpos) {
 						if (pkttype == BLKPKT) {
-							if (*((long *)rxbuf) < last_blkpos) rpos_count = 0;
-							last_blkpos = *((long *)rxbuf);
+							if (ln < last_blkpos) rpos_count = 0;
+							last_blkpos = ln;
 						}
 						if (t_exp(rpos_retry))  {
 							if (rpos_count > 5) rpos_count = 0;
 							if (++rpos_count == 1) time(&rpos_sttime);
 							sline("Bad packet at %ld", rxpos);
-							*((long *)rxbuf) = rxpos;
-							*((long *)(rxbuf+sizeof(rxpos))) = rpos_sttime;
-							sendpkt(rxbuf, sizeof(rxpos)+sizeof(rpos_sttime), RPOSPKT);
+							STORE32(rxbuf, rxpos);
+							STORE32(rxbuf+4, rpos_sttime);
+							sendpkt(rxbuf, 8, RPOSPKT);
 							rpos_retry=t_set(timeout/2);
 						}
 					} else {
 						brain_dead=t_set(120);
 						last_blkpos = rxpos;
 						rpos_retry = rpos_count = 0;
-						if(fwrite(rxbuf+sizeof(rxpos),
-								  rxblklen -= sizeof(rxpos), 1, rxfd)<0) {
+						if(fwrite(rxbuf+4,
+								  rxblklen -= 4, 1, rxfd)<0) {
 							write_log("write error on %s", recvf.fname);
 							goto giveup;
 						}
@@ -271,9 +274,9 @@ int janus()
 						recvf.cps=1;
 					}
 				}
-				*((int *)txbuf)=rxpos;
-				*((int *)txbuf + 1)=caps;
-				sendpkt((byte *)txbuf,sizeof(rxpos)+1,FNACKPKT);
+				STORE32(txbuf, rxpos);
+				txbuf[4]=caps&0xff;
+				sendpkt((byte *)txbuf,5,FNACKPKT);
 				if (!(txstate || rxstate)) goto breakout;
 				break;
 
@@ -283,9 +286,9 @@ int janus()
 			case FNACKPKT:
 				if (txstate == XRCVFNACK) {
 					xmit_retry = 0L;
-					caps=(rxblklen>=5)?*((char*)rxbuf+sizeof(int)):0;
+					caps=(rxblklen>=5)?rxbuf[4]:0;
 					if(txfd) {
-						if ((txpos = *((long *)rxbuf)) > -1L) {
+						if ((txpos = FETCH32(rxbuf)) > -1L) {
 							sendf.soff=txpos;
 							if(fseek(txfd, txstart = txpos,
 									 SEEK_SET)<0) {
@@ -378,11 +381,11 @@ int janus()
 				/*-------------------------------------------------------------------*/
 			case RPOSPKT:
 				if (txstate == XSENDBLK || txstate == XRCVEOFACK) {
-					if (*((long *)(rxbuf+sizeof(txpos))) != last_rpostime) {
-						last_rpostime = *((long *)(rxbuf+sizeof(txpos)));
+					if (FETCH32(rxbuf+4) != last_rpostime) {
+						last_rpostime = FETCH32(rxbuf+4);
 						xmit_retry = 0L;
 						if(fseek(txfd,
-								 txpos = lasttx = *((long*)rxbuf),
+								 txpos = lasttx = FETCH32(rxbuf),
 								 SEEK_SET)<0) {
 							write_log("seek error on %s", sendf.fname);
 							goto giveup;

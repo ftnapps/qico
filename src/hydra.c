@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.10 2000/12/26 12:18:12 lev Exp $
+ * $Id: hydra.c,v 1.11 2001/02/13 21:49:20 aaz Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -18,6 +18,8 @@
 #include "qipc.h"
 #include "hydra.h"
 
+#define SLONG 4 //sizeof(long)
+#define SWORD 2 //sizeof(long)
 
 #ifdef H_DEBUG
 #define sline write_log
@@ -75,8 +77,8 @@ int hydra_modifier;
 #define h_uuenc(c)         (((c) & 0x3f) + '!')
 #define h_uudec(c)         (((c) - '!') & 0x3f)
 #define h_long1(buf)       (*((long *) (buf)))
-#define h_long2(buf)       (*((long *) ((buf) + ((int) sizeof (long)))))
-#define h_long3(buf)       (*((long *) ((buf) + (2 * ((int) sizeof (long))))))
+#define h_long2(buf)       (*((long *) ((buf) + ((int) SLONG))))
+#define h_long3(buf)       (*((long *) ((buf) + (2 * ((int) SLONG)))))
 typedef long               h_timer;
 #define h_timer_set(t)     (time(NULL) + (t))
 #define h_timer_running(t) (t != 0L)
@@ -217,8 +219,8 @@ static void hydra_devrecv (void)
 	register int   i;
 	word len = rxpktlen;
 
-	p += (int) sizeof (long);                       /* skip the id long  */
-	len -= (int) sizeof (long);
+	p += (int) SLONG;                       /* skip the id long  */
+	len -= (int) SLONG;
 	for (i = 0; h_dev[i].dev; i++) {                /* walk through devs */
 		if (!strncmp(p,h_dev[i].dev,H_FLAGLEN)) {
 			if (h_dev[i].func) {
@@ -558,7 +560,7 @@ static int rxpkt (void)
 						break;
 					}
 					n = h_crc32test(crc32block(rxbuf,rxpktlen));
-					rxpktlen -= (int) sizeof (long);  /* remove CRC-32 */
+					rxpktlen -= (int) SLONG;  /* remove CRC-32 */
 				}
 				else {
 					if (rxpktlen < 3) {
@@ -566,7 +568,7 @@ static int rxpkt (void)
 						break;
 					}
 					n = h_crc16test(crc16block(rxbuf,rxpktlen));
-					rxpktlen -= (int) sizeof (word);  /* remove CRC-16 */
+					rxpktlen -= (int) SWORD;  /* remove CRC-16 */
 				}
 
 				rxpktlen--;                     /* remove type  */
@@ -754,11 +756,11 @@ int hydra_file(char *txpathname, char *txalias)
 		case HTD_DATA:
 			if (txstate > HTX_RINIT) {
 				h_long1(txbufin) = intell(devtxid);
-				p = ((char *) txbufin) + ((int) sizeof(long));
+				p = ((char *) txbufin) + ((int) SLONG);
 				strcpy(p,devtxdev);
 				p += H_FLAGLEN + 1;
 				memcpy(p,devtxbuf,devtxlen);
-				txpkt(((int) sizeof (long)) + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
+				txpkt(((int) SLONG) + H_FLAGLEN + 1 + devtxlen,HPKT_DEVDATA);
 				devtxtimer = h_timer_set(timeout);
 				devtxstate = HTD_DACK;
 			}
@@ -835,7 +837,7 @@ int hydra_file(char *txpathname, char *txalias)
 				i = -1;                                    /* Skip */
 			else {
 				h_long1(txbufin) = intell(txpos);
-				if ((i = fread(txbufin + ((int) sizeof (long)),1,txblklen,txfd)) < 0) {
+				if ((i = fread(txbufin + ((int) SLONG),1,txblklen,txfd)) < 0) {
 					sline("hydra: file read error");
 					txclose(&txfd, FOP_ERROR);
 					txpos = H_SUSPEND;                            /* Skip */
@@ -845,7 +847,7 @@ int hydra_file(char *txpathname, char *txalias)
 			if (i > 0) {
 				txpos += i;
 			
-				txpkt(((int) sizeof (long)) + i, HPKT_DATA);
+				txpkt(((int) SLONG) + i, HPKT_DATA);
 
 				if (txblklen < txmaxblklen &&
 					(txgoodbytes += i) >= txgoodneeded) {
@@ -873,7 +875,7 @@ int hydra_file(char *txpathname, char *txalias)
 			/*---------------------------------------------------------*/
 		case HTX_EOF:
 			h_long1(txbufin) = intell(txpos);
-			txpkt((int) sizeof (long),HPKT_EOF);
+			txpkt((int) SLONG,HPKT_EOF);
 			txtimer = h_timer_set(txretries ? timeout / 2 : timeout);
 			txstate = HTX_EOFACK;
 			break;
@@ -1091,7 +1093,7 @@ int hydra_file(char *txpathname, char *txalias)
 					rxpos = (!rxbuf[0]) ? 0L : H_SUSPEND;
 
 				h_long1(txbufin) = intell(rxpos);
-				txpkt((int) sizeof (long),HPKT_FINFOACK);
+				txpkt((int) SLONG,HPKT_FINFOACK);
 				break;
 
 				/*---------------------------------------------------*/
@@ -1190,13 +1192,13 @@ int hydra_file(char *txpathname, char *txalias)
 							h_long1(txbufin) = intell(rxpos);
 							h_long2(txbufin) = intell((long) i);
 							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) sizeof(long)),HPKT_RPOS);
+							txpkt(3 * ((int) SLONG),HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 						}
 					}
 					else { char tmp[255];
 						braindead = h_timer_set(H_BRAINDEAD);
-						rxpktlen -= (int) sizeof (long);
+						rxpktlen -= (int) SLONG;
 						rxblklen = rxpktlen;
 						sprintf(tmp, "%s/tmp/%s", ccs, recvf.fname);
 						if (stat(tmp, &statf) && errno == ENOENT)
@@ -1210,7 +1212,7 @@ int hydra_file(char *txpathname, char *txalias)
 						 rxtimer = h_timer_set(timeout);
 						 break;
 						}
-						if (fwrite(rxbuf + ((int) sizeof (long)),rxpktlen,1,rxfd) != 1) {
+						if (fwrite(rxbuf + ((int) SLONG),rxpktlen,1,rxfd) != 1) {
 							sline("HR: file write error");
 							rxclose(&rxfd, FOP_ERROR);
 							rxpos = H_SUSPEND;
@@ -1219,7 +1221,7 @@ int hydra_file(char *txpathname, char *txalias)
 							h_long1(txbufin) = intell(rxpos);
 							h_long2(txbufin) = intell(0L);
 							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) sizeof(long)),HPKT_RPOS);
+							txpkt(3 * ((int) SLONG),HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 							if (errno==ENOSPC) return XFER_ABORT;
 							break;
@@ -1230,7 +1232,7 @@ int hydra_file(char *txpathname, char *txalias)
  						rxpos += rxpktlen; 
 						if (rxwindow) {
 							h_long1(txbufin) = intell(rxpos);
-							txpkt((int) sizeof(long),HPKT_DATAACK);
+							txpkt((int) SLONG,HPKT_DATAACK);
 						}
 						if (!rxstart)
 							rxstart = time(NULL) -
@@ -1373,7 +1375,7 @@ int hydra_file(char *txpathname, char *txalias)
 							h_long1(txbufin) = intell(rxpos);
 							h_long2(txbufin) = intell((long) i);
 							h_long3(txbufin) = intell(rxsyncid);
-							txpkt(3 * ((int) sizeof(long)),HPKT_RPOS);
+							txpkt(3 * ((int) SLONG),HPKT_RPOS);
 							rxtimer = h_timer_set(timeout);
 						}
 					}
@@ -1438,7 +1440,7 @@ int hydra_file(char *txpathname, char *txalias)
 					devrxid = intell(h_long1(rxbuf));
 				}
 				h_long1(txbufin) = intell(devrxid);
-				txpkt((int) sizeof (long),HPKT_DEVDACK);
+				txpkt((int) SLONG,HPKT_DEVDACK);
 				break;
 
 				/*---------------------------------------------------*/
