@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.15 2001/04/03 20:27:21 lev Exp $
+# $Id: Makefile.in,v 1.16 2001/05/21 20:01:10 lev Exp $
 #
 
 prefix  = @prefix@
@@ -16,8 +16,6 @@ YACC    = @YACC@
 QCC     = @QCC@
 
 LIBOBJS= @LIBOBJS@
-
-#DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 DEFS    += -DQIPC_KEY=\"$(SBINDIR)/qico\" -I. -I..
 

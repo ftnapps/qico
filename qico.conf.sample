@@ -46,13 +46,14 @@
 #                              ex.: cid 12345          
 # + speed <comp> <value>     - remote's speed is <comp> <value> 
 #                              ex.: speed <= 9600
+#                              NB! Speed is taken from nodelist!
 # + connect <comp> <value>   - similar to 'speed', but means real connection
 #                              speed
 # + line <num>               - we call on <num>th hidden (for incoming calls 
-#                              and one-line nodes is always 0)    
+#                              and one-line nodes is always 0)
 # + time <time>[,<time>...]  - current time matches one of <time>s
-#                              <time> is [d.]hh[:mm]-[d.]hh[:mm], 
-#                              ex.: 'time 1.00:01-08:00, 5.21-7'  
+#                              <time> is [d.]hh[:mm]-[d.]hh[:mm],
+#                              ex.: 'time 1.00:01-08:00, 5.21-7'
 # + itime <time>[,<time>...] - current time matching one of <time>s
 #                              <time> is <pfx>hhmm-hhmm, where <pfx> is
 #                              Any, Wk, Mon, Tue, Wed, Thu, Fri, Sat, Sun
@@ -130,9 +131,10 @@ log		/var/log/ftn/qico.log
 #  J -- Janus
 #  Q -- Queue managment
 #  S -- Session
+#  Y -- Config `if' expressions parsing and executing
 #  Z -- ZModem
 #
-#loglevels E0,H0,J0,Q0,S0,Z0
+#loglevels E0,H0,J0,Q0,S0,Y0,Z0
 
 # Write to log estimated transfer time befor each file transfer
 estimatedtime no
@@ -488,4 +490,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.17 2001/04/13 16:40:41 lev Exp $
+# $Id: qico.conf.sample,v 1.18 2001/05/21 20:01:09 lev Exp $
