@@ -427,6 +427,10 @@ protorder	HJDZ1C
 # P - Disable plain authentication
 binkpopt	MRBC
 
+# HTTPS proxy.							       (NEW!!!)
+# format: proxy host[:port] [login [password]]
+;proxy		proxy.foobar.com:3128 mylogin mycoolpwd
+
 # Ignore NRQ flag in EMSI. .req file sending force, if enabled and     (NEW!!!)
 # file request present
 ;ignorenrq	no
@@ -673,5 +677,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.13 2003/10/08 10:07:50 sisoft Exp $
+# $Id: qico.conf.sample,v 1.14 2003/10/08 16:45:11 sisoft Exp $
 ###############################################################################
