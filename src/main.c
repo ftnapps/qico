@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.5 2000/10/24 09:37:46 lev Exp $
+ * $Id: main.c,v 1.4.2.6 2000/11/08 20:55:29 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -40,33 +40,33 @@ void usage(char *ex)
 {
 	printf("%s-%s copyright (c) pavel kurnosoff, 1999 // 2:5030/1061@fidonet\n"
 		   "usage: %s [<options>] [<node>] [<files>]\n"
- 		   "<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n" 
-		   "-h           this help screen\n"
-		   "-v           be verbose\n"
-		   "-I<config>   override default config\n\n"  
-		   "-d           start in daemon (originate) mode\n"
- 		   "-a<type>     start in answer mode with <type> session, type can be:\n"
-		   "                       auto - autodetect\n"
-		   "             **EMSI_INQC816 - EMSI session without init phase\n"
-		   "                      tsync - FTS-0001 session (unsuppported)\n"
-		   "                     yoohoo - YOOHOO session (unsuppported)\n"
-		   "                      binkp - BinkP session (unsuppported)\n"
- 		   "-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
- 		   "-q           kill existing daemon\n"
- 		   "-R           reread config\n"
-		   "-n           compile nodelists\n"
-		   "-f           query info about <node>\n"
-		   "-p           poll <node>\n"
+ 		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
+		   "-h             this help screen\n"
+		   "-v             be verbose\n"
+		   "-I<config>     override default config\n\n"  
+		   "-d             start in daemon (originate) mode\n"
+ 		   "-a<type>       start in answer mode with <type> session, type can be:\n"
+		   "                         auto - autodetect\n"
+		   "               **EMSI_INQC816 - EMSI session without init phase\n"
+		   "                        tsync - FTS-0001 session (unsuppported)\n"
+		   "                       yoohoo - YOOHOO session (unsuppported)\n"
+		   "                        binkp - BinkP session (unsuppported)\n"
+ 		   "-i<host>       start TCP/IP connection to <host> (node must be specified!)\n"
+ 		   "-q             kill existing daemon\n"
+ 		   "-R             reread config\n"
+		   "-n             compile nodelists\n"
+		   "-f             query info about <node>\n"
+		   "-p             poll <node>\n"
 		   "-c[N|IA]       force call to <node>\n"
-		   "             N - normal call\n"
-		   "             I - call <i>mmidiatly (don't check node worktime)\n"
-		   "             A - call on <a>ny free port (don't check cancall setting)\n"
-		   "-r           freq from <node> files <files>\n"
-		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
-		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
-		   "-k           kill attached files after transmission (for -s)\n"
-		   "-x[UuWwIi]   set[UWI]/reset[uwi] <node> state(s)\n"
-		   "             <u>ndialable, <i>mmediate, <w>ait\n"
+		   "               N - normal call\n"
+		   "               I - call <i>mmidiatly (don't check node worktime)\n"
+		   "               A - call on <a>ny free port (don't check cancall setting)\n"
+		   "-r             freq from <node> files <files>\n"
+		   "-s[n|c|d|h|i]  attach files <files> to <node> with specified flavor\n"
+		   "               flavors: <n>ormal, <c>rash, <d>irect, <h>old, <i>mm\n"
+		   "-k             kill attached files after transmission (for -s)\n"
+		   "-x[UuWwIi]     set[UWI]/reset[uwi] <node> state(s)\n"
+		   "               <u>ndialable, <i>mmediate, <w>ait\n"
 /* 		   "-K           kill all outbound .?lo and .?ut for <node>\n" */
 		   "\n", progname, version, ex);
 	exit(0);
@@ -530,6 +530,7 @@ int main(int argc, char *argv[], char *envp[])
 			case 'C': flv=F_CRSH;break;
 			case 'D': flv=F_DIR;break;
 			case 'H': flv=F_HOLD;break;
+			case 'I': flv=F_IMM;break;
 			default: log("unknown flavour: %c", *optarg);exit(0);
 			}
 			break;
