@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: ftn.c,v 1.2 2000/07/18 12:50:33 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -516,6 +516,16 @@ int whattype(char *fn)
 			}
 	return IS_FILE;
 }                                           
+
+int istic(char *fn)
+{
+	char *p;
+	if(!fn) return 0;
+	p=strrchr(fn,'.');
+	if(!p) return 0;
+	if(!strncasecmp(p+1,"tic",3)) return 1;
+	else return 0;
+}
 		
 int lunlink(char *s)
 {
@@ -528,16 +538,74 @@ int lunlink(char *s)
 char *mapname(char *fn, char *map)
 {
 	char *l;
+	int t;
 	if(!map) return fn;
 	if(strchr(map, 'd')) {
 		l=strrchr(fn, '.');if(l) {
 			strtr(fn,'.','_');*l='.';
 		}
 	}
-	if(strchr(map, 'b') && whattype(fn)!=IS_FILE) 
+	t=whattype(fn);
+	if(strchr(map, 'b') && t!=IS_FILE) 
 		sprintf(fn, "%08lx%s", crc32s(fn), strrchr(fn,'.'));
 	if(strchr(map, 'u')) strupr(fn);
 	if(strchr(map, 'l')) strlwr(fn);
 	if(strchr(map, 'f')) strcpy(fn, fnc(fn));
+
+	switch(t) {
+	case IS_PKT:
+		if(strchr(map,'p')) strlwr(fn);
+		else if(strchr(map,'P')) strupr(fn);
+		break;
+	case IS_ARC:
+		if(strchr(map,'a')) strlwr(fn);
+		else if(strchr(map,'A')) strupr(fn);
+		break;
+	case IS_FILE:
+		if(istic(fn)) {
+			if(strchr(map,'t')) strlwr(fn);
+			else if(strchr(map,'T')) strupr(fn);
+		} else if(isdos83name(fn))
+					if(strchr(map,'o')) strlwr(fn);
+					else if(strchr(map,'O')) strupr(fn);
+		break;
+	default:
+		break;
+	}
+
 	return fn;
 }	
+
+int dosallowin83(int c)
+{
+	static char dos_allow[] = "!@#$%^&()~`'-_{}.";
+	
+	if((c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		(c >= '0' && c <= '9') ||
+		strchr(dos_allow,c)) return 1;
+	return 0;
+}
+
+int isdos83name(char *fn)
+{
+	int nl,el,ec,uc,lc,f;
+	char *p = fn;
+    nl=el=ec=uc=lc=0;
+    f=1;
+    while(*p) {
+    	if(!dosallowin83(*p)) {
+    		f=0;
+    		break;
+    	}
+    	if('.'==*p) ec++;
+    	else {
+			if(!ec) nl++; else el++;
+			if(isalpha(*p))
+				if(isupper(*p)) uc++;
+				else lc++;
+		}
+    	p++;
+    }
+    return (f && ec < 2 && el < 4 && nl < 9 && (!lc || !uc));
+}

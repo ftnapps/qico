@@ -1,6 +1,6 @@
 #############################################################################
 
-VERSION = 0.45pl3.1
+VERSION = 0.45pl3.1ls1
 
 # install directory
 BINDIR  = /usr/local/bin
@@ -67,5 +67,5 @@ YACC    = yacc
 #LIBS=-lutil
 
 #
-# $Id: CONFIG,v 1.1 2000/07/18 12:37:16 lev Exp $
+# $Id: CONFIG,v 1.2 2000/07/18 12:50:32 lev Exp $
 #

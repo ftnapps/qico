@@ -2,7 +2,7 @@
  * File: flaglex.l
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flaglex.l,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: flaglex.l,v 1.2 2000/07/18 12:50:33 lev Exp $
  **********************************************************/
 %{
 
@@ -78,6 +78,7 @@ Sep             [Se][Ee][Pp]
 Oct             [Oo][Cc][Tt]
 Nov             [Nn][Oo][Vv]
 Dec             [Dd][Ee][Cc]
+File			[Ff][Ii][Ll][Ee]
 Eq		=(=)?
 Ne		!=
 Gt		\>
@@ -101,6 +102,7 @@ Decimal		[1-9][0-9]*
 Numeric		[0-9][0-9]*
 Phstr		[0-9-]*-[0-9-]*
 Ident		[A-Za-z][A-Za-z0-9]*
+Pathstr		\/([^\/]+\/)*[^\/]+
 Timestr		{Dow}({iHour}{Minute}\-{iHour}{Minute})?
 Hour        (([0-1]?[0-9])|(2[0-3]))
 Gapstr      (([0-7].)?{Hour}:{Minute}\-{Hour}:{Minute}|(([0-7].)?{Hour}\-{Hour})|([0-7].{Hour}:{Minute}\-[0-7].{Hour}:{Minute})|([0-7].{Hour}\-[0-7].{Hour})|CM|T[a-xA-X][a-xA-X])
@@ -129,6 +131,8 @@ Datestr         {Month}({Day}-{Day})?
 {Asterisk}	{yylval=ASTERISK;return(ASTERISK);}
 {Connect}	{yylval=CONNECT;return(CONNECT);}
 {Speed}		{yylval=SPEED;return(SPEED);}
+{File}		{yylval=FLFILE;return(FLFILE);}
+{Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
 {Phone}		{yylval=PHONE;return(PHONE);}
 {Cid}		{yylval=CID;return(CID);}
 {Port}		{yylval=PORT;return(PORT);}

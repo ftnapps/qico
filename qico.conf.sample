@@ -69,6 +69,7 @@
 #                                - 'tcp[ip]' - identifies tcp/ip session
 #                                - nodelist flag 
 #                              ex. 'in & (!listed | !V34)'
+# + file <full-path>         - file <full-path> present
 ### TODO: #####################################################################
 # + host <host_mask>         - where <host_mask> is remote's host or 
 #                              ip-address mask
@@ -308,6 +309,16 @@ freqsubj       	File Request Report
 #   u - convert to upper case
 #   l - convert to lower case
 #   f - convert to 8.3 form (forced if we got FNC emsi flag)
+### By Lev Serebryakov, lev@serebryakov.spb.ru
+#   P - convert packets' names (*.PKT) to upper case
+#   p - convert packets' names (*.PKT) to lower case
+#   A - convert bundles' names (echomail, packed netmail) to upper case
+#   a - convert bundles' names (echomail, packed netmail) to lower case
+#   T - convert TICs' names (*.TIC) to upper case
+#   t - convert TICs' names (*.TIC) to lower case
+#   O - convert other DOS-like names to upper case
+#   o - convert other DOS-like names to lower case
+#       DOS-like name is 8.3 name with single (upper or lower) case.
 mapout 		bS
 
 # incoming files' names conversion (b,d,u,l,f can be used)
@@ -368,4 +379,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.1 2000/07/18 12:37:17 lev Exp $
+# $Id: qico.conf.sample,v 1.2 2000/07/18 12:50:33 lev Exp $

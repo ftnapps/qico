@@ -2,7 +2,7 @@
  * File: execsh.c
  * Created at Sun Nov 21 12:05:23 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from by Eugene Crosser's ifcico 
- * $Id: execsh.c,v 1.1 2000/07/18 12:37:18 lev Exp $
+ * $Id: execsh.c,v 1.2 2000/07/18 12:50:33 lev Exp $
  ******************************************************************/
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -60,7 +60,7 @@ int execnowait(char *cmd,char *p1,char *p2,char *p3)
 			log("reopening of stderr failed");exit(-1);
 		}
 		setsid();
-		rc=execl(cmd,p1,p2,p3,NULL);
+		rc=execl(cmd,cmd,p1,p2,p3,NULL);
 		if(rc<0) log("can't exec %s: %s", cmd, strerror(errno));
 	}
 	return 0;

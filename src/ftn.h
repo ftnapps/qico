@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: ftn.h,v 1.2 2000/07/18 12:50:33 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -309,6 +309,7 @@ extern char *fnc(char *s);
 extern int whattype(char *fn);
 extern int lunlink(char *s);
 extern char *mapname(char *fn, char *map);
+extern int isdos83name(char *fn);
 
 /* crc.c */
 extern unsigned long crc32tab[];

@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile,v 1.1 2000/07/18 12:37:18 lev Exp $
+# $Id: Makefile,v 1.2 2000/07/18 12:50:33 lev Exp $
 #
 include	../CONFIG
 
@@ -14,7 +14,7 @@ STRIP=0
 #DEFS   += -DY_DEBUG #-DYYERROR_VERBOSE=1 -DYYDEBUG=100
 
 DEFS    += -DSHELL=\"$(SHELL)\" -DCONFIG=\"$(CONF)\"
-CFLAGS	= $(DEFS) -Wall -m486 -O2 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1
+CFLAGS	= $(DEFS) -Wall -m486 -O2 -D_GNU_SOURCE=1 -D_BSD_SOURCE=1 -I/usr/local/include
 ifeq (1,$(STRIP))
 IFLAGS  = -s
 else

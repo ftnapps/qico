@@ -2,15 +2,17 @@
  * File: flagexp.y
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from Eugene Crosser's ifcico 
- * $Id: flagexp.y,v 1.1 2000/07/18 12:37:19 lev Exp $
+ * $Id: flagexp.y,v 1.2 2000/07/18 12:50:33 lev Exp $
  **********************************************************/
-%token DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID
+%token DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT SPEED CONNECT PHONE TIME ADDRESS DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK AROP LOGOP PORT CID FLFILE PATHSTR
 %{
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <fnmatch.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "ftn.h"
 #include "mailer.h"	
 #include "qcconst.h"
@@ -59,6 +61,8 @@ elemexp		: flag
 			{$$ = checkport();}
 		| PHONE NUMBER
 			{$$ = checkphone();}
+		| FLFILE PATHSTR
+			{$$ = checkfile();}
 		| ITIME timestring
 			{$$ = $2;}
 		| TIME gapstring
@@ -171,6 +175,18 @@ static int checkport(void)
 		return 1;
 	else return 0;
 }
+
+static int checkfile(void)
+{
+	struct stat sb;
+#ifdef Y_DEBUG
+	log("checkfile: \"%s\"",yytext);
+#endif
+	if(!stat(yytext,&sb))
+		return 1;
+	else return 0;
+}
+
 
 int yyparse();
  
