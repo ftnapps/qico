@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.8 2004/01/21 15:40:41 sisoft Exp $
+ * $Id: daemon.c,v 1.9 2004/01/23 12:44:09 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_FNOTIFY
@@ -130,14 +130,15 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	cls_cl_t *uis;
 	cls_ln_t *lins;
 	if(!mode) {
-		if(buf[2]==QC_EMSID) {
+		if(buf[2]==QC_EMSID||buf[2]==QC_LIDLE) {
 			for(lins=ln;lins&&lins->id!=FETCH16(buf);lins=lins->next);
 			if(lins) {
-				if(rc>4)lins->emsi=xrealloc(lins->emsi,rc);
+				if(rc>4&&buf[2]==QC_EMSID)lins->emsi=xrealloc(lins->emsi,rc);
 				    else xfree(lins->emsi);
+				DEBUG(('I',4,"got emsi (%d)",lins->emsi?rc:0));
 				if(lins->emsi)memcpy(lins->emsi,buf,rc);
 				lins->emsilen=rc;
-			} else DEBUG(('I',1,"got EMSI from unknown line %d",FETCH16(buf)));
+			} else DEBUG(('I',1,"got emsi from unknown line %d",FETCH16(buf)));
 		}
 		if(rc>2)daemon_xsend(chld,buf,rc);
 		return;
@@ -156,7 +157,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 			return;
 		}
 		uis->type=buf[3];
-		sendrpkt(0,chld,"ok");
+		sendrpkt(0,chld,"");
 		if(uis->type=='e') {
 			tosend=chld;
 			qpmydata();
@@ -190,7 +191,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	}
 	switch(buf[2]) {
 	    case QR_QUIT:
-		DEBUG(('I',2,"client %d: request quit (type='%c')",uis->id,uis->type));
+		DEBUG(('I',2,"client %d: request quit",uis->id));
 		if(uis->type!='c') {
 			sendrpkt(1,chld,"wrong client type, ignored");
 			break;
@@ -492,7 +493,7 @@ void daemon_mode()
 	int t_rescan=0,rc=1,dable;
 	int f,w,hld,mailonly,rescanperiod;
 	char *port=NULL,buf[MSG_BUFFER];
-	static short curr_id=3;
+	static short curr_id=1;
 	sts_t sts;
 	pid_t chld;
 	qitem_t *current=q_queue,*i;
@@ -897,7 +898,7 @@ nlkil:				is_ip=0;bink=0;
 							uis=uis->next;
 							if(uit)uit->next=uis;
 							if(uitt==cl)cl=uis;
-							if(!cl)curr_id=3;
+							if(!cl)curr_id=1;
 							xfree(uitt);
 							continue;
 						}
@@ -916,7 +917,7 @@ nlkil:				is_ip=0;bink=0;
 						DEBUG(('I',1,"client %d: accept err: %s",uit->id,strerror(errno)));
 						xfree(uit);
 					} else {
-						if(curr_id<3)curr_id=33;
+						if(curr_id<1)curr_id=33;
 						uit->next=NULL;
 						uit->id=curr_id++;
 						uit->type='u';

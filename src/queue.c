@@ -1,6 +1,6 @@
 /**********************************************************
  * Queue operations 
- * $Id: queue.c,v 1.7 2003/09/16 10:05:55 sisoft Exp $
+ * $Id: queue.c,v 1.8 2004/01/23 12:44:37 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -41,6 +41,7 @@ void q_recountflo(char *name,off_t *size,time_t *mtime,int rslow)
 	char s[MAX_STRING],*p;
 	off_t total=0;
 
+	DEBUG(('Q',4,"scan lo '%s'",name));
 	if(!stat(name,&sb)) {
 		if(sb.st_mtime!=*mtime||rslow) {
 			*mtime=sb.st_mtime;
@@ -103,6 +104,7 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 	
 	if(!stat(name,&sb)&&((sb.st_mode&S_IFMT)==S_IFDIR||(sb.st_mode&S_IFMT)==S_IFLNK)) {
 		if(sb.st_mtime!=*mtime||rslow) {
+			DEBUG(('Q',4,"scan box '%s'",name));
 			*mtime=sb.st_mtime;
 			d=opendir(name);
 			if(d) {
@@ -110,7 +112,10 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 					len=strlen(name)+2+strlen(de->d_name);
 					p=xmalloc(len);
 					snprintf(p,len,"%s/%s",name,de->d_name);
-					if(!stat(p,&sb)&&S_ISREG(sb.st_mode))total+=sb.st_size;
+					if(!stat(p,&sb)&&S_ISREG(sb.st_mode)) {
+						DEBUG(('Q',6,"add file '%s'",p));
+						total+=sb.st_size;
+					}
 					xfree(p);
 				}
 				closedir(d);
@@ -132,7 +137,7 @@ void rescan_boxes(int rslow)
 	ftnaddr_t a;
 	char *p,rev[27],flv;
 	int len,n;
-
+	DEBUG(('Q',3,"rescan_boxes"));
 	for(i=cfgfasl(CFG_FILEBOX);i;i=i->next) {
 		q=q_add(&i->addr);
 		q_recountbox(i->str,&q->sizes[4],&q->times[4],rslow);
@@ -147,6 +152,7 @@ void rescan_boxes(int rslow)
 		if((d=opendir(ccs))!=0) {
 			while((de=readdir(d))) {
 				n=sscanf(de->d_name,"%hd.%hd.%hd.%hd.%c",&a.z,&a.n,&a.f,&a.p,&flv);
+				if(n)DEBUG(('Q',4,"found box '%s', parse: %d:%d/%d.%d (%c) rc=%d",de->d_name,a.z,a.n,a.f,a.p,C0(flv),n));
 				if(n==4||n==5) {
 					if(n==4)snprintf(rev,27,"%hd.%hd.%hd.%hd",a.z,a.n,a.f,a.p);
 					    else snprintf(rev,27,"%hd.%hd.%hd.%hd.%c",a.z,a.n,a.f,a.p,flv);
@@ -185,6 +191,7 @@ int q_rescan(qitem_t **curr,int rslow)
 	sts_t sts;
 	qitem_t *q,**p;
 
+	DEBUG(('Q',3,"q_rescan %d",rslow));
 	for(q=q_queue;q;q=q->next) {
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}
@@ -216,6 +223,7 @@ int q_rescan(qitem_t **curr,int rslow)
 		}
 	}
 	if(!*curr)*curr=q_queue;
+	DEBUG(('Q',4,"rescan done"));
 	return 1;
 }
 
