@@ -2,7 +2,7 @@
  * File: ftn.c
  * Created at Thu Jul 15 16:11:27 1999 by pk // aaz@ruxy.org.ru
  * ftn tools
- * $Id: ftn.c,v 1.9.2.3 2000/12/17 11:10:56 lev Exp $
+ * $Id: ftn.c,v 1.9.2.4 2001/03/30 18:42:47 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -579,20 +579,33 @@ char *mapname(char *fn, char *map)
 
 	switch(t) {
 	case IS_PKT:
-		if(strchr(map,'p')) strlwr(fn);
-		else if(strchr(map,'P')) strupr(fn);
+		if(strchr(map,'p')) {
+			strlwr(fn);
+		} else if(strchr(map,'P')) {
+			strupr(fn);
+		}	
 		break;
 	case IS_ARC:
-		if(strchr(map,'a')) strlwr(fn);
-		else if(strchr(map,'A')) strupr(fn);
+		if(strchr(map,'a')) {
+			strlwr(fn);
+		} else if(strchr(map,'A')) {
+			strupr(fn);
+		}
 		break;
 	case IS_FILE:
 		if(istic(fn)) {
-			if(strchr(map,'t')) strlwr(fn);
-			else if(strchr(map,'T')) strupr(fn);
-		} else if(isdos83name(fn))
-					if(strchr(map,'o')) strlwr(fn);
-					else if(strchr(map,'O')) strupr(fn);
+			if(strchr(map,'t')) {
+				strlwr(fn);
+			} else if(strchr(map,'T')) {
+				strupr(fn);
+			}	
+		} else if(isdos83name(fn)) {
+			if(strchr(map,'o')) {
+				strlwr(fn);
+			} else if(strchr(map,'O')) {
+				strupr(fn);
+			}
+		}
 		break;
 	default:
 		break;
@@ -615,9 +628,10 @@ int isdos83name(char *fn)
     	if('.'==*p) ec++;
     	else {
 			if(!ec) nl++; else el++;
-			if(isalpha(*p))
+			if(isalpha(*p)) {
 				if(isupper(*p)) uc++;
 				else lc++;
+			}
 		}
     	p++;
     }
