@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.12 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: daemon.c,v 1.13 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -10,11 +10,17 @@
 #undef _GNU_SOURCE
 #endif
 #include "headers.h"
-#include <stdarg.h>
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #include "byteop.h"
+#include "qipc.h"
 #include "tty.h"
 #include "clserv.h"
 
@@ -26,7 +32,7 @@ static int t_dial=0,c_delay,rnum;
 static int dnot;
 #endif
 
-static void sigchild(int sig)
+static RETSIGTYPE sigchild(int sig)
 {
 	int rc,wr;
 	signal(sig,sigchild);
@@ -35,7 +41,7 @@ static void sigchild(int sig)
 	if(rc==S_OK||rc==S_REDIAL)do_rescan=1;
 }
 
-static void sighup(int sig)
+static RETSIGTYPE sighup(int sig)
 {
 	signal(sig,sighup);
 	write_log("got SIGHUP, trying to reread configs...");
@@ -53,9 +59,10 @@ static void sighup(int sig)
 }
 
 #ifdef HAVE_DNOTIFY
-static void sigrt(int sig)
+static RETSIGTYPE sigrt(int sig)
 {
 	signal(sig,sigrt);
+	if(do_rescan==2)return;
 	DEBUG(('Q',3,"got SIGRT"));
 	do_rescan=2;rnum=0;
 }
@@ -671,6 +678,7 @@ void daemon_mode()
 							fprintf(stderr,"can't init log %s!",ccs);
 							exit(S_BUSY);
 						}
+						DEBUG(('I',4,"connecting to daemon"));
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;

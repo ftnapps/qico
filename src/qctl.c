@@ -1,18 +1,40 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.9 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: qctl.c,v 1.10 2004/02/06 21:54:46 sisoft Exp $
  ***************************************************************************/
+#include <config.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_LOCALE_H
 #include <locale.h>
+#endif
 #include <stdio.h>
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <stdarg.h>
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
 #include <signal.h>
 #include <ctype.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#include <config.h>
+#endif
+#ifdef HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
 #include "qcconst.h"
 #include "ver.h"
 #include "replace.h"
@@ -51,7 +73,7 @@ void usage(char *ex)
 	exit(0);
 }
 
-void timeout(int sig)
+RETSIGTYPE timeout(int sig)
 {
 	fprintf(stderr,"got timeout\n");
 	exit(1);
@@ -168,7 +190,9 @@ int main(int argc, char *argv[])
 	int action=-1, kfs=0, len=0,lkfs;
 	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH],*port=NULL;
 	struct stat filestat;
+#ifdef HAVE_SETLOCALE
  	setlocale(LC_ALL, "");
+#endif
  	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:P:"))!=EOF) {
 		switch(c) {
 		case 'P':
@@ -333,9 +357,8 @@ int main(int argc, char *argv[])
 	case QR_QUEUE:
 		xsend(sock,buf,3);
 		return getqueueinfo();
-	default:
-		usage(argv[0]);
-		return 1;
 	}
 	cls_close(sock);
+	usage(argv[0]);
+	return 1;
 }

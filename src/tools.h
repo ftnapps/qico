@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.1 2004/02/05 19:51:17 sisoft Exp $ */
+/* $Id: tools.h,v 1.2 2004/02/06 21:54:46 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -15,8 +15,6 @@
 #define C_ADRSTRL 8
 #define C_STRL    9
 #define C_OCT     10
-
-#include "ftn.h"
 
 typedef struct _cfgitem_t {
 	char *condition;
@@ -104,7 +102,7 @@ extern void log_done(void);
 extern time_t gmtoff(time_t tt,int mode);
 /* main.c */
 extern void to_dev_null();
-extern void sigerr(int sig);
+extern RETSIGTYPE sigerr(int sig);
 extern char *configname;
 extern void stopit(int rc);
 /* daemon.c */

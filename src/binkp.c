@@ -1,14 +1,17 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.20 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: binkp.c,v 1.21 2004/02/06 21:54:46 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
-#include "defs.h"
 #include "binkp.h"
 #include "byteop.h"
+#include "defs.h"
+#include "qipc.h"
+#include "tty.h"
+#include "crc.h"
 
 extern int receivecb(char *fn);
-char *hexdigits="0123456789abcdef";
+static char *hexdigits="0123456789abcdef";
 static unsigned long key_in[3],key_out[3];
 static int opt_nr,opt_nd,opt_md,opt_cr,opt_mb,opt_cht;
 static char *mess[]={"NUL","ADR","PWD","FILE","OK","EOB","GOT",
@@ -169,7 +172,6 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	    case 't': opt_cht|=O_WANT; break;
 	    default: write_log("unknown binkp option: '%c'",*p);
 	}
-	if(opt_cht&O_WANT)chatinit(0);
 	write_log("starting %sbound BinkP session",mode?"out":"in");
 	txbuf=(byte*)xcalloc(BP_BUFFER,1);
 	rxbuf=(byte*)xcalloc(BP_BUFFER,1);
@@ -490,6 +492,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	DEBUG(('S',1,"Maxsession: %d",cci));
 	qemsisend(rnode);
 	qpreset(0);qpreset(1);
+	if(opt_cht&O_WANT)chatinit(0);
 	if(opt_nd&O_WE||(mode&&(opt_nr&O_WANT)&&bp_ver>=11))opt_nr|=O_WE;
 	if((opt_cht&O_WE)&&(opt_cht&O_WANT))opt_cht=O_YES;
 	if(bp_ver>=11||(opt_md&O_WE))opt_mb=O_YES;

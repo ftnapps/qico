@@ -1,9 +1,7 @@
 /**********************************************************
- * File: defs.h
- * Created at Thu Jul 15 13:47:04 1999 by pk // aaz@ruxy.org.ru
- * 
- * $Id: defs.h,v 1.1 2000/07/18 12:37:18 lev Exp $
- *********************************************************/
+ * common definitions
+ * $Id: defs.h,v 1.3 2004/02/06 21:54:46 sisoft Exp $
+ **********************************************************/
 #ifndef __CONSTQWE_H__
 #define __CONSTQWE_H__
 
@@ -43,7 +41,7 @@
 #define HT 	0x09
 #define LF 	0x0a
 #define VT 	0x0b
-#define FF 	0x0c
+#define FFX 	0x0c
 #define CR 	0x0d
 #define SO 	0x0e
 #define SI 	0x0f

@@ -1,15 +1,25 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.16 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: main.c,v 1.17 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#ifdef HAVE_LOCALE_H
 #include <locale.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-#include "tty.h"
+#endif
+#include <sys/utsname.h>
+#include "qipc.h"
 #include "byteop.h"
 #include "clserv.h"
+#include "tty.h"
 
 char *configname=CONFIG;
 subst_t *psubsts;
@@ -52,7 +62,7 @@ void stopit(int rc)
 	exit(rc);
 }
 
-void sigerr(int sig)
+RETSIGTYPE sigerr(int sig)
 {
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig,SIG_DFL);
@@ -252,7 +262,9 @@ int main(int argc,char *argv[],char *envp[])
 #ifndef HAVE_SETPROCTITLE
 	setargspace(argc,argv,envp);
 #endif
+#ifdef HAVE_SETLOCALE
  	setlocale(LC_ALL, "");
+#endif
 	while((c=getopt(argc, argv, "hI:da:ni:c:tbv"))!=EOF) {
 		switch(c) {
 		    case 'c':

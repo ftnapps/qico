@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-# $Id: cvs_com,v 1.6 2004/02/02 17:31:38 sisoft Exp $
+# $Id: cvs_com,v 1.7 2004/02/06 21:52:58 sisoft Exp $
 if(!-e "ChangeLog"){goto chng}
-system("mcedit +666 new");
+#system("mcedit +666 new");
 open(X,"new")||die("can't open 'new'\n");
 open(F,"TodayFixes")||die("can't open TodayFixes\n");
 while(<F>) {

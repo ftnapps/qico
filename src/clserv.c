@@ -1,12 +1,21 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.7 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: clserv.c,v 1.8 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
 #include "byteop.h"
 #include "clserv.h"
 

@@ -1,9 +1,6 @@
-/* $Id: qipc.h,v 1.6 2004/01/19 20:21:32 sisoft Exp $ */
+/* $Id: qipc.h,v 1.7 2004/02/06 21:54:46 sisoft Exp $ */
 #ifndef __QIPC_H__
 #define __QIPC_H__
-#include "mailer.h"
-#include "qcconst.h"
-#include "globals.h"
 
 extern void vlogs(char *str);
 extern void vlog(char *str, ...);

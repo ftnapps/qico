@@ -1,10 +1,11 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.7 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: tty.c,v 1.8 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#include <termios.h>
+#endif
 #include "defs.h"
 #include "tty.h"
 
@@ -25,7 +26,7 @@ static int in_bufpos=0, in_bufmax=0;
 static unsigned char out_buffer[OUT_MAXBUF];
 static int out_bufpos=0;
 
-void tty_sighup(int sig)
+RETSIGTYPE tty_sighup(int sig)
 {
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 			  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};

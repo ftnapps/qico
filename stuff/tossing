@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 # script for tossing mail by sisoft\trg'2002
-# $Id: tossing,v 1.2 2004/01/10 09:24:40 sisoft Exp $
+# $Id: tossing,v 1.3 2004/02/06 21:54:46 sisoft Exp $
 
 # netmail
 find /var/spool/ftn/inb/*.[pP][kK][tT] >/dev/null 2>&1 &&

@@ -1,11 +1,9 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.9 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: mailer.h,v 1.10 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
-#include "ftn.h"
-#include "tty.h"
 #include "opts.h"
 #include "qcconst.h"
 

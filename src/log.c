@@ -1,13 +1,12 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.11 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: log.c,v 1.12 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-#include <stdarg.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 #ifdef HAVE_SYSLOG_AND_SYS_SYSLOG
-#	include <sys/syslog.h>
+#include <sys/syslog.h>
 #endif
 
 typedef struct _slncode {

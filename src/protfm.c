@@ -1,13 +1,17 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.10 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: protfm.c,v 1.11 2004/02/06 21:54:46 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
+#ifdef HAVE_UTIME_H
 #include <utime.h>
+#endif
 #include <fnmatch.h>
 #include "hydra.h"
 #include "ls_zmodem.h"
 #include "binkp.h"
+#include "qipc.h"
+#include "tty.h"
 
 /*  Common protocols' vars */
 FILE   *txfd=NULL,     *rxfd=NULL;

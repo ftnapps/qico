@@ -1,8 +1,9 @@
 /**********************************************************
  * Queue operations
- * $Id: queue.c,v 1.9 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: queue.c,v 1.10 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#include "qipc.h"
 
 qitem_t *q_queue=NULL;
 
@@ -40,7 +41,6 @@ void q_recountflo(char *name,off_t *size,time_t *mtime,int rslow)
 	struct stat sb;
 	char s[MAX_STRING],*p;
 	off_t total=0;
-
 	DEBUG(('Q',4,"scan lo '%s'",name));
 	if(!stat(name,&sb)) {
 		if(sb.st_mtime!=*mtime||rslow) {
@@ -101,7 +101,6 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 	char *p;
 	off_t total=0;
 	int len;
-
 	if(!stat(name,&sb)&&((sb.st_mode&S_IFMT)==S_IFDIR||(sb.st_mode&S_IFMT)==S_IFLNK)) {
 		if(sb.st_mtime!=*mtime||rslow) {
 			DEBUG(('Q',4,"scan box '%s'",name));
@@ -123,6 +122,7 @@ void q_recountbox(char *name,off_t *size,time_t *mtime,int rslow)
 			*size=total;
 		}
 	} else {
+		DEBUG(('Q',4,"box '%s' lost",name));
 		*mtime=0;
 		*size=0;
 	}
@@ -147,12 +147,11 @@ void rescan_boxes(int rslow)
 			q->what|=T_ARCMAIL;
 		}
 	}
-
 	if(cfgs(CFG_LONGBOXPATH)) {
 		if((d=opendir(ccs))!=0) {
 			while((de=readdir(d))) {
 				n=sscanf(de->d_name,"%hd.%hd.%hd.%hd.%c",&a.z,&a.n,&a.f,&a.p,&flv);
-				if(n)DEBUG(('Q',4,"found box '%s', parse: %d:%d/%d.%d (%c) rc=%d",de->d_name,a.z,a.n,a.f,a.p,C0(flv),n));
+				if(n)DEBUG(('Q',4,"found lbox '%s', parse: %d:%d/%d.%d (%c) rc=%d",de->d_name,a.z,a.n,a.f,a.p,n==5?flv:'*',n));
 				if(n==4||n==5) {
 					if(n==4)snprintf(rev,27,"%hd.%hd.%hd.%hd",a.z,a.n,a.f,a.p);
 					    else snprintf(rev,27,"%hd.%hd.%hd.%hd.%c",a.z,a.n,a.f,a.p,flv);
@@ -173,12 +172,12 @@ void rescan_boxes(int rslow)
 							    case 'd': q->flv|=Q_DIR;break;
 							    case 'c': q->flv|=Q_CRASH;break;
 							    case 'i': q->flv|=Q_IMM;break;
-							    default : write_log("unknown longbox flavour '%c'",flv);
+							    default : write_log("unknown longbox flavour '%c' for dir %s",flv,de->d_name);
 							}
 						}
 						xfree(p);
-					}
-				}
+					} else DEBUG(('Q',1,"strange: find: '%s', calc: '%s'",de->d_name,rev));
+				} else DEBUG(('Q',2,"bad longbox name %s",de->d_name));
 			}
 			closedir(d);
 		} else write_log("can't open %s: %s",ccs,strerror(errno));
@@ -191,7 +190,7 @@ int q_rescan(qitem_t **curr,int rslow)
 	sts_t sts;
 	qitem_t *q,**p;
 
-	DEBUG(('Q',3,"q_rescan %d",rslow));
+	DEBUG(('Q',3,"rescan queue (%d)",rslow));
 	for(q=q_queue;q;q=q->next) {
 		q->what=0;q->flv&=Q_DIAL;q->touched=0;
 	}

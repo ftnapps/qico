@@ -2,11 +2,13 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Receiver logic.
-   $Id: ls_zreceive.c,v 1.3 2004/01/18 15:58:58 sisoft Exp $
+   $Id: ls_zreceive.c,v 1.4 2004/02/06 21:54:46 sisoft Exp $
 */
 #include "headers.h"
-#include "defs.h"
 #include "ls_zmodem.h"
+#include "defs.h"
+#include "qipc.h"
+#include "tty.h"
 
 static unsigned char ls_rxAttnStr[LSZ_MAXATTNLEN+1] = "";
 

@@ -1,13 +1,15 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.21 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: session.c,v 1.22 2004/02/06 21:54:46 sisoft Exp $
  **********************************************************/
 #include "headers.h"
-#include "defs.h"
+#include <fnmatch.h>
 #include "ls_zmodem.h"
 #include "hydra.h"
 #include "janus.h"
-#include <fnmatch.h>
+#include "defs.h"
+#include "qipc.h"
+#include "tty.h"
 
 int runtoss;
 ftnaddr_t ndefaddr;
@@ -649,7 +651,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	return S_OK;
 }
 
-static void sessalarm(int sig)
+static RETSIGTYPE sessalarm(int sig)
 {
 	signal(SIGALRM, SIG_DFL);
 	write_log("session limit of %d minutes is over",cfgi(CFG_MAXSESSION));
