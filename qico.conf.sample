@@ -71,6 +71,7 @@
 # + file <full-path>         - file <full-path> present
 #                              ex. 'file /fido/flags/flag'
 # + connstr <substring>      - connect string includes <substring>     (NEW!!!)
+# + host <host>              - where <host> is remote host or ip-addr. (NEW!!!)
 # + <flag>                   - where flag can be:
 #                                - 'list[ed]' (without '')
 #                                - 'prot[ected]'
@@ -79,14 +80,7 @@
 #                                - 'tcp[ip]' - identifies tcp/ip session
 #                                - 'binkp' - identifies BinkP session  (NEW!!!)
 #                                - nodelist flag 
-#                              ex. 'in & (!listed | !V34)'
-#
-### TODO: #####################################################################
-# + host <host_mask>         - where <host_mask> is remote's host or 
-#                              ip-address mask
-#
-# almost every keyword can be changed at runtime, but some changes won't make 
-# any effect ;)  (may try 'qctl -R' for funny ;)) ).
+#                              ex.: 'in & (!listed | !V34)'
 #
 ###############################################################################
 
@@ -157,7 +151,7 @@ log		/var/log/ftn/qico.log
 #  Z -- ZModem
 #  M -- Modem
 #  R -- File requests
-#  X -- Sent debug log to qcc					      (NEW!!!)
+#  X -- Max debug level for send to clients			      (NEW!!!)
 #  B -- BinkP							      (NEW!!!)
 #  I -- IP routines						      (NEW!!!)
 #
@@ -662,7 +656,6 @@ if address 1:2345/7845.3 | address 1:2345/7845.15 | address 1:2345/7845.16
  protorder Z1
 endif
 
-# endif can be skipped here
 # he has stupid big /etc/issue ;)
 if address 1:2345/678
  showintro no
@@ -688,5 +681,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.18 2004/01/17 00:05:04 sisoft Exp $
+# $Id: qico.conf.sample,v 1.19 2004/01/18 15:58:58 sisoft Exp $
 ###############################################################################

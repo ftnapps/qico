@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.13 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: main.c,v 1.14 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <locale.h>
@@ -108,6 +108,7 @@ static void answer_mode(int type)
 	signal(SIGFPE,sigerr);
 	signal(SIGPIPE,SIG_IGN);
 
+	log_callback=NULL;xsend_cb=NULL;
 	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 	    else log_callback=vlogs;
@@ -350,6 +351,7 @@ int main(int argc,char *argv[],char *envp[])
 		signal(SIGSEGV,sigerr);
 		signal(SIGPIPE,SIG_IGN);
 
+		log_callback=NULL;xsend_cb=NULL;
 		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
@@ -374,6 +376,7 @@ int main(int argc,char *argv[],char *envp[])
 			}
 		} else line = 0;
 
+		log_callback=NULL;xsend_cb=NULL;
 		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;

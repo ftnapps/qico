@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.7 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: qctl.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -16,6 +16,7 @@
 #include "qcconst.h"
 #include "ver.h"
 #include "replace.h"
+#include "byteop.h"
 #include "xstr.h"
 #include "clserv.h"
 
@@ -29,7 +30,7 @@ void usage(char *ex)
 	printf("usage: %s [<options>] [<port>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
 		   "-h             this help screen\n"
-	           "-P             connect to <port> (default: 60178)\n"
+	           "-P             connect to <port> (default: qicoui or %u)\n"
  		   "-q             stop daemon\n"
  		   "-Q             force queue rescan\n"
  		   "-R             reread config\n"
@@ -46,7 +47,7 @@ void usage(char *ex)
 		   "               <u>ndialable, <i>mmediate, <w>ait\n"
 		   "-H             hangup modem session on <tty>\n"
                    "-v             show version\n"
-		   "\n", ex);
+		   "\n",ex,DEF_SERV_PORT);
 	exit(0);
 }
 
@@ -63,8 +64,12 @@ int getanswer()
 	signal(SIGALRM, timeout);
 	alarm(5);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
-	if(rc>=0&&rc<MSG_BUFFER)buf[rc]=0;
-	if(rc<3||*(short*)buf)return 1;
+	if(!rc) {
+		fprintf(stderr,"connection to server broken.\n");
+		return 1;
+	}
+	if(rc>0&&rc<MSG_BUFFER)buf[rc]=0;
+	if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid()))return 1;
 	if(buf[2])fprintf(stderr, "%s\n", buf+3);
 	alarm(0);
 	signal(SIGALRM, SIG_DFL);
@@ -109,7 +114,7 @@ int getnodeinfo()
 	signal(SIGALRM, timeout);
 	alarm(5);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
-	if(rc<3||*(short*)buf)return 1;
+	if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid()))return 1;
 	if(buf[2])fprintf(stderr, "%s\n", buf+3);
 	    else {
 		for(p=buf+3,rc=0;strlen(p);rc++) {
@@ -139,7 +144,7 @@ int getqueueinfo()
 		alarm(5);
 		rc=xrecv(sock,buf,MSG_BUFFER-1,1);
 		alarm(0);
-		if(rc<3||*(short*)buf)return 1;
+		if(rc<3||(FETCH16(buf)&&FETCH16(buf)!=(unsigned short)getpid()))return 1;
 		if(buf[2])fprintf(stderr, "%s\n", buf+3);
 		    else if(buf[3]) {
 			a = buf + 4;
@@ -231,12 +236,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
-	*(short*)buf=0;
+	STORE16(buf,0);
 	buf[2]=QR_STYPE;
 	snprintf(buf+3,MSG_BUFFER-4,"cqctl-%s",version);
 	xsend(sock,buf,strlen(buf+3)+4);
 	if(getanswer())return 1;
-	*(short*)buf=0;
+	STORE16(buf,0);
 	buf[2]=action;
 
 	switch(action) {

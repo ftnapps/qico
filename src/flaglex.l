@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.4 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: flaglex.l,v 1.5 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -50,6 +50,7 @@ int yylval;
 %}
 
 Blank		[ \t\n]+
+Host    	[Hh][Oo][Ss][Tt]
 ConnStr		[Cc][Oo][Nn][Nn][Ss][Tt][Rr]
 Speed		[Ss][Pp][Ee][Ee][Dd]
 Phone		[Pp][Hh][Oo][Nn][Ee]
@@ -140,6 +141,7 @@ Datestr         {Month}({Day}-{Day})?
 {Pathstr}	{yylval=PATHSTR;return(PATHSTR);}
 {Phone}		{yylval=PHONE;return(PHONE);}
 {Cid}		{yylval=CID;return(CID);}
+{Host}		{yylval=HOST;return(HOST);}
 {Port}		{yylval=PORT;return(PORT);}
 {Time}		{yylval=TIME;return(TIME);}
 {iTime}		{yylval=ITIME;return(ITIME);}
@@ -185,13 +187,13 @@ int flagfor(char *str)
 		q=xstrdup(rnode->flags);p=strtok(q,",");
 		while(p) {
 			if(!strcasecmp(str,p)) {
-				free(q);
+				xfree(q);
 				DEBUG(('Y',2,"flagfor: other: 1"));
 				return 1;
 			}
 			p=strtok(NULL,",");
 		}
-		free(q);
+		xfree(q);
 	}
 	DEBUG(('Y',2,"flagfor: other: 0"));
 	return 0;

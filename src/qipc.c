@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.7 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: qipc.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -13,38 +13,31 @@
 void qsendpkt(char what,char *line,char *buff,int len)
 {
 	char buf[MSG_BUFFER];
-/*	if(!qipc_key)qipc_init();
-	if(qipc_msg<0) {
-		qipc_msg=msgget(qipc_key,0666);
-		if(qipc_msg<0)return;
-		    else {
-			qpmydata();
-			qsendqueue();
-			if(rnode&&rnode->starttime) {
+/*			if(rnode&&rnode->starttime) {
 				qemsisend(rnode);
 				if(chattimer>0)qchat("");
-			}
-		}
-	}*/
+			}*/
+	if(!xsend_cb)return;
 	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
 /*	write_log("sendpkt %s %d", line, len); */
-	*(unsigned short*)buf=(unsigned short)getpid();
+	STORE16(buf,(unsigned short)getpid());
 	buf[2]=what;
 	if(buf[2]==QC_CERASE)buf[2]=QC_ERASE;
 	xstrcpy(buf+3,line,8);
 	if(what==QC_CHAT||what==QC_CERASE){buf[3]='C';buf[4]='H';buf[5]='T';}
 	memcpy(buf+3+strlen(line)+1,buff,len);
-	xsend_cb(ssock,buf,3+strlen(line)+1+len);
+	if(xsend_cb(ssock,buf,3+strlen(line)+1+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
 }	
 
 int qrecvpkt(char *str)
 {
 	int rc;
+	if(!xsend_cb)return 0;
 	rc=xrecv(ssock,str,MSG_BUFFER-1,0);
 	if(rc<0&&errno!=EAGAIN)DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
 	if(rc<3||!str[2])return 0;
 /*	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]); */
-	if(*(unsigned short*)str<3||*(unsigned short*)str==(unsigned short)getpid())
+	if(FETCH16(str)<3||FETCH16(str)==(unsigned short)getpid())
 	    return rc;
 	return 0;
 }

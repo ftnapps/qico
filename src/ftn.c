@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.9 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: ftn.c,v 1.10 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "charset.h"
@@ -47,7 +47,10 @@ int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc)
 				wn=0;
 				break;
 			case '@':
-				if(p[1])a->d=xstrdup(p+1);
+				if(p[1]) {
+					xfree(a->d);
+					a->d=xstrdup(p+1);
+				}
 			case '\n':
 			case '\r':
 			case '\0':	
@@ -475,7 +478,7 @@ char *qver(int w)
 void closeqpkt(FILE *f,ftnaddr_t *fa)
 {
 	char str[MAX_STRING];
-	snprintf(str,MAX_STRING*4,"%s-%s/%s",xstrdup(qver(0)),xstrdup(qver(1)),xstrdup(qver(2)));
+	snprintf(str,MAX_STRING*4,"%s-%s/%s",qver(0),qver(1),qver(2));
 	closepkt(f,fa,str,cfgs(CFG_STATION));
 }
 

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.16 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: session.c,v 1.17 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -27,10 +27,10 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill, off_t off, FILE *lo
 	if(type==IS_PKT && fromlo) type=IS_FILE;
 
 	if((checktimegaps(cfgs(CFG_MAILONLY)) ||
-		checktimegaps(cfgs(CFG_ZMH))) && type!=IS_PKT) return;
+	    checktimegaps(cfgs(CFG_ZMH))) && type!=IS_PKT) return;
 
 	for(i=cfgsl(CFG_AUTOHOLD);i;i=i->next) 
-		if(!xfnmatch(i->str,loc,FNM_PATHNAME))return;
+	    if(!xfnmatch(i->str,loc,FNM_PATHNAME))return;
 
 	switch(type) {
 	case IS_REQ:
@@ -57,7 +57,6 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill, off_t off, FILE *lo
 	q->lo=lo;q->tosend=loc;
 	q->type=type;
 }
-
 
 void floflist(flist_t **fl, char *flon)
 {
@@ -105,7 +104,8 @@ void floflist(flist_t **fl, char *flon)
 				if(!stat(fp,&sb)) {
 					totalf+=sb.st_size;totaln++;
 				}
-			}		
+				xfree(fp);
+			}
 			off=ftell(f);
 		}
 		addflist(fl, xstrdup(flon), NULL, '^', -1, f, 1);

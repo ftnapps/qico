@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.15 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: binkp.c,v 1.16 2004/01/18 15:58:58 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -28,7 +28,7 @@ static int msgs(int msg,char *t1,char *t2)
 	if(t1)len+=strlen(t1);
 	if(t2)len+=strlen(t2);
 	if(len>0x7fff)len=0x7fff;
-	*txbuf=((len>>8)&0x7f)|0x80;
+	*txbuf=(unsigned char)(len>>8)&0x7f;
 	txbuf[1]=len&0xff;txbuf[2]=msg;
 	snprintf((char*)(txbuf+3),len,"%s%s",t1?t1:"",t2?t2:"");
 	return(datas(txbuf,(word)(len+2)));
@@ -158,16 +158,9 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	if(!mode&&opt_md) {
 		long rnd=(long)random(),utm=time(NULL);
 		int pid=((int)getpid())^((int)random());
-		*chal=(unsigned char)rnd;
-		chal[1]=(unsigned char)(rnd>>8);
-		chal[2]=(unsigned char)(rnd>>16);
-		chal[3]=(unsigned char)(rnd>>24);
-		chal[4]=(unsigned char)(pid);
-		chal[5]=(unsigned char)(pid>>8);
-		chal[6]=(unsigned char)(utm);
-		chal[7]=(unsigned char)(utm>>8);
-		chal[8]=(unsigned char)(utm>>16);
-		chal[9]=(unsigned char)(utm>>24);
+		STORE32(chal,rnd);
+		STORE16(chal+4,pid)
+		STORE32(chal+6,utm);
 		chal_len=10;
 	}
 	sline("BinkP handshake");

@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.4 2004/01/17 00:05:05 sisoft Exp $ */
+/* $Id: hydra.c,v 1.5 2004/01/18 15:58:58 sisoft Exp $ */
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
@@ -327,17 +327,12 @@ static void txpkt (register word len, int type)
 
 	if (crc32b) {
 		dword crc = (~crc32block((char *) txbufin,len)) & 0xffffffff;
-
-		txbufin[len++] = crc;
-		txbufin[len++] = crc >> 8;
-		txbufin[len++] = crc >> 16;
-		txbufin[len++] = crc >> 24;
-	}
-	else {
+		STORE32(txbufin+len,crc);
+		len+=4;
+	} else {
 		word crc = (~crc16block((char *) txbufin,len)) & 0xffff;
-
-		txbufin[len++] = crc;
-		txbufin[len++] = crc >> 8;
+		STORE16(txbufin+len,crc);
+		len+=2;
 	}
 
 	in = txbufin;

@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.10 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: tcp.c,v 1.11 2004/01/18 15:58:58 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -155,7 +155,7 @@ int tcp_call(char *host,ftnaddr_t *fa)
 {
 	int rc,fd;
 	char *p=NULL;
-	if(cfgs(CFG_PROXY))p=strdup(ccs);
+	if(cfgs(CFG_PROXY))p=xstrdup(ccs);
 	write_log("connecting to %s at %s%s%s [%s]",ftnaddrtoa(fa),host,p?" via proxy ":"",p?p:"",bink?"binkp":"ifcico");
 	fd=opentcp(host,p);xfree(p);
 	if(fd>=0) {
