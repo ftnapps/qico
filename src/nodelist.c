@@ -1,6 +1,6 @@
 /**********************************************************
  * work with nodelists
- * $Id: nodelist.c,v 1.6 2004/02/26 23:55:25 sisoft Exp $
+ * $Id: nodelist.c,v 1.7 2004/04/17 07:25:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -116,7 +116,9 @@ int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl)
 						if(p) {
 							nlent->flags=xstrdup(p);
 							if(nlent->type==NT_PVT) {
+#ifdef WITH_BINKP
 								if(strstr(p,"IBN"))nlent->opt|=MO_BINKP;
+#endif
 								if(strstr(p,"IFC"))nlent->opt|=MO_IFC;
 								if(nlent->opt)nlent->host=xstrdup(ftnaddrtoia(addr));
 							}
@@ -468,7 +470,9 @@ subst_t *parsesubsts(faslist_t *sbs)
 					t=strsep(&p, " ");
 					if(t) if(*t!='-') {
 						if(!strcasecmp(t,"ifc"))d->flags|=MO_IFC;
+#ifdef WITH_BINKP
 						else if(!strcasecmp(t,"binkp"))d->flags|=MO_BINKP;
+#endif
 						    else write_log("unknown subst flag: %s",t);
 						if(d->flags) {
 							d->host=xstrdup(d->phone?d->phone:ftnaddrtoia(&sbs->addr));

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.28 2004/04/09 09:51:33 sisoft Exp $
+ * $Id: session.c,v 1.29 2004/04/17 07:25:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -619,9 +619,11 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	    case SESSION_EMSI:
 		rc=emsisession(mode,calladdr,speed);
 		break;
+#ifdef WITH_BINKP
 	    case SESSION_BINKP:
 		rc=binkpsession(mode,calladdr);
 		break;
+#endif
 	    default:
 		write_log("unsupported session type! (%d)",type);
 		return S_REDIAL|S_ADDTRY;

@@ -2,9 +2,11 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.53si-cvs],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.53si-cvs])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.23 2004/04/11 01:03:01 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.24 2004/04/17 07:25:14 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
+AM_MAINTAINER_MODE
+cache_file=config.cache
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -14,7 +16,6 @@ AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_MAKE_SET
 AC_PROG_GCC_TRADITIONAL
-AM_MAINTAINER_MODE
 AM_WITH_DMALLOC
 
 dnl Checks for header files.
@@ -42,8 +43,8 @@ AC_FUNC_MEMCMP
 AC_FUNC_STRFTIME
 AC_FUNC_UTIME_NULL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([dup2 getcwd memchr memmove mkdir mktime rmdir])
-AC_CHECK_FUNCS([select setlocale statfs statvfs strcasecmp])
+AC_CHECK_FUNCS([dup2 getcwd gettimeofday memchr memmove mkdir mktime])
+AC_CHECK_FUNCS([rmdir select setlocale statfs statvfs strcasecmp])
 AC_CHECK_FUNCS([strchr strdup strerror strncasecmp strrchr])
 AC_CHECK_FUNCS([strspn strstr strtol strtoul uname vsnprintf])
 AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
@@ -140,15 +141,9 @@ if test "x${with_config}" = "xNONE"; then
 	else
 		syscdir=`eval echo ${sysconfdir}`
 	fi
-	with_config="${syscdir}/qico.conf"
+	with_config=`eval echo ${syscdir}/qico.conf`
 fi
 AC_MSG_RESULT($with_config)
-if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
-	AC_MSG_ERROR([Parameter for --with-config must be absolute filename])
-fi
-if test -d "$with_config"; then
-	AC_MSG_WARN([Parameter for --with-config must be filename, not a directory])
-fi
 
 dnl TCP Speed
 AC_MSG_CHECKING([for TCP connection speed])
@@ -302,8 +297,28 @@ bad:close(fd);
 	AC_DEFINE(HAVE_DNOTIFY,1,[Allow use DNOTIFY for ASO auto-recan]),
 	AC_MSG_RESULT(no),AC_MSG_RESULT(no))
 else
-	AC_MSG_RESULT(no);
+	AC_MSG_RESULT(no)
 fi
+
+AC_MSG_CHECKING([for BinkP protocol support])
+AC_ARG_ENABLE(binkp,AC_HELP_STRING([--disable-binkp],[disable BinkP protocol support]),,enable_binkp=yes)
+if test "${enable_binkp}x" != "nox"; then
+	AC_DEFINE(WITH_BINKP,1,[Support for BinkP protocol])
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+dnl calculate real config -- prefix already known, so we could eval config
+with_config=`eval echo $with_config`
+if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
+	AC_MSG_ERROR([Parameter for --with-config must be absolute filename])
+fi
+if test -d "$with_config"; then
+	AC_MSG_WARN([Parameter for --with-config must be filename, not a directory])
+fi
+AC_DEFINE_UNQUOTED(CONFIG,"$with_config",[Default path to config])
+CONFIG=$with_config
 
 dnl My defines -- from acconfig.h, hack for new autoconf
 AC_DEFINE_UNQUOTED(MAX_PATH,256,[Maximum length of file path])
@@ -316,17 +331,13 @@ AC_SUBST(QCC)
 AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
+AC_SUBST(CONFIG)
 
 dnl add warn flags in maintainer mode
+CFLAGS="$CFLAGS -Wall"
 if test "x$USE_MAINTAINER_MODE" = "xyes"; then
-	CFLAGS="$CFLAGS -Wall -pedantic"
+    CFLAGS="$CFLAGS -pedantic"
 fi
-
-dnl calculate real config -- prefix already known, so we could eval config
-with_config=`eval echo $with_config`
-AC_DEFINE_UNQUOTED(CONFIG,"$with_config",[Default path to config])
-CONFIG=$with_config
-AC_SUBST(CONFIG)
 
 dnl creating files
 AC_CONFIG_FILES([

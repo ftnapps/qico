@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.26 2004/04/13 17:37:05 sisoft Exp $
+ * $Id: main.c,v 1.27 2004/04/17 07:25:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -31,7 +31,9 @@ static void usage(char *ex)
  		"-a<type>     start in answer mode with <type> session, type can be:\n"
 		"                       auto - autodetect\n"
 		"             **EMSI_INQC816 - EMSI session without init phase\n"
-		"                      binkp - BinkP session\n"
+#ifdef WITH_BINKP
+		"                      binkp - Binkp session\n"
+#endif
 		"                      tsync - FTS-0001 session (unsuppported)\n"
 		"                     yoohoo - YOOHOO session (unsuppported)");
 	puts(	"-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
@@ -40,7 +42,9 @@ static void usage(char *ex)
 		"             I - call <i>mmediately (don't check node worktime)\n"
 		"             A - call on <a>ny free port (don't check cancall setting)\n"
 		"             You could specify line after <node>, lines are numbered from 1\n"
-		"-b           call with BinkD (default call ifcico)\n"
+#ifdef WITH_BINKP
+		"-b           call with Binkp (default call ifcico)\n"
+#endif
 		"-n           compile nodelists\n"
 		"-t           check config file for errors\n"
                 "-v           show version\n");
@@ -295,7 +299,9 @@ int main(int argc,char *argv[],char *envp[])
 			if(!strncasecmp(optarg,"**emsi",6))sesstype=SESSION_EMSI;
 			if(!strncasecmp(optarg,"tsync",5))sesstype=SESSION_FTS0001;
 			if(!strncasecmp(optarg,"yoohoo",6))sesstype=SESSION_YOOHOO;
+#ifdef WITH_BINKP
 			if(!strncasecmp(optarg,"binkp",5)){sesstype=SESSION_BINKP;bink=1;}
+#endif
 			break;
 		    case 'n':
 			daemon=2;
@@ -303,9 +309,11 @@ int main(int argc,char *argv[],char *envp[])
 		    case 't':
 			daemon=3;
 			break;
+#ifdef WITH_BINKP
 		    case 'b':
 			bink=1;
 			break;
+#endif
 		    case 'v':
 			u_vers(progname);
 		    default:

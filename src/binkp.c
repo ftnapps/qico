@@ -1,8 +1,9 @@
 /******************************************************************
  * BinkP protocol implementation.
- * $Id: binkp.c,v 1.32 2004/04/14 22:21:26 sisoft Exp $
+ * $Id: binkp.c,v 1.33 2004/04/17 07:25:18 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
+#ifdef WITH_BINKP
 #include "binkp.h"
 #include "tty.h"
 #include "crc.h"
@@ -29,7 +30,7 @@ static int msgs(int msg,char *str,...)
 	DEBUG(('B',2,"msgs M_%s '%s'",mess[msg],txbuf+3));
 	va_end(args);
 	len=strlen((char*)(txbuf+3));
-	if(len>0x7fff)len=0x7fff;
+	if(++len>0x7fff)len=0x7fff;
 	*txbuf=((len>>8)&0x7f)|0x80;
 	txbuf[1]=len&0xff;txbuf[2]=msg;
 	return(datas(txbuf,(word)(len+2)));
@@ -767,3 +768,5 @@ failed:	flkill(&fl,rc==S_OK);
 	xfree(txbuf);
 	return rc;
 }
+
+#endif
