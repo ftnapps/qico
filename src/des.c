@@ -2,7 +2,7 @@
  * File: des.c
  * Created at Sat Jun 30 23:28:31 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: des.c,v 1.1 2001/07/05 19:55:12 lev Exp $
+ * $Id: des.c,v 1.2 2001/07/24 14:11:26 lev Exp $
  **********************************************************/
 #include <config.h>
 #include "types.h"
