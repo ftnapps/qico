@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.25 2004/02/22 21:33:03 sisoft Exp $
+ * $Id: qcc.c,v 1.26 2004/02/26 23:55:25 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -620,7 +620,7 @@ static void delslot(int slt)
 		slots[slt]->lc--;
 	}
 	free(slots[slt]);
-	while(slt<=allslots)slots[slt]=slots[++slt];
+	for(;slt<=allslots;slt++)slots[slt]=slots[slt+1];
 	freshall();
 }
 
@@ -860,8 +860,8 @@ static char *getnode(char *name)
 	unsigned long zone,net,node,n,point=0L;
 	if(!myaddr)myaddr=strdup("0:0/0");
 rei:	zone=strtoul(myaddr,&nm,10);
-	net=strtoul(++nm,&nm,10);
-	node=strtoul(++nm,&nm,10);
+	net=strtoul(nm+1,&nm,10);
+	node=strtoul(nm+1,&nm,10);
 	if(*nm=='.')point=strtoul(nm+1,NULL,10);
 	inputstr(buf,name,1);
 	*(long*)ou=0L;flv='n';

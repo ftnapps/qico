@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.11 2004/02/23 01:02:11 sisoft Exp $
+ * $Id: flaglex.l,v 1.12 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 %option noyywrap
 %{
@@ -209,7 +209,7 @@ static int flagfor(char *str)
 
 static int chkaddr(char *str)
 {
-	ftnaddr_t addr;
+	FTNADDR_T(addr);
 	falist_t *i;
 
 	DEBUG(('Y',2,"chkaddr: \"%s\"",str));

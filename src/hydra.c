@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.9 2004/02/14 15:58:54 sisoft Exp $ */
+/* $Id: hydra.c,v 1.10 2004/02/26 23:55:17 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
 #include "crc.h"
@@ -971,7 +971,7 @@ int hydra_file(char *txpathname, char *txalias)
 					}
 					p = q + ((int) strlen(q)) + 1;
 					rxwindow = txwindow = 0L;
-					sscanf(p,"%08lx%08lx", &rxwindow,&txwindow);
+					sscanf(p,"%08lx%08lx",(unsigned long*)&rxwindow,(unsigned long*)&txwindow);
 					if (rxwindow < 0L) rxwindow = 0L;
 					if (hydra_rxwindow &&
 						(!rxwindow || hydra_rxwindow < rxwindow))
@@ -987,7 +987,7 @@ int hydra_file(char *txpathname, char *txalias)
 						long revstamp;
 
 						p = (char *) rxbuf;
-						sscanf(p,"%08lx",&revstamp);
+						sscanf(p,"%08lx",(unsigned long*)&revstamp);
 						p += 8;
 						DEBUG(('H',1,"other end hydra is %s, rev %u",p,revstamp));
 						if((q=strchr(p,','))!=NULL)*q='-';
@@ -1034,7 +1034,7 @@ int hydra_file(char *txpathname, char *txalias)
 					} else {
 
 						sscanf((char *) rxbuf,"%08lx%08x%*08x%*08x%08x",
-							   &rxftime, &rxfsize, &count);
+						    (unsigned long*)&rxftime,&rxfsize,(unsigned*)&count);
 
 						if(!recvf.allf && count) recvf.allf=count;
 

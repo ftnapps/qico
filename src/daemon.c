@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.16 2004/02/19 23:36:39 sisoft Exp $
+ * $Id: daemon.c,v 1.17 2004/02/26 23:55:17 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -110,7 +110,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 	char *p;
 	sts_t sts;
 	qitem_t *sinfo;
-	ftnaddr_t fa;
+	FTNADDR_T(fa);
 	slist_t *sl;
 	cls_cl_t *uis;
 	cls_ln_t *lins;

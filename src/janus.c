@@ -2,7 +2,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support
- * $Id: janus.c,v 1.6 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: janus.c,v 1.7 2004/02/26 23:55:17 sisoft Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -255,7 +255,7 @@ int janus()
 						}
 					} else {
 						sscanf(p, "%u %lo %*o",
-							  &recvf.ftot, &recvf.mtime);
+							(unsigned*)&recvf.ftot,(unsigned long*)&recvf.mtime);
 						switch(rxopen((char *)rxbuf, recvf.mtime, recvf.ftot, &rxfd)){
 						case FOP_SUSPEND:
 							goto breakout;

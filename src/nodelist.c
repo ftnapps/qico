@@ -1,6 +1,6 @@
 /**********************************************************
  * work with nodelists
- * $Id: nodelist.c,v 1.5 2004/02/05 19:51:17 sisoft Exp $
+ * $Id: nodelist.c,v 1.6 2004/02/26 23:55:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -422,7 +422,7 @@ int checktxy(char *flags)
 
 subst_t *findsubst(ftnaddr_t *fa, subst_t *subs)
 {
-	while(subs && !ADDRCMP((*fa), subs->addr)) subs=subs->next;
+	while(subs && !addr_cmp(fa, &subs->addr)) subs=subs->next;
 	return subs;
 }
 
@@ -436,7 +436,7 @@ subst_t *parsesubsts(faslist_t *sbs)
 		if(!q) {
 			q=xmalloc(sizeof(subst_t));
 			q->next=subs;subs=q;
-			ADDRCPY(q->addr, sbs->addr);
+			addr_cpy(&q->addr,&sbs->addr);
 			q->hiddens=q->current=NULL;
 			q->nhids=0;
 		}

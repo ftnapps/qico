@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.13 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: qctl.c,v 1.14 2004/02/26 23:55:25 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -256,9 +256,7 @@ int main(int argc, char *argv[])
 			usage(argv[0]);
 		}
 	}
-
 	signal(SIGPIPE,SIG_IGN);
-
 	sock=cls_conn(CLS_UI,port);
 	if(sock<0) {
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));

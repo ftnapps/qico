@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.25 2004/02/22 21:33:03 sisoft Exp $
+ * $Id: session.c,v 1.26 2004/02/26 23:55:25 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -162,7 +162,7 @@ void makeflist(flist_t **fl,ftnaddr_t *fa,int mode)
 		if(ASO)floflist(fl,aso_flon(fa,fls[i]));
 	}
 	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next)
-		if(ADDRCMP((*fa),j->addr)) {
+		if(addr_cmp(fa,&j->addr)) {
 			if(!boxflist(fl,j->str))write_log("can't open filebox '%s'!",j->str);
 			break;
 		}
@@ -592,7 +592,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	if(!mode)rnode->options|=O_INB;
 	if(is_ip)rnode->options|=O_TCP;
 	memset(&ndefaddr,0,sizeof(ndefaddr));
-	if(calladdr)ADDRCPY(ndefaddr,(*calladdr));
+	if(calladdr)addr_cpy(&ndefaddr,calladdr);
 	if(cfgi(CFG_MINSPEED)&&speed<cci) {
 		write_log("connection speed is too slow (min %d required)",cci);
 		return S_REDIAL|S_ADDTRY;

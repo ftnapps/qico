@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.26 2004/02/23 01:02:11 sisoft Exp $
+ * $Id: binkp.c,v 1.27 2004/02/26 23:55:17 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "binkp.h"
@@ -122,7 +122,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	qitem_t *q=NULL;
 	flist_t *lst=NULL;
 	unsigned char chal[64];
-	ftnaddr_t *ba=NULL,fa;
+	ftnaddr_t *ba=NULL;
+	FTNADDR_T(fa);
 	struct tm *tt;
 	sts_t sts;
 	time_t ti,t1,ftime;

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.13 2004/02/14 15:58:54 sisoft Exp $
+ * $Id: protfm.c,v 1.14 2004/02/26 23:55:25 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -368,7 +368,7 @@ void c_devrecv(unsigned char *data,unsigned len)
 	data[len]=0;
 	if(chattimer<2) {
 		char *p;
-		if(len>5&&data[1]!=5&&(p=strstr(data," * "))&&strstr(p+3,"los"))return;
+		if(len>5&&data[1]!=5&&(p=strstr((char*)data," * "))&&strstr(p+3,"los"))return;
 		c_devsend((unsigned char*)hellostr,strlen(hellostr));
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,1);
 	}
