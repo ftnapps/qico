@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zmodem.c,v 1.4 2004/01/10 09:24:40 sisoft Exp $
+   $Id: ls_zmodem.c,v 1.5 2004/02/05 19:51:17 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
@@ -296,12 +296,12 @@ int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
 			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16((unsigned char)c,LSZ_INIT_CRC16); }
 			else { incrc = LSZ_UPDATE_CRC32((unsigned char)c,LSZ_INIT_CRC32); }
 			state = rhBYTE;
-			break;			
+			break;
 		case rhBYTE:
 			DEBUG(('Z',2,"ls_zrecvhdr: rhBYTE: %02x",c));
 			hdr[got] = c;
 			if(++got == len) state = rhCRC;
-			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc); } 
+			if(2 == crcl) { incrc = LSZ_UPDATE_CRC16((unsigned char)c,incrc); }
 			else { incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc); }
 			break;
 		case rhCRC:
@@ -540,7 +540,7 @@ int ls_zrecvdata32(byte *data, int *len, int timeout)
 }
 
 /* Send one char with escaping */
-void ls_sendchar(int c) 
+void ls_sendchar(int c)
 {
 	int esc = 0;
 	c &= 0xff;
@@ -559,7 +559,7 @@ void ls_sendchar(int c)
 				break;
 			default:
 				esc = (((ls_txLastSent & 0x7f) == (char)'@') && ((c & 0x7f) == CR));
-				break; 
+				break;
 			}
 		}
 	}
@@ -571,7 +571,7 @@ void ls_sendchar(int c)
 }
 
 /* Send one char as two hex digits */
-void ls_sendhex(int i) 
+void ls_sendhex(int i)
 {
 	char c = (char)(i & 0xff);
 	BUFCHAR(HEX_DIGITS[(c & 0xf0) >> 4]);
@@ -661,7 +661,7 @@ int ls_readzdle(int *timeout)
 		case ZCRCQ:
 			r=LSZ_CRCQ;
 			break;
-	}																	
+	}
 /*chat*/
 	if(rnode->opt&MO_CHAT&&r) {
 		do {

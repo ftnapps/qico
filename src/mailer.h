@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.8 2004/01/17 00:05:05 sisoft Exp $
+ * $Id: mailer.h,v 1.9 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -103,28 +103,28 @@ extern void check_cps();
 #define byte unsigned char
 
 extern FILE *txfd;
-extern FILE *rxfd;  
+extern FILE *rxfd;
 extern long txpos;
 extern long rxpos;
 extern word txretries;
-extern word rxretries;   
+extern word rxretries;
 extern long txwindow;
-extern long rxwindow;     
+extern long rxwindow;
 extern word txblklen;
 extern word rxblklen;
 extern long txsyncid;
-extern long rxsyncid;    
+extern long rxsyncid;
 extern byte *txbuf;
 extern byte *rxbuf;
 extern dword txoptions;
-extern dword rxoptions;  
+extern dword rxoptions;
 extern unsigned effbaud;
 extern byte *rxbufptr;
 extern byte txstate;
 extern byte rxstate;
 extern byte *rxbufmax;
 extern long txstart;
-extern long rxstart;  
+extern long rxstart;
 extern word txmaxblklen;
 extern word timeout;
 extern byte txlastc;

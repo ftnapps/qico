@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.5 2004/01/18 15:58:58 sisoft Exp $ */
+/* $Id: hydra.c,v 1.6 2004/02/05 19:51:17 sisoft Exp $ */
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
@@ -26,12 +26,12 @@ static char *hstates[]={
 "HTX_FINFO",
 "HTX_FINFOACK",
 "HTX_XDATA",
-"HTX_DATAACK",  
+"HTX_DATAACK",
 "HTX_XWAIT",
 "HTX_EOF",
-"HTX_EOFACK",   
-"HTX_REND",     
-"HTX_END",      
+"HTX_EOFACK",
+"HTX_REND",
+"HTX_END",
 "HTX_ENDACK"};
 
 static char *hpkts[]={
@@ -421,7 +421,7 @@ static void txpkt (register word len, int type)
 	PUTBLK(txbuf,(word) (out - txbuf));
 }/*txpkt()*/
 
-	
+
 /*---------------------------------------------------------------------------*/
 static int rxpkt (void)
 {
@@ -562,9 +562,9 @@ static int rxpkt (void)
 
 				break;
 
-			case HCHR_BINPKT: 
-			case HCHR_HEXPKT: 
-			case HCHR_ASCPKT: 
+			case HCHR_BINPKT:
+			case HCHR_HEXPKT:
+			case HCHR_ASCPKT:
 			case HCHR_UUEPKT:
 				rxpktformat = c;
 				p = rxbufptr = rxbuf;
@@ -632,7 +632,7 @@ static void hydra_status (boolean xmit)
 void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwin)
 {
 	hydra_modifier=hmod;
-	
+
 	txbuf=xmalloc(H_BUFLEN(hydra_modifier)+1);
 	rxbuf=xmalloc(H_BUFLEN(hydra_modifier)+1);
 
@@ -697,7 +697,7 @@ int hydra_file(char *txpathname, char *txalias)
 
 	if(txpathname)
 		if(!(txfd=txopen(txpathname, txalias))) return XFER_SKIP;
-	
+
 	/*-------------------------------------------------------------------*/
 	if (txstate == HTX_DONE) {
 		txstate        = HTX_START;
@@ -811,7 +811,7 @@ int hydra_file(char *txpathname, char *txalias)
 
 			/*---------------------------------------------------------*/
 		case HTX_XDATA:
-			
+
 			if (txpos < 0L)
 				i = -1;                                    /* Skip */
 			else {
@@ -826,7 +826,7 @@ int hydra_file(char *txpathname, char *txalias)
 
 			if (i > 0) {
 				txpos += i;
-			
+
 				txpkt(4 + i, HPKT_DATA);
 
 				if (txblklen < txmaxblklen &&
@@ -877,8 +877,8 @@ int hydra_file(char *txpathname, char *txalias)
 
 		/*----------------------------------------------------------------*/
 		if((pkttype=rxpkt())!=H_NOPKT && txstate) {
-/*  		while (txstate && ) { */ 
-			
+/*  		while (txstate && ) { */
+
 			DEBUG(('H',1,"txstate %s (%d) pkttype %s (%d) '%c'",
 				hstates[txstate], txstate,
 				(pkttype>='A')?hpkts[pkttype-'A']:"$", pkttype,
@@ -1038,7 +1038,7 @@ int hydra_file(char *txpathname, char *txalias)
 						rxstate = HRX_DONE;
 						batchesdone++;
 					} else {
-						
+
 						sscanf((char *) rxbuf,"%08lx%08x%*08x%*08x%08x",
 							   &rxftime, &rxfsize, &count);
 
@@ -1181,7 +1181,7 @@ int hydra_file(char *txpathname, char *txalias)
 								i = 2048;
 							else if (hydra_modifier == 1 && i > 1024)
 								i = 1024;
-							
+
 							sline("HR: bad pkt at %ld - Retry %u (newblklen=%u)",
 								  rxpos,rxretries,i);
 							DEBUG(('H',1,"HR: bad pkt at %ld - Retry %u (newblklen=%u)",
@@ -1227,7 +1227,7 @@ int hydra_file(char *txpathname, char *txalias)
 						rxretries = 0;
 						rxtimer = h_timer_reset();
 						rxlastsync = rxpos;
- 						rxpos += rxpktlen; 
+ 						rxpos += rxpktlen;
 						if (rxwindow) {
 							STORE32(txbufin, rxpos);
 							txpkt(4,HPKT_DATAACK);
@@ -1289,7 +1289,7 @@ int hydra_file(char *txpathname, char *txalias)
 						else if (txblklen <=1024) txblklen = 1024;
 						else if (txblklen <=4096) txblklen = 4096;
 						else                      txblklen = 8192;
-						
+
 						if (hydra_modifier == 8 && txblklen > 8192)
 							txblklen = 8192;
 						else if (hydra_modifier == 4 && txblklen > 4096)
@@ -1522,7 +1522,7 @@ int hydra_file(char *txpathname, char *txalias)
 	rxclose(&rxfd, (res==XFER_OK)?FOP_OK:FOP_ERROR);
 
 	if (res == XFER_ABORT) {             /* ABORT!!!!!!!!!!!!!!!!! */
-		if(!CARRIER()) 
+		if(!CARRIER())
 			CANCEL();
 		PURGE();
 	}

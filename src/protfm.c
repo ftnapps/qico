@@ -1,6 +1,6 @@
 /******************************************************************
- * common protocols' file management  
- * $Id: protfm.c,v 1.9 2004/02/02 17:31:46 sisoft Exp $
+ * common protocols' file management
+ * $Id: protfm.c,v 1.10 2004/02/05 19:51:17 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -40,7 +40,7 @@ static char weskipstr[]="recd: %s, 0 bytes, 0 cps [%sskipped]";
 static char wesusstr[]="recd: %s, 0 bytes, 0 cps [%ssuspended]";
 
 static int sifname(char *s)
-{	
+{
 	static char ALLOWED_CHARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
 	static int CHARS = sizeof(ALLOWED_CHARS) / sizeof(char);
 	int i;
@@ -83,21 +83,21 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 		write_log(rc==FOP_SKIP?weskipstr:wesusstr,recvf.fname,"auto");
 		return rc;
 	}
-	for(i=cfgsl(CFG_AUTOSKIP);i;i=i->next) 
+	for(i=cfgsl(CFG_AUTOSKIP);i;i=i->next)
 		if(!xfnmatch(i->str, bn, FNM_PATHNAME)) {
 			write_log(weskipstr,recvf.fname,"");
 			skipiftic=FOP_SKIP;
 			return FOP_SKIP;
 		}
-	for(i=cfgsl(CFG_AUTOSUSPEND);i;i=i->next) 
+	for(i=cfgsl(CFG_AUTOSUSPEND);i;i=i->next)
 		if(!xfnmatch(i->str, bn, FNM_PATHNAME)) {
 			write_log(wesusstr,recvf.fname,"");
 			skipiftic=FOP_SUSPEND;
 			return FOP_SUSPEND;
 		}
-	
+
 	snprintf(p, MAX_PATH, "%s/tmp/", cfgs(CFG_INBOUND));
-	if(stat(p, &sb)) 
+	if(stat(p, &sb))
 		if(mkdirs(p) && errno!=EEXIST) {
 			write_log("can't make directory %s: %s", p, strerror(errno));
 			write_log(wesusstr,recvf.fname,"");
@@ -111,7 +111,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 		skipiftic=FOP_SKIP;
 		return FOP_SKIP;
 	}
-	
+
 	snprintf(p, MAX_PATH, "%s/tmp/%s", ccs, bn);
 
 	if(!stat(p, &sb)) {
@@ -156,7 +156,7 @@ int rxclose(FILE **f, int what)
 
 	if(!f || !*f) return FOP_ERROR;
 	recvf.toff+=recvf.foff;recvf.stot+=recvf.soff;
-	
+
 	if(!cps) cps=1;cps=(recvf.foff-recvf.soff)/cps;
 	switch(what) {
 		case FOP_SUSPEND: ss="suspended";break;
@@ -190,7 +190,7 @@ int rxclose(FILE **f, int what)
 		if(rc) lunlink(p);
 		else {
 			ss=p2+strlen(p2)-1;overwrite=0;
-			for(i=cfgsl(CFG_ALWAYSOVERWRITE);i;i=i->next) 
+			for(i=cfgsl(CFG_ALWAYSOVERWRITE);i;i=i->next)
 			    if(!xfnmatch(i->str,recvf.fname,FNM_PATHNAME))
 				overwrite=1;
 			while(!overwrite&&!stat(p2, &sb)&&p2[0]) {
@@ -225,7 +225,7 @@ FILE *txopen(char *tosend, char *sendas)
 	FILE *f;
 	struct stat sb;
 	int prevcps = (sendf.start&&(time(NULL)-sendf.start>2))?sendf.cps:effbaud/10;
-	
+
 	if(stat(tosend, &sb)) {
 		write_log("can't find file %s!", tosend);
 		return NULL;
@@ -248,7 +248,7 @@ FILE *txopen(char *tosend, char *sendas)
 	}
 	return f;
 }
-	
+
 int txclose(FILE **f, int what)
 {
 	int cps=time(NULL)-sendf.start;
@@ -290,7 +290,7 @@ void chatinit(int prot)
 	switch(prot) {
 		case P_ZEDZAP:
 		case P_DIRZAP:
-		case P_ZMODEM:  
+		case P_ZMODEM:
 			chatprot=P_ZMODEM;
 			break;
 		case P_HYDRA:
@@ -313,7 +313,7 @@ int c_devfree()
 {
 	int rc=0;
 	switch(chatprot) {
-		case P_ZMODEM:  
+		case P_ZMODEM:
 			rc=z_devfree();
 			break;
 		case P_HYDRA:
@@ -329,7 +329,7 @@ int c_devsend(unsigned char *str,unsigned len)
 {
 	int rc=0;
 	switch(chatprot) {
-		case P_ZMODEM:  
+		case P_ZMODEM:
 			rc=z_devsend(str,len-1);
 			break;
 		case P_HYDRA:

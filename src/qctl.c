@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.8 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: qctl.c,v 1.9 2004/02/05 19:51:17 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -28,7 +28,7 @@ char qflgs[Q_MAXBIT]=Q_CHARS;
 void usage(char *ex)
 {
 	printf("usage: %s [<options>] [<port>] [<node>] [<files>] [<tty>]\n"
- 		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n" 
+ 		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n"
 		   "-h             this help screen\n"
 	           "-P             connect to <port> (default: qicoui or %u)\n"
  		   "-q             stop daemon\n"
@@ -83,15 +83,15 @@ void print_worktime(char *flags)
 	long tz=gmtoff(tm,1)/3600;
 	while((p=strsep(&flags, ","))) {
 		if(!strcmp(p,"CM")) {
-			printf(" WkTime: 00:00-24:00\n"); 
+			printf(" WkTime: 00:00-24:00\n");
 			break;
 		}
 		if(p[0]=='T' && p[3]==0) {
 			printf(" WkTime: %02ld:%02d-%02ld:%02d\n",
-				   (toupper(p[1])-'A'+tz)%24, 
-				   islower((int)p[1]) ? 30:0, 
-				   (toupper(p[2])-'A'+tz)%24, 
-				   islower((int)p[2]) ? 30:0); 
+				   (toupper(p[1])-'A'+tz)%24,
+				   islower((int)p[1]) ? 30:0,
+				   (toupper(p[2])-'A'+tz)%24,
+				   islower((int)p[2]) ? 30:0);
 			break;
 		}
 	}
@@ -106,7 +106,7 @@ char *infostrs[]={
 	"  Flags: %s\n",
 	"  Speed: %s\n",
 };
-	
+
 int getnodeinfo()
 {
 	char buf[MSG_BUFFER], *p, *u;
@@ -121,7 +121,7 @@ int getnodeinfo()
 			printf(infostrs[rc], p);
 			u=p;p+=strlen(p)+1;
 			if(rc==5) print_worktime(u);
-				
+
 		}
 	}
 	alarm(0);
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
 		return 1;
 	}
-	
+
 	STORE16(buf,0);
 	buf[2]=QR_STYPE;
 	snprintf(buf+3,MSG_BUFFER-4,"cqctl-%s",version);

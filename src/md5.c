@@ -1,7 +1,7 @@
 /**********************************************************
  * MD5 crypt.
  * original version of this file was taken from BinkleyForce mailer.
- * $Id: md5.c,v 1.2 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: md5.c,v 1.3 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include <headers.h>
 #include "byteop.h"
@@ -62,7 +62,7 @@ typedef struct {
 static void md5_init(s_md5 *md)
 {
 	md->chunks = 0;
-	
+
 	md->buf[0] = (unsigned int)0x67452301;
 	md->buf[1] = (unsigned int)0xefcdab89;
 	md->buf[2] = (unsigned int)0x98badcfe;
@@ -87,9 +87,9 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 	unsigned int b = md->buf[1];
 	unsigned int c = md->buf[2];
 	unsigned int d = md->buf[3];
-	
+
 	++md->chunks;
-	
+
 	/* Unpack buffer */
 	for( i = 0; i < 16; i++ )
 	{
@@ -99,7 +99,7 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 		      | ((unsigned int)(buffer[3]) << 24);
 		buffer += 4;
 	}
-	
+
 	/* Round 1 */
 #define S11 7
 #define S12 12
@@ -121,7 +121,7 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 	FF( d, a, b, c, in[13], S12, UL(4254626195)); /* 14 */
 	FF( c, d, a, b, in[14], S13, UL(2792965006)); /* 15 */
 	FF( b, c, d, a, in[15], S14, UL(1236535329)); /* 16 */
-	
+
 	/* Round 2 */
 #define S21 5
 #define S22 9
@@ -143,7 +143,7 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 	GG( d, a, b, c, in[ 2], S22, UL(4243563512)); /* 30 */
 	GG( c, d, a, b, in[ 7], S23, UL(1735328473)); /* 31 */
 	GG( b, c, d, a, in[12], S24, UL(2368359562)); /* 32 */
-	
+
 	/* Round 3 */
 #define S31 4
 #define S32 11
@@ -165,7 +165,7 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 	HH( d, a, b, c, in[12], S32, UL(3873151461)); /* 46 */
 	HH( c, d, a, b, in[15], S33, UL( 530742520)); /* 47 */
 	HH( b, c, d, a, in[ 2], S34, UL(3299628645)); /* 48 */
-	
+
 	/* Round 4 */
 #define S41 6
 #define S42 10
@@ -187,7 +187,7 @@ static void md5_update(s_md5 *md, const unsigned char *buffer)
 	II( d, a, b, c, in[11], S42, UL(3174756917)); /* 62 */
 	II( c, d, a, b, in[ 2], S43, UL( 718787259)); /* 63 */
 	II( b, c, d, a, in[ 9], S44, UL(3951481745)); /* 64 */
-	
+
 	md->buf[0] += a;
 	md->buf[1] += b;
 	md->buf[2] += c;
@@ -211,7 +211,7 @@ static void md5_compute(s_md5 *md, const unsigned char *data, size_t length,
 {
 	unsigned char buffer[64];
 	int i;
-	
+
 	while( length >= 64 )
 	{
 		md5_update(md, data);
@@ -255,14 +255,14 @@ void md5_get(const unsigned char *data, size_t length, unsigned char *digest)
 
 /*****************************************************************************
  * Compute CRAM-MD5 digest (RFC-2195). It is produced by calculating
- *   
+ *
  *   MD5((secret XOR opad), MD5((secret XOR ipad), challengedata))
  *
  * where MD5 is chosen hash function, ipad and opad are 36 hex and 5C hex
  * and secret is null-padded to a length of 64 bytes. If the secret is
  * longer than 64 bytes, the hash-function digest of the secret is used as
  * an input
- * 
+ *
  * Arguments:
  * 	secret    pointer to the null-terminated secret string (e.g. password)
  * 	challenge pointer to the challenge data
@@ -281,7 +281,7 @@ void md5_cram_get(const unsigned char *secret, const unsigned char *challenge,
 	unsigned char osecret[64];
 	unsigned char isecret[64];
 	s_md5 md;
-	
+
 	/*
 	 * If the secret length is longer 64 bytes
 	 * use MD5 digest of the secret as input
@@ -297,7 +297,7 @@ void md5_cram_get(const unsigned char *secret, const unsigned char *challenge,
 	memcpy(isecret, secret, secret_length);
 	memset(osecret + secret_length, '\0', 64 - secret_length);
 	memset(isecret + secret_length, '\0', 64 - secret_length);
-	
+
 	for( i = 0; i < 64; i++ )
 	{
 		osecret[i] ^= 0x5c;

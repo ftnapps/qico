@@ -1,6 +1,6 @@
 /**********************************************************
  * common types
- * $Id: types.h,v 1.3 2003/08/25 15:27:39 sisoft Exp $
+ * $Id: types.h,v 1.4 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #ifndef __TYPES_H__
 #define __TYPES_H__
@@ -56,7 +56,7 @@ typedef unsigned int	DWORD;
 	/* Intel to host */
 #	define I2H16(x)	((((x) & 0x00FF) << 8) | (((x) >> 8) & 0x00FF))
 #	define I2H32(x)	((I2H16((x) & 0x0000FFFF) << 16) | (I2H16(((x) >> 16) & 0x0000FFFF)))
-#else 
+#else
 /* We are on Intel-like processor */
 	/* Host to Intel */
 #	define H2I16(x)	(x)

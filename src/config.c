@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.5 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: config.c,v 1.6 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -39,7 +39,7 @@ static int getoct(int *to, char *from)
 {
 	if(strspn(from, "01234567 \t")!=strlen(from)) return 0;
 	*to=strtol(from, (char **)NULL, 8);return 1;
-}	 
+}
 
 static int getaddrl(falist_t **to, char *from)
 {
@@ -113,7 +113,7 @@ char *cfgs(int i)
 		if(!ci->condition) cn=ci;
 	}
 	return  ccs=cn->value.v_char;
-} 
+}
 slist_t *cfgsl(int i)
 {
 	cfgitem_t *ci, *cn=((void *)0);
@@ -134,7 +134,7 @@ faslist_t *cfgfasl(int i)
 		if(!ci->condition) cn=ci;
 	}
 	return ccfasl=cn->value.v_fasl;
-}  
+}
 
 falist_t *cfgal(int i)
 {
@@ -145,7 +145,7 @@ falist_t *cfgal(int i)
 		if(!ci->condition) cn=ci;
 	}
 	return ccal =cn->value.v_al;
-}  
+}
 
 int readconfig(char *cfgname)
 {
@@ -174,7 +174,7 @@ int readconfig(char *cfgname)
 	}
 	return rc;
 }
-	
+
 int parseconfig(char *cfgname)
 {
 	FILE *f;
@@ -207,7 +207,7 @@ int parseconfig(char *cfgname)
 					rc=0;
 				} else if(!parseconfig(t)) {
 					write_log("%d: was errors parsing included file %s",line, p);
-					rc=0;					
+					rc=0;
 				}
 			} else if(!strcasecmp(p, "if"))	{
 				if(curcond)write_log("%d: warn: 'if' without 'endif' for previous 'if'!",line);
@@ -247,7 +247,7 @@ int parseconfig(char *cfgname)
 					rc=0;
 				}
 			}
-					
+
 		}
 	}
 	fclose(f);
@@ -272,7 +272,7 @@ void dumpconfig()
 		for(c=configtab[i].items;c;c=c->next) {
 			snprintf(buf,MAX_STRING,"  when '%s': ", c->condition);
 			switch(configtab[i].type) {
-			case C_PATH:    
+			case C_PATH:
 			case C_STR:
 				snprintf(buf,MAX_STRING,"%s'%s'", buf,c->value.v_char);break;
 			case C_STRL:
@@ -280,7 +280,7 @@ void dumpconfig()
 					snprintf(buf,MAX_STRING,"%s'%s',",buf,sl->str);
 				snprintf(buf,MAX_STRING,"%s%%",buf);
 				break;
-			case C_ADRSTRL: 
+			case C_ADRSTRL:
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
 					snprintf(buf,MAX_STRING,"%s%s '%s',",buf,ftnaddrtoa(&fasl->addr), fasl->str);
 				snprintf(buf,MAX_STRING,"%s%%",buf);
@@ -310,23 +310,23 @@ void killconfig()
 		while(c) {
 			t=c->next;
 			switch(configtab[i].type) {
-			case C_PATH:    
-			case C_STR:	
+			case C_PATH:
+			case C_STR:
 				if(c->value.v_char) xfree(c->value.v_char);
 				else c->value.v_char=NULL;
 				break;
 			case C_STRL:
 				slist_kill(&c->value.v_sl);
 				break;
-			case C_ADRSTRL: 
+			case C_ADRSTRL:
 				faslist_kill(&c->value.v_fasl);
 				break;
-			case C_ADDRL:   
+			case C_ADDRL:
 				falist_kill(&c->value.v_al);
 				break;
 			case C_OCT:
 			case C_INT:
-			case C_YESNO:   
+			case C_YESNO:
 				c->value.v_int=0;
 				break;
 			}

@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Sender logic.
-   $Id: ls_zsend.c,v 1.3 2004/01/18 15:58:58 sisoft Exp $
+   $Id: ls_zsend.c,v 1.4 2004/02/05 19:51:17 sisoft Exp $
 */
 #include "headers.h"
 #include "defs.h"
@@ -107,7 +107,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 
 	ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
 	ls_SerialNum = 1;
-    
+
 	/* Why we need to send this? Old, good times... */
 	PUTSTR((unsigned char *)"rz\r");
 	do {
@@ -150,7 +150,7 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
                         if(baud<2400) ls_txCurBlockSize = 256;
 			else if(baud>=2400 && baud<4800) ls_txCurBlockSize = 512;
 			else ls_txCurBlockSize = 1024;
-            
+
                         if(ls_Protocol&LSZ_OPTZEDZAP) {
                                 if(baud>=7200 && baud<9600) ls_txCurBlockSize = 2048;
 				else if(baud>=9600 && baud<14400) ls_txCurBlockSize = 4096;
@@ -378,7 +378,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 	while(!feof(txfd)) {
 		/* We need to send ZDATA if previous frame was ZCRCW
 		Also, frame will be ZCRCW, if it is after RPOS */
-		if(ZCRCW == frame) { 
+		if(ZCRCW == frame) {
 			DEBUG(('Z',1,"ls_zsendfile: send ZDATA at %d",txpos));
 			ls_storelong(ls_txHdr,txpos);
 			if((rc=ls_zsendbhdr(ZDATA,4,ls_txHdr))<0) return rc;

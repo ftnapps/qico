@@ -1,6 +1,6 @@
 /**********************************************************
  * aso management
- * $Id: aso.c,v 1.7 2004/01/18 15:58:58 sisoft Exp $
+ * $Id: aso.c,v 1.8 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -61,9 +61,9 @@ int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow)
 		if(!strcasecmp(p+2, "lo"))
 			each(fn, &a, T_ARCMAIL, aso_flavor(p[1]),rslow);
 		if(!strcasecmp(p+2, "ut"))
-			each(fn, &a, T_NETMAIL, aso_flavor(p[1]),rslow);	
+			each(fn, &a, T_NETMAIL, aso_flavor(p[1]),rslow);
 		if(!strcasecmp(p+1, "req"))
-			each(fn, &a, T_REQ, F_REQ,rslow);	
+			each(fn, &a, T_REQ, F_REQ,rslow);
 	}
 
 	closedir(dz);
@@ -172,7 +172,7 @@ char *aso_stsn(ftnaddr_t *fa)
 	xstrcat(aso_tmp,"qst",aso_tmp_len);
 	return aso_tmp;
 }
-						
+
 int aso_locknode(ftnaddr_t *adr,int l)
 {
 	mkdirs(aso_bsyn(adr,'b'));
@@ -190,7 +190,7 @@ int aso_attach(ftnaddr_t *adr, int flv, slist_t *files)
 	aso_flon(adr,flv);
 	f=mdfopen(aso_flon(adr,flv),"at");
 	if(f) {
-		for(fl=files;fl;fl=fl->next) 
+		for(fl=files;fl;fl=fl->next)
 			fprintf(f,"%s\n",fl->str);
 		fclose(f);
 		return 1;
@@ -203,7 +203,7 @@ int aso_request(ftnaddr_t *adr, slist_t *files)
 	slist_t *fl;
 	FILE *f=mdfopen(aso_reqn(adr),"at");
 	if(f) {
-		for(fl=files;fl;fl=fl->next) 
+		for(fl=files;fl;fl=fl->next)
 			fprintf(f,"%s\r\n",fl->str);
 		fclose(f);
 		return 1;

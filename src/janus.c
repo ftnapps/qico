@@ -1,8 +1,8 @@
 /******************************************************************
  * Janus protocol implementation with:
  * - freqs support
- * - crc32 support 
- * $Id: janus.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $
+ * - crc32 support
+ * $Id: janus.c,v 1.4 2004/02/05 19:51:17 sisoft Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -48,7 +48,7 @@ int janus()
 								  out-of-sequence BLKPKT   */
 	flist_t *l;
 	int rc=0;
-	char *p;	
+	char *p;
 
 	int capslogged=0;
 
@@ -72,13 +72,13 @@ int janus()
 	rxbuf=xcalloc(txmaxblklen+8,1);
 
 	rxbufmax = rxbuf+BUFMAX+8;
-	
+
 	l=fl;
 	preparereqs(l);
 	getfname(&l);
-	
+
 	sline("Janus session (%d block)", txblklen);
-  
+
 	/*-------------------------------------------------------------------------*/
 	/* Initialize file reception variables                                     */
 	/*-------------------------------------------------------------------------*/
@@ -235,7 +235,7 @@ int janus()
 					if (!capslogged) {
 						write_log("janus link options: %dKB%s%s%s",
 							txmaxblklen/1024,
-							caps & JCAP_CRC32?",C32":"", 
+							caps & JCAP_CRC32?",C32":"",
 							caps & JCAP_FREQ?",FRQ":"",
 							caps & JCAP_CLEAR8?",CL8":""
 							);
@@ -311,7 +311,7 @@ int janus()
 				if (!(txstate || rxstate)) goto breakout;
 				break;
 
-				
+
 				/*-------------------------------------------------------------------*/
 				/* ACK to last data block in file                                    */
 				/*-------------------------------------------------------------------*/
@@ -362,7 +362,7 @@ int janus()
 				write_log("janus freq: remote hasn't such file");
 				sendpkt (NULL, 0, FRNAKACKPKT);
 				break;
-				
+
 				/*---------------------------------------------------------------*/
 				/* ACK to no matching files for request error; try to end again  */
 				/*---------------------------------------------------------------*/
@@ -374,7 +374,7 @@ int janus()
 					txstate = XSENDFNAME;
 				}
 				break;
-				
+
 				/*-------------------------------------------------------------------*/
 				/* Receiver says "let's try that again."                             */
 				/*-------------------------------------------------------------------*/
@@ -403,7 +403,7 @@ int janus()
 				/*-------------------------------------------------------------------*/
 			case HALTACKPKT:
 				break;
-				
+
 				/*-------------------------------------------------------------------*/
 				/* Abort the transfer and quit                                       */
 				/*-------------------------------------------------------------------*/
@@ -422,12 +422,12 @@ int janus()
 			  }
 			  qpreset(0);qpreset(1);
 			  goto breakout;
-			  
+
 			}  /*  switch (pkttype)  */
 		}  /*  while (pkttype)  */
 		UHASDATA(200);
 	} while (txstate || rxstate);
-		
+
 	/*-------------------------------------------------------------------------*/
 	/* All done; make sure other end is also finished (one way or another)     */
 	/*-------------------------------------------------------------------------*/
@@ -465,7 +465,7 @@ static void sendpkt(byte *buf, int len, int type)
 	DEBUG(('J',1,"sendpkt %d bytes, type:%c", len, type));
 
 	BUFCLEAR();
-	
+
 	BUFCHAR(DLE);
 	BUFCHAR(PKTSTRTCHR^0x40);
 
@@ -613,7 +613,7 @@ static byte rcvpkt()
 		for (i=is32?4:2;i;--i) {
 			if ((c=rcvbyte(timeout)) < 0) break;
 			pktcrc=(pktcrc<<8)|c;
-		}                                                               
+		}
 		clccrc=(is32?crc32((char *)rxbuf, p-rxbuf):crc16usd((char *)rxbuf, p-rxbuf));
 		DEBUG(('J',1,"recvpkt: CRC%d is %08x, got %08x",is32?32:16,clccrc,pktcrc));
 		if(!i && pktcrc==clccrc) {
@@ -717,13 +717,13 @@ static slist_t *readreq(slist_t *l, char *fname)
 {
 	FILE *f;
 	char s[MAX_PATH], *p;
-	
+
 	f=fopen(fname, "rt");
 	if(!f) {
 		write_log("can't read .req: %s", fname);
 		return l;
 	}
-	
+
 	while(fgets(s,MAX_PATH-1,f)) {
 		p=s+strlen(s)-1;
 		while(*p=='\r' || *p=='\n') *p--=0;

@@ -1,6 +1,6 @@
 /******************************************************************
  * BinkP protocol implementation. by sisoft\\trg'2003.
- * $Id: binkp.c,v 1.19 2004/02/02 17:31:45 sisoft Exp $
+ * $Id: binkp.c,v 1.20 2004/02/05 19:51:16 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -553,7 +553,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 					send_file=0;
 				}
 			}
-		}	
+		}
 		if(nofiles&&!wait_got&&!sent_eob) {
 			msgs(BPM_EOB,NULL,NULL);
 			t1=t_set(BP_TIMEOUT);

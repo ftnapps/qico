@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.12 2004/01/26 21:24:50 sisoft Exp $
+ * $Id: qipc.c,v 1.13 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -29,7 +29,7 @@ void qsendpkt(char what,char *line,char *buff,int len)
 	}
 	memcpy(buf+4+strlen(line),buff,len);
 	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
-}	
+}
 
 int qrecvpkt(char *str)
 {
@@ -51,7 +51,7 @@ void vlog(char *str,...)
 {
 	va_list args;
 	char lin[MAX_STRING];
-	
+
 	va_start(args, str);
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
@@ -66,7 +66,7 @@ void sline(char *str,...)
 {
 	va_list args;
 	char lin[MAX_STRING];
-	
+
 	va_start(args,str);
 #ifdef HAVE_VSNPRINTF
 	vsnprintf(lin,MAX_STRING-1,str,args);
@@ -129,7 +129,7 @@ void qpmydata()
 void qpproto(char type,pfile_t *pf)
 {
 	unsigned char buf[MSG_BUFFER],*p=buf;
-	
+
 	STORE32(p,pf->foff);INC32(p);
 	STORE32(p,pf->ftot);INC32(p);
 	STORE32(p,pf->toff);INC32(p);

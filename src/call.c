@@ -1,6 +1,6 @@
 /**********************************************************
  * outgoing call implementation
- * $Id: call.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: call.c,v 1.6 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "tty.h"
@@ -47,14 +47,14 @@ int stat_collect()
 	slist_t *hc;
 	int rc=MC_OK,stat_len=8192;
 	char stat[8192],*cur_stat,*p;
-	if(!cfgsl(CFG_MODEMSTAT))return MC_OK; 
+	if(!cfgsl(CFG_MODEMSTAT))return MC_OK;
 	write_log("collecting statistics...");
 	for(hc=cfgsl(CFG_MODEMSTAT);hc;hc=hc->next) {
 		*stat=0;
 		rc=modem_stat(hc->str,cfgsl(CFG_MODEMOK),cfgsl(CFG_MODEMERROR),
 					cfgi(CFG_WAITRESET),stat,stat_len);
 		for(cur_stat=stat;*cur_stat;) {
-			for(p=cur_stat;*p&&*p!='\n';p++); 
+			for(p=cur_stat;*p&&*p!='\n';p++);
 			if(*p)*(p++)=0;
 			write_log("%s",cur_stat);
 			cur_stat=p;
@@ -67,7 +67,7 @@ int reset()
 {
 	slist_t *hc;
 	int rc=MC_OK;
-	if(!cfgsl(CFG_MODEMRESET)) return MC_OK; 
+	if(!cfgsl(CFG_MODEMRESET)) return MC_OK;
 	write_log("resetting modem...");
 	for(hc=ccsl;hc && rc==MC_OK;hc=hc->next)
 		rc=modem_chat(hc->str,cfgsl(CFG_MODEMOK),cfgsl(CFG_MODEMNODIAL),
@@ -89,7 +89,7 @@ int do_call(ftnaddr_t *fa,char *phone,char *port)
 	}
 
 	reset();
-	
+
 	xstrcpy(s,cfgs(CFG_DIALPREFIX),MAX_STRING);
 	xstrcat(s,phone,MAX_STRING);xstrcat(s,cfgs(CFG_DIALSUFFIX),MAX_STRING);
 
@@ -105,7 +105,7 @@ int do_call(ftnaddr_t *fa,char *phone,char *port)
 		write_log("got %s",conn);
 		title("Waiting...");
 		vidle();
-		switch(rc) {		
+		switch(rc) {
 			case MC_RING:
 				ringm=1;
 			case MC_BUSY:

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.20 2004/02/01 18:11:43 sisoft Exp $
+ * $Id: session.c,v 1.21 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -29,7 +29,7 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill, off_t off, FILE *lo
 	if((checktimegaps(cfgs(CFG_MAILONLY)) ||
 	    checktimegaps(cfgs(CFG_ZMH))) && type!=IS_PKT) return;
 
-	for(i=cfgsl(CFG_AUTOHOLD);i;i=i->next) 
+	for(i=cfgsl(CFG_AUTOHOLD);i;i=i->next)
 	    if(!xfnmatch(i->str,loc,FNM_PATHNAME))return;
 
 	switch(type) {
@@ -114,7 +114,7 @@ int boxflist(flist_t **fl, char *path)
 	DIR *d;char *p;struct dirent *de;struct stat sb;
 	char mn[MAX_PATH];
 	int len;
-	
+
 	DEBUG(('S',2,"Add filebox '%s'",path));
 
 	d=opendir(path);
@@ -171,13 +171,13 @@ void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 		addflist(fl, xstrdup(aso_tmp), xstrdup(str), ' ', 0, NULL, 1);
 		totalf+=sb.st_size;totaln++;
 	}
-	
+
 	for(i=0;i<(5-(cfgi(CFG_HOLDOUT)==1&&mode));i++) {
 		if(is_bso()==1)floflist(fl, bso_flon(fa, fls[i]));
 		if(is_aso()==1)floflist(fl, aso_flon(fa, fls[i]));
 	}
 
-	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next) 
+	for(j=cfgfasl(CFG_FILEBOX);j;j=j->next)
 		if(ADDRCMP((*fa),j->addr)) {
 			if(!boxflist(fl, j->str))
 				write_log("can't open filebox '%s'!", j->str);
@@ -186,11 +186,11 @@ void makeflist(flist_t **fl, ftnaddr_t *fa,int mode)
 
 	if(cfgs(CFG_LONGBOXPATH)) {
 		while(*flv) {
-			snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d.%c",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p,*flv); 
+			snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d.%c",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p,*flv);
 			boxflist(fl, str);
 			flv++;
 		}
-		snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p); 
+		snprintf(str,MAX_STRING,"%s/%d.%d.%d.%d",cfgs(CFG_LONGBOXPATH),fa->z,fa->n,fa->f,fa->p);
 		boxflist(fl, str);
 	}
 }
@@ -206,7 +206,7 @@ void flexecute(flist_t *fl)
 		if(fl->loff<0) {
 			fseek(fl->lo, 0L, SEEK_SET);
 			rem=0;
-			while(fgets(str, MAX_STRING, fl->lo)) 
+			while(fgets(str, MAX_STRING, fl->lo))
 				if(*str!='~' && *str!='\n' && *str!='\r') rem++;
 			fclose(fl->lo);fl->lo=NULL;
 			if(!rem) lunlink(fl->tosend);
@@ -262,7 +262,7 @@ void flkill(flist_t **l, int rc)
 		xfree((*l)->tosend);
 		t=(*l)->next;
 		xfree(*l);*l=t;
-	}	
+	}
 }
 
 void simulate_send(ftnaddr_t *fa)
@@ -372,7 +372,7 @@ static int hydra(int mode, int hmod, int rh1)
 
 	sline("Hydra-%dk session", hmod*2);
 	hydra_init(HOPT_XONXOFF|HOPT_TELENET, mode, hmod, cfgi(CFG_HRXWIN), cfgi(CFG_HTXWIN));
-	for(l=fl;l;l=l->next) 
+	for(l=fl;l;l=l->next)
 		if(l->sendas) {
 			if(l->type==IS_REQ || !rh1) {
 				rc=hydra_file(l->tosend, l->sendas);
@@ -386,7 +386,7 @@ static int hydra(int mode, int hmod, int rh1)
 	}
 	rc=hydra_file(NULL, NULL);
 
-	for(l=fl;l;l=l->next) 
+	for(l=fl;l;l=l->next)
 		if(l->sendas) {
 			rc=cfgi(CFG_AUTOTICSKIP)?ticskip:0;ticskip=0;
 			if(!rc||!istic(l->tosend))rc=hydra_file(l->tosend,l->sendas);
@@ -401,7 +401,7 @@ static int hydra(int mode, int hmod, int rh1)
 	}
 	rc=hydra_file(NULL, NULL);
 	hydra_deinit();
-	return rc==XFER_ABORT; 	
+	return rc==XFER_ABORT;
 }
 
 void log_rinfo(ninfo_t *e)
@@ -472,7 +472,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		if((t=getenv("CALLER_ID")) && strcasecmp(t,"none")&&strlen(t)>3)
 		  title("Inbound session %s (CID %s)",ftnaddrtoa(&rnode->addrs->addr), t);
 		    else title("Inbound session %s",ftnaddrtoa(&rnode->addrs->addr));
-	}			
+	}
 	log_rinfo(rnode);
 	if(is_bso()==1)for(pp=rnode->addrs;pp;pp=pp->next)
 		bso_locknode(&pp->addr,LCK_s);
@@ -484,7 +484,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			return S_FAILURE;
 		}
 		flkill(&fl, 0);totalf=0;totalm=0;
-		for(pp=rnode->addrs;pp;pp=pp->next) 
+		for(pp=rnode->addrs;pp;pp=pp->next)
 			makeflist(&fl, &pp->addr,mode);
 		if(strlen(rnode->pwd)) rnode->options|=O_PWD;
 		if(is_listed(rnode->addrs, cfgs(CFG_NLPATH), cfgi(CFG_NEEDALLLISTED)))
@@ -494,7 +494,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 			if(has_addr(&pp->addr, rnode->addrs)) {
 				write_log("remote also has %s!", ftnaddrtoa(&pp->addr));
 				return S_FAILURE;
-			}		
+			}
 		nfiles=0;rc=0;
 		for(pp=rnode->addrs;pp;pp=pp->next) {
 			t=findpwd(&pp->addr);
@@ -529,7 +529,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='8';emsi_lo|=P_HYDRA8;break;}
 			if(*t=='6' && rnode->options&P_HYDRA16)
 				{pr[0]='6';emsi_lo|=P_HYDRA16;break;}
-#endif/*HYDRA8K16K*/			
+#endif/*HYDRA8K16K*/
 			if(*t=='H' && rnode->options&P_HYDRA)
 				{pr[0]='H';emsi_lo|=P_HYDRA;break;}
 			if(*t=='J' && rnode->options&P_JANUS)
@@ -560,13 +560,13 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	rnode->starttime=time(NULL);
 	if(cfgi(CFG_MAXSESSION)) alarm(cci*60);
 	DEBUG(('S',1,"Maxsession: %d",cci));
-	
+
 	qemsisend(rnode);
 	qpreset(0);qpreset(1);
 
 	proto=(mode?rnode->options:emsi_lo)&P_MASK;
 	switch(proto) {
-	case P_NCP: 
+	case P_NCP:
 		write_log("no compatible protocols");
 		flkill(&fl, 0);
 		return S_FAILURE;
@@ -583,13 +583,13 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="Hydra-8k";break;
 	case P_HYDRA16:
 		t="Hydra-16k";break;
-#endif/*HYDRA8K16K*/	
+#endif/*HYDRA8K16K*/
 	case P_HYDRA:
 		t="Hydra";break;
 	case P_JANUS:
 		t="Janus";break;
 	default:
-		t="Unknown";		
+		t="Unknown";
 	}
 	DEBUG(('S',1,"emsopts: %s %x %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo, rnode->opt));
 	write_log("options: %s%s%s%s%s%s%s%s%s%s", t,
@@ -606,7 +606,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	switch(proto) {
 	case P_ZEDZAP:
 	case P_DIRZAP:
-	case P_ZMODEM:  
+	case P_ZMODEM:
 		recvf.cps=1;recvf.ttot=rnode->netmail+rnode->files;
 		if(mode) {
 			rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
@@ -634,7 +634,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		case P_HYDRA4:  rc=2;break;
 		case P_HYDRA8:  rc=4;break;
 		case P_HYDRA16: rc=8;break;
-#endif/*HYDRA8K16K*/		
+#endif/*HYDRA8K16K*/
 		}
 		rc=hydra(mode, rc, rnode->options&O_RH1);
 		flkill(&fl, !rc);
@@ -676,7 +676,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		write_log("connection speed is too slow");
 		return S_REDIAL|S_ADDTRY;
 	}
-		
+
 	memset(&sendf,0, sizeof(sendf));
 	memset(&recvf,0, sizeof(recvf));
 	signal(SIGALRM, sessalarm);
@@ -694,7 +694,7 @@ int session(int mode, int type, ftnaddr_t *calladdr, int speed)
 		}
 		rc=emsisession(mode, calladdr, speed);
 		break;
-	    case SESSION_EMSI: 
+	    case SESSION_EMSI:
 		rc=emsisession(mode, calladdr, speed);
 		break;
 	    case SESSION_BINKP:

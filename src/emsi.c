@@ -1,12 +1,12 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.11 2004/02/02 17:31:46 sisoft Exp $
+ * $Id: emsi.c,v 1.12 2004/02/05 19:51:16 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
 
 #define EMSI_BUF 65536
-	
+
 static char *emsireq="**EMSI_REQA77E";
 static char *emsiack="**EMSI_ACKA490";
 static char *emsiinq="**EMSI_INQC816";
@@ -15,13 +15,13 @@ static char *emsidat="**EMSI_DAT";
 static int chat_need=-1,chatmy=-1;
 
 char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int lopt,
-				    char *protos,falist_t *adrs,int showpwd)	
+				    char *protos,falist_t *adrs,int showpwd)
 {
 	char *dat=xcalloc(EMSI_BUF,1),tmp[1024],*p;
 	int c;
 	falist_t *cs;ftnaddr_t *ba;
 	time_t tm=time(NULL);
-	
+
 	xstrcpy(dat,"**EMSI_DAT0000{EMSI}{",EMSI_BUF);
 	ba=akamatch(remaddr,adrs?adrs:cfgal(CFG_ADDRESS));
 	xstrcat(dat,ftnaddrtoa(ba),EMSI_BUF);
@@ -39,7 +39,7 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 	if(strchr(protos,'H')||strchr(protos,'h')
 #ifdef HYDRA8K16K
 		||strchr(protos,'4')||strchr(protos,'8')||strchr(protos,'6')
-#endif/*HYDRA8K16K*/		
+#endif/*HYDRA8K16K*/
 		)xstrcat(dat,",RH1",EMSI_BUF);
 	if(lopt&O_PUA)xstrcat(dat,",PUA",EMSI_BUF);
 	if(lopt&O_PUP)xstrcat(dat,",PUP",EMSI_BUF);
@@ -55,11 +55,11 @@ char *emsi_makedat(ftnaddr_t *remaddr,unsigned long mail,unsigned long files,int
 		case 'Z':xstrcat(dat,",ZAP",EMSI_BUF);c=1;break;
 		case 'D':xstrcat(dat,",DZA",EMSI_BUF);c=1;break;
 		case 'H':xstrcat(dat,",HYD",EMSI_BUF);c=1;break;
-#ifdef HYDRA8K16K		
+#ifdef HYDRA8K16K
 		case '4':xstrcat(dat,",HY4",EMSI_BUF);c=1;break;
 		case '8':xstrcat(dat,",HY8",EMSI_BUF);c=1;break;
 		case '6':xstrcat(dat,",H16",EMSI_BUF);c=1;break;
-#endif/*HYDRA8K16K*/	
+#endif/*HYDRA8K16K*/
 		case 'J':xstrcat(dat,",JAN",EMSI_BUF);c=1;break;
 		case 'C':xstrcat(dat,",CHT",EMSI_BUF);chatmy=1;break;
 		}
@@ -206,15 +206,15 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 			s=emsi_tok(&p,"[]");
 			restrcpy(&dat->phone,s);
 			emsi_dcds(dat->phone);
- 			s=emsi_tok(&p,"[]"); 
- 			if(s) sscanf(s,"%d",&dat->speed); 
- 			s=emsi_tok(&p,"[]"); 
- 			restrcpy(&dat->flags,s); 
+ 			s=emsi_tok(&p,"[]");
+ 			if(s) sscanf(s,"%d",&dat->speed);
+ 			s=emsi_tok(&p,"[]");
+ 			restrcpy(&dat->flags,s);
 			emsi_dcds(dat->flags);
 		} else if(!strcmp(p, "TRAF")) {
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
-			sscanf(p,"%x %x",&dat->netmail,&dat->files);	
+			sscanf(p,"%x %x",&dat->netmail,&dat->files);
 		} else if(!strcmp(p,"OHFR")) {
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
@@ -229,9 +229,9 @@ int emsi_parsedat(char *str, ninfo_t *dat)
 			p=emsi_tok(&t,"{}");
 			if(!p)return 0;
 			s=emsi_tok(&p,"[]");
-			if(sscanf(s,"%lx",&dat->time)!=1)return 0;			
+			if(sscanf(s,"%lx",&dat->time)!=1)return 0;
 		} else p=emsi_tok(&t,"{}");
-	}		
+	}
 	return 1;
 }
 
@@ -275,8 +275,8 @@ int emsi_send(int mode,unsigned char *dat)
 			if((p-str)>=MAX_STRING) {
 				got=0;p=str;
 			}
-			
-		}		
+
+		}
 	}
 }
 
@@ -431,7 +431,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "HY4")) { o|=P_HYDRA4;continue;}
 		if(!strcmp(p, "HY8")) { o|=P_HYDRA8;continue;}
 		if(!strcmp(p, "H16")) { o|=P_HYDRA16;continue;}
-#endif/*HYDRA8K16K*/		
+#endif/*HYDRA8K16K*/
 		if(!strcmp(p, "HYD")) { o|=P_HYDRA;continue;}
 		if(!strcmp(p, "JAN")) { o|=P_JANUS;continue;}
 		if(!strcmp(p, "NCP")) { o|=P_NCP;continue;}
@@ -439,7 +439,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "NRQ")) { o|=O_NRQ;continue;}
 		if(!strcmp(p, "FNC")) { o|=O_FNC;continue;}
 		if(!strcmp(p, "XMA")) { o|=O_XMA;continue;}
-	}	
+	}
 	q=lcod;
 	while((p=strsep(&q, ","))) {
 		if(!strcmp(p, "RH1")) { o|=O_RH1;continue;}

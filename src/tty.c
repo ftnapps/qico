@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.6 2004/01/20 22:02:19 sisoft Exp $
+ * $Id: tty.c,v 1.7 2004/02/05 19:51:17 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -57,7 +57,7 @@ int tty_isfree(char *port, char *nodial)
 	char lckname[MAX_PATH];
 	FILE *f;int pid;
 	struct stat s;
-	
+
 	snprintf(lckname, MAX_PATH, "%s.%s", nodial, port);
 	if(!stat(lckname, &s)) return 0;
 	snprintf(lckname, MAX_PATH, "%s/LCK..%s",cfgs(CFG_LOCKDIR),port);
@@ -95,18 +95,18 @@ int tty_openport(char *port)
 	if (!speed) speed = DEFAULT_SPEED;
 	return tty_open(str,speed);
 }
-	
+
 void tty_unlock(char *port)
 {
 	char *p, lckname[MAX_PATH];
 	int pid;
 	FILE *f;
-	
+
 	DEBUG(('M',4,"tty_unlock"));
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
 	snprintf(lckname,MAX_PATH,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
 	if ((f=fopen(lckname,"r")))	{
-		fscanf(f,"%d",&pid);         
+		fscanf(f,"%d",&pid);
 		fclose(f);
 	}
 	if(pid==getpid()) unlink(lckname);
@@ -116,7 +116,7 @@ int tty_lock(char *port)
 {
 	char lckname[MAX_PATH], *p;
 	int rc=-1;
-	
+
 	DEBUG(('M',4,"tty_lock"));
 	if ((p=strrchr(port,'/')) == NULL) p=port; else p++;
 	snprintf(lckname,MAX_PATH,"%s/LCK..%s",cfgs(CFG_LOCKDIR),p);
@@ -135,7 +135,7 @@ int tty_open(char *port, int speed)
 		return ME_CANTLOCK;
 
 	tty_hangedup=0;
-	
+
 	DEBUG(('M',3,"tty_open"));
 	fflush(stdin);fflush(stdout);
 	setbuf(stdin, NULL);setbuf(stdout, NULL);
@@ -151,7 +151,7 @@ int tty_open(char *port, int speed)
 	rc=tty_setattr(speed);
 	if(rc) return rc;
 
-	return tty_block(); 
+	return tty_block();
 }
 
 int tty_setattr(int speed)
@@ -191,14 +191,14 @@ int tty_setattr(int speed)
 		/* Speed is zero on answer, and we don't want to flush incoming EMSI_DAT */
 		tcflush(STDIN_FILENO, TCIFLUSH);
 	}
-		
+
 	tios.c_cc[VTIME]=0;
 	tios.c_cc[VMIN]=1;
 
 	rc=tcsetattr(STDIN_FILENO, TCSANOW, &tios);
 	if(rc) rc=ME_ATTRS;
 	return rc;
-}	
+}
 
 speed_t tty_transpeed(int speed)
 {
@@ -282,7 +282,7 @@ int tty_local()
 
 	signal(SIGHUP, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-		
+
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
 
 	rc=tcgetattr(STDIN_FILENO, &tios);
@@ -306,12 +306,12 @@ int tty_nolocal()
 {
 	struct termios tios;
 	int rc;
-	
+
 	signal(SIGHUP, tty_sighup);
 	signal(SIGPIPE, tty_sighup);
 
 	if(!isatty(STDIN_FILENO)) return ME_NOTATT;
-	
+
 	rc=tcgetattr(STDIN_FILENO, &tios);
 	if(rc) {
 		DEBUG(('M',3,"tty_nolocal: tcgetattr failed, errno=%d",errno));
@@ -365,7 +365,7 @@ int tty_close()
 {
 	if(!tty_port) return ME_CLOSE;
 	DEBUG(('M',2,"tty_close"));
-	fflush(stdin);fflush(stdout);	
+	fflush(stdin);fflush(stdout);
 	tty_cooked();
 	fclose(stdin);fclose(stdout);
 	tty_unlock(tty_port);
@@ -376,14 +376,14 @@ int tty_close()
 int tty_unblock()
 {
 	int flags, rc=0;
-	
+
 	DEBUG(('M',3,"tty_unblock"));
 	flags=fcntl(STDIN_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags|=O_NONBLOCK;
 	rc|=fcntl(STDIN_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
-	
+
 	flags=fcntl(STDOUT_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags|=O_NONBLOCK;
@@ -395,14 +395,14 @@ int tty_unblock()
 int tty_block()
 {
 	int flags, rc=0;
-	
+
 	DEBUG(('M',3,"tty_block"));
 	flags=fcntl(STDIN_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags&=~O_NONBLOCK;
 	rc|=fcntl(STDIN_FILENO, F_SETFL, flags);
 	if(rc) return ME_FLAGS;
-	
+
 	flags=fcntl(STDOUT_FILENO, F_GETFL, 0L);
 	if(flags<0) { rc=1;flags=0; }
 	flags&=~O_NONBLOCK;
@@ -419,7 +419,7 @@ int tty_put(byte *buf, int size)
 	if(rc!=size) {
 		if(tty_hangedup || errno==EPIPE) return RCDO;
 		else return ERROR;
-	}		
+	}
 #if DEBUG_SLEEP==1
 	if(is_ip)usleep(300);
 #endif
@@ -428,7 +428,7 @@ int tty_put(byte *buf, int size)
 #endif
 	return OK;
 }
-		
+
 int tty_get(byte *buf, int size, int *timeout)
 {
 	fd_set rfds, efds, wfds;
@@ -440,7 +440,7 @@ int tty_get(byte *buf, int size, int *timeout)
 	FD_SET(STDIN_FILENO,&rfds);FD_SET(STDIN_FILENO,&efds);
 	tv.tv_sec=*timeout;
 	tv.tv_usec=0;
-	
+
 	t=time(NULL);
 	rc=selectmy(1, &rfds, &wfds, &efds, &tv);
 	if(rc<0) {
@@ -450,7 +450,7 @@ int tty_get(byte *buf, int size, int *timeout)
 	*timeout-=(time(NULL)-t);
 	if(rc==0) return TIMEOUT;
 	if(FD_ISSET(STDIN_FILENO, &efds)) return ERROR;
-	
+
 	rc=read(STDIN_FILENO, buf, size);
 	if(rc<1) {
 		if(tty_hangedup || errno==EPIPE) return RCDO;
@@ -516,7 +516,7 @@ int tty_hasdata(int sec, int usec)
 	int rc;
 
 	if(tty_hangedup) return RCDO;
-	if(in_bufpos<in_bufmax) return OK; 
+	if(in_bufpos<in_bufmax) return OK;
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);
 	FD_SET(STDIN_FILENO,&rfds);
@@ -543,7 +543,7 @@ int tty_hasdata_timed(int *timeout)
 	time_t t;
 
 	if(tty_hangedup) return RCDO;
-	if(in_bufpos<in_bufmax) return OK; 
+	if(in_bufpos<in_bufmax) return OK;
 	FD_ZERO(&rfds);
 	FD_ZERO(&efds);
 	FD_SET(STDIN_FILENO,&rfds);
@@ -651,7 +651,7 @@ int modem_sendstr(char *cmd)
 	    else DEBUG(('M',3,"modem_sendstr: error, rc=%d, errno=%d",rc,errno));
 	return rc;
 }
-	
+
 int modem_chat(char *cmd, slist_t *oks, slist_t *nds, slist_t *ers, slist_t *bys,
 			   char *ringing, int maxr, int timeout, char *rest, size_t restlen)
 {
@@ -739,20 +739,20 @@ int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout, char *stat, si
 		rc=tty_gets(buf, MAX_STRING-1, t_rest(t1));
 		if(!*buf) continue;
 		if(rc!=OK) {
-			if(stat) xstrcat(stat, "FAILURE", 
+			if(stat) xstrcat(stat, "FAILURE",
 				stat_len);
 			DEBUG(('M',3,"modem_stat: tty_gets failed"));
 			return MC_FAIL;
 		}
 		for(cs=oks;cs;cs=cs->next)
 			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(stat) xstrcat(stat, buf, 
+				if(stat) xstrcat(stat, buf,
 					stat_len);
 				return MC_OK;
 			}
 		for(cs=ers;cs;cs=cs->next)
 			if(!strncmp(buf, cs->str, strlen(cs->str))) {
-				if(stat) xstrcat(stat, buf, 
+				if(stat) xstrcat(stat, buf,
 					stat_len);
 				return MC_ERROR;
 			}
@@ -762,7 +762,7 @@ int modem_stat(char *cmd, slist_t *oks, slist_t *ers,int timeout, char *stat, si
 		 	xstrcat(stat,"\n",stat_len);
 			}
 	}
-	
+
 	if(stat) {
 		if (ISTO(rc)) xstrcat(stat, "TIMEOUT", stat_len);
 		else xstrcat(stat, "FAILURE", stat_len);
