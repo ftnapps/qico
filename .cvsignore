@@ -4,11 +4,14 @@ aclocal.m4
 autom4te.cache
 config.cache
 config.h
+config.in.h
 config.log
 config.status
 configure
 qico.spec
 stamp-h
 stamp-h1
-Makefile.in
-configure.in
+cscope.out
+install-sh
+mkinstalldirs
+missing
