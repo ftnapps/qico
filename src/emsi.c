@@ -2,7 +2,7 @@
  * File: emsi.c
  * Created at Thu Jul 15 16:11:11 1999 by pk // aaz@ruxy.org.ru
  * EMSI
- * $Id: emsi.c,v 1.17 2001/01/31 21:43:28 lev Exp $
+ * $Id: emsi.c,v 1.18 2001/02/08 19:23:53 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -254,7 +254,7 @@ int emsi_send(int mode, char *dat)
 	t1=t_set(60);
 	while(1) {
 		sline("Sending EMSI_DAT");
-		PUTSTR(dat);
+		PUTSTR(dat); PUTCHAR('\r');
 		tries++;
 		if(tries>10) return TIMEOUT;
 		t2=t_set(20);got=0;p=str;
@@ -265,10 +265,10 @@ int emsi_send(int mode, char *dat)
 			if(t_exp(t2)) break;
 			if(!got && ch=='*') got=1;
 			if(got && (ch=='\r' || ch=='\n')) {
+				*p=0;p=str;got=0;
 #ifdef E_DEBUG	
 				write_log("got str '%s' %d", str, strlen(str));
 #endif
-				*p=0;p=str;got=0;
 				if(!strncmp(str, emsiack, 14)) {
 					sline("Got EMSI_ACK");return OK;
 				}
