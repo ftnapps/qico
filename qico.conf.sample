@@ -93,16 +93,18 @@
 address		1:2345/7845
 address 	111:222/44
 
-
 # domain name for BinkP	(required)				       (NEW!!!)
 domain		fidonet
 
+;if address 111:*/*
+;    domain	leftnet
+;endif
 
 # passwords for nodes
 ;password	2:2345/1234		COOLPASS
 ;password	111:222/13		SOMEPWD
 
-# You rcould include passwords file
+# You'r could include passwords file
 ;include		/etc/ftn/qico.passwd
 
 
@@ -159,7 +161,7 @@ log		/var/log/ftn/qico.log
 #
 ;loglevels E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0
 
-# Write to log estimated transfer time befor each file transfer
+# Write to log estimated transfer time before each file transfer
 estimatedtime no
 
 # nodelists path (required)
@@ -173,12 +175,11 @@ nodelist 	nodelist.999
 # Check for `listed' all addresses of peer or only one (any).
 needalllisted no
 
-# ASO and BSO outbound path (required)
+# ASO and(or) BSO outbound path (required)
 ;asooutbound 	/var/spool/ftn/outb
 bsooutbound 	/var/spool/ftn/outb
 
-# status files outbound (path, for .qst files). If don't defined,      (NEW!!!)
-# then used path from `outbound' keyword.
+# status outbound (path to .qst files). default, same as `outbound'    (NEW!!!)
 ;qstoutbound	/var/spool/ftn/qstoutb
 
 # unprotected inbound (required)
@@ -244,8 +245,7 @@ dialdelta	30
 # outbound rescan period in seconds
 rescanperiod	30
 
-# long rescan. each 'longrescan' rescan outbound, check all files      (NEW!!!)
-# force.
+# long rescan. each 'longrescan' rescanning check all files force.     (NEW!!!)
 ;longrescan	4
 
 # phone translations, `=' means all other phones - must be last translation, 
@@ -361,7 +361,7 @@ worktime	0:00-7:00
 phone		7-095-y0U-kN0W
 speed		33600
 flags		Linux, qico-si team
-# freq time for EMSI only. if don't defined, then `freqtime' used.     (NEW!!!)
+# freq time for EMSI only. default used `freqtime' or "Never"	       (NEW!!!)
 ;emsifreqtime	Always!
 
 # mailer info. qico-<version>/<your_os> will be used, if not defined.
@@ -407,18 +407,27 @@ protorder	HJDZ1C
 ;   protorder	68HJDZ1C
 ;endif
 
-# Ignore NRQ flag in EMSI. if enabled and request present, then .req   (NEW!!!)
-# file sending force.
+# BinkP options:						       (NEW!!!)
+# M - MD5 authentication.
+# C - Crypt traffic (currently not supported)
+# R - NonReliable mode (currently not supported)
+# D - NonDupes mode (currently not supported)
+# B - MultiBatch mode (currently not supported)
+# P - Disable plain authentication (currently not supported)
+binkpopt	MRDB
+
+# Ignore NRQ flag in EMSI. .req file sending force, if enabled and     (NEW!!!)
+# file request present
 ;ignorenrq	no
 
 # Post log of chat to netmail (create .pkt with chat-log in inbound    (NEW!!!)
 # after session).
 ;chatlognetmail	yes
 
-# If defined, then post chatlog to this e-mail address.		       (NEW!!!)
-;chattoemail	root@my.station
+# Post chatlog to this e-mail address.				       (NEW!!!)
+;chattoemail	sysop@my.station
 
-# Hallo's string for chat. if don't defined, used "| * Hallo %s!|".    (NEW!!!)
+# Hallo's string for chat. default used "| * Hallo %s!|".	       (NEW!!!)
 # macro: '|' = <cr>, '$' = <bell>, '%s' = <name of remote sysop>.
 ;chathallostr	| * Hi, %s, that's good?|
 
@@ -467,7 +476,7 @@ mincpsin	0
 # minimum cps on send (no check if 0)
 mincpsout	0
 
-# if enabled, minimum cps is absolute, else mincps in % from	       (NEW!!!)
+# minimum cps is absolute, if enabled, else mincps in % from	       (NEW!!!)
 # connect speed
 realmincps	yes
 
@@ -509,7 +518,7 @@ realmincps	yes
 # external freq processor, compatible with SRIF file format.	       (NEW!!!)
 ;srifrp		/usr/local/bin/srifrp
 
-# Warning! May be defined only one of this keywords (extrp or srifrp)!
+# Warning! Must be defined only one of these keywords (extrp or srifrp)!
 ##
 
 # freq time (NRQ if undefined)
@@ -639,5 +648,5 @@ endif
 ;endif
 
 ###
-# $Id: qico.conf.sample,v 1.6 2003/08/25 15:27:38 sisoft Exp $
+# $Id: qico.conf.sample,v 1.7 2003/09/07 20:27:35 sisoft Exp $
 ###############################################################################

@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.5 2003/08/25 15:27:39 sisoft Exp $
+#* $Id: qconf.x,v 1.6 2003/09/07 20:27:35 sisoft Exp $
 #**********************************************************
 address,C_ADDRL,falist_t *,1,NULL
 aftermail,C_STR,char *,0,NULL
@@ -12,6 +12,7 @@ autohold,C_STRL,slist_t *,0,NULL
 autoskip,C_STRL,slist_t *,0,NULL
 autosuspend,C_STRL,slist_t *,0,NULL
 autoticskip,C_YESNO,int,0,"no"
+binkpopt,C_STR,char *,0,"MB"
 bsooutbound,C_PATH,char *,0,NULL
 callonflavors,C_STR,char *,0,"NDCIR"
 cancall,C_STR,char *,0,"CM"

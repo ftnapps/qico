@@ -3,7 +3,7 @@ $$$$'                    qico, an ftn compatible mailer                    `$$$$
 $$$.                         * version 0.49.10si *                         ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
-Features:
+Features
 ~~~~~~~~
  * Протоколы EMSI: ZModem, ZedZap, Hydra (Std, 8k, 16k), Janus; BinkP.
  * Поддержка 4D Binkley-Style, Amiga-style outbound, FileBoxes, LongNameBoxes.
@@ -28,17 +28,6 @@ Features:
  
 Building & Installation
 ~~~~~~~~~~~~~~~~~~~~~~~
-   Проверено на рабочесть под:
-     - Linux 2.2.11-4bc i586 (glibc-2.1, ncurses-4.2)
-     - Linux 2.4.18-bf2.4 i586 (glibc-2.2, ncurses-5.2)
-     - FreeBSD 2.2.6-4.x
-       (Note: для сборки на 2.2.x-3.x qcc должна стоять ncurses из портов!)
-
-   На других OS не пробовал, но очень хочу узнать, что получится ;)
-   На архитектурах, отличных от х86 пока не работает ввиду зависимости в 
-   некоторых местах от порядка байт. Как только в мой телнет попадет живой 
-   big-endian, сделаю поддержку ;) 
-
    $ configure --help
    $ configure [нужные опции]
    $ make
@@ -73,7 +62,7 @@ Using
    up\down\pgup\pgdn\home\end\ins\del. Последние две прокручивают по 2 строки.
    В главном окне лог не листается. В чатовом окне, надеюсь, всё и так понятно.
 
-Notes:
+Notes
 ~~~~~
  # Поддерживается _только_ 4D BSO, т.к. 5D имхо и нафиг не нужен - только
    глюки плодить. При ftn-style софте потери совсем незаметно, а для гейта,
@@ -150,6 +139,11 @@ Notes:
    мейлер мог открыть, а остальные преобразования можно уже настроить так, как
    вам хочется, чтобы ремота получала файлы.
 
+Download
+~~~~~~~~
+web: http://www.sf.net/projects/qico -> files -> qico-0.49.??si.tar.gz
+cvs: cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico login
+     cvs -d:pserver:anonymous@cvs.qico.sf.net:/cvsroot/qico co qicosi
 
 Authors
 ~~~~~~~
@@ -158,4 +152,4 @@ Lev Serebryakov, 2:5030/661, lev@serebryakov.spb.ru, icq 3670018 (up to 0.49.9)
 Cyril Margorin, 2:5020/2999.18, cyrilm@tower.pp.ru
 Stepan Pologov, 2:5093/56.7, sisoft@bk.ru, icq 161380143
 
-/* $Id: README,v 1.6 2003/09/01 19:12:49 sisoft Exp $ */
+/* $Id: README,v 1.7 2003/09/07 20:27:35 sisoft Exp $ */
