@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.11 2001/02/04 14:33:22 lev Exp $
+ * $Id: ls_zmodem.h,v 1.12 2001/02/08 19:43:55 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -214,10 +214,10 @@ int ls_zrecvdata32(char *data, int *len, int timeout);
 void ls_sendchar(int c);
 void ls_sendhex(int i);
 
-int ls_read7bit(int timeout);
-int ls_readhex(int timeout);
-int ls_readzdle(int timeout);
-int ls_readcanned(int timeout);
+int ls_read7bit(int *timeout);
+int ls_readhex(int *timeout);
+int ls_readzdle(int *timeout);
+int ls_readcanned(int *timeout);
 
 void ls_storelong(char *buf, long l);
 long ls_fetchlong(unsigned char *buf);
