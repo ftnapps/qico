@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.11 2001/01/04 18:30:44 lev Exp $
+ * $Id: main.c,v 1.4.2.12 2001/01/04 18:37:09 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -440,7 +440,7 @@ int force_call(ftnaddr_t *fa, int flags)
 	}
 	if(!rnode) {
 		rnode=calloc(1,sizeof(ninfo_t));
-		falist_add(&rnode->addrs, &current->addr);
+		falist_add(&rnode->addrs, fa);
 		rnode->name=strdup("Unknown");
 		rnode->phone=strdup("");
 	}
