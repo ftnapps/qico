@@ -1,6 +1,6 @@
 /**********************************************************
  * tcp open
- * $Id: tcp.c,v 1.4 2003/09/23 12:55:54 sisoft Exp $
+ * $Id: tcp.c,v 1.5 2003/09/23 13:07:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -38,7 +38,7 @@ int opentcp(char *name)
 	else if ((he=gethostbyname(name)))
 		memcpy(&server.sin_addr,he->h_addr,he->h_length);
 	else {
-		write_log("can't resolve ip for\n",name);
+		write_log("can't resolve ip for %s",name);
 		return 0;
 	}
 	sline("Connecting to %s:%d",
@@ -80,7 +80,6 @@ void closetcp(void)
 int tcp_call(char *host, ftnaddr_t *fa)
 {
 	int rc;
-	title("Calling to %s (%s)", ftnaddrtoa(fa), bink?"binkp":"ifcico");
 	write_log("connecting to %s at %s [%s]", ftnaddrtoa(fa), host,bink?"binkp":"ifcico");
 	rc=opentcp(host);
 	if(rc) {
