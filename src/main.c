@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.9 2001/01/04 18:25:26 lev Exp $
+ * $Id: main.c,v 1.4.2.10 2001/01/04 18:26:49 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -433,7 +433,17 @@ int force_call(ftnaddr_t *fa, int flags)
 	int rc;
 
 	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
-	if (!rnode) return 0;
+	switch(rc) {
+	case 1:log("can't query nodelist, index error");break;
+	case 2:log("can't query nodelist, nodelist error");break;
+	case 3:log("index is older than the list, need recompile");break;
+	}
+	if(!rnode) {
+		rnode=calloc(1,sizeof(ninfo_t));
+		falist_add(&rnode->addrs, &current->addr);
+		rnode->name=strdup("Unknown");
+		rnode->phone=strdup("");
+	}
 	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	rnode->tty=NULL;
 
