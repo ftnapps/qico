@@ -2,7 +2,7 @@
  * File: nodelist.c
  * Created at Thu Jul 15 16:14:36 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: nodelist.c,v 1.3.2.3 2001/03/08 16:52:23 lev Exp $
+ * $Id: nodelist.c,v 1.3.2.4 2001/03/08 17:52:40 lev Exp $
  **********************************************************/
 #include "ftn.h"
 #include <ctype.h>
@@ -389,22 +389,33 @@ int applysubst(ninfo_t *nl, subst_t *subs)
 {
 	subst_t *sb=findsubst(&nl->addrs->addr, subs);
 	dialine_t *d;
+	ninfo_t *from_nl = NULL;
 
 	if(!sb) return 0;
 	d=sb->current;
 	sb->current=sb->current->next;
 	if(!sb->current) sb->current=sb->hiddens;
 
+	if(!d->phone) query_nodelist(&nl->addrs->addr,cfgs(CFG_NLPATH),&from_nl);
+
 	if(d->phone) {
 		if(nl->phone) sfree(nl->phone);
 		nl->phone=strdup(d->phone);
+	} else if(from_nl && from_nl->phone) {
+		if(nl->phone) sfree(nl->phone);
+		nl->phone=strdup(from_nl->phone);
+		phonetrans(&nl->phone, cfgsl(CFG_PHONETR));
 	}
 	if(d->timegaps) {
 		if(nl->wtime) sfree(nl->wtime);
 		nl->wtime=strdup(d->timegaps);
 		nl->haswtime=1;
+	} else {
+		if(nl->wtime) sfree(nl->wtime);
+		nl->haswtime=0;
 	}
 	nl->hidnum=(sb->nhids>1)?d->num:0;
+	if(from_nl) nlkill(&from_nl);
 	return 1;
 }
 
@@ -444,8 +455,10 @@ int can_dial(ninfo_t *nl, int ct)
 
 int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs)
 {
-	int start = nl->hidnum;
-	while (applysubst(nl,subs) && nl->hidnum != start && !can_dial(nl,ct));
+	int start;
+	applysubst(nl,subs);
+	start = nl->hidnum;
+	while (!can_dial(nl,ct) && nl->hidnum && applysubst(nl,subs) && nl->hidnum != start);
 	return can_dial(nl,ct);
 }
 
