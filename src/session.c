@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.2.2.2 2000/12/12 11:27:59 lev Exp $
+ * $Id: session.c,v 1.2.2.3 2001/02/03 12:08:27 lev Exp $
  **********************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -39,7 +39,7 @@ void addflist(flist_t **fl, char *loc, char *rem, char kill,
 		if(rnode->options&O_HAT) return;
 		break;
 	default:
-		if(rnode->options&(O_HXT|O_HAT)) return;
+		if(rnode && rnode->options&(O_HXT|O_HAT) && rem) return;
 		break;
 	}
 	for(t=fl;*t && (*t)->type<=type;t=&((*t)->next));
