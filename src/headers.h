@@ -2,7 +2,7 @@
  * File: headers.h
  * Created at Sun Nov 26 15:26:57 MSK 2000 by lev // lev@serebryakov.spb.ru
  * All common headers are included here
- * $Id: headers.h,v 1.3 2001/02/16 14:45:56 aaz Exp $
+ * $Id: headers.h,v 1.4 2001/02/18 12:25:40 lev Exp $
  **********************************************************/
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,6 +32,10 @@
 #	else
 #		include <time.h>
 #	endif
+#endif
+
+#ifdef HAVE_LIBGEN_H
+#	include <libgen.h>
 #endif
 
 
