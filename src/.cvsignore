@@ -1,0 +1,9 @@
+*.o
+*.core
+qico
+qcc
+qconf.h
+qconf.c
+flagexp.c
+flaglex.c
+ver.c

@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.2 2000/07/29 14:48:51 lev Exp $
+ * $Id: zm.c,v 1.3 2000/08/06 20:41:36 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -68,11 +68,12 @@ char *Altcan;		/* Alternate canit string */
 static int lastsent;	/* Last char we sent */
 
 static char *frametypes[] = {
+	"ERROR",	/* -5 */
 	"NORESP",	/* -4 */
 	"RCD0",		/* -3 */
 	"TIMEOUT",		/* -2 */
-	"ERROR",		/* -1 */
-#define FTOFFSET 4
+	"?ERROR?",		/* -1 */
+#define FTOFFSET 5
 	"ZRQINIT",
 	"ZRINIT",
 	"ZSINIT",
@@ -540,7 +541,7 @@ int zgethdr(char *hdr)
 	case GCOUNT:
 		/* **** FALL THRU TO **** */
 	}
-	if(c<=FRTYPES && c>=-4) zperr("ZErr %s", frametypes[c+FTOFFSET]);
+	if(c<=FRTYPES && c>=-5) zperr("ZErr %s", frametypes[c+FTOFFSET]);
 	/* Use variable length headers if we got one */
 #ifdef Z_DEBUG
 	log("zgethdr: %s", frametypes[c+FTOFFSET]);

@@ -2,7 +2,7 @@
  * File: zsend.c
  * Created at Fri Jul 16 18:06:30 1999 by pk // aaz@ruxy.org.ru
  * send zmodem, based on code by Chuck Forsberg
- * $Id: zsend.c,v 1.2 2000/07/18 12:56:19 lev Exp $
+ * $Id: zsend.c,v 1.3 2000/08/06 20:41:36 lev Exp $
  **********************************************************/
 
 #include <sys/stat.h>
@@ -149,6 +149,7 @@ int getinsync(flag)
 		c = zgethdr(Rxhdr);
 		switch (c) {
 		case RCDO:
+		case ERROR:
 			return RCDO;
 		case ZCAN:
 		case ZABORT:
@@ -189,7 +190,6 @@ int getinsync(flag)
 			return c;
 		case ZSKIP:
 			return c;
-		case ERROR:
 		default:
 			zsbhdr(4, ZNAK, Txhdr);
 			continue;
@@ -288,6 +288,7 @@ int zsendfdata()
 		zsbhdr(4, ZEOF, Txhdr);
 	  egotack:
 		switch (getinsync(0)) {
+		case ERROR:
 		case RCDO:
 			txclose(&txfd, FOP_ERROR);
 			return RCDO;
@@ -304,7 +305,6 @@ int zsendfdata()
 		case ZSKIP:
 			txclose(&txfd, FOP_SKIP);
 			return c;
-		case ERROR:
 		default:
 			txclose(&txfd, FOP_ERROR);
 			return ERROR;
@@ -336,6 +336,7 @@ again:
 		c = zgethdr(Rxhdr);
 		switch (c) {
 		case RCDO:
+		case ERROR:
 			return RCDO;
 		case ZFIN:
 			return ERROR;
@@ -348,7 +349,6 @@ again:
 		case ZABORT:
 		default:
 			continue;
-		case ERROR:
 		case ZNAK:
 			continue;
 		case ZCRC:
