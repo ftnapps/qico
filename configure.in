@@ -108,7 +108,7 @@ if test "${ac_cv_func_basename}x" != "nox"; then
 #endif
 static char *fl = "/usr/local/bin/some.file";
 int main(int argn, char **argv) {
-	char *b = basename(fl); return (*b != '/');
+	char *b = basename(fl); return !(*b != '/');
 }
 	], AC_MSG_RESULT(no), AC_DEFINE(HAVE_BROKEN_BASENAME)AC_ADD_REPLACE(basename)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 fi
