@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.6 2004/06/16 06:22:48 sisoft Exp $
+# $Id: test.pl,v 1.7 2004/06/16 20:24:34 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
@@ -24,7 +24,7 @@ sub on_init {
 # called before exit, for deinitialization.
 # $emerg: 0=normal exit, 1=emergency exit.
 sub on_exit {
-    wlog("try to exit (emerg=$emerg)");
+    wlog("on_exit() (emerg=$emerg)");
 }
 
 # called before write to log.
@@ -51,7 +51,7 @@ sub on_log {
 # $port: modem port (ex.: ttyS1) or "ip" if ip call.
 # return: combination of S_* constants. aborting call, if return!=$S_OK.
 sub on_call {
-    wlog("on_call to $addr by $site, ip=$tcpip, bink=$binkp, port=$port.");
+    wlog("on_call() to $addr by $site, ip=$tcpip, bink=$binkp, port=$port.");
     return $S_BUSY if($addr eq '2:5050/125.522');
     return $S_OK;
 }
@@ -63,12 +63,12 @@ sub on_call {
 # %info: hash of strings: sysop, station, mailer, place, flags, wtime, password,
 #        and integers: time, speed, connect.
 # $flags: protocol and session flags.
-# %flags: hash of booleans: in, out, secure, listed.
+# %flags: hash of booleans: in, out, tcp, secure, listed.
 # %queue: hash of integers: mail, files, num.
 # @queue: list of outgoing files, format such as in *.?lo.
 # return: $S_OK for continue session, any other S_* for abort with this status.
 sub on_session {
-    wlog("on_session time=$start, dir=$flags{out}, sec=$flags{secure}, lst=$flags{listed}.");
+    wlog("on_session() time=$start, dir=$flags{out}, sec=$flags{secure}, lst=$flags{listed}, tcp=$flags{tcp}.");
     wlog(" $info{sysop}, sysop of <$info{station}>, using $info{mailer}");
     wlog(" live in '$info{place}' and work in '$info{wtime}' (now time=$info{time})");
     wlog(" he akas: @akas, our akas: @addrs");
@@ -85,5 +85,37 @@ sub on_session {
 # $result: session result, set of S_* constants.
 # $sesstime: session time in seconds.
 sub end_session {
-    wlog("end_session (rb,rf,sb,sf,rc,time)=($r_bytes,$r_files,$s_bytes,$s_files,$result,$sesstime).");
+    wlog("end_session() (rb,rf,sb,sf,rc,time)=($r_bytes,$r_files,$s_bytes,$s_files,$result,$sesstime).");
+}
+
+# called before file receiving.
+# %recv: hash of values: name, size, time.
+# return: one of $F_* constants.
+sub on_recv {
+    wlog("on_recv() name=$recv{name}, size=$recv{size}, time=$recv{time}.");
+    return $F_OK;
+}
+
+# called afrer receiving file, before writing.
+# $state: receiving status (one of F_* constants).
+# return: empty string for default actions, "!" for kill file, or new file name.
+sub end_recv {
+    my $s=qw/F_OK F_CONT F_SKIP F_ERR F_SUSPEND/[$state];
+    wlog("end_recv() file=$recv{file}, state=$s.");
+    return "";
+}
+
+# called before file sending.
+# %send: hash of values: file, name, size, time.
+# return: empty string for send, "!" for skip, or new file name.
+sub on_send {
+    wlog("on_send() file=$send{file}, name=$send{name}, size=$send{size}, time=$send{time}.");
+    return "";
+}
+
+# called after file sending.
+# $state: sending status (one of F_* constants).
+sub end_send {
+    my $s=qw/F_OK F_CONT F_SKIP F_ERR F_SUSPEND/[$state];
+    wlog("end_send() file=$send{file}, state=$s.");
 }

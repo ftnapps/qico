@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.24 2004/06/08 11:11:45 sisoft Exp $
+ * $Id: protfm.c,v 1.25 2004/06/16 20:24:34 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -80,6 +80,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
+	IFPerl(if((rc=perl_on_recv())!=FOP_OK)return rc);
 	if(whattype(name)==IS_PKT&&(rsize==60||!rsize)&&cfgi(CFG_KILLBADPKT))return FOP_SKIP;
 	rc=skipiftic;skipiftic=0;
 	if(rc&&istic(bn)&&cfgi(CFG_AUTOTICSKIP)) {
@@ -159,8 +160,11 @@ int rxclose(FILE **f, int what)
 
 	if(!f || !*f) return FOP_ERROR;
 	recvf.toff+=recvf.foff;recvf.stot+=recvf.soff;
-
+	*p2=0;
 	if(!cps) cps=1;cps=(recvf.foff-recvf.soff)/cps;
+	IFPerl(if((ss=perl_end_recv(what))) {
+		if(!*ss)what=FOP_SKIP;
+		else strncpy(p2,ss,MAX_PATH);});
 	switch(what) {
 		case FOP_SUSPEND: ss="suspended";break;
 		case FOP_SKIP: ss="skipped";break;
@@ -176,7 +180,13 @@ int rxclose(FILE **f, int what)
 			recvf.fname, recvf.foff, cps, ss);
 	fclose(*f);*f=NULL;
 	snprintf(p, MAX_PATH, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
-	snprintf(p2, MAX_PATH, "%s/%s", cfgs(CFG_INBOUND), recvf.fname);
+	if(*p2) {
+		if(*p2!='/'&&*p2=='.')	{
+			ss=xstrdup(p2);
+			snprintf(p2,MAX_PATH,"%s/%s",cfgs(CFG_INBOUND),ss);
+			xfree(ss);
+		}
+	} else snprintf(p2, MAX_PATH, "%s/%s", cfgs(CFG_INBOUND), recvf.fname);
 	ut.actime=ut.modtime=recvf.mtime;
 	recvf.foff=0;
 	switch(what) {
@@ -241,6 +251,8 @@ FILE *txopen(char *tosend, char *sendas)
 	sendf.mtime=sb.st_mtime+gmtoff(sendf.start,1);
 	if(sendf.toff+sb.st_size > sendf.ttot) sendf.ttot+=sb.st_size;
 	sendf.nf++;if(sendf.nf>sendf.allf) sendf.allf++;
+	IFPerl({char *p=perl_on_send(tosend);if(p&&!*p)return NULL;
+		if(p){xfree(sendf.fname);sendf.fname=xstrdup(p);}});
 	f=fopen(tosend, "rb");
 	if(!f) {
 		write_log("can't open file %s for reading: %s", tosend,strerror(errno));
@@ -262,6 +274,7 @@ int txclose(FILE **f, int what)
 	sendf.toff+=sendf.foff;sendf.stot+=sendf.soff;
 
 	if(!cps) cps=1;cps=(sendf.foff-sendf.soff)/cps;
+	IFPerl(perl_end_send(what));
 	switch(what) {
 		case FOP_SUSPEND: ss="suspended";break;
 		case FOP_SKIP: ss="skipped";break;

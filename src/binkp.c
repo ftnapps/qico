@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.39 2004/06/16 03:42:20 sisoft Exp $
+ * $Id: binkp.c,v 1.40 2004/06/16 20:24:33 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -475,7 +475,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		(opt_cr==O_YES)?"/CRYPT":"",
 		(opt_cht==O_YES)?"/Chat":"");
 	write_log("options: %s",tmp);
-	IFPerl(if((rc=perl_on_session(mode,tmp))!=S_OK)goto failed);
+	IFPerl(if((rc=perl_on_session(tmp))!=S_OK)goto failed);
 	qemsisend(rnode);
 	qpreset(0);qpreset(1);
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
