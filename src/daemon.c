@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.25 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: daemon.c,v 1.26 2004/05/26 07:46:13 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #endif
 #include "tty.h"
+#include "crc.h"
 #include "clserv.h"
 
 static short tosend=0;
@@ -929,12 +930,8 @@ nlkil:				is_ip=0;bink=0;
 						    else cl=uit;
 						DEBUG(('I',1,"new client %d: accepted (fd=%d)",uit->id,uit->sock));
 						if(cfgs(CFG_SERVERPWD)) {
-							long rnd=(long)random(),utm=time(NULL);
-							int pid=((int)getpid())^((int)random());
 							uit->auth=(unsigned char*)malloc(10);
-							STORE32(uit->auth,rnd);
-							STORE16(uit->auth+4,pid)
-							STORE32(uit->auth+6,utm);
+							md5_cram_set(uit->auth);
 							xsend(uit->sock,(char*)uit->auth,10);
 						} else xsend(uit->sock,"qs-noauth",10);
 					}

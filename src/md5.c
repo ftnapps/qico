@@ -1,7 +1,6 @@
 /**********************************************************
  * MD5 crypt.
- * original version of this file was taken from BinkleyForce mailer.
- * $Id: md5.c,v 1.5 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: md5.c,v 1.6 2004/05/26 07:46:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -250,6 +249,16 @@ void md5_get(const unsigned char *data, size_t length, unsigned char *digest)
 
 	md5_init(&md);
 	md5_compute(&md, data, length, digest);
+}
+
+
+void md5_cram_set(const unsigned char *challenge)
+{
+	long rnd=(long)random(),utm=time(NULL);
+	int pid=((int)getpid())^((int)random());
+	STORE32(challenge,rnd);
+	STORE16(challenge+4,pid)
+	STORE32(challenge+6,utm);
 }
 
 /*****************************************************************************
