@@ -6,7 +6,7 @@ package=qico
 build: debian/build
 debian/build:
 	$(checkdir)
-	./configure --prefix=/usr --sysconfdir=/etc/ftn --disable-notify
+	./configure --prefix=/usr --sysconfdir=/etc/ftn --disable-notify --enable-hydra8k
 	$(MAKE)
 	touch debian/build
 
@@ -31,6 +31,7 @@ binary-arch: checkroot debian/build
 	cd debian/tmp && install -d `cat ../dirs`
 	$(MAKE) install prefix=`pwd`/debian/tmp/usr
 	cp qico.conf.sample `pwd`/debian/tmp/etc/ftn
+	-rm -rf `pwd`/debian/tmp/usr/man
 	debstd ChangeLog Changes README FAQ
 	dpkg-gencontrol -isp -pqico
 	chown -R root.root debian/tmp
