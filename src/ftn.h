@@ -3,7 +3,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.14 2000/11/26 12:36:08 lev Exp $
+ * $Id: ftn.h,v 1.15 2001/01/04 18:17:21 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -220,7 +220,7 @@ extern char *NL_SIGN;
 extern char *NL_IDX;
 extern int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl);
 extern int is_listed(ftnaddr_t *addr, char *nlpath);
-extern void phonetrans(char *ph, slist_t *phtr);
+extern void phonetrans(char **pph, slist_t *phtr);
 extern int checktimegaps(char *ranges);
 extern int chktxy(char *p);
 extern int checktxy(char *flags);

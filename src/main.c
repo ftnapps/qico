@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.26 2001/01/03 15:05:30 lev Exp $
+ * $Id: main.c,v 1.27 2001/01/04 18:17:21 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -271,7 +271,7 @@ void daemon_mode()
 					rnode->name=strdup("Unknown");
 					rnode->phone=strdup("");
 				}
-				phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+				phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 #ifdef Q_DEBUG			
 				write_log("%s %s %s [%d]", ftnaddrtoa(&current->addr),
 					rnode?rnode->phone:"$",rnode->haswtime?rnode->wtime:"$",rnode->hidnum);
@@ -544,26 +544,38 @@ void daemon_mode()
 					break;
 				case QR_INFO:
 					rc=query_nodelist(&fa,cfgs(CFG_NLPATH),&rnode);
-					if(rc) {
+					switch(rc) {
+					case 0:
+						if(rnode) {
+							write_log("returned info about %s (%s)",rnode->name, ftnaddrtoa(&fa));
+							sendrpkt(0, chld, "%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
+									 ftnaddrtoa(&fa), 0,
+									 rnode->name, 0, rnode->place, 0,
+									 rnode->sysop, 0, rnode->phone, 0,
+									 rnode->flags, 0, rnode->speed, 0
+								);
+							nlkill(&rnode);
+						} else {
+							write_log("%s not found in nodelist!",ftnaddrtoa(&fa));
+							sendrpkt(1, chld, "%s not found in nodelist!",ftnaddrtoa(&fa));
+						}
+						break;
+					case 1:
+						write_log("can't query nodelist, index error");
+						sendrpkt(1, chld, "can't query nodelist, index error");
+						break;
+					case 2:
+						write_log("can't query nodelist, nodelist error");
+						sendrpkt(1, chld, "can't query nodelist, nodelist error");
+						break;
+					case 3:
+						write_log("index is older than the list, need recompile");
+						sendrpkt(1, chld, "index is older than the list, need recompile");
+						break;
+					default:
 						write_log("nodelist query error!");
 						sendrpkt(1, chld, "nodelist query error!");
 						break;
-					}
-					if(rnode) {
-						write_log("returned info about %s (%s)",
-							rnode->name, ftnaddrtoa(&fa));
-						sendrpkt(0, chld, "%s%c%s%c%s%c%s%c%s%c%s%c%d%c",
-								 ftnaddrtoa(&fa), 0,
-								 rnode->name, 0, rnode->place, 0,
-								 rnode->sysop, 0, rnode->phone, 0,
-								 rnode->flags, 0, rnode->speed, 0
-							);
-						nlkill(&rnode);
-					} else {
-						write_log("%s not found in nodelist!",
-							ftnaddrtoa(&fa));
-						sendrpkt(1, chld, "%s not found in nodelist!",
-								 ftnaddrtoa(&fa));
 					}
 					break;
 				default:
@@ -666,7 +678,7 @@ int force_call(ftnaddr_t *fa, int flags)
 
 	rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
 	if (!rnode) return 0;
-	phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
+	phonetrans(&rnode->phone, cfgsl(CFG_PHONETR));
 	rnode->tty=NULL;
 
 	if((flags & 2) != 2) {
