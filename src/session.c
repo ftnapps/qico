@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.19 2001/02/16 14:45:56 aaz Exp $
+ * $Id: session.c,v 1.20 2001/03/10 19:50:19 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -129,9 +129,7 @@ void makeflist(flist_t **fl, ftnaddr_t *fa)
 	struct stat sb;
 	faslist_t *j;
 
-#ifdef S_DEBUG	
-	write_log("mkflist %s", ftnaddrtoa(fa));
-#endif	
+	DEBUG(('S',1,"mkflist %s", ftnaddrtoa(fa)));
 	for(i=0;i<5;i++)
 		if(!stat(bso_pktn(fa, fls[i]), &sb)) {
 			sprintf(str, "%08lx.pkt", sequencer());
@@ -513,9 +511,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	default:
 		t="Unknown";		
 	}
-#ifdef S_DEBUG	
-	write_log("emsopts: %s %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo);
-#endif
+	DEBUG(('S',1,"emsopts: %s %x %x %x", t, rnode->options&P_MASK, rnode->options, emsi_lo));
 	write_log("options: %s%s%s%s%s%s%s%s", t,
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",

@@ -2,7 +2,7 @@
  * File: freq.c
  * File request support
  * Created at Fri Aug 18 23:48:45 2000 by pqr@yasp.com
- * $Id: freq.c,v 1.8 2001/02/16 14:45:56 aaz Exp $
+ * $Id: freq.c,v 1.9 2001/03/10 19:50:17 lev Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -15,9 +15,7 @@ int freq_ifextrp(slist_t *reqs)
 	int got=0;
 	ftnaddr_t *ma=akamatch(&rnode->addrs->addr, cfgal(CFG_ADDRESS));
 
-#ifdef S_DEBUG
-	write_log("ifextrp job");
-#endif
+	DEBUG(('S',1,"ifextrp job"));
 	priv='a';
 	if(rnode->options&O_LST) priv='l';
 	if(rnode->options&O_PWD) priv='p';
@@ -28,9 +26,7 @@ int freq_ifextrp(slist_t *reqs)
 		write_log("can't open '%s' for writing",fn);return got;
 	}
 	while(reqs) {
-#ifdef S_DEBUG
-		write_log("requested '%s'", reqs->str);
-#endif
+		DEBUG(('S',1,"requested '%s'", reqs->str));
 		fprintf(f, "%s\n", reqs->str);
 		reqs=reqs->next;
 	}
@@ -57,9 +53,7 @@ int freq_ifextrp(slist_t *reqs)
 		while(*p=='\r' || *p=='\n') *p--=0;
 		p=strrchr(s,' ');
 		if(p) *p++=0;else p=s;
-#ifdef S_DEBUG
-		write_log("sending '%s' as '%s'", s, p);
-#endif
+		DEBUG(('S',1,"sending '%s' as '%s'", s, p));
 		addflist(&fl, strdup(s), strdup((p!=s)?p:basename(s)), ' ',0,NULL,0);
 		got=1;
 	}

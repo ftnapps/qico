@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.9 2001/02/18 18:10:54 lev Exp $
+ * $Id: ls_zglue.c,v 1.10 2001/03/10 19:50:18 lev Exp $
  **********************************************************/
 /*
 
@@ -21,9 +21,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 {
 	int rc;
 	ZFILEINFO f;
-#ifdef Z_DEBUG
-	write_log("zmodem_sendfile: %s as %s",tosend,sendas);
-#endif
+	DEBUG(('Z',1,"zmodem_sendfile: %s as %s",tosend,sendas));
 
 	txfd=txopen(tosend,sendas);
 	sline("ZSend %s",sendas);
@@ -35,9 +33,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 		f.bytesleft = *totalleft;
 		rc = ls_zsendfile(&f,ls_SerialNum++);
 		(*totalleft)-=sendf.ftot;(*filesleft)--;
-#ifdef Z_DEBUG
-		write_log("zmodem_sendfile: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+		DEBUG(('Z',1,"zmodem_sendfile: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 		switch(rc) {
 		case LSZ_OK:
 			txclose(&txfd,FOP_OK);
@@ -63,9 +59,7 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 int zmodem_sendinit(int canzap) {
 	int rc;
 	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD;
-#ifdef Z_DEBUG
-	write_log("zmodem_sendinit: %s",canzap==2?"DirZap":canzap?"ZedZap":"ZModem");
-#endif
+	DEBUG(('Z',1,"zmodem_sendinit: %s",canzap==2?"DirZap":canzap?"ZedZap":"ZModem"));
 	switch(canzap) {
 	case 2:
 		opts |= LSZ_OPTDIRZAP;
@@ -76,9 +70,7 @@ int zmodem_sendinit(int canzap) {
 	case 0:
 		break;
 	default:
-#ifdef Z_DEBUG
-		write_log("zmodem_sendinit: strange canzap: %d",canzap);
-#endif
+		DEBUG(('Z',1,"zmodem_sendinit: strange canzap: %d",canzap));
 		break;
 	}
 	if((rc=ls_zinitsender(opts,effbaud,cfgi(CFG_ZTXWIN),NULL))<0) return rc;
@@ -94,9 +86,7 @@ int zmodem_sendinit(int canzap) {
 int zmodem_senddone()
 {
 	if(txbuf) sfree(txbuf);
-#ifdef Z_DEBUG
-	write_log("zmodem_senddone");
-#endif
+	DEBUG(('Z',1,"zmodem_senddone"));
 	return ls_zdonesender();
 }
 
@@ -106,9 +96,7 @@ int zmodem_receive(char *c, int canzap) {
 	int frame = ZRINIT;
 	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD|LSZ_OPTZEDZAP;
 
-#ifdef Z_DEBUG
-	write_log("zmodem_receive");
-#endif
+	DEBUG(('Z',1,"zmodem_receive"));
 	switch(canzap & 0x00FF) {
 	case 2:
 		opts |= LSZ_OPTDIRZAP;
@@ -117,29 +105,21 @@ int zmodem_receive(char *c, int canzap) {
 	case 0:
 		break;
 	default:
-#ifdef Z_DEBUG
-		write_log("zmodem_receive: strange canzap: %d",canzap);
-#endif
+		DEBUG(('Z',1,"zmodem_receive: strange canzap: %d",canzap));
 		break;
 	}
 	if(canzap & 0x0100) opts |=	LSZ_OPTFIRSTBATCH;
 
 	switch((rc=ls_zinitreceiver(opts,effbaud,cfgi(CFG_ZRXWIN),&f))) {
 	case ZFIN:
-#ifdef Z_DEBUG2
-		write_log("zmodem_receive: ZFIN after INIT, empty batch");
-#endif
+		DEBUG(('Z',2,"zmodem_receive: ZFIN after INIT, empty batch"));
 		ls_zdonereceiver();
 		return LSZ_OK;
 	case ZFILE:
-#ifdef Z_DEBUG2
-		write_log("zmodem_receive: ZFILE after INIT");
-#endif
+		DEBUG(('Z',2,"zmodem_receive: ZFILE after INIT"));
 		break;
 	default:
-#ifdef Z_DEBUG
-		write_log("zmodem_receive: something strange after init: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+		DEBUG(('Z',1,"zmodem_receive: something strange after init: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 		ls_zabort();
 		ls_zdonereceiver();
 		return LSZ_ERROR;
@@ -152,9 +132,7 @@ int zmodem_receive(char *c, int canzap) {
 	while(1) {
 		switch(rc) {
 		case ZFIN:
-#ifdef Z_DEBUG2
-			write_log("zmodem_receive: ZFIN");
-#endif
+			DEBUG(('Z',2,"zmodem_receive: ZFIN"));
 			ls_zdonereceiver();
 			return LSZ_OK;
 		case ZFILE:
@@ -164,48 +142,34 @@ int zmodem_receive(char *c, int canzap) {
 			} else {
 				switch(rxopen(f.name,f.mtime,f.size,&rxfd)) {
 				case FOP_SKIP:
-#ifdef Z_DEBUG2
-					write_log("zmodem_receive: SKIP %s",f.name);
-#endif
+					DEBUG(('Z',2,"zmodem_receive: SKIP %s",f.name));
 					frame = ZSKIP;
 					break;
 				case FOP_SUSPEND:
-#ifdef Z_DEBUG2
-					write_log("zmodem_receive: SUSPEND %s",f.name);
-#endif
+					DEBUG(('Z',2,"zmodem_receive: SUSPEND %s",f.name));
 					frame = ZFERR;
 					break;
 				case FOP_CONT:
 				case FOP_OK:
-#ifdef Z_DEBUG2
-					write_log("zmodem_receive: OK %s from %d",f.name,recvf.soff);
-#endif
+					DEBUG(('Z',2,"zmodem_receive: OK %s from %d",f.name,recvf.soff));
 					frame = ZRINIT;
 					switch((rc=ls_zrecvfile(recvf.soff))) {
 					case ZFERR:
-#ifdef Z_DEBUG2
-						write_log("zmodem_receive: ZFERR");
-#endif
+						DEBUG(('Z',2,"zmodem_receive: ZFERR"));
 						rxclose(&rxfd,FOP_SUSPEND);
 						frame = ZFERR;
 						break;
 					case ZSKIP:
-#ifdef Z_DEBUG2
-						write_log("zmodem_receive: ZSKIP");
-#endif
+						DEBUG(('Z',2,"zmodem_receive: ZSKIP"));
 						rxclose(&rxfd,FOP_SKIP);
 						frame = ZSKIP;
 						break;
 					case LSZ_OK:
-#ifdef Z_DEBUG2
-						write_log("zmodem_receive: OK");
-#endif
+						DEBUG(('Z',2,"zmodem_receive: OK"));
 						rxclose(&rxfd,FOP_OK);
 						break;
 					default:
-#ifdef Z_DEBUG2
-						write_log("zmodem_receive: OTHER %d",rc);
-#endif
+						DEBUG(('Z',1,"zmodem_receive: OTHER %d",rc));
 						rxclose(&rxfd,FOP_ERROR);
 						return LSZ_ERROR;
 					}
@@ -214,16 +178,12 @@ int zmodem_receive(char *c, int canzap) {
 			}
 			break;
 		case ZABORT:
-#ifdef Z_DEBUG
-			write_log("zmodem_receive: ABORT");
-#endif
+			DEBUG(('Z',1,"zmodem_receive: ABORT"));
 			ls_zabort();
 			ls_zdonereceiver();
 			return LSZ_ERROR;
 		default:
-#ifdef Z_DEBUG
-			write_log("zmodem_receive: something strange: %d, %s ",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+			DEBUG(('Z',1,"zmodem_receive: something strange: %d, %s ",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 			ls_zabort();
 			ls_zdonereceiver();
 			return LSZ_ERROR;

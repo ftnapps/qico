@@ -149,6 +149,18 @@ else
 	QCC=0
 fi
 
+dnl Compile in debug messages
+AC_MSG_CHECKING([for debug logging])
+AC_ARG_ENABLE(debug,[  --disable-debug        disable adding debug messages ], , enable_debug=yes)
+if test x$enable_debug != xno; then
+	AC_MSG_RESULT([yes, use loglevels in config to tune])
+	AC_DEFINE(NEED_DEBUG)
+	NEED_DEBUG=1
+else
+	AC_MSG_RESULT([no, logleves in config is useless])
+    NEED_DEBUG=0
+fi
+
 dnl Check for syslog facility names
 AC_MSG_CHECKING([for syslog facility names])
 AC_TRY_COMPILE([#include <stdlib.h>

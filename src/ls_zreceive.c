@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.11 2001/02/18 18:10:54 lev Exp $
+ * $Id: ls_zreceive.c,v 1.12 2001/03/10 19:50:18 lev Exp $
  **********************************************************/
 /*
 
@@ -22,9 +22,7 @@ static char ls_rxAttnStr[LSZ_MAXATTNLEN+1] = "";
 int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 {
 
-#ifdef Z_DEBUG
-	write_log("ls_zinitreceiver: %08x, %d baud, %d bytes",protocol,baud,window);
-#endif
+	DEBUG(('Z',1,"ls_zinitreceiver: %08x, %d baud, %d bytes",protocol,baud,window));
 
 	/* Set all options to requested state -- this may be alerted by other side in ZSINIT */
 	ls_Protocol = protocol;
@@ -55,32 +53,22 @@ int ls_zrecvcrcw(char *buf, int *len)
 	int trys = 0;
 	int rc;
 
-#ifdef Z_DEBUG
-	write_log("ls_zrecvcrcw");
-#endif
+	DEBUG(('Z',1,"ls_zrecvcrcw"));
 	do {
 		switch((rc=ls_zrecvdata(buf,len,ls_DataTimeout,ls_Protocol&LSZ_OPTCRC32))) {
 		case ZCRCW:	/* Ok, here it is */
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvcrcw: got frame ZCRCW");
-#endif
+			DEBUG(('Z',2,"ls_zrecvcrcw: got frame ZCRCW"));
 			return LSZ_OK;
 		case LSZ_BADCRC:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvcrcw: BADCRC");
-#endif
+			DEBUG(('Z',2,"ls_zrecvcrcw: BADCRC"));
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			return 1;
 		case LSZ_TIMEOUT:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvcrcw: TIMEOUT");
-#endif
+			DEBUG(('Z',2,"ls_zrecvcrcw: TIMEOUT"));
 			break;
 		default:
-#ifdef Z_DEBUG
-			write_log("ls_zrecvcrcw:: strange data frame %d",rc);
-#endif
+			DEBUG(('Z',1,"ls_zrecvcrcw:: strange data frame %d",rc));
 			if(rc<0) return rc;
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
@@ -103,9 +91,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 	char flags;
 	int win;
 
-#ifdef Z_DEBUG
-	write_log("ls_zrecvfinfo: frame %d, %s, first: %d",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET],first);
-#endif
+	DEBUG(('Z',1,"ls_zrecvfinfo: frame %d, %s, first: %d",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET],first));
 	/* Send temporary variables */
 	win = STOI(ls_txWinSize);
 	flags = LSZ_RXCANDUPLEX | LSZ_RXCANOVIO;
@@ -119,15 +105,11 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 	do {
 		if(retransmit) {
 			if(ZRINIT != frame) {
-#ifdef Z_DEBUG2
-				write_log("ls_zrecvfinfo: send %d, %s",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET]);
-#endif
+				DEBUG(('Z',2,"ls_zrecvfinfo: send %d, %s",frame,LSZ_FRAMETYPES[frame+LSZ_FTOFFSET]));
 				ls_storelong(ls_txHdr,ls_SerialNum);
 				if((rc=ls_zsendhhdr(frame,4,ls_txHdr))<0) return rc;
 			}
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: send %d, ZRINIT",ZRINIT);
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: send %d, ZRINIT",ZRINIT));
 			ls_txHdr[LSZ_F0] = flags;
 			ls_txHdr[LSZ_F1] = (ls_Protocol&LSZ_OPTVHDR)?(char)LSZ_RXCANVHDR:0;
 			ls_txHdr[LSZ_P1] = (unsigned char)((win>>8) & 0xff);
@@ -141,15 +123,11 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			first = 0;      /* We will trust in first ZFIN after ZRQINIT */
 		case ZNAK:
 		case LSZ_TIMEOUT:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 			retransmit = 1;
 			break;
 		case ZSINIT:		/* He want to set some options */
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: ZSINIT");
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: ZSINIT"));
 			first = 0;      /* We will trust in first ZFIN after ZSINIT */
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK */
@@ -164,17 +142,13 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			}
 			break;
 		case ZFILE:			/* Ok, File started! */
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: ZFILE");
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: ZFILE"));
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK, decode frame */
 				strncpy(f->name,rxbuf,MAX_PATH);
 				f->name[MAX_PATH-1] = '\x00';
 				if(sscanf(rxbuf+strlen(f->name)+1,"%ld %lo %o %o %ld %ld",&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
-#ifdef Z_DEBUG
-					write_log("ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1);
-#endif
+					DEBUG(('Z',1,"ls_zrecvfinfo: file info is corrupted: '%s'",rxbuf+strlen(f->name)+1));
 					f->filesleft = -1;
 				}
 				return ZFILE;
@@ -183,37 +157,27 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			}
 			break;
 		case ZFIN:			/* ZFIN from previous session? Or may be real one? */
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: ZFIN %d, first: %d",zfins,first);
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: ZFIN %d, first: %d",zfins,first));
 			if(!first || ++zfins == LSZ_TRUSTZFINS) return ZFIN;
 			break;
 		case ZABORT:		/* Abort this session -- we trust in ABORT! */
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: ABORT");
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: ABORT"));
 			return ZABORT;
 		case LSZ_BADCRC:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvfinfo: BADCRC");
-#endif
+			DEBUG(('Z',2,"ls_zrecvfinfo: BADCRC"));
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			retransmit = 1;
 			break;
 		default:
-#ifdef Z_DEBUG
-			write_log("ls_zrecvfinfo: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+			DEBUG(('Z',1,"ls_zrecvfinfo: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 			if(rc<0) return rc;
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		}
 	} while(trys < 10);
-#ifdef Z_DEBUG
-	write_log("ls_zrecvfinfo: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+	DEBUG(('Z',1,"ls_zrecvfinfo: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 	return LSZ_TIMEOUT;
 }
 
@@ -224,50 +188,36 @@ int ls_zrecvnewpos(unsigned long oldpos, unsigned long *pos)
 	int trys = 0;
 	int hlen;
 
-#ifdef Z_DEBUG
-	write_log("ls_zrecvnewpos: will retransmit %d",oldpos);
-#endif
+	DEBUG(('Z',1,"ls_zrecvnewpos: will retransmit %d",oldpos));
 	do {
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
 		case ZDATA:
 		case ZEOF:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvnewpos: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+			DEBUG(('Z',2,"ls_zrecvnewpos: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 			*pos = ls_fetchlong(ls_rxHdr);
 			return rc;
 		case ZNAK:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvnewpos: ZNAK");
-#endif
+			DEBUG(('Z',2,"ls_zrecvnewpos: ZNAK"));
 			ls_storelong(ls_txHdr,oldpos);
 			if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 			break;
 		case LSZ_TIMEOUT:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvnewpos: TIEMOUT");
-#endif
+			DEBUG(('Z',2,"ls_zrecvnewpos: TIEMOUT"));
 			break;
 		case LSZ_BADCRC:
-#ifdef Z_DEBUG2
-			write_log("ls_zrecvnewpos: BADCRC");
-#endif
+			DEBUG(('Z',2,"ls_zrecvnewpos: BADCRC"));
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		default:
-#ifdef Z_DEBUG
-			write_log("ls_zrecvnewpos: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+			DEBUG(('Z',1,"ls_zrecvnewpos: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 			if(rc<0) return rc;
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		}
 	} while (++trys < 10);
-#ifdef Z_DEBUG
-	write_log("ls_zrecvnewpos: timeout or something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+	DEBUG(('Z',1,"ls_zrecvnewpos: timeout or something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 	return LSZ_TIMEOUT;
 }
 
@@ -279,9 +229,7 @@ int ls_zrecvfile(int pos)
 	int needzdata = 1;
 	int len;
 
-#ifdef Z_DEBUG
-	write_log("ls_zrecvfile form %d",pos);
-#endif
+	DEBUG(('Z',1,"ls_zrecvfile form %d",pos));
 
 	rxpos = pos;
 	ls_storelong(ls_txHdr,rxpos);
@@ -293,9 +241,7 @@ int ls_zrecvfile(int pos)
 			case ZCRCE:
 				needzdata = 1;
 			case ZCRCG:
-#ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCE?'E':'G',len,rxpos);
-#endif
+				DEBUG(('Z',2,"ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCE?'E':'G',len,rxpos));
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
 
@@ -306,9 +252,7 @@ int ls_zrecvfile(int pos)
 			case ZCRCW:
 				needzdata = 1;
 			case ZCRCQ:
-#ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCW?'W':'Q',len,rxpos);
-#endif
+				DEBUG(('Z',2,"ls_zrecvfile: ZCRC%c, %d bytes at %d",rc==ZCRCW?'W':'Q',len,rxpos));
 				rxpos += len;
 				if(len != fwrite(rxbuf,1,len,rxfd)) return ZFERR;
 				ls_storelong(ls_txHdr,rxpos);
@@ -320,9 +264,7 @@ int ls_zrecvfile(int pos)
 				break;
 			case LSZ_BADCRC:
 			case LSZ_TIMEOUT:
-#ifdef Z_DEBUG
-				write_log("ls_zrecvfile: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+				DEBUG(('Z',1,"ls_zrecvfile: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
 				ls_storelong(ls_txHdr,rxpos);
@@ -330,9 +272,7 @@ int ls_zrecvfile(int pos)
 				needzdata = 1;
 				break;
 			default:
-#ifdef Z_DEBUG
-				write_log("ls_zrecvfile: something strange %d",rc);
-#endif
+				DEBUG(('Z',1,"ls_zrecvfile: something strange %d",rc));
 				if(rc<0) return rc;
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
@@ -341,30 +281,22 @@ int ls_zrecvfile(int pos)
 				needzdata = 1;
 			}
 		} else {		/* We need new position -- ZDATA (and may be ZEOF) */
-#ifdef Z_DEBUG
-			write_log("ls_zrecvfile: want ZDATA/ZEOF at %d",rxpos);
-#endif
+			DEBUG(('Z',1,"ls_zrecvfile: want ZDATA/ZEOF at %d",rxpos));
 			if((rc=ls_zrecvnewpos(rxpos,&newpos))<0) return rc;
 			if(newpos != rxpos) {
-#ifdef Z_DEBUG
-				write_log("ls_zrecvfile: bad new position %d in %s",newpos,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]);
-#endif
+				DEBUG(('Z',1,"ls_zrecvfile: bad new position %d in %s",newpos,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
 				ls_storelong(ls_txHdr,rxpos);
 				if((rc=ls_zsendhhdr(ZRPOS,4,ls_txHdr))<0) return rc;
 			} else {
 				if(ZEOF == rc) {
-#ifdef Z_DEBUG2
-					write_log("ls_zrecvfile: ZEOF");
-#endif
+					DEBUG(('Z',2,"ls_zrecvfile: ZEOF"));
 					ls_storelong(ls_txHdr,0);
 					if((rc=ls_zsendhhdr(ZRINIT,4,ls_txHdr))<0) return rc;
 					return LSZ_OK;
 				}
-#ifdef Z_DEBUG2
-				write_log("ls_zrecvfile: ZDATA");
-#endif
+				DEBUG(('Z',2,"ls_zrecvfile: ZDATA"));
 				needzdata = 0;
 			}
 		}
@@ -378,9 +310,7 @@ int ls_zdonereceiver()
 	int trys = 0;
 	int hlen;
 	int retransmit = 1;
-#ifdef Z_DEBUG
-	write_log("ls_zdonereceiver");
-#endif
+	DEBUG(('Z',1,"ls_zdonereceiver"));
 	do {
 		if (retransmit) {
 			ls_storelong(ls_txHdr,0);
@@ -390,36 +320,26 @@ int ls_zdonereceiver()
 		}
 		switch (rc=GETCHAR(ls_HeaderTimeout)) {
 		case 'O':				/* Ok, GOOD */
-#ifdef Z_DEBUG2
-			write_log("ls_zdonereceiver: O");
-#endif
+			DEBUG(('Z',2,"ls_zdonereceiver: O"));
 			rc = GETCHAR(0);
 			return LSZ_OK;
 		case XON: case XOFF:
 		case XON | 0x80: case XOFF | 0x80:
-#ifdef Z_DEBUG2
-			write_log("ls_zdonereceiver: XON/XOFF, skip it");
-#endif
+			DEBUG(('Z',2,"ls_zdonereceiver: XON/XOFF, skip it"));
 			break;
 		case ZPAD:
-#ifdef Z_DEBUG2
-			write_log("ls_zdonereceiver: ZPAD");
-#endif
+			DEBUG(('Z',2,"ls_zdonereceiver: ZPAD"));
 			if((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))<0) return rc;
 			if(ZFIN != rc) return LSZ_OK;
 			retransmit = 1;
 			break;
 		default:
-#ifdef Z_DEBUG
-			write_log("ls_zdonereceiver: something strange %d",rc);
-#endif
+			DEBUG(('Z',1,"ls_zdonereceiver: something strange %d",rc));
 			if(rc<0) return rc;
 			retransmit = 1;
 			break;
 		}
 	} while (trys < 10);
-#ifdef Z_DEBUG
-	write_log("ls_zdonereceiver: timeout or something strange %d",rc);
-#endif
+	DEBUG(('Z',1,"ls_zdonereceiver: timeout or something strange %d",rc));
 	return rc;
 }

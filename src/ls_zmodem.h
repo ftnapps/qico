@@ -2,7 +2,7 @@
  * File: ls_zmodem.h
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.h,v 1.12 2001/02/08 19:43:55 lev Exp $
+ * $Id: ls_zmodem.h,v 1.13 2001/03/10 19:50:18 lev Exp $
  **********************************************************/
 #ifndef _LS_ZMODEM_H_
 #define _LS_ZMODEM_H_
@@ -242,9 +242,9 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first);
 int ls_zdonereceiver();
 
 /* Debug logging */
-#ifdef Z_DEBUG
+#ifdef NEED_DEBUG
 extern char *LSZ_FRAMETYPES[];
 #define LSZ_FTOFFSET	8
-#endif/*Z_DEBUG*/
+#endif/*NEED_DEBUG*/
 
 #endif/*_LS_ZMODEM_H_*/

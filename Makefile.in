@@ -1,5 +1,5 @@
 # 
-# $Id: Makefile.in,v 1.11 2001/01/13 20:15:18 lev Exp $
+# $Id: Makefile.in,v 1.12 2001/03/10 19:50:15 lev Exp $
 #
 
 prefix  = @prefix@
@@ -26,7 +26,7 @@ AUTOFILES = Makefile config.h configure qico.spec config.h.in \
 	config.log config.status config.cache stamp-h stamp-h.in
 
 ###############################################################################
-all: Makefile config.h
+all: config.h Makefile
 	for d in ${DIRS}; do (cd $$d && echo $$d && ${MAKE} $@) || exit; done;
 
 clean:

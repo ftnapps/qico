@@ -2,7 +2,7 @@
  * File: zm.c
  * Created at Fri Jul 16 17:22:13 1999 by pk // aaz@ruxy.org.ru
  * ZMODEM protocol primitives
- * $Id: zm.c,v 1.7 2000/11/26 13:17:35 lev Exp $
+ * $Id: zm.c,v 1.8 2001/03/10 19:50:19 lev Exp $
  **********************************************************/
 /*
  *    Copyright 1994 Omen Technology Inc All Rights Reserved
@@ -28,7 +28,7 @@
 #include "zmodem.h"
 #include "qipc.h"
 
-#ifdef ZZ_DEBUG
+#ifdef NEED_DEBUG
 #undef PUTCHAR
 #undef PUTSTR
 #define PUTCHAR(x) deputch(x)
@@ -104,9 +104,7 @@ void zsbhdr(int len, int type, char *hdr)
 	int n;
 	unsigned short crc;
 
-#ifdef Z_DEBUG
-	write_log("zsbhdr: %s", frametypes[type+FTOFFSET]);
-#endif
+	DEBUG(('Z',1,"zsbhdr: %s", frametypes[type+FTOFFSET]));
 	BUFCLEAR();
 	if (type == ZDATA)
 		for (n = Znulls; --n >=0; )
@@ -175,9 +173,7 @@ void zshhdr(int len, int type, char *hdr)
 	int n;
 	unsigned short crc;
 
-#ifdef Z_DEBUG
-	write_log("zsbhdr: %s", frametypes[type+FTOFFSET]);
-#endif
+	DEBUG(('Z',1,"zsbhdr: %s", frametypes[type+FTOFFSET]));
 	BUFCLEAR();
 	BUFCHAR(ZPAD&0x7f); BUFCHAR(ZPAD&0x7f); BUFCHAR(ZDLE&0x7f);
 	if (Usevhdrs) {
@@ -396,9 +392,7 @@ int zgethdr(char *hdr)
 {
 	int c, n, cancount;
 
-#ifdef Z_DEBUG	
-	write_log("zgethdr waiting...");
-#endif
+	DEBUG(('Z',1,"zgethdr waiting..."));
 	n = Zrwindow + effbaud;		/* Max bytes before start of frame */
 	Rxframeind = Rxtype = 0;
 
@@ -540,9 +534,7 @@ int zgethdr(char *hdr)
 	}
 	if(c<=FRTYPES && c>=-5) zperr("ZErr %s", frametypes[c+FTOFFSET]);
 	/* Use variable length headers if we got one */
-#ifdef Z_DEBUG
-	write_log("zgethdr: %s", frametypes[c+FTOFFSET]);
-#endif
+	DEBUG(('Z',1,"zgethdr: %s", frametypes[c+FTOFFSET]));
 	if (c >= 0 && c <= FRTYPES && Rxframeind & 040)
 		Usevhdrs = 1;
 	return c;
