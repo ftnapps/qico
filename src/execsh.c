@@ -2,14 +2,13 @@
  * File: execsh.c
  * Created at Sun Nov 21 12:05:23 1999 by pk // aaz@ruxy.org.ru
  * Base version of this file was taken from by Eugene Crosser's ifcico 
- * $Id: execsh.c,v 1.6 2001/03/25 20:30:12 lev Exp $
+ * $Id: execsh.c,v 1.7 2001/04/03 19:48:49 lev Exp $
  ******************************************************************/
 #include "headers.h"
 
 int execsh(char *cmd)
 {
 	int pid,status,rc,sverr;
-	int fd;
 
 	if (!(pid=fork())) {
 		to_dev_null();
