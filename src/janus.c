@@ -4,7 +4,7 @@
  * Janus protocol implementation with:
  * - freqs support
  * - crc32 support 
- * $Id: janus.c,v 1.9 2000/11/26 13:17:34 lev Exp $
+ * $Id: janus.c,v 1.10 2000/12/26 12:20:48 lev Exp $
  ******************************************************************/
 /*---------------------------------------------------------------------------*/
 /*                    Opus Janus revision 0.22,  1- 9-88                     */
@@ -273,7 +273,7 @@ int janus()
 				}
 				*((int *)txbuf)=rxpos;
 				*((int *)txbuf + 1)=caps;
-				sendpkt((byte *)txbuf,sizeof(rxpos)+2,FNACKPKT);
+				sendpkt((byte *)txbuf,sizeof(rxpos)+1,FNACKPKT);
 				if (!(txstate || rxstate)) goto breakout;
 				break;
 
