@@ -1,6 +1,6 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.6 2004/06/16 20:24:34 sisoft Exp $
+ * $Id: perl.c,v 1.7 2004/06/20 18:50:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef WITH_PERL
@@ -195,8 +195,9 @@ int perl_init(char *script,int mode)
 	int rc;
 	SV *sv;
 	char *perlargs[]={"",NULL,NULL};
+	if(!script||!*script)return 0;
 	DEBUG(('P',2,"perl_init(%s, %d)",script,mode));
-	if(access(script,R_OK)) {
+	if(!fexist(script)||access(script,R_OK)) {
 		perl=NULL;
 		write_log("can't access perlfile %s: %s",script,strerror(errno));
 		return 0;

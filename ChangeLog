@@ -1,3 +1,10 @@
+2004-06-20 02:29  sisoft
+
+	* Changes, Makefile.am, README, configure.in, src/main.c,
+	  src/modem.c, src/tty.c, src/tty.h:
+
+	fix timeouts.
+
 2004-06-17 00:24  sisoft
 
 	* src/binkp.c, src/mailer.h, src/perl.c, src/protfm.c,
