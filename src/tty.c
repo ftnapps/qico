@@ -1,6 +1,6 @@
 /**********************************************************
  * work with tty's
- * $Id: tty.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: tty.c,v 1.6 2004/01/20 22:02:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ioctl.h>
@@ -30,7 +30,7 @@ void tty_sighup(int sig)
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 			  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	tty_hangedup=1;
-	DEBUG(('M',2,"tty: got SIG%s signal",sigs[sig]));
+	DEBUG(('M',1,"tty: got SIG%s signal",sigs[sig]));
 	return;
 }
 

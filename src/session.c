@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.18 2004/01/20 10:42:28 sisoft Exp $
+ * $Id: session.c,v 1.19 2004/01/20 22:02:19 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -219,7 +219,7 @@ void flexecute(flist_t *fl)
 			case '#':
 				f=fopen(fl->tosend, "w");
 				if(f) fclose(f);
-				else write_log("can't truncate %s!", fl->tosend);
+				else write_log("can't truncate %s: %s", fl->tosend,strerror(errno));
 				break;
 			}
 			fseek(fl->lo, fl->loff, SEEK_SET);
@@ -233,7 +233,7 @@ void flexecute(flist_t *fl)
 		case '#':
 			f=fopen(fl->tosend, "w");
 			if(f) fclose(f);
-			else write_log("can't truncate %s!", fl->tosend);
+			else write_log("can't truncate %s: %s", fl->tosend,strerror(errno));
 			break;
 		}
 		xfree(fl->sendas);
@@ -284,7 +284,7 @@ int receivecb(char *fn)
 		char s[MAX_PATH];
 		slist_t *reqs=NULL;
 		f=fopen(fn,"rt");
-		if(!f){write_log("can't open '%s' for reading",fn);return 0;}
+		if(!f){write_log("can't open '%s' for reading: %s",fn,strerror(errno));return 0;}
 		while(fgets(s,MAX_PATH-1,f)) {
 			p=s+strlen(s)-1;
 			while(*p=='\r'||*p=='\n')*p--=0;
@@ -303,7 +303,7 @@ int receivecb(char *fn)
 		pktmhdr_t mh;
 		char from[36],to[36],a;
 		f=fopen(fn,"r");
-		if(!f){write_log("can't open '%s' for reading",fn);return 0;}
+		if(!f){write_log("can't open '%s' for reading: %s",fn,strerror(errno));return 0;}
 		if(fread(&ph,sizeof(ph),1,f)!=1)write_log("packet read error");
 		    else if(ph.phType!=2)write_log("packet isn't 2+ format");
 			else {
