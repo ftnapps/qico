@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.25 2001/04/02 19:41:50 lev Exp $
+ * $Id: session.c,v 1.26 2001/04/03 15:26:15 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -235,7 +235,7 @@ void flkill(flist_t **l, int rc)
 
 void simulate_send(ftnaddr_t *fa)
 {
-	flist_t *fl, *l;
+	flist_t *fl=NULL, *l=NULL;
 	makeflist(&fl, fa);
 	for(l=fl;l;l=l->next) flexecute(l);
 	flkill(&fl, 1);
