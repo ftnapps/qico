@@ -2,7 +2,7 @@
  * File: ls_zreceive.c
  * Created at Sun Dec 17 20:14:03 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zreceive.c,v 1.7 2001/01/21 18:12:39 lev Exp $
+ * $Id: ls_zreceive.c,v 1.8 2001/01/24 11:40:05 lev Exp $
  **********************************************************/
 /*
 
@@ -138,6 +138,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 		}
 		switch((rc=ls_zrecvhdr(ls_rxHdr,&hlen,ls_HeaderTimeout))) {
 		case ZRQINIT:		/* Send ZRINIT again */
+                        first = 0;      /* We will trust in first ZFIN after ZRQINIT */
 		case ZNAK:
 		case LSZ_TIMEOUT:
 #ifdef Z_DEBUG2
@@ -149,6 +150,7 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 #ifdef Z_DEBUG2
 			write_log("ls_zrecvfinfo: ZSINIT");
 #endif
+                        first = 0;      /* We will trust in first ZFIN after ZSINIT */
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK */
 				ls_storelong(ls_txHdr,1L);
@@ -168,11 +170,11 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			if((rc=ls_zrecvcrcw(rxbuf,&len))<0) return rc;
 			if(!rc) { 		/* Everything is OK, decode frame */
 				strncpy(f->name,rxbuf,MAX_PATH);
-                f->name[MAX_PATH-1] = '\x00';
-                if(sscanf(rxbuf+strlen(rxbuf)+1,"%ld %lo %o %o %ld %ld",
+                                f->name[MAX_PATH-1] = '\x00';
+                                if(sscanf(rxbuf+strlen(rxbuf)+1,"%ld %lo %o %o %ld %ld",
 					&f->size,&f->mtime,&len,&ls_SerialNum,&f->filesleft,&f->bytesleft) < 2) {
 					f->filesleft = -1;
-                }
+                                }
 				return ZFILE;
 			} else {		/* We could not receive ZCRCW subframe, but error is not fatal */
 				trys++;
