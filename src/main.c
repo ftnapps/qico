@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.60 2001/09/30 15:15:48 lev Exp $
+ * $Id: main.c,v 1.61 2003/01/17 09:02:55 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -10,8 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
+/* #include <sys/ipc.h> */
+/* #include <sys/msg.h> */
 #include "tty.h"
 #include "qipc.h"
 #include "byteop.h"
@@ -64,7 +64,9 @@ void sigerr(int sig)
 	char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 				  "KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM"};
 	signal(sig, SIG_DFL);
+/* Disconect
 	msgctl(qipcr_msg, IPC_RMID, 0);
+*/
 	bso_done();
 	write_log("got SIG%s signal",sigs[sig]);
 #if IP_D	
@@ -113,7 +115,7 @@ void sighup(int sig)
 #endif
 	do_rescan=1;
 }
-
+/*
 void sendipcpkt(int wait, char what, pid_t pid, char *fmt, va_list args)
 {
 	char buf[MSG_BUFFER];
@@ -123,7 +125,7 @@ void sendipcpkt(int wait, char what, pid_t pid, char *fmt, va_list args)
 #ifdef HAVE_VSNPRINTF
 	rc=vsnprintf(buf+5, MSG_BUFFER-1, fmt, args);
 #else
-	/* to be replaced with some emulation vsnprintf!!! */
+	// to be replaced with some emulation vsnprintf!!! 
 	rc=vsprintf(buf+5, fmt, args);
 #endif	
 	msgsnd(qipcr_msg, buf, rc+6, wait?0:IPC_NOWAIT);
@@ -144,7 +146,7 @@ void sendrpktwait(char what, pid_t pid, char *fmt, ...)
 	sendipcpkt(1,what,pid,fmt,args);
 	va_end(args);
 }
-
+*/
 
 char qchars[]=Q_CHARS;
 char *sts_str(int flags)
@@ -189,7 +191,6 @@ void daemon_mode()
 	pid_t chld;
 	qitem_t *current=q_queue, *i;
 	qitem_t *sinfo;
-	key_t qipcr_key;
 	time_t t;
 	ftnaddr_t fa;
 	slist_t *sl;
@@ -223,7 +224,7 @@ void daemon_mode()
 			exit(1);
 		}
 	}
-	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
+/*	if((qipcr_key=ftok(QIPC_KEY,QR_MSGQ))<0) {
 		write_log("can't get key");
 		exit(1);
 	}
@@ -231,7 +232,7 @@ void daemon_mode()
 		write_log("can't create message queue (may be another daemon is running?)");
 		exit(1);
 	}
-
+*/
 	if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
 		write_log("can't init BSO");
 		exit(1);
@@ -415,6 +416,7 @@ void daemon_mode()
 		}
 		t=time(NULL);
 		while((time(NULL)-t)<1) {
+/* Recieve message from Controller 
 			rc=msgrcv(qipcr_msg, buf, MSG_BUFFER-1, 1, IPC_NOWAIT);
 			if(rc<=0) {
 				struct timeval tv = {0,200};
@@ -644,6 +646,7 @@ void daemon_mode()
 					write_log("got unsupported packet type: %c", C0(buf[8]));
 				}
 			}
+		*/
 		}
 		t_dial++;t_rescan++;
 		if(do_rescan) t_dial=0;
