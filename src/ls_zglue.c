@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.8 2001/01/13 12:03:42 lev Exp $
+ * $Id: ls_zglue.c,v 1.9 2001/02/18 18:10:54 lev Exp $
  **********************************************************/
 /*
 
@@ -184,14 +184,14 @@ int zmodem_receive(char *c, int canzap) {
 					switch((rc=ls_zrecvfile(recvf.soff))) {
 					case ZFERR:
 #ifdef Z_DEBUG2
-						write_log("zmodem_receive: FERR");
+						write_log("zmodem_receive: ZFERR");
 #endif
 						rxclose(&rxfd,FOP_SUSPEND);
 						frame = ZFERR;
 						break;
 					case ZSKIP:
 #ifdef Z_DEBUG2
-						write_log("zmodem_receive: FSKIP");
+						write_log("zmodem_receive: ZSKIP");
 #endif
 						rxclose(&rxfd,FOP_SKIP);
 						frame = ZSKIP;
