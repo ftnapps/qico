@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.38 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: qcc.c,v 1.39 2004/05/26 07:46:13 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -59,6 +59,7 @@
 #include "qcconst.h"
 #include "xstr.h"
 #include "xmem.h"
+#include "crc.h"
 #include "clserv.h"
 #include "ver.h"
 
@@ -119,7 +120,6 @@ typedef struct _qslot_t {
 } qslot_t;
 
 extern time_t gmtoff(time_t tt,int mode);
-extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,int challenge_length,unsigned char *digest);
 static RETSIGTYPE sigwinch(int sig);
 static int getmessages(char *bbx);
 
@@ -332,7 +332,7 @@ static void freshhelp()
 		}
 	}
 	wattron(whelp,COLOR_PAIR(10));
-	mvwprintw(whelp,0,COL-3-strlen(version),"qcc-%s",version);
+	mvwprintw(whelp,0,COL-4-strlen(version),"qcc-%s",version);
 }
 
 static void freshhdr()

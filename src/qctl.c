@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.18 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: qctl.c,v 1.19 2004/05/26 07:46:13 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -43,11 +43,11 @@
 #include "byteop.h"
 #include "xstr.h"
 #include "xmem.h"
+#include "crc.h"
 #include "clserv.h"
 #include "ver.h"
 
 extern time_t gmtoff(time_t tt,int mode);
-extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,int challenge_length,unsigned char *digest);
 
 static int sock=-1;
 static char qflgs[Q_MAXBIT]=Q_CHARS;

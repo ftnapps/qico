@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([qico],[0.53si],[sisoft@bk.ru])
 AM_INIT_AUTOMAKE([qico],[0.53si])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.26 2004/05/19 09:52:12 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.27 2004/05/26 07:46:09 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
@@ -135,7 +135,7 @@ dnl Checking for config path
 AC_MSG_CHECKING([for config path])
 AC_ARG_WITH([config],AC_HELP_STRING([--with-config=config],[specifies config path (default is \${sysconfdir}/qico.conf)]),,with_config=NONE)
 if test "${with_config}x" = "NONEx"; then
-	if test "${sysconfdir}x" = "NONEx"; then
+	if test x`eval echo ${sysconfdir}` = "xNONE/etc"; then
 	    if test "${prefix}x" = "NONEx"; then
 		syscdir="${ac_default_prefix}/etc"
 	    else
@@ -144,8 +144,9 @@ if test "${with_config}x" = "NONEx"; then
 	else
 	    syscdir="${sysconfdir}"
 	fi
-	with_config=`eval echo ${syscdir}/qico.conf`
+	with_config="${syscdir}/qico.conf"
 fi
+with_config=`eval echo ${with_config}`
 AC_MSG_RESULT($with_config)
 
 dnl TCP Speed

@@ -1,11 +1,11 @@
-/* $Id: TodayFixes,v 1.65 2004/05/24 03:21:35 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.66 2004/05/26 07:46:09 sisoft Exp $ */
+---
+last fix for --with-config.
+other small changes.
+.
+previous:
 ---
 some small fixes and changes.
 add keyword 'serverpwd' - password for clients auth (optional).
 also added option '-w' to qcc and qctl for set password.
-.
-previous:
----
-fix several bugs in qctl.
-try to fix daemon hung under *BSD.
 .

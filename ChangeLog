@@ -1,3 +1,13 @@
+2004-05-24 07:21  sisoft
+
+	* Changes, INSTALL, README, qico.conf.sample, debian/qctl.8,
+	  src/Makefile.am, src/binkp.c, src/clserv.c, src/clserv.h,
+	  src/daemon.c, src/ftn.c, src/ftn.h, src/qcc.c, src/qconf.x,
+	  src/qctl.c, src/tcp.c, src/tools.c, src/tools.h, src/xstr.c,
+	  src/xstr.h:
+
+	[no log message]
+
 2004-05-21 18:15  sisoft
 
 	* debian/.cvsignore, debian/changelog, debian/rules, src/daemon.c,

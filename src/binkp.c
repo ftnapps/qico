@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.34 2004/05/24 03:21:36 sisoft Exp $
+ * $Id: binkp.c,v 1.35 2004/05/26 07:46:13 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -152,11 +152,7 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	if(mode)q=q_find(remaddr);
 	if(q){totalm=q->pkts;totalf=q_sum(q)+q->reqs;}
 	if(!mode&&opt_md) {
-		long rnd=(long)random(),utm=time(NULL);
-		int pid=((int)getpid())^((int)random());
-		STORE32(chal,rnd);
-		STORE16(chal+4,pid)
-		STORE32(chal+6,utm);
+		md5_cram_set(chal);
 		chal_len=10;
 	}
 	sline("Binkp handshake");

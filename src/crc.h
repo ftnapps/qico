@@ -1,6 +1,6 @@
 /**********************************************************
  * operations with CRC
- * $Id: crc.h,v 1.5 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: crc.h,v 1.6 2004/05/26 07:46:13 sisoft Exp $
  **********************************************************/
 #ifndef __CRC_H__
 #define __CRC_H__
@@ -46,5 +46,10 @@ extern void decrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 extern void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3]);
 
 extern int base64(char *data,size_t size,char *p);
+
+extern void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
+extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
+                  int challenge_length,unsigned char *digest);
+extern void md5_cram_set(const unsigned char *challenge);
 
 #endif
