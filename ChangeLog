@@ -1,3 +1,10 @@
+2004-02-07 23:37  sisoft
+
+	* src/: qcc.c, qctl.c:
+
+	in qcc: change error to warning if file not accessed.
+	in qcc: increase maximum lines to 16.
+	
 2004-02-07 00:52  sisoft
 
 	* Changes, Makefile.am, cvs_com, debian/.cvsignore,

@@ -1,4 +1,4 @@
-/* $Id: ver.c.in,v 1.3 2003/10/05 17:48:57 sisoft Exp $ */
+/* $Id: ver.c.in,v 1.4 2004/02/09 01:05:33 sisoft Exp $ */
 #include <stdio.h>
 #include <sys/utsname.h>
 #include "ver.h"
@@ -6,6 +6,7 @@
 
 char progname[]="@PACKAGE_NAME@";
 char version[]="@PACKAGE_VERSION@";
+char *osname="Unix";
 
 void u_vers(char *progn)
 {

@@ -1,23 +1,42 @@
-/* $Id: globals.h,v 1.5 2004/01/12 21:41:56 sisoft Exp $ */
+/* $Id: globals.h,v 1.6 2004/02/09 01:05:33 sisoft Exp $ */
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
-extern char *devnull;
-extern char *osname;
-extern int is_ip;
-extern int bink;
-extern int do_rescan;
-extern pfile_t sendf;
-extern pfile_t recvf;
-extern long int temptot;
-extern long int temptot2;
-extern char ip_id[10];
-extern ninfo_t *rnode;
-extern ftnaddr_t DEFADDR;
-extern int ssock,uis_sock,lins_sock;
-extern unsigned long int totalf, totalm, totaln;
-extern int was_req, got_req;
-extern flist_t *fl;
+extern char *aso_tmp;
+extern char *bso_tmp;
+extern char *ccs;
+extern char *configname;
 extern char *connstr;
+extern char *devnull;
+extern char ip_id[10];
+extern char *log_name;
+extern char *log_tty;
+extern char *tty_port;
+extern falist_t *ccal;
+extern faslist_t *ccfasl;
+extern flist_t *fl;
+extern ftnaddr_t DEFADDR;
+extern ftnaddr_t ndefaddr;
+extern int bink;
+extern int calling;
+extern int cci;
+extern int chatlg;
+extern int chatprot;
+extern int do_rescan;
+extern int freq_pktcount;
+extern int is_ip;
+extern int runtoss;
+extern int rxstatus;
+extern int skipiftic;
+extern int ssock,uis_sock,lins_sock;
+extern int tty_hangedup;
+extern int was_req,got_req;
+extern long chattimer;
+extern ninfo_t *rnode;
+extern pfile_t sendf,recvf;
+extern qitem_t *q_queue;
+extern slist_t *ccsl;
+extern subst_t *psubsts;
+extern unsigned long totalf,totalm,totaln;
 
 #endif

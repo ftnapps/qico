@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.12 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: log.c,v 1.13 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -59,15 +59,13 @@ static SLNCODE prioritynames[] =
 #define CHATLOG_BUF 4096
 static int log_type=0,mcpos,rcpos;
 static int syslog_priority=LOG_INFO;
-char *log_name=NULL;
-char *log_tty=NULL;
-void (*log_callback)(char *str)=NULL;
 static ftnaddr_t *adr;
 static char pktname[MAX_PATH]={0};
 static FILE *cpkt=NULL;
 static FILE *lemail=NULL;
 static char mchat[CHATLOG_BUF]={0};
 static char rchat[CHATLOG_BUF]={0};
+void (*log_callback)(char *str)=NULL;
 
 #ifdef NEED_DEBUG
 int facilities_levels[256];

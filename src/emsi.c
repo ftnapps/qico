@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.13 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: emsi.c,v 1.14 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -442,6 +442,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "NRQ")) { o|=O_NRQ;continue;}
 		if(!strcmp(p, "FNC")) { o|=O_FNC;continue;}
 		if(!strcmp(p, "XMA")) { o|=O_XMA;continue;}
+		DEBUG(('E',2,"unknown emsidat proto flag: '%s'",p));
 	}
 	q=lcod;
 	while((p=strsep(&q, ","))) {
@@ -452,15 +453,7 @@ int emsi_parsecod(char *lcod, char *ccod)
 		if(!strcmp(p, "HAT")) { o|=O_HAT;continue;}
 		if(!strcmp(p, "HXT")) { o|=O_HXT;continue;}
 		if(!strcmp(p, "HRQ")) { o|=O_HRQ;continue;}
+		DEBUG(('E',2,"unknown emsidat traff flag: '%s'",p));
 	}
 	return o;
-}
-
-char *findpwd(ftnaddr_t *a)
-{
-	faslist_t *cf;
-	for(cf=cfgfasl(CFG_PASSWORD);cf;cf=cf->next)
-		if(ADDRCMP(cf->addr, (*a)))
-			return cf->str;
-	return NULL;
 }

@@ -1,11 +1,14 @@
 /**********************************************************
  * All common headers are included here
- * $Id: headers.h,v 1.5 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: headers.h,v 1.6 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include <config.h>
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
 #endif
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -34,8 +37,11 @@
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
+#ifdef STDC_HEADERS
 #include <stdarg.h>
-
+#else
+#include <varargs.h>
+#endif
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -46,19 +52,22 @@
 #include <time.h>
 #endif
 #endif
-
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
 #endif
 
 #ifndef HAVE_STDXXX_FILENO
-#define STDIN_FILENO		0
+#define STDIN_FILENO	0
 #define STDOUT_FILENO	1
 #define STDERR_FILENO	2
 #endif
 
 #ifndef HAVE_EIDRM
-#define EIDRM			EINVAL
+#define EIDRM EINVAL
+#endif
+
+#ifndef WEXITSTATUS
+#define WEXITSTATUS(stat_val) ((unsigned)(stat_val)>>8)
 #endif
 
 #include "replace.h"

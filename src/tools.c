@@ -1,11 +1,24 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.2 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: tools.c,v 1.3 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_STATFS_H
+#include <sys/statfs.h>
+#endif
+#ifdef HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
+#ifdef HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 #include "charset.h"
 
 static unsigned long seq=0xFFFFFFFF;
+static char *hexdigits="0123456789abcdef";
 
 void strlwr(char *s)
 {
@@ -54,6 +67,34 @@ char *chop(char *s,int n)
 	return s;
 }
 
+void strbin2hex(char *string,const unsigned char *binptr,int binlen)
+{
+	int i;
+	for(i=0;i<binlen;i++) {
+		*string++=hexdigits[(*binptr>>4)&0x0f];
+		*string++=hexdigits[(*binptr)&0x0f];
+		++binptr;
+	}
+	*string=0;
+}
+
+int strhex2bin(unsigned char *binptr,const char *string)
+{
+	int i,val,len=strlen(string);
+	unsigned char *dest=binptr;
+	const char *p;
+	for(i=0;2*i<len;i++) {
+		if((p=strchr(hexdigits,tolower(*(string++))))) {
+			val=(int)(p-hexdigits);
+			if((p=strchr(hexdigits,tolower(*(string++))))) {
+				val=val*16+(int)(p-hexdigits);
+				*dest++=(unsigned char)(val&0xff);
+			} else return 0;
+		} else return 0;
+	}
+	return(dest-binptr);
+}
+
 unsigned long filesize(char *fname)
 {
 	int s;
@@ -73,7 +114,7 @@ int lockpid(char *pidfn)
 	if(f) {
 		fscanf(f, "%ld", &pid);
 		fclose(f);
-		if(kill(pid, 0)&&(errno==ESRCH)) unlink(pidfn);
+		if(kill(pid, 0)&&(errno==ESRCH)) lunlink(pidfn);
 		else return 0;
 	}
 
@@ -85,7 +126,7 @@ int lockpid(char *pidfn)
 	fprintf(f,"%10ld\n",(long)getpid());
 	fclose(f);
 	rc=link(tmpname,pidfn);
-	unlink(tmpname);
+	lunlink(tmpname);
 	if(rc) return 0;
 #else
 	rc=open(pidfn,O_WRONLY|O_CREAT|O_EXCL,0644);
@@ -105,7 +146,7 @@ int islocked(char *pidfn)
 	if(f) {
 		fscanf(f, "%ld", &pid);
 		fclose(f);
-		if(kill(pid, 0)&&(errno==ESRCH)) unlink(pidfn);
+		if(kill(pid, 0)&&(errno==ESRCH)) lunlink(pidfn);
 		else return pid;
 	}
 	return 0;
@@ -255,8 +296,46 @@ int isdos83name(char *fn)
 	return (f&&ec<2&&el<4&&nl<9&&(!lc||!uc));
 }
 
-#ifndef HAVE_SETPROCTITLE
+#ifdef HAVE_STATFS
+#define STAT_V_FS statfs
+#else
+#ifdef HAVE_STATVFS
+#define STAT_V_FS statvfs
+#else
+#undef STAT_V_FS
+#endif
+#endif
+size_t getfreespace(const char *path)
+{
+#ifdef STAT_V_FS
+	struct STAT_V_FS sfs;
+	if(!STAT_V_FS(path,&sfs))return(sfs.f_bsize*sfs.f_bavail);
+	write_log("can't statfs '%s'",path);
+#endif
+	return(~0L);
+}
 
+void to_dev_null()
+{
+	int fd;
+	close(STDIN_FILENO);close(STDOUT_FILENO);close(STDERR_FILENO);
+	fd=open(devnull,O_RDONLY);
+	if(dup2(fd,STDIN_FILENO)!=STDIN_FILENO){write_log("reopening of stdin failed");exit(-1);}
+	if(fd!=STDIN_FILENO)close(fd);
+	fd=open(devnull,O_WRONLY|O_APPEND|O_CREAT,0600);
+	if(dup2(fd,STDOUT_FILENO)!=STDOUT_FILENO){write_log("reopening of stdout failed");exit(-1);}
+	if(fd!=STDOUT_FILENO)close(fd);
+	fd=open(devnull,O_WRONLY|O_APPEND|O_CREAT,0600);
+	if(dup2(fd,STDERR_FILENO)!=STDERR_FILENO){write_log("reopening of stderr failed");exit(-1);}
+	if(fd!=STDERR_FILENO)close(fd);
+}
+
+int randper(int base,int diff)
+{
+	return base-diff+(int)(diff*2.0*rand()/(RAND_MAX+1.0));
+}
+
+#ifndef HAVE_SETPROCTITLE
 extern char **environ;
 static char *cmdstr=NULL;
 static char *cmdstrend=NULL;
@@ -291,5 +370,4 @@ void setproctitle(char *str)
 	for (p=cmdstr;(p < cmdstrend) && (*str);p++,str++) *p=*str;
 	while (p < cmdstrend) *p++ = ' ';
 }
-
 #endif

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.11 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: protfm.c,v 1.12 2004/02/09 01:05:33 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -37,8 +37,6 @@ static unsigned char qsnd_buf[CHAT_BUF]={0};
 static unsigned char ubuf[CHAT_BUF];
 static char hellostr[MAX_STRING];
 static unsigned short qsndbuflen=0;
-int chatprot=-1,chatlg=0,rxstatus=0,skipiftic=0;
-long chattimer;
 
 static char weskipstr[]="recd: %s, 0 bytes, 0 cps [%sskipped]";
 static char wesusstr[]="recd: %s, 0 bytes, 0 cps [%ssuspended]";
@@ -366,7 +364,11 @@ int chatsend(unsigned char *str)
 void c_devrecv(unsigned char *data,unsigned len)
 {
 	int i;
+	if(!data||!*data||!len)return;
+	data[len]=0;
 	if(chattimer<1) {
+		char *p;
+		if(len>5&&data[1]!=5&&(p=strstr(data," * "))&&strstr(p+3,"los"))return;
 		c_devsend((unsigned char*)hellostr,strlen(hellostr));
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,1);
 	}
@@ -401,9 +403,8 @@ void getevt()
 					i=chatprot;chatprot=-1;
 					chatsend(qsnd_buf);
 					if(chatlg)chatlog_done();
-					chatlg=0;
+					chatlg=0;chatprot=i;
 					xstrcat((char*)qsnd_buf,"\n * Chat closed\n",CHAT_BUF);
-					chatprot=i;
 					chatsend(qsnd_buf);
 					if(chattimer>0L)qlcerase();
 					qsndbuflen=0;

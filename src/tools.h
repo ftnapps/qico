@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.2 2004/02/06 21:54:46 sisoft Exp $ */
+/* $Id: tools.h,v 1.3 2004/02/09 01:05:33 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -35,8 +35,12 @@ typedef struct {
 	char *def_val;
 } cfgstr_t;
 
+#ifndef MAX
 #define MAX(a,b) ((a>b)?a:b)
+#endif
+#ifndef MIN
 #define MIN(a,b) ((a<b)?a:b)
+#endif
 #define C0(c) ((c>=32)?c:'.')
 #define SIZES(x) (((x)<1024)?(x):((x)/1024))
 #define SIZEC(x) (((x)<1024)?'b':'k')
@@ -49,6 +53,8 @@ extern unsigned char tokoi(unsigned char c);
 extern void stodos(unsigned char *str);
 extern void stokoi(unsigned char *str);
 extern char *chop(char *s, int n);
+extern void strbin2hex(char *string,const unsigned char *binptr,int binlen);
+extern int strhex2bin(unsigned char *binptr,const char *string);
 extern unsigned long filesize(char *fname);
 extern int lockpid(char *pidfn);
 extern int islocked(char *pidfn);
@@ -56,16 +62,14 @@ extern unsigned long sequencer(void);
 extern int mkdirs(char *name);
 extern void rmdirs(char *name);
 extern FILE *mdfopen(char *fn, char *pr);
+extern size_t getfreespace(const char *path);
+extern int randper(int base,int diff);
+extern void to_dev_null();
 #ifndef HAVE_SETPROCTITLE
 extern void setargspace(int argc, char **argv, char **envp);
 extern void setproctitle(char *str);
 #endif
 /* config.c */
-extern int cci;
-extern char *ccs;
-extern slist_t *ccsl;
-extern faslist_t *ccfasl;
-extern falist_t *ccal;
 extern int cfgi(int i);
 extern char *cfgs(int i);
 extern slist_t *cfgsl(int i);
@@ -101,9 +105,7 @@ extern void log_done(void);
 /* gmtoff.c */
 extern time_t gmtoff(time_t tt,int mode);
 /* main.c */
-extern void to_dev_null();
 extern RETSIGTYPE sigerr(int sig);
-extern char *configname;
 extern void stopit(int rc);
 /* daemon.c */
 extern void daemon_mode();

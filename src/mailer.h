@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.10 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: mailer.h,v 1.11 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -59,6 +59,7 @@ typedef struct _flist_t {
 	int type;
 } flist_t;
 
+/* z*.c */
 extern int zmodem_receive(char *m, int canzap);
 extern int zmodem_send(slist_t *, slist_t *);
 extern int zmodem_sendfile(char *tosend, char *sendas,
@@ -66,14 +67,14 @@ extern int zmodem_sendfile(char *tosend, char *sendas,
 					*filesleft);
 extern int zmodem_sendinit(int canzap);
 extern int zmodem_senddone();
+/* diff */
 extern int session(int mode, int type, ftnaddr_t *calladdr, int speed);
 extern int binkpsession(int mode,ftnaddr_t *remaddr);
 extern int compile_nodelists();
 extern int tcp_call(char *host, ftnaddr_t *fa);
-
+/* execsh.c */
 extern int execsh(char *cmd);
 extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
-
 /* emsi.c */
 extern char *emsi_makedat(ftnaddr_t *remaddr, unsigned long mail,
 						  unsigned long files, int lopt, char *protos,
@@ -84,8 +85,7 @@ extern int emsi_send(int mode, unsigned char *dat);
 extern int emsi_recv(int mode, ninfo_t *rememsi);
 extern int emsi_init(int mode);
 extern int emsi_parsecod(char *lcod, char *ccod);
-extern char *findpwd(ftnaddr_t *a);
-
+/* protfm.c */
 extern int rxopen(char *name, time_t rtime, size_t rsize, FILE **f);
 extern int rxclose(FILE **f, int what);
 extern FILE *txopen(char *tosend, char *sendas);
@@ -148,28 +148,20 @@ extern byte txlastc;
 extern int (*receive_callback)(char *fn);
 extern void makeflist(flist_t **fl, ftnaddr_t *fa,int mode);
 extern void flkill(flist_t **l, int rc);
-
 extern void flexecute(flist_t *fl);
 extern void addflist(flist_t **fl, char *loc, char *rem, char kill,
 					 off_t off, FILE *lo, int fromlo);
-
 extern void simulate_send(ftnaddr_t *fa);
-
+/* freq.c */
 extern int freq_ifextrp(slist_t *reqs);
-extern int freq_pktcount;
-
+extern int freq_recv(char *fn);
 /* for chat */
 extern void chatinit(int prot);
 extern void c_devrecv(unsigned char *str,unsigned len);
-extern int rxstatus,chatlg;
-extern long chattimer;
-
 extern void getevt();
-
 /* md5.c */
 extern void md5_get(const unsigned char *data,size_t length,unsigned char *digest);
 extern void md5_cram_get(const unsigned char *secret,const unsigned char *challenge,
                   int challenge_length,unsigned char *digest);
-
 
 #endif

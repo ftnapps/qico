@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.21 2004/02/07 20:37:18 sisoft Exp $
+ * $Id: qcc.c,v 1.22 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -13,7 +13,11 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef STDC_HEADERS
 #include <stdarg.h>
+#else
+#include <varargs.h>
+#endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -946,8 +950,7 @@ static int getmessages(char *bbx)
 		data=(unsigned char*)(strchr(buf+3,0)+1);
 		len=rc-4-strlen(buf+3);
 		if(strcmp(buf+3,"master")) {
-			if(!strcmp(buf+3,"ipline"))snprintf(buf+3,7,"ip%04x",id);
-			else if(!strcmp(buf+3,"IPline"))snprintf(buf+3,7,"IP%04x",id);
+			if(!strcasecmp(buf+3,"ipline"))snprintf(buf+5,5,"%04x",id);
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
 				if(rc>=0&&allslots<MAX_SLOTS&&buf[3]=='i'&&buf[4]=='p') {

@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.6 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: config.c,v 1.7 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -8,12 +8,6 @@ extern int flagexp(char *);
 
 static slist_t *condlist=NULL;
 static char *curcond=NULL;
-
-int cci;
-char *ccs;
-slist_t *ccsl;
-faslist_t *ccfasl;
-falist_t *ccal;
 
 static int getstr(char **to, char *from)
 {

@@ -1,18 +1,12 @@
 /**********************************************************
  * bso management
- * $Id: bso.c,v 1.7 2004/02/05 19:51:16 sisoft Exp $
+ * $Id: bso.c,v 1.8 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-char *bso_tmp;
 static char *bso_base,*bso_base_sts,*p_domain;
 static int bso_base_len,bso_tmp_len,bso_base_len_sts;
 static int bso_defzone=2;
-
-int is_bso() {
-	if(bso_tmp!=NULL)return 1;
-	    else return 0;
-}
 
 int bso_init(char *bsopath,int def_zone)
 {

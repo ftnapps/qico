@@ -1,6 +1,6 @@
 /**********************************************************
  * ip routines
- * $Id: tcp.c,v 1.15 2004/02/06 21:54:46 sisoft Exp $
+ * $Id: tcp.c,v 1.16 2004/02/09 01:05:33 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_SOCKET_H
@@ -18,31 +18,9 @@
 #include "defs.h"
 #include "qipc.h"
 #include "tty.h"
+#include "crc.h"
 
 #define H_BUF 4096
-
-static char b64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-int base64(char *data,int size,char *p)
-{
-	int i,c;
-	char *s=p;
-	unsigned char *q;
-	q=(unsigned char*)data;
-	for(i=0;i<size;) {
-		c=q[i++]*256;
-		if(i<size)c+=q[i];
-		i++;c*=256;
-		if(i<size)c+=q[i];
-		p[0]=b64[(c&0x00fc0000)>>18];
-		p[1]=b64[(c&0x0003f000)>>12];
-		p[2]=b64[(c&0x00000fc0)>>6];
-		p[3]=b64[(c&0x0000003f)];
-		if(++i>size)p[3]='=';
-		if(i>size+1)p[2]='=';
-		p+=4;
-	}
-	return(p-s);
-}
 
 static int proxy_conn(char *name)
 {
@@ -325,8 +303,8 @@ int tcp_call(char *host,ftnaddr_t *fa)
 		closetcp(fd);
 		if((rc&S_MASK)==S_REDIAL&&cfgi(CFG_FAILPOLLS)) {
 			write_log("creating poll for %s",ftnaddrtoa(fa));
-			if(is_bso()==1)bso_poll(fa,F_ERR);
-			    else if(is_aso()==1)aso_poll(fa,F_ERR);
+			if(BSO)bso_poll(fa,F_ERR);
+			    else if(ASO)aso_poll(fa,F_ERR);
 		}
 	} else rc=S_REDIAL;
 	title("Waiting...");
