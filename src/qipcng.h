@@ -2,7 +2,7 @@
  * File: qipcng.h
  * Created at Wed Apr  4 00:05:05 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipcng.h,v 1.5 2001/09/17 18:56:48 lev Exp $
+ * $Id: qipcng.h,v 1.6 2001/09/27 14:19:46 lev Exp $
  **********************************************************/
 #ifndef __QIPCNG_H__
 #define __QIPCNG_H__
@@ -134,14 +134,14 @@ typedef int (*event_handler)(linestat_t *line, evtlam_t *event);
 /* Signature: "c" -- DIRECTION */
 #define EVTL2M_BATCH_ENDED		0x32	/* Batch finished */
 /* Signature: "c" -- DIRECTION */
-#define EVTL2M_BATCH_INFO		0x34	/* Batch info */
-/* Signature: "cdd" -- DIRECTION,FILES,TOTAL SIZE */
+#define EVTL2M_BATCH_INFO		0x33	/* Batch info */
+/* Signature: "cdddd" -- DIRECTION,MAX BLOCK,CRC,FILES,TOTAL SIZE */
 
 #define EVTL2M_GROUP_RECVSEND	0x40	/* File send/receive related events */
-#define EVTL2M_FILE_STATE		0x41	/* State changed */
-/* Signature: "cc" -- DIRECTION,NEW STATE  */
-#define EVTL2M_FILE_INFO		0x42	/* Info about new file sended/received */
-/* Signature: "csdd" -- DIRECTION,NAME,SIZE,TIME  */
+#define EVTL2M_FILE_START		0x41	/* Start new file */
+/* Signature: "c" -- DIRECTION  */
+#define EVTL2M_FILE_INFO		0x42	/* Info about new file sending/received */
+/* Signature: "csdd" -- DIRECTION,CRC,NAME,SIZE,TIME  */
 #define EVTL2M_FILE_BLOCK		0x43	/* Block sended/received */
 /* Signature: "cd" -- DIRECTION,SIZE  */
 #define EVTL2M_FILE_REPOS		0x44	/* Repos */

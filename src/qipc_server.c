@@ -2,7 +2,7 @@
  * File: qipc_server.c
  * Created at Wed Apr  4 23:53:12 2001 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: qipc_server.c,v 1.2 2001/09/17 18:56:48 lev Exp $
+ * $Id: qipc_server.c,v 1.3 2001/09/27 14:19:46 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/socket.h>
@@ -259,6 +259,7 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 {
 	char *pwd;
 	char c;
+	DWORD dw1,dw2,dw3,dw4;
 	txrxstate_t *txrx;
 
     /* First of all -- check PASSWORD */
@@ -383,37 +384,50 @@ int server_process_line_event(linestate_t *line, evtlam_t *evt, struct sockaddr_
 		rxtx->phase = TXRX_PHASE_EOT;
 		break;
 	case EVTL2M_BATCH_INFO:					/* Batch info */
-											/* Signature: "cdd" -- DIRECTION,FILES,TOTAL SIZE */
+											/* Signature: "cdddd" -- DIRECTION,MAX BLOCK,CRC,FILES,TOTAL SIZE */
+		if(line->phase != SESS_PHASE_INPROCESS) {
+			write_log("Invalid BATCH_INFO event from '%16s'",evt->tty[0]?evt->tty:'tcp');
+			return -1;
+		}
+		if(5!=unpack_ipc_packet(evt->data,evt.fulllength,"cdddd",&c,&dw1,&dw2,&dw3,&dw4)) {
+			write_log("Too short event data: %d (event %d) from '%16s'",evt.fulllength,evt->type,evt->tty[0]?evt->tty:'tcp');
+			return -1;
+		}
+		if(!(rxtx = get_txrx_state(line,c))) return -1;
+		rxtx->maxblock = dw1;
+		rxtx->crcsize = dw2;
+		rxtx->totalfiles = dw3;
+		rxtx->totalsize = dw4;
 		break;
-	case EVTL2M_BATCH_STATE:	/* State changed */
-							/* Signature: "cc" -- DIRECTION,NEW STATE  */
+	case EVTL2M_FILE_START:					/* New file started */
+											/* Signature: "c" */
 		break;
-	case EVTL2M_FILE_INFO:	/* Info about new file sended/received */
-							/* Signature: "csdd" -- DIRECTION,NAME,SIZE,TIME  */
+	case EVTL2M_FILE_INFO:					/* Info about new file sended/received */
+											/* Signature: "csdd" -- DIRECTION,NAME,SIZE,TIME  */
 		break;
-	case EVTL2M_FILE_BLOCK:	/* Block sended/received */
-							/* Signature: "cd" -- DIRECTION,SIZE  */
+	case EVTL2M_FILE_BLOCK:					/* Block sended/received */
+											/* Signature: "cd" -- DIRECTION,SIZE  */
 		break;
-	case EVTL2M_FILE_REPOS:	/* Repos */
-							/* Signature: "cd" -- DIRECTION,POS  */
+	case EVTL2M_FILE_REPOS:					/* Repos */
+											/* Signature: "cd" -- DIRECTION,POS  */
 		break;
-	case EVTL2M_FILE_END:	/* End */
-							/* Signature: "cc" -- DIRECTION,REASON  */
+	case EVTL2M_FILE_END:					/* End */
+											/* Signature: "cc" -- DIRECTION,REASON  */
 		break;
-	case EVTL2M_CHAT_INIT:	/* Remote request for chat */
-							/* Signature: "" */
+	case EVTL2M_CHAT_INIT:					/* Remote request for chat */
+											/* Signature: "" */
 		break;
-	case EVTL2M_CHAT_LINE:	/* Chat string received */
-							/* Signature: "s" -- LINE */
+	case EVTL2M_CHAT_LINE:					/* Chat string received */
+											/* Signature: "s" -- LINE */
 		break;
-	case EVTL2M_CHAT_CLOSE:	/* Remote close chat */
-							/* Signature: "" */
+	case EVTL2M_CHAT_CLOSE:					/* Remote close chat */
+											/* Signature: "" */
 		break;
-	case EVTL2M_SLINE:	/* Status line */
-						/* Signature: "s" -- LINE */
+	case EVTL2M_SLINE:						/* Status line */
+											/* Signature: "s" -- LINE */
 		break;
-	case EVTL2M_LOG:	/* Log string */
-						/* Signature: "s" -- LINE */
+	case EVTL2M_LOG:						/* Log string */
+											/* Signature: "s" -- LINE */
 		break;
 	default:
 		break;
