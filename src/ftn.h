@@ -2,7 +2,7 @@
  * File: ftn.h
  * Created at Thu Jul 15 16:15:21 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: ftn.h,v 1.27 2001/05/29 19:13:33 lev Exp $
+ * $Id: ftn.h,v 1.28 2001/07/12 21:43:02 lev Exp $
  **********************************************************/
 #ifndef __FTN_H__
 #define __FTN_H__
@@ -217,7 +217,7 @@ extern int needhold(int status, int what);
 extern char *NL_SIGN;
 extern char *NL_IDX;
 extern int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl);
-extern int is_listed(ftnaddr_t *addr, char *nlpath);
+extern int is_listed(falist_t *addr, char *nlpath, int needall);
 extern void phonetrans(char **pph, slist_t *phtr);
 extern int checktimegaps(char *ranges);
 extern int chktxy(char *p);
