@@ -205,8 +205,8 @@ defperm		0644
 # ipc objects permissions
 ipcperm		0666
 
-#use setproctitle (default no)
-useproctitle no
+#use setproctitle (default yes)
+#useproctitle no
 
 ###############################################################################
 ### modem and dialing parameters ##############################################
@@ -525,4 +525,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.29 2003/03/10 15:58:02 cyrilm Exp $
+# $Id: qico.conf.sample,v 1.30 2003/03/13 20:07:55 cyrilm Exp $
