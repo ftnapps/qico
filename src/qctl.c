@@ -2,7 +2,7 @@
  * File: qctl.c
  * command-line qico control tool
  * Created at Sun Aug 27 21:24:09 2000 by pqr@yasp.com
- * $Id: qctl.c,v 1.20 2003/03/18 20:59:31 cyrilm Exp $
+ * $Id: qctl.c,v 1.21 2003/03/19 18:43:31 cyrilm Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 				printf("Can't stat file %s: %s. File skipped!\n",filename,strerror(errno));
 				break;
 			}
-			if(S_ISREG(filestat.st_mode)) {
+			if(!S_ISREG(filestat.st_mode)) {
 				printf("File %s is not regular file. Skipped!\n",filename);
 				break;
 			}
