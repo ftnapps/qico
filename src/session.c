@@ -2,7 +2,7 @@
  * File: session.c
  * Created at Sun Jul 18 18:28:57 1999 by pk // aaz@ruxy.org.ru
  * session
- * $Id: session.c,v 1.12 2001/01/08 17:30:31 lev Exp $
+ * $Id: session.c,v 1.13 2001/01/08 19:37:06 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -279,11 +279,15 @@ int wazoosend(int zap)
 	return 0;
 }
 
-int wazoorecv()
+int wazoorecv(int zap)
 {
 	int rc;
 	write_log("wazoo receive");
-	rc=zmodem_receive(cfgs(CFG_INBOUND));
+	rc=zmodem_receive(cfgs(CFG_INBOUND)
+#ifdef NEWZMODEM
+	,zap
+#endif
+	);
 	qpreset(0);
 	if(rc==RCDO || rc==ERROR) return 1;
 	return 0;
@@ -454,6 +458,10 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 				{pr[0]='H';emsi_lo|=P_HYDRA;break;}
 			if(*t=='J' && rnode->options&P_JANUS)
 				{pr[0]='J';emsi_lo|=P_JANUS;break;}
+#ifdef NEWZMODEM
+			if(*t=='D' && rnode->options&P_DIRZAP)
+				{pr[0]='1';emsi_lo|=P_DIRZAP;break;}
+#endif
 			if(*t=='Z' && rnode->options&P_ZEDZAP)
 				{pr[0]='Z';emsi_lo|=P_ZEDZAP;break;}
 			if(*t=='1' && rnode->options&P_ZMODEM)
@@ -490,6 +498,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		t="ZModem-1k";break;
 	case P_ZEDZAP:
 		t="ZedZap";break;
+	case P_DIRZAP:
+		t="DirZap";break;
 	case P_HYDRA8:
 		t="Hydra-8k";break;
 	case P_HYDRA16:
@@ -518,17 +528,18 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	
 	switch(proto) {
 	case P_ZEDZAP:
+	case P_DIRZAP:
 	case P_ZMODEM:  
 		recvf.cps=1;recvf.ttot=rnode->netmail+rnode->files;
 		if(mode) {
-			rc=wazoosend(proto&P_ZEDZAP);
-			if(!rc) rc=wazoorecv();
-			if(got_req && !rc) rc=wazoosend(proto&P_ZEDZAP);
+			rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
+			if(!rc) rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
+			if(got_req && !rc) rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 		} else {
-			rc=wazoorecv();
+			rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 			if(rc) return S_REDIAL;
-			rc=wazoosend(proto&P_ZEDZAP);
-			if(was_req) rc=wazoorecv();
+			rc=wazoosend((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
+			if(was_req) rc=wazoorecv((proto&P_ZEDZAP)?1:((proto&P_DIRZAP)?2:0));
 		}
 		flkill(&fl, !rc);
 		return rc?S_REDIAL:S_OK;

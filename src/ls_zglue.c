@@ -2,7 +2,7 @@
  * File: ls_zglue.c
  * Created at Wed Dec 13 22:52:06 2000 by lev // lev@serebryakov.spb.ru
  *
- * $Id: ls_zglue.c,v 1.5 2001/01/07 11:25:26 lev Exp $
+ * $Id: ls_zglue.c,v 1.6 2001/01/08 19:37:06 lev Exp $
  **********************************************************/
 /*
 
@@ -62,10 +62,26 @@ int zmodem_sendfile(char *tosend, char *sendas, unsigned long *totalleft, unsign
 /* Init sending -- wrapper */
 int zmodem_sendinit(int canzap) {
 	int rc;
+	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD;
 #ifdef Z_DEBUG
-	write_log("zmodem_sendinit: %s",canzap?"ZedZap":"ZModem");
+	write_log("zmodem_sendinit: %s",canzap==2?"DirZap":canzap?"ZedZap":"ZModem");
 #endif
-	if((rc=ls_zinitsender(canzap?LSZ_OPTZEDZAP|LSZ_OPTCRC32|LSZ_OPTSKIPGUARD:LSZ_OPTCRC32|LSZ_OPTSKIPGUARD,effbaud,cfgi(CFG_ZTXWIN),NULL))<0) return rc;
+	switch(canzap) {
+	case 2:
+		opts |= LSZ_OPTDIRZAP;
+		/* Fall through */
+	case 1:
+		opts |= LSZ_OPTZEDZAP;
+		/* Fall through */
+	case 0:
+		break;
+	default:
+#ifdef Z_DEBUG
+		write_log("zmodem_sendinit: strange canzap: %d",canzap);
+#endif
+		break;
+	}
+	if((rc=ls_zinitsender(opts,effbaud,cfgi(CFG_ZTXWIN),NULL))<0) return rc;
 	write_log("zmodem link options: %d/%d, %s%s%s%s",ls_MaxBlockSize,ls_txWinSize,
 				(ls_Protocol&LSZ_OPTCRC32)?"CRC32":"CRC16",
 				(ls_rxCould&LSZ_RXCANDUPLEX)?",DUPLEX":"",
@@ -84,16 +100,30 @@ int zmodem_senddone()
 	return ls_zdonesender();
 }
 
-int zmodem_receive(char *c) {
+int zmodem_receive(char *c, int canzap) {
 	ZFILEINFO f;
 	int rc;
 	int frame = ZRINIT;
+	int opts = LSZ_OPTCRC32|LSZ_OPTSKIPGUARD|LSZ_OPTZEDZAP;
 
 #ifdef Z_DEBUG
 	write_log("zmodem_receive");
 #endif
+	switch(canzap) {
+	case 2:
+		opts |= LSZ_OPTDIRZAP;
+		/* Fall through */
+	case 1:
+	case 0:
+		break;
+	default:
+#ifdef Z_DEBUG
+		write_log("zmodem_receive: strange canzap: %d",canzap);
+#endif
+		break;
+	}
 
-	switch((rc=ls_zinitreceiver(LSZ_OPTCRC32|LSZ_OPTZEDZAP|LSZ_OPTSKIPGUARD,effbaud,cfgi(CFG_ZRXWIN),&f))) {
+	switch((rc=ls_zinitreceiver(opts,effbaud,cfgi(CFG_ZRXWIN),&f))) {
 	case ZFIN:
 #ifdef Z_DEBUG2
 		write_log("zmodem_receive: ZFIN after INIT, empty batch");

@@ -286,21 +286,23 @@ zmh		Tcd
 # protocol order:
 # N - NCP       (can be used to reject session)
 # 1 - ZModem
-# Z - ZedZap
+# Z - ZedZap    (ZModem with 8k blocks)
+# D - DirZap    (ZModem with 8k blocks and minimal escaping)
 # J - Janus
 # H - Hydra     (standard hydra with maximal block size of 2048 bytes)
 # 8 - Hydra-8k  (enhanced to use blocks up to 8192 bytes, emsi code - HY8)
 # 6 - Hydra-16k (16k blocks, emsi code - H16)
-protorder	JHZ1
+# NB: DirZap available only with new ZModem inplementation.
+protorder	JHDZ1
 
 # it's better to use janus on tcp/ip
 if tcpip
-   protorder	JZ1
+   protorder	JDZ1
 # it's not recommended to use these extensions on lower speeds!
 if connect >= 14400
-   protorder	8HJZ1
+   protorder	8HJDZ1
 if connect >= 28800
-   protorder	68HJZ1
+   protorder	68HJDZ1
 endif
 
 # Send window for ZModem (in bytes). 0 -- streamed mode.
@@ -454,4 +456,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.11 2001/01/08 17:30:02 lev Exp $
+# $Id: qico.conf.sample,v 1.12 2001/01/08 19:37:05 lev Exp $

@@ -2,7 +2,7 @@
  * File: mailer.h
  * Created at Thu Jul 15 16:16:07 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: mailer.h,v 1.7 2000/11/10 12:37:21 lev Exp $
+ * $Id: mailer.h,v 1.8 2001/01/08 19:37:06 lev Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -12,15 +12,16 @@
 
 #define ZMAXBLOCK  8192
 
-#define P_NCP    1
-#define P_ZMODEM 1<<1
-#define P_ZEDZAP 1<<2
-#define P_HYDRA  1<<3
-#define P_JANUS  1<<4
-#define P_TCPP   1<<5
-#define P_HYDRA8 1<<6
-#define P_HYDRA16 1<<7
-#define P_MASK   255
+#define P_NCP		0x0001
+#define P_ZMODEM	0x0002
+#define P_ZEDZAP	0x0004
+#define P_DIRZAP	0x0008
+#define P_HYDRA		0x0010
+#define P_JANUS		0x0020
+#define P_TCPP		0x0040
+#define P_HYDRA8	0x0080
+#define P_HYDRA16	0x0100
+#define P_MASK		0x01FF
 
 #define S_OK      0
 #define S_UNDIAL  1
@@ -55,7 +56,11 @@ typedef struct _flist_t {
 
 int (*receive_callback)(char *fn);
 
+#ifdef NEWZMODEM
+int zmodem_receive(char *m, int canzap);
+#else
 int zmodem_receive(char *m);
+#endif
 int zmodem_send(slist_t *, slist_t *);
 int zmodem_sendfile(char *tosend, char *sendas,
 					unsigned long *totalleft, unsigned long
