@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.55 2001/06/12 19:22:14 lev Exp $
+ * $Id: main.c,v 1.56 2001/06/15 11:01:58 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -193,6 +193,10 @@ void daemon_mode()
 	slist_t *sl;
 	int mailonly, hld;
 
+
+	/* Change our root, if we are asked for */ 
+	if(cfgs(CFG_ROOTDIR) && ccs[0]) chdir(ccs);
+
 	if(getppid()!=1) {
 		signal(SIGTTOU, SIG_IGN);
 		signal(SIGTTIN, SIG_IGN);
@@ -207,7 +211,6 @@ void daemon_mode()
 
 	signal(SIGINT, sigerr);	
 	signal(SIGTERM, sigerr);
-/* 	signal(SIGSEGV, sigerr); */
 	signal(SIGFPE, sigerr);
 	signal(SIGCHLD, sigchild);
 	signal(SIGHUP, sighup);
@@ -681,6 +684,8 @@ void answer_mode(int type)
 	struct sockaddr_in sa;int ss=sizeof(sa);
 	sts_t sts;
 
+	/* Change our root, if we are asked for */ 
+	if(cfgs(CFG_ROOTDIR) && ccs[0]) chdir(ccs);
 
 	rnode=xcalloc(1, sizeof(ninfo_t));
 	is_ip=!isatty(0);
