@@ -86,3 +86,4 @@ loglevels,C_STR,char *,0,""
 rootdir,C_STR,char *,0,NULL
 alwayskillfiles,C_YESNO,int,0,"no"
 needalllisted,C_YESNO,int,0,"no"
+translatesubst,C_YESNO,int,0,"no"
