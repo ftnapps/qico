@@ -2,7 +2,7 @@
  * File: config.c
  * Created at Thu Jul 15 16:14:46 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: config.c,v 1.8 2003/02/07 08:44:45 cyrilm Exp $
+ * $Id: config.c,v 1.9 2003/02/07 16:05:52 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -276,6 +276,7 @@ int parseconfig(char *cfgname)
 #ifdef NEED_DEBUG
 void dumpconfig()
 {
+	char buf[MAX_STRING];
 	cfgitem_t *c;
 	int i;
 	slist_t *sl;
@@ -283,35 +284,36 @@ void dumpconfig()
 	faslist_t *fasl;
 
 	for(i=0;i<CFG_NNN;i++) {
-		write_log("*** %s, type %d, required %d, found %d\n",
+		write_log("*** %s, type %d, required %d, found %d",
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
-			write_log("  when '%s': ", c->condition);
+			snprintf(buf,MAX_STRING,"  when '%s': ", c->condition);
 			switch(configtab[i].type) {
 			case C_PATH:    
 			case C_STR:
-				write_log("'%s'\n", c->value.v_char);break;
+				snprintf(buf,MAX_STRING,"%s'%s'", buf,c->value.v_char);break;
 			case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
-					write_log("'%s',",sl->str);
-				write_log("%%\n");
+					snprintf(buf,MAX_STRING,"%s'%s',",buf,sl->str);
+				snprintf(buf,MAX_STRING,"%s%%",buf);
 				break;
 			case C_ADRSTRL: 
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					write_log("%s '%s',",ftnaddrtoa(&fasl->addr), fasl->str);
-				write_log("%%\n");
+					snprintf(buf,MAX_STRING,"%s%s '%s',",buf,ftnaddrtoa(&fasl->addr), fasl->str);
+				snprintf(buf,MAX_STRING,"%s%%",buf);
 				break;
 			case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					write_log("%s,",ftnaddrtoa(&al->addr));
-				write_log("%%\n");
+					snprintf(buf,MAX_STRING,"%s%s,",buf,ftnaddrtoa(&al->addr));
+				snprintf(buf,MAX_STRING,"%s%%",buf);
 				break;
-			case C_INT:     write_log("%d\n", c->value.v_int);break;
-			case C_OCT:     write_log("%o\n", c->value.v_int);break;
-			case C_YESNO:   write_log("%s\n", c->value.v_int?"yes":"no");break;
+			case C_INT:     snprintf(buf,MAX_STRING,"%s%d", buf, c->value.v_int);break;
+			case C_OCT:     snprintf(buf,MAX_STRING,"%s%o", buf, c->value.v_int);break;
+			case C_YESNO:   snprintf(buf,MAX_STRING,"%s%s", buf, c->value.v_int?"yes":"no");break;
 			}
-		}			
+		}
+		write_log("%s",buf);
 	}
 }
 #endif

@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.67 2003/02/07 08:44:46 cyrilm Exp $
+ * $Id: main.c,v 1.68 2003/02/07 16:05:52 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -895,6 +895,10 @@ int main(int argc, char *argv[], char *envp[])
 		exit(EXC_BADCONFIG);
 	}
 
+	if(!log_init(cfgs(CFG_MASTERLOG),NULL)) {
+		write_log("can't open master log %s!", ccs);
+		exit(1);
+	}
 #ifdef NEED_DEBUG
 	parse_log_levels();
 	if (facilities_levels['C'] >= 1) dumpconfig();
@@ -905,9 +909,9 @@ int main(int argc, char *argv[], char *envp[])
 		subst_t *s;
 		dialine_t *l;
 		for(s=psubsts;s;s=s->next) {
-			write_log("subst for %s [%d]\n", ftnaddrtoa(&s->addr), s->nhids);
+			write_log("subst for %s [%d]", ftnaddrtoa(&s->addr), s->nhids);
 			for(l=s->hiddens;l;l=l->next)
-				write_log(" * %s,%s,%d\n",l->phone,l->timegaps,l->num);
+				write_log(" * %s,%s,%d",l->phone,l->timegaps,l->num);
 		}
 		//printf("...press any key...\n");getchar();
 	}
