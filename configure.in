@@ -3,6 +3,11 @@ AC_INIT(src/main.c)
 AC_CONFIG_HEADER(config.h)
 VERSION=0.49.10
 
+dnl Definitions
+AC_DEFUN(AC_ADD_REPLACE,[
+LIBOBJS="$LIBOBJS $1.${ac_objext}"
+])
+
 dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
@@ -103,9 +108,9 @@ if test "${ac_cv_func_basename}x" != "nox"; then
 #endif
 static char *fl = "/usr/local/bin/some.file";
 int main(int argn, char **argv) {
-	char *b = basename(fl); return !(*b != '/');
+	char *b = basename(fl); return (*b != '/');
 }
-	], AC_MSG_RESULT(no), AC_DEFINE(HAVE_BROKEN_BASENAME)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+	], AC_MSG_RESULT(no), AC_DEFINE(HAVE_BROKEN_BASENAME)AC_ADD_REPLACE(basename)AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
 fi
 
 dnl Checking for FreeBSD setproctitle in libutil
