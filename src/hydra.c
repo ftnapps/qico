@@ -2,7 +2,7 @@
  * File: hydra.c
  * Created at Tue Aug 10 22:41:42 1999 by pk // aaz@ruxy.org.ru
  * hydra implmentation
- * $Id: hydra.c,v 1.2.2.2 2000/10/22 19:15:18 lev Exp $
+ * $Id: hydra.c,v 1.2.2.3 2000/11/04 20:52:21 lev Exp $
  **********************************************************/
 /*=============================================================================
 
@@ -1083,10 +1083,10 @@ int hydra_file(char *txpathname, char *txalias)
 						switch(rxopen(p, rxftime, rxfsize,
 									  &rxfd)) {
 						case FOP_SKIP:
-							rxpos=-1;
+							rxpos=-2;
 							break;
 						case FOP_SUSPEND:
-							rxpos=-2;
+							rxpos=-1;
 							break;
 						case FOP_CONT:
 						case FOP_OK:
@@ -1290,11 +1290,11 @@ int hydra_file(char *txpathname, char *txalias)
 						txpos = intell(h_long1(rxbuf));
 						if (txpos < 0L) {
 							if (txfd) {
-								sline("hydra: skipping %s",sendf.fname);
-								txclose(&txfd, FOP_SKIP);
+								sline("hydra: %s %s",txpos==-1?"refusing":(txpos==-2?"skipping":"strange skipping"),sendf.fname);
+								txclose(&txfd, txpos==-1?FOP_SUSPEND:FOP_SKIP);
 								txstate = HTX_EOF;
 							}
-							txpos = -2L;
+							txpos = (txpos==-1?-1:-2);
 							break;
 						}
 
