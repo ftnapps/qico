@@ -2,7 +2,7 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zmodem.c,v 1.7 2004/02/13 22:29:01 sisoft Exp $
+   $Id: ls_zmodem.c,v 1.8 2004/06/05 06:49:13 sisoft Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -74,10 +74,6 @@ char *LSZ_FRAMETYPES[] = {
 /* Special table to FAST calculate header type */
 /*                 CRC32,VAR,RLE */
 static int HEADER_TYPE[2][2][2] = {{{ZBIN,-1},{ZVBIN,-1}},{{ZBIN32,ZBINR32},{ZVBIN32,ZVBINR32}}};
-
-/* Hex digits */
-static char HEX_DIGITS[] = "0123456789abcdef";
-
 
 unsigned char inchatbuf[16384],*chattxbuf;
 unsigned short inchatfill=0;
@@ -575,8 +571,8 @@ void ls_sendchar(int c)
 void ls_sendhex(int i)
 {
 	char c = (char)(i & 0xff);
-	BUFCHAR(HEX_DIGITS[(c & 0xf0) >> 4]);
-	BUFCHAR(ls_txLastSent = HEX_DIGITS[c & 0x0f]);
+	BUFCHAR(hexdigits[(c & 0xf0) >> 4]);
+	BUFCHAR(ls_txLastSent = hexdigits[c & 0x0f]);
 }
 
 /* Retrun 7bit character, strip XON/XOFF if not DirZap, with timeout */

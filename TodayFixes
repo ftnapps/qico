@@ -1,8 +1,10 @@
-/* $Id: TodayFixes,v 1.77 2004/06/05 00:15:49 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.78 2004/06/05 06:49:13 sisoft Exp $ */
 ---
-fix <if>-expressions parsing.
+fix sending *.req if ASO used.
+add if-expressions 'mailer' and 'exec'.
+other small changes.
 .
 previous:
 ---
-fix compile without binkp.
+fix <if>-expressions parsing.
 .

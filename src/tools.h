@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.13 2004/06/01 01:12:49 sisoft Exp $ */
+/* $Id: tools.h,v 1.14 2004/06/05 06:49:13 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -32,11 +32,17 @@ typedef struct {
 	char *def_val;
 } cfgstr_t;
 
+extern char *hexdigits;
 extern char *engms[];
 extern char *sigs[];
 extern void recode_to_remote(char *str);
 extern void recode_to_local(char *str);
 extern int hexdcd(char d,char c);
+extern slist_t *slist_add(slist_t **l, char *s);
+extern slist_t *slist_addl(slist_t **l,char *s);
+extern char *slist_dell(slist_t **l);
+extern void slist_kill(slist_t **l);
+extern void slist_killn(slist_t **l);
 extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
 extern int strhex2bin(unsigned char *binptr,const char *string);
 extern size_t filesize(char *fname);

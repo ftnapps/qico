@@ -1,3 +1,9 @@
+2004-06-05 04:15  sisoft
+
+	* Changes, src/config.c, src/protfm.c, src/qcc.c:
+
+	fix <if>-expressions parsing.
+
 2004-06-03 06:01  sisoft
 
 	* src/: daemon.c, protfm.c, qslib.c:

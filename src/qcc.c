@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.44 2004/06/05 00:15:50 sisoft Exp $
+ * $Id: qcc.c,v 1.45 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -133,7 +133,7 @@ NULL
 static char *hl[]={
  	"H","angup, ",
 	"\03X","\03-skip file, ",
-	"\03R","\03efuse file, ",
+	"\03R","\03-suspend file, ",
 	"\03C","\03hat, ",
 	"F8","-close, ",
 	"0-9;Tab",", ",

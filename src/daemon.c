@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.30 2004/06/03 02:01:49 sisoft Exp $
+ * $Id: daemon.c,v 1.31 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -35,7 +35,8 @@ static RETSIGTYPE sigchild(int sig)
 {
 	int rc,wr;
 	signal(sig,sigchild);
-	if((wr=wait(&rc))<0)write_log("wait() returned %d (%d)",wr,rc);
+	wr=wait(&rc);
+	if(wr<0)return;
 	rc=WEXITSTATUS(rc)&S_MASK;
 	if(rc==S_OK||rc==S_REDIAL)do_rescan=1;
 }
@@ -74,19 +75,6 @@ static char *sts_str(int flags)
 	for(i=0;i<Q_MAXBIT;i++)s[i]=(flags&(1<<i))?qchars[i]:'.';
 	s[Q_MAXBIT]=0;
 	return s;
-}
-
-static void sendrpkt(char what,int sock,char *fmt,...)
-{
-	char buf[MSG_BUFFER];
-	int rc;
-	va_list args;
-	STORE16(buf,0);
-	buf[2]=what;
-	va_start(args,fmt);
-	rc=vsnprintf(buf+3,MSG_BUFFER-3,fmt,args);
-	va_end(args);
-	if(xsend(sock,buf,rc+4)<0)DEBUG(('I',1,"can't send (fd=%d): %s",sock,strerror(errno)));
 }
 
 int daemon_xsend(int sock,char *buf,size_t len)
@@ -678,9 +666,9 @@ nlkil:				is_ip=0;bink=0;
 				i=i->next;
 			}
 		}
-		t=time(NULL);
-		while(do_rescan!=1&&(time(NULL)-t)<1) {
-			if((time(NULL)-t)<0)t=time(NULL);
+		t=t_start();
+		while(do_rescan!=1&&t_time(t)<1) {
+			if(t_time(t)<0)t=t_start();
 			FD_ZERO(&rfds);
 			FD_SET(lins_sock,&rfds);
 			FD_SET(uis_sock,&rfds);

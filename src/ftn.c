@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.24 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: ftn.c,v 1.25 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -164,27 +164,6 @@ falist_t *falist_find(falist_t *l,ftnaddr_t *a)
 {
 	for(;l;l=l->next)if(addr_cmp(&l->addr,a))return l;
 	return NULL;
-}
-
-slist_t *slist_add(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=xstrdup(s);
-	return *t;
-}
-
-void slist_kill(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree((*l)->str);
-		xfree(*l);
-		*l=t;
-	}
 }
 
 void faslist_add(faslist_t **l,char *s,ftnaddr_t *a)

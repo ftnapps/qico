@@ -1,4 +1,4 @@
-/* $Id: tty.h,v 1.9 2004/05/27 18:50:03 sisoft Exp $ */
+/* $Id: tty.h,v 1.10 2004/06/05 06:49:13 sisoft Exp $ */
 #ifndef __TTY_H__
 #define __TTY_H__
 #ifdef HAVE_TERMIOS_H
@@ -65,6 +65,8 @@
 #define t_set(expire) (time(NULL)+(expire))
 #define t_exp(timer) (time(NULL) > (timer))
 #define t_rest(timer) ((timer) - time(NULL))
+#define t_runn(timer) ((timer) != 0L)
+#define t_reset() (0L)
 
 #define M_STAT (tty_hangedup?"hangup":"ok")
 

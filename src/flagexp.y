@@ -1,12 +1,12 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.13 2004/06/01 01:12:49 sisoft Exp $
+ * $Id: flagexp.y,v 1.14 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
-%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR
-%token IDENT CONNSTR SPEED CONNECT PHONE TIME ADDRESS FLLINE
+%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT 
+%token CONNSTR SPEED CONNECT PHONE MAILER TIME ADDRESS FLEXEC FLLINE
 %token DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE
 %token GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK
-%token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE
+%token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE ANYSTR
 %expect 2
 %{
 #include "headers.h"
@@ -27,11 +27,13 @@ static int logic(int e1, int op,int e2);
 static int checkconnstr(void);
 static int checkspeed(int op, int speed, int real);
 static int checksfree(int op,int sp);
+static int checkmailer(void);
 static int checkphone(void);
 static int checkport(void);
 static int checkcid(void);
 static int checkhost(void);
 static int checkfile(void);
+static int checkexec(void);
 static int checkline(int lnum);
 static int yyerror(char *s);
 extern char *yyPTR;
@@ -61,12 +63,16 @@ elemexp		: flag
 			{$$ = checkconnstr();}
 		| PHONE PHSTR
 			{$$ = checkphone();}
+		| MAILER IDENT
+			{$$ = checkmailer();}
 		| CID PHSTR
 			{$$ = checkcid();}
 		| HOST IDENT
 			{$$ = checkhost();}
 		| PORT IDENT
 			{$$ = checkport();}
+		| FLEXEC ANYSTR
+			{$$ = checkexec();}
 		| FLFILE PATHSTR
 			{$$ = checkfile();}
 		| FLLINE NUMBER
@@ -179,6 +185,15 @@ static int checkphone(void)
 	return 0;
 }
 
+static int checkmailer(void)
+{
+	DEBUG(('Y',2,"checkmailer: \"%s\"",yytext));
+	if(!rnode||!rnode->mailer) return 0;
+	DEBUG(('Y',3,"checkmailer: \"%s\" <-> \"%s\"",yytext,rnode->mailer));
+	if(!strstr(rnode->mailer,yytext)) return 1;
+	return 0;
+}
+
 static int checkcid(void)
 {
 	char *cid = getenv("CALLER_ID");
@@ -212,6 +227,18 @@ static int checkfile(void)
 	DEBUG(('Y',2,"checkfile: \"%s\" -> %d",yytext,!stat(yytext,&sb)));
 	if(!stat(yytext,&sb)) return 1;
 	return 0;
+}
+
+static int checkexec(void)
+{
+	int rc;
+	char *cmd=xstrdup(yytext);
+	DEBUG(('Y',2,"checkexec: \"%s\"",yytext));
+	strtr(cmd,',',' ');
+	rc=execsh(cmd);
+	DEBUG(('Y',3,"checkexec: \"%s\" -> %d",cmd,!rc));
+	xfree(cmd);
+	return !rc;
 }
 
 static int checkline(int lnum)

@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.18 2004/05/29 23:34:45 sisoft Exp $ */
+/* $Id: ftn.h,v 1.19 2004/06/05 06:49:13 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -172,8 +172,6 @@ extern char *ftnaddrtoda(ftnaddr_t *a);
 extern char *ftnaddrtoia(ftnaddr_t *a);
 extern void falist_add(falist_t **l, ftnaddr_t *a);
 extern void falist_kill(falist_t **l);
-extern slist_t *slist_add(slist_t **l, char *s);
-extern void slist_kill(slist_t **l);
 extern void faslist_add(faslist_t **l, char *s, ftnaddr_t *a);
 extern void faslist_kill(faslist_t **l);
 extern char *strip8(char *s);

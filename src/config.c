@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.21 2004/06/05 00:15:50 sisoft Exp $
+ * $Id: config.c,v 1.22 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -70,39 +70,6 @@ static int getstrl(slist_t **to,char *from)
 	return 1;
 }
 
-static slist_t *slist_addl(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=s;
-	return *t;
-}
-
-static char *slist_dell(slist_t **l)
-{
-	char *p=NULL;
-	slist_t *t,*cc=NULL;
-	for(t=*l;t&&t->next;cc=t,p=t->next->str,t=t->next);
-	if(cc)xfree(cc->next);
-	    else {
-		xfree(t);
-		*l=NULL;
-	}
-	return p;
-}
-
-static void slist_killn(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree(*l);
-		*l=t;
-	}
-}
-
 static int setvalue(cfgitem_t *ci,char *t,int type)
 {
 	switch(type) {
@@ -120,7 +87,7 @@ static int setvalue(cfgitem_t *ci,char *t,int type)
 
 int cfgi(int i)
 {
-	cfgitem_t *ci,*cn=((void*)0);
+	cfgitem_t *ci,*cn=NULL;
 	for(ci=configtab[i].items;ci;ci=ci->next) {
 		if(ci->condition&&flagexp(ci->condition,0)==1)
 			return cci=ci->value.v_int;
@@ -131,7 +98,7 @@ int cfgi(int i)
 
 char *cfgs(int i)
 {
-	cfgitem_t *ci,*cn=((void*)0);
+	cfgitem_t *ci,*cn=NULL;
 	for(ci=configtab[i].items;ci;ci=ci->next) {
 		if(ci->condition&&flagexp(ci->condition,0))
 			return ccs=ci->value.v_char;
@@ -142,7 +109,7 @@ char *cfgs(int i)
 
 slist_t *cfgsl(int i)
 {
-	cfgitem_t *ci,*cn=((void*)0);
+	cfgitem_t *ci,*cn=NULL;
 	for(ci=configtab[i].items;ci;ci=ci->next) {
 		if(ci->condition&&flagexp(ci->condition,0))
 			return ccsl=ci->value.v_sl;
@@ -153,7 +120,7 @@ slist_t *cfgsl(int i)
 
 faslist_t *cfgfasl(int i)
 {
-	cfgitem_t *ci,*cn=((void*)0);
+	cfgitem_t *ci,*cn=NULL;
 	for(ci=configtab[i].items;ci;ci=ci->next) {
 		if(ci->condition&&flagexp(ci->condition,0))
 			return ccfasl=ci->value.v_fasl;
@@ -164,7 +131,7 @@ faslist_t *cfgfasl(int i)
 
 falist_t *cfgal(int i)
 {
-	cfgitem_t *ci,*cn=((void*)0);
+	cfgitem_t *ci,*cn=NULL;
 	for(ci=configtab[i].items;ci;ci=ci->next) {
 		if(ci->condition&&flagexp(ci->condition,0))
 			return ccal=ci->value.v_al;
