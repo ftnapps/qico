@@ -2,7 +2,7 @@
  * File: ls_zmodem.c
  * Created at Sun Oct 29 18:51:46 2000 by lev // lev@serebryakov.spb.ru
  * 
- * $Id: ls_zmodem.c,v 1.10 2001/01/04 11:44:33 lev Exp $
+ * $Id: ls_zmodem.c,v 1.11 2001/01/06 20:00:52 lev Exp $
  **********************************************************/
 /*
 
@@ -314,7 +314,7 @@ int ls_zrecvhdr(char *hdr, int *hlen, int timeout)
 				return LSZ_BADCRC;
 			}
 #ifdef Z_DEBUG2
-			write_log("lszrecvhdr: Any rhZ frametype: %d, %s (state: %d, CRC%d)",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET],(int)state,(2==crcl?16:32));
+			write_log("ls_zrecvhdr: Any rhZ frametype: %d, %s (state: %d, CRC%d)",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET],(int)state,(2==crcl?16:32));
 #else
 #ifdef Z_DEBUG
 			write_log("ls_zrecvhdr: frametype %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]);
