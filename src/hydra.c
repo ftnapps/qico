@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.3 2004/01/10 09:24:40 sisoft Exp $ */
+/* $Id: hydra.c,v 1.4 2004/01/17 00:05:05 sisoft Exp $ */
 #include "headers.h"
 #include <stdarg.h>
 #include "defs.h"
@@ -1176,13 +1176,14 @@ int hydra_file(char *txpathname, char *txalias)
 							else if (i <=1024) i = 1024;
 							else if (i <=2048) i = 2048;
 							else if (i <=4096) i = 4096;
-							else if (i <=8192) i = 8192;              
-							else 		   i = 16384;
+							else 		   i = 8192;
 
 							if (hydra_modifier == 8 && i > 8192)
 								i = 8192;
 							else if (hydra_modifier == 4 && i > 4096)
 								i = 4096;
+							else if (hydra_modifier == 2 && i > 2048)
+								i = 2048;
 							else if (hydra_modifier == 1 && i > 1024)
 								i = 1024;
 							
@@ -1292,13 +1293,14 @@ int hydra_file(char *txpathname, char *txalias)
 						else if (txblklen <= 512) txblklen =  512;
 						else if (txblklen <=1024) txblklen = 1024;
 						else if (txblklen <=4096) txblklen = 4096;
-						else if (txblklen <=8192) txblklen = 8192;
-						else                      txblklen = 16384;
+						else                      txblklen = 8192;
 						
 						if (hydra_modifier == 8 && txblklen > 8192)
 							txblklen = 8192;
 						else if (hydra_modifier == 4 && txblklen > 4096)
 							txblklen = 4096;
+						else if (hydra_modifier == 2 && txblklen > 2048)
+							txblklen = 2048;
 						else if (hydra_modifier == 1 && txblklen > 1024)
 							txblklen = 1024;
 
@@ -1365,13 +1367,14 @@ int hydra_file(char *txpathname, char *txalias)
 							else if (i <= 512) i =  512;
 							else if (i <=1024) i = 1024;
 							else if (i <=4096) i = 4096;
-							else if (i <=8192) i = 8192;
-							else               i = 16384;
+							else               i = 8192;
 
 							if (hydra_modifier == 8 && i > 8192)
 								i = 8192;
 							else if (hydra_modifier == 4 && i > 4096)
 								i = 4096;
+							else if (hydra_modifier == 2 && i > 2048)
+								i = 2048;
 							else if (hydra_modifier == 1 && i > 1024)
 								i = 1024;
 
@@ -1489,7 +1492,6 @@ int hydra_file(char *txpathname, char *txalias)
 				if (rxstate && hdxlink) {
 					write_log("HydraMsg: %s",hdxmsg);
 					hydra_devsend("MSG",(byte *) hdxmsg,(int) strlen(hdxmsg));
-
 					txtimer = h_timer_set(H_IDLE);
 					txstate = HTX_XWAIT;
 				}
@@ -1510,7 +1512,6 @@ int hydra_file(char *txpathname, char *txalias)
                                 /* special for chat, braindead will protect */
   					if (chattimer > 0L) break;
   					if (chattimer == 0L) chattimer = -3L;
-
 					txtimer = h_timer_reset();
 					txretries = 0;
 					txstate = HTX_END;

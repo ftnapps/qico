@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.12 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: qcc.c,v 1.13 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -56,7 +56,7 @@
 #define xbeep() if(!beepdisable){beep();}
 
 typedef struct {
-	short id;
+	unsigned short id;
 	char tty[8];
 	int  session;
 	char *lb[LGMAX];
@@ -166,7 +166,7 @@ NULL
 
 slot_t *slots[MAX_SLOTS];
 qslot_t *queue;
-int currslot,allslots,q_pos,q_first,q_max,crey=0,crex=0;
+int currslot,allslots=-9,q_pos,q_first,q_max,crey=0,crex=0;
 int sizechanged=0,quitflag=0,ins=1,edm=0,beepdisable=0;
 
 char *m_header=NULL;
@@ -844,7 +844,7 @@ rei:	zone=strtoul(myaddr,&nm,10);
 
 void xcmd(char *buf,int cmd,int len)
 {
-	*(short*)buf=0;
+	*(unsigned short*)buf=0;
 	buf[2]=cmd;
 	/*mylog("send: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
@@ -852,7 +852,7 @@ void xcmd(char *buf,int cmd,int len)
 
 void xcmdslot(char *buf,int cmd,int len)
 {
-	*(short*)buf=slots[currslot]->id;
+	*(unsigned short*)buf=slots[currslot]->id;
 	buf[2]=cmd;
 	/*mylog("sendslot: [%d] '%s','%s'",buf[2],buf+3,buf+4+strlen(buf+3));*/
 	if(xsend(sock,buf,len)<0)mylog("can't send to server: %s",strerror(errno));
@@ -890,25 +890,26 @@ void printinfo(char *addr,int what,char *buf)
 
 int getmessages(char *bbx)
 {
-	short id;
+	unsigned short id;
 	int len,type=0,rc;
 	static int lastfirst=1,lastpos=1;
 	char buf[MSG_BUFFER];
 	unsigned char *data,*p;
 	memset(buf,0,MSG_BUFFER);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,0);
+	if(rc>=0&&rc<MSG_BUFFER)buf[rc]=0;
 	/*if(rc>0)mylog("recv: [%d,%d] '%s','%s'",buf[2],rc,buf+3,buf+4+strlen(buf+3));*/
 	if(bbx&&rc>=3&&buf[2]<8) {
 		memcpy(bbx,buf,rc);
 		return 0;
 	}
+	if(bbx&&allslots==-9)return 1;
 	if(rc>=3) {
-		id=*(short*)buf;
+		id=*(unsigned short*)buf;
 		type=buf[2];
 		if(type<8)return 1;
 		data=(unsigned char*)(strchr(buf+3,0)+1);
 		len=rc-4-strlen(buf+3);
-		data[len]=0;
 		if(strcmp(buf+3,"master")) {
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
@@ -1137,17 +1138,22 @@ int main(int argc,char **argv)
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
 		return 1;
 	}
-
+	setlocale(LC_ALL, "");
+/*cyr*/	printf("\033(K");fflush(stdout);
 	signal(SIGHUP,sighup);
 	signal(SIGTERM,sighup);
-	signal(SIGINT,sighup);
-	signal(SIGKILL,sighup);
 	signal(SIGSEGV,sighup);
 	signal(SIGPIPE,SIG_IGN);
-
- 	setlocale(LC_ALL, "");
-/*cyr*/	printf("\033(K");fflush(stdout);
-
+	snprintf(buf+3,MSG_BUFFER-4,"eqcc-%s",version);
+	xcmd(buf,QR_STYPE,strlen(buf+3)+4);
+	tim=time(NULL)+6;
+	while(getmessages(buf)&&time(NULL)<tim);
+	if(buf[2]||time(NULL)>=tim) {
+		fprintf(stderr,"bad server\n");
+		return 1;
+	}
+	signal(SIGINT,sighup);
+	signal(SIGKILL,sighup);
 	initscreen();
 	currslot=-1;
 	allslots=0;
@@ -1157,7 +1163,6 @@ int main(int argc,char **argv)
 	hstlast=0;
 	freshall();
 	mylog("I'm, qcc-%s, successfully started! ;)",version);
-	buf[3]='e';xcmd(buf,QR_STYPE,4);
 	while(!quitflag) {
 #ifdef CURS_HAVE_RESIZETERM
 		if (sizechanged) {
@@ -1396,9 +1401,7 @@ int main(int argc,char **argv)
 				break;
 			case 'h':
 				xstrcpy(buf+3,slots[currslot]->tty,8);
-				if(!(slots[currslot]->opt&(MO_IFC|MO_BINKP)))
-					xcmd(buf,QR_HANGUP,strlen(buf+3)+4);
-				xcmdslot(buf,QR_HANGUP,3);
+				xcmdslot(buf,QR_HANGUP,strlen(buf+3)+4);
 				break;
 			case 'c':
 				if((slots[currslot]->opt&MO_CHAT)&&slots[currslot]->session) {

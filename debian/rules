@@ -30,7 +30,7 @@ binary-arch: checkroot debian/build
 	install -d debian/tmp
 	cd debian/tmp && install -d `cat ../dirs`
 	$(MAKE) install prefix=`pwd`/debian/tmp/usr
-	cp qico.conf.sample `pwd`/debian/tmp/etc/ftn/qico.conf
+	cp qico.conf.sample `pwd`/debian/tmp/etc/ftn
 	debstd ChangeLog Changes README TODO
 	dpkg-gencontrol -isp -pqico
 	chown -R root.root debian/tmp

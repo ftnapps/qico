@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.15 2004/01/12 21:41:56 sisoft Exp $
+ * $Id: session.c,v 1.16 2004/01/17 00:05:05 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "defs.h"
@@ -306,7 +306,7 @@ int receivecb(char *fn)
 		f=fopen(fn,"r");
 		if(!f){write_log("can't open '%s' for reading",fn);return 0;}
 		if(fread(&ph,sizeof(ph),1,f)!=1)write_log("packet read error");
-		    else if(ph.phType!=2)write_log("packet don't 2+ format");
+		    else if(ph.phType!=2)write_log("packet isn't 2+ format");
 			else {
 			    while(fread(&mh,sizeof(mh),1,f)==1) {
 				i=0;while(fgetc(f)>0&&i<30)i++;i=0;
@@ -393,7 +393,7 @@ static int hydra(int mode, int hmod, int rh1)
 		if(l->sendas) {
 			rc=cfgi(CFG_AUTOTICSKIP)?ticskip:0;ticskip=0;
 			if(!rc||!istic(l->tosend))rc=hydra_file(l->tosend,l->sendas);
-			    else write_log("tic file '%s' auto%sed",l->tosend,rc==XFER_SKIP?"skipp":"refus");
+			    else write_log("tic file '%s' auto%sed",l->tosend,rc==XFER_SKIP?"skipp":"suspend");
 			if(rc==XFER_ABORT) break;
 			if(rc==XFER_OK || rc==XFER_SKIP) flexecute(l);
 			if(rc==XFER_SKIP||rc==XFER_SUSPEND)ticskip=rc;
@@ -526,6 +526,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		pr[2]=0;pr[1]=0;pr[0]=0;
 		for(t=cfgs(CFG_PROTORDER);*t;t++) {
 #ifdef HYDRA8K16K
+			if(*t=='4' && rnode->options&P_HYDRA4)
+				{pr[0]='4';emsi_lo|=P_HYDRA4;break;}
 			if(*t=='8' && rnode->options&P_HYDRA8)
 				{pr[0]='8';emsi_lo|=P_HYDRA8;break;}
 			if(*t=='6' && rnode->options&P_HYDRA16)
@@ -578,6 +580,8 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 	case P_DIRZAP:
 		t="DirZap";break;
 #ifdef HYDRA8K16K
+	case P_HYDRA4:
+		t="Hydra-4k";break;
 	case P_HYDRA8:
 		t="Hydra-8k";break;
 	case P_HYDRA16:
@@ -621,6 +625,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		return rc?S_REDIAL:S_OK;
 	case P_HYDRA:
 #ifdef HYDRA8K16K
+	case P_HYDRA4:
 	case P_HYDRA8:
 	case P_HYDRA16:
 #endif/*HYDRA8K16K*/
@@ -629,6 +634,7 @@ int emsisession(int mode, ftnaddr_t *calladdr, int speed)
 		switch(proto) {
 		case P_HYDRA:   rc=1;break;
 #ifdef HYDRA8K16K
+		case P_HYDRA4:  rc=2;break;
 		case P_HYDRA8:  rc=4;break;
 		case P_HYDRA16: rc=8;break;
 #endif/*HYDRA8K16K*/		

@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.6 2004/01/15 23:39:41 sisoft Exp $
+ * $Id: qctl.c,v 1.7 2004/01/17 00:05:05 sisoft Exp $
  ***************************************************************************/
 #include <unistd.h>
 #include <locale.h>
@@ -52,8 +52,8 @@ void usage(char *ex)
 
 void timeout(int sig)
 {
-	signal(SIGALRM, SIG_DFL);
 	fprintf(stderr,"got timeout\n");
+	exit(1);
 }
 
 int getanswer()
@@ -61,12 +61,13 @@ int getanswer()
 	char buf[MSG_BUFFER];
 	int rc;
 	signal(SIGALRM, timeout);
-	alarm(1);
+	alarm(5);
 	rc=xrecv(sock,buf,MSG_BUFFER-1,1);
+	if(rc>=0&&rc<MSG_BUFFER)buf[rc]=0;
 	if(rc<3||*(short*)buf)return 1;
 	if(buf[2])fprintf(stderr, "%s\n", buf+3);
-	signal(SIGALRM, SIG_DFL);
 	alarm(0);
+	signal(SIGALRM, SIG_DFL);
 	return buf[2];
 }
 
@@ -118,8 +119,8 @@ int getnodeinfo()
 				
 		}
 	}
-	signal(SIGALRM, SIG_DFL);
 	alarm(0);
+	signal(SIGALRM, SIG_DFL);
 	return buf[2];
 }
 
@@ -152,8 +153,8 @@ int getqueueinfo()
 			printf("%-20s %10s %10s %10s %11s\n",a,m,f,t,cflags);
 		}
 	} while (buf[3]);
-	signal(SIGALRM, SIG_DFL);
 	alarm(0);
+	signal(SIGALRM, SIG_DFL);
 	return buf[2];
 }
 
@@ -232,10 +233,12 @@ int main(int argc, char *argv[])
 	
 	*(short*)buf=0;
 	buf[2]=QR_STYPE;
-	buf[3]='c';
-	xsend(sock,buf,4);
+	snprintf(buf+3,MSG_BUFFER-4,"cqctl-%s",version);
+	xsend(sock,buf,strlen(buf+3)+4);
+	if(getanswer())return 1;
+	*(short*)buf=0;
 	buf[2]=action;
-	
+
 	switch(action) {
 	case QR_QUIT:
 	case QR_SCAN:

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management  
- * $Id: protfm.c,v 1.5 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: protfm.c,v 1.6 2004/01/17 00:05:05 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #include <utime.h>
@@ -293,6 +293,7 @@ void chatinit(int prot)
 			break;
 		case P_HYDRA:
 #ifdef HYDRA8K16K
+		case P_HYDRA4:
 		case P_HYDRA8:
 		case P_HYDRA16:
 #endif/*HYDRA8K16K*/
@@ -373,7 +374,7 @@ void getevt()
 {
 	int i;
 	while(qrecvpkt((char*)qrcv_buf)) {
-		switch(qrcv_buf[8]) {
+		switch(qrcv_buf[2]) {
 			case QR_SKIP:
 				rxstatus=RX_SKIP;
 				break;
@@ -384,9 +385,9 @@ void getevt()
 				tty_hangedup=1;
 				break;
 			case QR_CHAT:
-				if(qrcv_buf[9]) {
-					strncpy(qsnd_buf+qsndbuflen,qrcv_buf+9,16383-qsndbuflen);
-					qsndbuflen+=strlen((char*)(qrcv_buf+9));
+				if(qrcv_buf[3]) {
+					strncpy(qsnd_buf+qsndbuflen,qrcv_buf+3,16383-qsndbuflen);
+					qsndbuflen+=strlen((char*)(qrcv_buf+3));
 					if(qsndbuflen>16300)qsndbuflen=16300;
 				    } else {
 					i=chatprot;chatprot=-1;

@@ -1,3 +1,18 @@
+2004-01-16 02:39  sisoft
+
+	* Changes, README, TODO, configure.in, qico.conf.sample,
+	debian/changelog, debian/qcc.8, debian/qctl.8, debian/qico.8,
+	debian/services, src/Makefile.am, src/clserv.c, src/clserv.h,
+	src/daemon.c, src/headers.h, src/log.c, src/main.c, src/qcc.c,
+	src/qcconst.h, src/qconf.x, src/qctl.c, src/qipc.c, src/qipc.h:
+
+	rewrite ipc code to (tcp+udp)/ip.
+	remove 'ipcperm' keyword.
+	added 'server' keyword: server port.
+	added -P <port> options to qcc and qctl.
+	some code cleanup... may be.
+	many bugs added too. ;)
+	
 2004-01-13 12:42  sisoft
 
 	* Makefile.am, debian/init.d, src/main.c, src/qcc.c:
