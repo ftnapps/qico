@@ -64,9 +64,10 @@ AC_ARG_WITH(new_zmodem,[  --with-new-zmodem       use new ZModem implementation 
 if test x$with_new_modem != xno; then
 	AC_MSG_RESULT(new ZModem)
 	AC_DEFINE(NEWZMODEM)
-    NEWZMODEM=1
+	NEWZMODEM=1
 else 
-	AC_MSG_RESULT(Original ZModem)
+	AC_MSG_RESULT(original ZModem)
+	NEWZMODEM=0  
 fi
 
 
