@@ -1,3 +1,9 @@
+2004-01-21 18:40  sisoft
+
+	* src/: clserv.h, daemon.c, qipc.c:
+
+	send info about current sessions to new ui-clients.
+	
 2004-01-21 01:02  sisoft
 
 	* debian/docs, src/config.c, src/freq.c, src/ftn.c, src/protfm.c,

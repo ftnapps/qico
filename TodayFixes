@@ -1,10 +1,14 @@
-/* $Id: TodayFixes,v 1.20 2004/01/21 15:40:41 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.21 2004/01/23 12:43:27 sisoft Exp $ */
 ---
-send info about current sessions to new ui-clients.
+add debugs in queue scan.
+change id of first client to 1.
+don't send unnecessary info to new clients.
+in qcc: show new ip lines on first free window.
+in qcc: fix chat.
 .
 previous:
 ---
-more informative some errors.
+send info about current sessions to new ui-clients.
 .
 
 ps: в связи с временным отсутствием фидошки,

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico damned rind.
- * $Id: qcc.c,v 1.16 2004/01/19 20:21:32 sisoft Exp $
+ * $Id: qcc.c,v 1.17 2004/01/23 12:44:24 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -571,7 +571,7 @@ int createslot(char *slt,char d)
 	slots[allslots]=malloc(sizeof(slot_t));
 	memset(slots[allslots],0,sizeof(slot_t));
 	xstrcpy(slots[allslots]->tty,slt,8);
-	if(!memcmp(slt,"CHT",3)) {
+	if(!memcmp(slt,"CHT",3)||!memcmp(slt,"IP",2)) {
 		slots[allslots]->chat=1;
 		slots[allslots]->cl=(char*)calloc(MH+1,CHH+1);
 		strefresh(&slots[allslots]->header,"Chat");
@@ -915,14 +915,29 @@ int getmessages(char *bbx)
 		len=rc-4-strlen(buf+3);
 		if(strcmp(buf+3,"master")) {
 			if(!strcmp(buf+3,"ipline"))snprintf(buf+3,7,"ip%04x",id);
+			else if(!strcmp(buf+3,"IPline"))snprintf(buf+3,7,"IP%04x",id);
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
-				if(allslots>0&&rc>=0) {
+				if(rc>=0&&allslots<9&&buf[3]=='i'&&buf[4]=='p') {
+					xstrcpy(slots[rc]->tty,"ipline",8);
+					freshhdr();wrefresh(whdr);
+					slots[rc]->session=0;
+					slots[rc]->id=0;
+					rc=-1;
+				} else if(allslots>0&&rc>=0) {
 					delslot(rc);
 					rc=-1;
 				}
 			} else if(rc<0) {
-				rc=createslot(buf+3,*data);
+				if(buf[3]=='i'&&buf[4]=='p') {
+					for(rc=0;rc<allslots;rc++)
+					    if(!slots[rc]->session&&!slots[rc]->id&&*slots[rc]->tty=='i'&&slots[rc]->tty[1]=='p') {
+						xstrcpy(slots[rc]->tty,buf+3,8);
+						break;
+					    }
+					if(rc>=allslots)rc=-1;
+				}
+				if(rc<0)rc=createslot(buf+3,*data);
 				freshhdr();wrefresh(whdr);
 			}
 			if(rc>=0)slots[rc]->id=id;
@@ -969,7 +984,7 @@ int getmessages(char *bbx)
 				freshhelp();wnoutrefresh(whelp);
 			}
 			if(type==QC_LIDLE) {
-				if(&slots[rc]->session) {
+				if(slots[rc]->session) {
 					slots[rc]->session=0;
 					memset(&slots[rc]->r,0,sizeof(pfile_t));
 					memset(&slots[rc]->s,0,sizeof(pfile_t));
@@ -977,7 +992,12 @@ int getmessages(char *bbx)
 						freshslot();wrefresh(wmain);
 					}
 					freshhelp();wnoutrefresh(whelp);
-					buf[3]='C';buf[4]='H';buf[5]='T';
+					if(buf[3]=='i'&&buf[4]=='p') {
+						buf[3]='I';buf[4]='P';
+					} else {
+						buf[3]='C';buf[4]='H';
+						buf[5]='T';
+					}
 					rc=findslot(buf+3);
 					if(rc>=0&&allslots>0)delslot(rc);
 				}
@@ -1228,16 +1248,16 @@ int main(int argc,char **argv)
 					if(ch=='\r')ch='\n';
 					if(ch==0x1b||ch==KEY_F(8))ch=0;
 					    else if(ch>255)ch=' ';
-					buf[9]=ch;buf[10]=0;
+					buf[3]=ch;
 					if(ch==7)ch='*';
 					if(ch=='\b')waddstr(slots[currslot]->wlog,"\b ");
 					if(ch)waddch(slots[currslot]->wlog,ch);
 					    else waddstr(slots[currslot]->wlog,"\nClosing..\n");
 					wrefresh(slots[currslot]->wlog);
 					xcmdslot(buf,QR_CHAT,4);
-				} else if(inputstr(buf+9,"Text: ",0)) {
+				} else if(inputstr(buf+3,"Text: ",0)) {
 					waddstr(slots[currslot]->wlog,buf+3);
-					xcmdslot(buf,QR_CHAT,4+strlen(buf+3));
+					xcmdslot(buf,QR_CHAT,3+strlen(buf+3));
 			}
 			wrefresh(slots[currslot]->wlog);
 			getyx(slots[currslot]->wlog,slots[currslot]->chaty,slots[currslot]->chatx);

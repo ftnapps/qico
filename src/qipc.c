@@ -1,6 +1,6 @@
 /**********************************************************
  * helper stuff for client/server iface.
- * $Id: qipc.c,v 1.10 2004/01/21 15:40:41 sisoft Exp $
+ * $Id: qipc.c,v 1.11 2004/01/23 12:44:28 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
@@ -15,12 +15,18 @@ void qsendpkt(char what,char *line,char *buff,int len)
 	char buf[MSG_BUFFER];
 	if(!xsend_cb)return;
 	len=(len>=MSG_BUFFER)?MSG_BUFFER:len;
-/*	write_log("sendpkt %s %d", line, len); */
 	STORE16(buf,(unsigned short)getpid());
 	buf[2]=what;
 	if(buf[2]==QC_CERASE)buf[2]=QC_ERASE;
 	xstrcpy(buf+3,line,8);
-	if(what==QC_CHAT||what==QC_CERASE){buf[3]='C';buf[4]='H';buf[5]='T';}
+	if(what==QC_CHAT||what==QC_CERASE) {
+		if(buf[3]=='i'&&buf[4]=='p') {
+			buf[3]='I';buf[4]='P';
+		} else {
+			buf[3]='C';buf[4]='H';
+			buf[5]='T';
+		}
+	}
 	memcpy(buf+4+strlen(line),buff,len);
 	if(xsend_cb(ssock,buf,4+strlen(line)+len)<0)DEBUG(('I',1,"can't send_cb (fd=%d): %s",ssock,strerror(errno)));
 }	
@@ -32,10 +38,10 @@ int qrecvpkt(char *str)
 	rc=xrecv(ssock,str,MSG_BUFFER-1,0);
 	if(rc<0&&errno!=EAGAIN)DEBUG(('I',1,"can't recv (fd=%d): %s",ssock,strerror(errno)));
 	if(rc<3||!str[2])return 0;
-/*	write_log("recvpkt: %d, %d, '%c'",str[8],rc,str[9]); */
-	if(FETCH16(str)<3||FETCH16(str)==(unsigned short)getpid())
+	str[rc]=0;
+//	if(FETCH16(str)==(unsigned short)getpid())
 	    return rc;
-	return 0;
+//	return 0;
 }
 
 void vlogs(char *str)
