@@ -2,11 +2,11 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.13 2003/01/17 09:02:55 cyrilm Exp $
+ * $Id: qipc.c,v 1.14 2003/01/20 08:35:05 cyrilm Exp $
  **********************************************************/
 #include "headers.h"
-/* #include <sys/ipc.h> */
-/* #include <sys/msg.h> */
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <stdarg.h>
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
@@ -16,12 +16,12 @@
 #ifdef QCC
 
 int qipc_msg=-1;
-/* key_t qipc_key=0; */
+key_t qipc_key=0;
 
 int qipc_init()
 {
   	log_callback=vlogs;
-/*	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) return 0; */
+	if((qipc_key=ftok(QIPC_KEY,QC_MSGQ))<0) return 0;
 	return 1;
 }
 
@@ -33,7 +33,6 @@ void qipc_done()
 
 void qsendpkt(char what, char *line, char *buff, int len)
 {
-/*
 	int rc;
 	char buf[MSG_BUFFER];
 	if(!qipc_key) qipc_init();
@@ -56,12 +55,11 @@ void qsendpkt(char what, char *line, char *buff, int len)
 	buf[12]=what;
 	xstrcpy(buf+13,line,8);
 	memcpy(buf+13+strlen(line)+1, buff, len);
-//	write_log("sendpkt %s %d", line, len); 
+/*	write_log("sendpkt %s %d", line, len); */
 	rc=msgsnd(qipc_msg, buf, 13+strlen(line)+1+len, IPC_NOWAIT);
 	if(rc<0 && (errno==EIDRM||errno==EINVAL)) {
 		qipc_msg=-1;
 	}		
-*/
 }	
 
 
