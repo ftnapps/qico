@@ -2,7 +2,7 @@
  * File: qipc.c
  * Created at Sat Aug  7 21:41:57 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: qipc.c,v 1.6 2000/11/26 13:17:34 lev Exp $
+ * $Id: qipc.c,v 1.7 2000/11/26 13:25:01 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <sys/ipc.h>
@@ -11,6 +11,7 @@
 #ifdef HAVE_LIBUTIL_H
 #include <libutil.h>
 #endif
+#include "qipc.h"
 
 #ifdef QCC
 
