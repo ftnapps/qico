@@ -1,4 +1,4 @@
-/* $Id: clserv.h,v 1.7 2004/03/15 01:19:30 sisoft Exp $ */
+/* $Id: clserv.h,v 1.8 2004/05/17 22:29:04 sisoft Exp $ */
 #ifndef __CLSERV_H__
 #define __CLSERV_H__
 
@@ -34,7 +34,7 @@ typedef struct _cls_ln_t {
 
 extern int (*xsend_cb)(int sock,char *buf,size_t len);
 
-extern int cls_conn(int type,char *port);
+extern int cls_conn(int type,char *port,char *addr);
 extern void cls_close(int sock);
 extern void cls_shutd(int sock);
 extern int xsendto(int sock,char *buf,size_t len,struct sockaddr *to);

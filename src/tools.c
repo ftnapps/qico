@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.10 2004/04/13 17:37:05 sisoft Exp $
+ * $Id: tools.c,v 1.11 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -75,11 +75,12 @@ static int initcharset(char *name,unsigned char *tab)
 void recode_to_remote(char *s)
 {
 	static int loaded=0;
+	register unsigned char c;
 	if(!loaded||!s)loaded=initcharset(cfgs(CFG_REMOTECP),ctab_remote);
 	if(loaded==1&&s) {
 		while(*s) {
-			if((unsigned char)*s>=128)
-				*s=ctab_remote[(unsigned char)*s-128];
+			c=*(unsigned char*)s;
+			if(c>=128)*(unsigned char*)s=ctab_remote[c-128];
 			s++;
 		}
 	}
@@ -88,11 +89,12 @@ void recode_to_remote(char *s)
 void recode_to_local(char *s)
 {
 	static int loaded=0;
+	register unsigned char c;
 	if(!loaded||!s)loaded=initcharset(cfgs(CFG_LOCALCP),ctab_local);
 	if(loaded==1&&s) {
 		while(*s) {
-			if((unsigned char)*s>=128)
-				*s=ctab_local[(unsigned char)*s-128];
+			c=*(unsigned char*)s;
+			if(c>=128)*(unsigned char*)s=ctab_local[c-128];
 			s++;
 		}
 	}
@@ -104,14 +106,14 @@ void chop(char *s,int n)
 	while(p&&n--)*--p=0;
 }
 
-int hexdcd(char d,char c)
+int hexdcd(char h,char l)
 {
-	c=tolower(c);d=tolower(d);
-	if(c>='a'&&c<='f')c-=('a'-10);
-	    else c-='0';
-	if(d>='a'&&d<='f')d-=('a'-10);
-	    else d-='0';
-	return(c*16+d);
+	l=tolower(l);h=tolower(h);
+	if(l>='a'&&l<='f')l-=('a'-10);
+	    else l-='0';
+	if(h>='a'&&h<='f')h-=('a'-10);
+	    else h-='0';
+	return(h*16+l);
 }
 
 void strbin2hex(char *s,const unsigned char *bptr,size_t blen)

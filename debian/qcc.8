@@ -1,9 +1,9 @@
-.TH QCC 8 "16 Jan 2004"
+.TH QCC 8 "18 May 2004"
 .SH NAME
 qcc \- ncurses frontend for qico ftn mailer.
 .SH SYNOPSIS
 .B qcc
-.RB [ \-nhvP ]
+.RB [ \-nhvPa ]
 .SH DESCRIPTION
 .B qcc
 is a graphical ncurses-based frontend for qico ftn mailer.
@@ -13,6 +13,11 @@ is a graphical ncurses-based frontend for qico ftn mailer.
 Connect to
 .I port.
 default port is service 'qicoui' or 60178.
+.TP
+.BI \-a host
+Connect to
+.I host.
+default host is localhost (127.0.0.1).
 .TP
 .BI \-n
 Start

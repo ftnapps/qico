@@ -1,3 +1,13 @@
+2004-04-17 11:25  sisoft
+
+	* Changes, INSTALL, configure.in, src/binkp.c, src/main.c,
+	  src/nodelist.c, src/protfm.c, src/session.c:
+
+	fix binkp voracious (last byte).
+	configure: another fix configuration without --with-config.
+	configure: add --disable-binkp option.
+	add file INSTALL.
+
 2004-04-15 02:21  sisoft
 
 	* src/: binkp.c, log.c, qcc.c, tcp.c:

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.36 2004/04/14 22:21:26 sisoft Exp $
+ * $Id: qcc.c,v 1.37 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #include <stdio.h>
@@ -204,6 +204,7 @@ static void usage(char *ex)
 {
 	printf("usage: %s [options]\n"
                "-P port      connect to <port> (default: qicoui or %u)\n"
+	       "-a host      connect to <host> (default: localhost)\n"
 	       "-n           disable sound (silent)\n"
 	       "-h           this help screen\n"
                "-v           show version\n"
@@ -329,7 +330,7 @@ static void freshhelp()
 		}
 	}
 	wattron(whelp,COLOR_PAIR(10));
-	mvwprintw(whelp,0,COL-3-strlen(version),"qcc%s",version);
+	mvwprintw(whelp,0,COL-3-strlen(version),"qcc-%s",version);
 }
 
 static void freshhdr()
@@ -1190,16 +1191,19 @@ int main(int argc,char **argv)
 	int len,ch,rc;
 	struct tm *tt;
 	struct timeval tv;
-	char buf[4096],*bf,c,*port=NULL;
+	char buf[4096],*bf,c,*port=NULL,*addr=NULL;
 	fd_set rfds;
 	time_t tim;
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif
- 	while((c=getopt(argc,argv,"hnvP:"))!=-1) {
+ 	while((c=getopt(argc,argv,"hnvP:a:"))!=-1) {
 		switch(c) {
 			case 'P':
 				if(optarg&&*optarg)port=strdup(optarg);
+				break;
+			case 'a':
+				if(optarg&&*optarg)addr=strdup(optarg);
 				break;
 			case 'n':
 				beepdisable=1;
@@ -1211,7 +1215,7 @@ int main(int argc,char **argv)
 		}
 	}
 
-	sock=cls_conn(CLS_UI,port);
+	sock=cls_conn(CLS_UI,port,addr);
 	if(sock<0) {
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
 		return 1;

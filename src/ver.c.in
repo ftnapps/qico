@@ -1,4 +1,4 @@
-/* $Id: ver.c.in,v 1.5 2004/02/26 23:55:25 sisoft Exp $ */
+/* $Id: ver.c.in,v 1.6 2004/05/17 22:29:04 sisoft Exp $ */
 #include <config.h>
 #include <stdio.h>
 #ifdef HAVE_STDLIB_H
@@ -15,8 +15,19 @@ char *osname="Unix";
 void u_vers(char *progn)
 {
 	struct utsname uts;
-	printf("%s-%s %s",progn,version,cvsdate);
-	if(!uname(&uts))printf(" on %s-%s (%s)",uts.sysname,uts.release,uts.machine);
-	printf("\ncompiled: " __DATE__ " " __TIME__ ", cc: " __VERSION__ "\n");
+	printf("%s v%s [%s]\n",progn,version,cvsdate);
+	if(!uname(&uts))
+	printf("%s %s (%s), ",uts.sysname,uts.release,uts.machine);
+	printf(
+#ifdef __GNUC__
+		"g"
+#endif
+		"cc: "
+#ifdef __VERSION__
+		__VERSION__
+#else
+		"unknown"
+#endif
+		"\n");
 	exit(0);
 }

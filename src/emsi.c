@@ -1,6 +1,6 @@
 /**********************************************************
  * EMSI
- * $Id: emsi.c,v 1.19 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: emsi.c,v 1.20 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -120,7 +120,7 @@ static char *emsi_tok(char **b, char *kc)
 
 static void emsi_dcds(char *s)
 {
-	char *d=s,t;
+	char *d=s,*x=s,t;
 	while((t=*s)) {
 		if(t=='}'||t==']')t=*++s;
 		if(t!='\\')*d=C0(t);
@@ -128,7 +128,7 @@ static void emsi_dcds(char *s)
 		s++;d++;
 	}
 	*d=0;
-	recode_to_local(d);
+	recode_to_local(x);
 }
 
 int emsi_parsedat(char *str, ninfo_t *dat)

@@ -1,6 +1,6 @@
 /***************************************************************************
  * command-line qico control tool
- * $Id: qctl.c,v 1.15 2004/03/20 16:04:16 sisoft Exp $
+ * $Id: qctl.c,v 1.16 2004/05/17 22:29:04 sisoft Exp $
  ***************************************************************************/
 #include <config.h>
 #ifdef HAVE_UNISTD_H
@@ -52,10 +52,11 @@ static char qflgs[Q_MAXBIT]=Q_CHARS;
 
 static void usage(char *ex)
 {
-	printf("usage: %s [<options>] [<port>] [<node>] [<files>] [<tty>]\n"
+	printf("usage: %s [<options>] [<node>] [<files>] [<tty>]\n"
  		   "<node>         must be in ftn-style (i.e. zone:net/node[.point])!\n"
 		   "-h             this help screen\n"
-	           "-P             connect to <port> (default: qicoui or %u)\n"
+	           "-P port        connect to <port> (default: qicoui or %u)\n"
+	           "-a host        connect to <host> (default: localhost)\n"
  		   "-q             stop daemon\n"
  		   "-Q             force queue rescan\n"
  		   "-R             reread config\n"
@@ -191,15 +192,19 @@ static int getqueueinfo()
 int main(int argc, char *argv[])
 {
 	int action=-1, kfs=0, len=0,lkfs;
-	char c, *str="", flv='?', buf[MSG_BUFFER],filename[MAX_PATH],*port=NULL;
+	char buf[MSG_BUFFER],filename[MAX_PATH];
+	char c,*str="",flv='?',*port=NULL,*addr=NULL;
 	struct stat filestat;
 #ifdef HAVE_SETLOCALE
  	setlocale(LC_ALL, "");
 #endif
- 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:P:"))!=EOF) {
+ 	while((c=getopt(argc, argv, "Khqovrp:fkRQHs:x:P:a:"))!=EOF) {
 		switch(c) {
 		case 'P':
 			if(optarg&&*optarg)port=strdup(optarg);
+			break;
+		case 'a':
+			if(optarg&&*optarg)addr=strdup(optarg);
 			break;
 		case 'k':
 			kfs=1;
@@ -255,7 +260,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	signal(SIGPIPE,SIG_IGN);
-	sock=cls_conn(CLS_UI,port);
+	sock=cls_conn(CLS_UI,port,addr);
 	if(sock<0) {
 		fprintf(stderr,"can't connect to server: %s\n",strerror(errno));
 		return 1;

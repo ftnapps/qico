@@ -1,12 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([qico],[0.53si-cvs],[sisoft@bk.ru])
-AM_INIT_AUTOMAKE([qico],[0.53si-cvs])
+cache_file=config.cache
+AC_INIT([qico],[0.53si],[sisoft@bk.ru])
+AM_INIT_AUTOMAKE([qico],[0.53si])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.24 2004/04/17 07:25:14 sisoft Exp $])
+AC_REVISION([$Id: configure.in,v 1.25 2004/05/17 22:29:03 sisoft Exp $])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
-cache_file=config.cache
 
 dnl Checks for programs.
 AC_PROG_CC

@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.27 2004/04/17 07:25:25 sisoft Exp $
+ * $Id: main.c,v 1.28 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -118,7 +118,7 @@ static void answer_mode(int type)
 	signal(SIGPIPE,SIG_IGN);
 
 	log_callback=NULL;xsend_cb=NULL;
-	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
+	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 	    else log_callback=vlogs;
 
@@ -373,7 +373,7 @@ int main(int argc,char *argv[],char *envp[])
 		signal(SIGPIPE,SIG_IGN);
 
 		log_callback=NULL;xsend_cb=NULL;
-		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
+		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
 
@@ -403,7 +403,7 @@ int main(int argc,char *argv[],char *envp[])
 		} else line = 0;
 
 		log_callback=NULL;xsend_cb=NULL;
-		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
+		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 		    else log_callback=vlogs;
 
