@@ -99,12 +99,14 @@ include		/etc/ftn/qico.passwd
 # log variables can be:
 #  - filenames 
 #    ex.: log /var/log/qico.log
-#  - syslogd(8) facility. in this case it must begin with $
+#  - syslogd(8) facility and priority level. in this case it must begin with $
+#    ex.: log $local2:warn
+#    Priority level could be ommited, default is LOG_INFO:
 #    ex.: log $local2
 #
 # daemon's log ("master" log)
 masterlog 	/var/log/ftn/qico-master.log
-#masterlog		$local3
+#masterlog		$local3:info
 
 # log file 
 log		/var/log/ftn/qico.log
@@ -483,4 +485,4 @@ endif
 # flags Linux,NoFreqsNow!
 #endif
 
-# $Id: qico.conf.sample,v 1.15 2001/03/11 20:15:25 lev Exp $
+# $Id: qico.conf.sample,v 1.16 2001/03/20 20:45:01 lev Exp $

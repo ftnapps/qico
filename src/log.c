@@ -2,44 +2,62 @@
  * File: log.c
  * Created at Thu Jul 15 16:14:06 1999 by pk // aaz@ruxy.org.ru
  * 
- * $Id: log.c,v 1.14 2001/03/20 19:53:14 lev Exp $
+ * $Id: log.c,v 1.15 2001/03/20 20:45:01 lev Exp $
  **********************************************************/
 #include "headers.h"
 #include <stdarg.h>
 #define SYSLOG_NAMES
 #include <syslog.h>
 
-#ifndef HAVE_SYSLOG_NAMES
 typedef struct _slncode {
-	char	*c_name;
-	int	c_val;
+	char *c_name;
+	int c_val;
 } SLNCODE;
 
+#ifndef HAVE_SYSLOG_FAC_NAMES
 SLNCODE facilitynames[] =
-  {
-    { "auth", LOG_AUTH },
-    { "cron", LOG_CRON },
-    { "daemon", LOG_DAEMON },
-    { "kern", LOG_KERN },
-    { "lpr", LOG_LPR },
-    { "mail", LOG_MAIL },
-    { "news", LOG_NEWS },
-    { "syslog", LOG_SYSLOG },
-    { "user", LOG_USER },
-    { "uucp", LOG_UUCP },
-    { "local0", LOG_LOCAL0 },
-    { "local1", LOG_LOCAL1 },
-    { "local2", LOG_LOCAL2 },
-    { "local3", LOG_LOCAL3 },
-    { "local4", LOG_LOCAL4 },
-    { "local5", LOG_LOCAL5 },
-    { "local6", LOG_LOCAL6 },
-    { "local7", LOG_LOCAL7 },
-    { NULL, -1 }
-  };
+	{
+		{ "auth", LOG_AUTH },
+        { "cron", LOG_CRON },
+        { "daemon", LOG_DAEMON },
+        { "kern", LOG_KERN },
+        { "lpr", LOG_LPR },
+        { "mail", LOG_MAIL },
+        { "news", LOG_NEWS },
+        { "syslog", LOG_SYSLOG },
+        { "user", LOG_USER },
+        { "uucp", LOG_UUCP },
+        { "local0", LOG_LOCAL0 },
+        { "local1", LOG_LOCAL1 },
+        { "local2", LOG_LOCAL2 },
+        { "local3", LOG_LOCAL3 },
+        { "local4", LOG_LOCAL4 },
+        { "local5", LOG_LOCAL5 },
+        { "local6", LOG_LOCAL6 },
+        { "local7", LOG_LOCAL7 },
+        { NULL, -1 }
+	};
+#endif
+#ifndef HAVE_SYSLOG_PRI_NAMES
+SLNCODE prioritynames[] =
+	{
+		{ "alert",      LOG_ALERT,      },
+		{ "crit",       LOG_CRIT,       },
+		{ "debug",      LOG_DEBUG,      },
+		{ "emerg",      LOG_EMERG,      },
+		{ "err",        LOG_ERR,        },
+		{ "error",      LOG_ERR,        },	/* DEPRECATED */
+		{ "info",       LOG_INFO,       },                      
+		{ "notice",     LOG_NOTICE,     },
+		{ "panic",      LOG_EMERG,      },	/* DEPRECATED */
+		{ "warn",       LOG_WARNING,    },	/* DEPRECATED */
+		{ "warning",    LOG_WARNING,    },
+		{ NULL,         -1,             }
+	};
 #endif
 
 int log_type=0;
+int syslog_priority=LOG_INFO;
 char *log_name=NULL;
 char *log_tty=NULL;
 void  (*log_callback)(char *str)=NULL;
@@ -48,12 +66,11 @@ void  (*log_callback)(char *str)=NULL;
 int facilities_levels[256];
 #endif
 
-int parsefacility(char *f)
+int parsefacorprio(char *f, SLNCODE *names)
 {
 	int i=0;
-	while(facilitynames[i].c_name) {
-		if(!strcasecmp(f, facilitynames[i].c_name))
-			return facilitynames[i].c_val;
+	while(names[i].c_name) {
+		if(!strcasecmp(f, names[i].c_name)) return names[i].c_val;
 		i++;
 	}
 	return -1;
@@ -80,6 +97,8 @@ int log_init(char *ln, char *tn)
 {
 	FILE *log_f;
 	char *n;int fc, len;
+	char fac[30];
+	char *prio;
 	log_tty=tn?xstrdup(tn):NULL;
 	if(*ln!='$') {
 		log_f=fopen(ln, "at");
@@ -98,7 +117,17 @@ int log_init(char *ln, char *tn)
 		xstrcat(n,".",len);
 		xstrcat(n,tn,len);
 	} else n=progname;
-	if((fc=parsefacility(ln+1))<0) return 0;
+
+	prio=strchr(ln+1,':');
+	if(prio) {
+		prio++;
+		xstrcpy(fac, ln+1, prio-ln-1);
+		if((syslog_priority=parsefacorprio(prio,(SLNCODE*)prioritynames))<0)
+			syslog_priority=LOG_INFO;
+	} else {
+		xstrcpy(fac, ln+1,30);
+	}
+	if((fc=parsefacorprio(fac,(SLNCODE*)facilitynames))<0) return 0;
 	log_type=2;
 	log_name=NULL;
 	openlog(n, LOG_PID, fc);
@@ -142,7 +171,7 @@ void vwrite_log(char *fmt, char *prefix, va_list args)
 		}
 		break;
 	case 2:
-		syslog(LOG_INFO, p);
+		syslog(syslog_priority, p);
 		break;
 	}
 }
