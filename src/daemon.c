@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.22 2004/04/13 17:37:05 sisoft Exp $
+ * $Id: daemon.c,v 1.23 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -512,12 +512,12 @@ void daemon_mode()
 		fprintf(stderr,"another daemon exists or can't create pid file!\n");
 		exit(1);
 	}
-	lins_sock=cls_conn(CLS_SERV_L,cfgs(CFG_SERVER));
+	lins_sock=cls_conn(CLS_SERV_L,cfgs(CFG_SERVER),NULL);
 	if(lins_sock<0) {
 		write_log("can't create server_udp: %s",strerror(errno));
 		exit(1);
 	}
-	uis_sock=cls_conn(CLS_SERV_U,cfgs(CFG_SERVER));
+	uis_sock=cls_conn(CLS_SERV_U,cfgs(CFG_SERVER),NULL);
 	if(uis_sock<0) {
 		write_log("can't create server_tcp: %s",strerror(errno));
 		cls_shutd(lins_sock);
@@ -656,7 +656,7 @@ void daemon_mode()
 							exit(S_BUSY);
 						}
 						DEBUG(('I',4,"connecting to daemon"));
-						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER));
+						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
 						if(cfgs(CFG_RUNONCALL)) {

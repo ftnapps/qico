@@ -1,11 +1,13 @@
-/* $Id: TodayFixes,v 1.61 2004/04/17 07:25:14 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.62 2004/05/17 22:29:03 sisoft Exp $ */
+---
+remove -cvs suffix from version.
+fix charset recoding.
+now qcc and qctl may connect on any host (option '-a').
+.
+previous:
 ---
 fix binkp voracious (last byte).
 configure: another fix configuration without --with-config.
 configure: add --disable-binkp option.
 add file INSTALL.
-.
-previous:
----
-show milliseconds in logtime if loglevel T >= 1.
 .

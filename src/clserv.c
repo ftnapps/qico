@@ -1,6 +1,6 @@
 /**********************************************************
  * client/server tools
- * $Id: clserv.c,v 1.10 2004/03/15 01:19:30 sisoft Exp $
+ * $Id: clserv.c,v 1.11 2004/05/17 22:29:04 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -20,7 +20,7 @@
 
 int (*xsend_cb)(int sock,char *buf,size_t len)=NULL;
 
-int cls_conn(int type,char *port)
+int cls_conn(int type,char *port,char *addr)
 {
 	int rc,f=1;
 	struct sockaddr_in sa;
@@ -33,7 +33,13 @@ int cls_conn(int type,char *port)
 		    else {errno=EINVAL;return -1;}
 	rc=socket(AF_INET,type&CLS_UDP?SOCK_DGRAM:SOCK_STREAM,0);
     	if(rc<0)return rc;
-	sa.sin_addr.s_addr=htonl((type&CLS_UDP)?INADDR_LOOPBACK:INADDR_ANY);
+	if(addr) {
+		int a1,a2,a3,a4;
+		struct hostent *he;
+		if(sscanf(addr,"%d.%d.%d.%d",&a1,&a2,&a3,&a4)==4)sa.sin_addr.s_addr=inet_addr(addr);
+		else if((he=gethostbyname(addr)))memcpy(&sa.sin_addr,he->h_addr,he->h_length);
+		else return -1;
+	} else sa.sin_addr.s_addr=htonl((type&CLS_UDP)?INADDR_LOOPBACK:INADDR_ANY);
 	if(type&CLS_SERVER) {
 		if(setsockopt(rc,SOL_SOCKET,SO_REUSEADDR,&f,sizeof(f))<0)return -1;
 		f=fcntl(rc,F_GETFL,0);
