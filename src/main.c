@@ -2,7 +2,7 @@
  * File: main.c
  * Created at Thu Jul 15 16:14:17 1999 by pk // aaz@ruxy.org.ru
  * qico main
- * $Id: main.c,v 1.4.2.2 2000/09/25 16:52:21 lev Exp $
+ * $Id: main.c,v 1.4.2.3 2000/10/01 17:32:19 lev Exp $
  **********************************************************/
 #include <string.h>
 #include <stdio.h>
@@ -57,7 +57,10 @@ void usage(char *ex)
 		   "-n           compile nodelists\n"
 		   "-f           query info about <node>\n"
 		   "-p           poll <node>\n"
-		   "-c           force call to <node>\n"
+		   "-c[N|IA]       force call to <node>\n"
+		   "             N - normal call\n"
+		   "             I - call <i>mmidiatly (don't check node worktime)\n"
+		   "             A - call on <a>ny free port (don't check cancall setting)\n"
 		   "-r           freq from <node> files <files>\n"
 		   "-s[n|c|d|h]  attach files <files> to <node> with specified flavor\n"
 		   "             flavors: <n>ormal, <c>rash, <d>irect, <h>old\n"
@@ -416,19 +419,54 @@ void answer_mode(int type)
 	stopit(rc);
 }	
 
-int force_call(ftnaddr_t *fa)
+int force_call(ftnaddr_t *fa, int flags)
 {
- char *port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL));
+ char *port=NULL;
+ slist_t *ports=NULL;
  int rc;
 
  rc=query_nodelist(fa,cfgs(CFG_NLPATH),&rnode);
  if (!rnode) return 0;
  phonetrans(rnode->phone, cfgsl(CFG_PHONETR));
- rnode->tty=strdup(baseport(port));
+ rnode->tty=NULL;
+
+ if((flags & 2) != 2) {
+
+ 	ports=cfgsl(CFG_PORT);
+ 	do {
+ 		if(!ports) exit(33);
+ 		port=tty_findport(ports,cfgs(CFG_NODIAL));
+ 		if(!port) exit(33);
+ 		if(rnode->tty) sfree(rnode->tty);
+		rnode->tty=strdup(baseport(port));
+        ports=ports->next;
+ 	} while(!checktimegaps(cfgs(CFG_CANCALL)));
+	if(!checktimegaps(cfgs(CFG_CANCALL))) exit(33);
+
+ } else {
+ 	if((port=tty_findport(cfgsl(CFG_PORT),cfgs(CFG_NODIAL)))) {
+		rnode->tty=strdup(baseport(port));
+ 	} else {
+ 		exit(33);
+ 	}
+ }
+
+ if(!can_dial(rnode,(flags & 1) == 1)) {
+ 	fprintf(stderr,"We should not call to %s at this time",ftnaddrtoa(fa));
+ 	exit(0);
+ }
+
  if(!log_init(cfgs(CFG_LOG),rnode->tty)) {
 	 printf("can't open log %s!\n", ccs);
 	 exit(0);
-	}
+ }
+
+ if(rnode->hidnum) {
+	log("calling %s #%d, %s (%s)", rnode->name, rnode->hidnum,ftnaddrtoa(fa),rnode->phone);
+ } else {								
+	log("calling %s, %s (%s)", rnode->name,ftnaddrtoa(fa),rnode->phone);
+ }								
+
  rc=do_call(fa, rnode->phone,port);
  stopit(rc);
  return rc;
@@ -441,7 +479,7 @@ int main(int argc, char *argv[], char *envp[])
 {
 	int c, daemon=-1, rc,
 		flv=F_NORM,
-		kfs=0, verb=0, set=0, res=0,
+		kfs=0, verb=0, set=0, res=0, call_flags=0,
 		sesstype=SESSION_AUTO;
 	char *hostname=NULL, *str=NULL;
 	ftnaddr_t fa;
@@ -453,7 +491,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
  	setlocale(LC_ALL, "");	 
 
-	while((c=getopt(argc, argv, "hI:da:qni:s:crpz:x:fkR"))!=EOF) {
+	while((c=getopt(argc, argv, "hI:da:qni:s:c:rpz:x:fkR"))!=EOF) {
 		switch(c) {
 		case 'v':
 			verb=1;
@@ -492,6 +530,16 @@ int main(int argc, char *argv[], char *envp[])
 			break;
 		case 'c':
 			daemon=12;
+			str=optarg;
+			while(str && *str) {
+				switch(toupper(*str)) {
+				case 'N': call_flags=0; break;
+				case 'I': call_flags|=1; break;
+				case 'A': call_flags|=2; break;
+				default: log("unknown call option: %c", *optarg);exit(0);
+				}
+				str++;
+			}
 			break;
 		case 'f':
 			daemon=8;
@@ -602,7 +650,7 @@ int main(int argc, char *argv[], char *envp[])
 		stopit(0);
 	}
 
-	if(daemon>=3 && daemon<=8 || daemon==12) 
+	if((daemon>=3 && daemon<=8) || daemon==12) 
 		if(!bso_init(cfgs(CFG_OUTBOUND), cfgal(CFG_ADDRESS)->addr.z)) {
 			log("%s: can't init bso!\n", argv[0]);
 			exit(1);
@@ -618,7 +666,7 @@ int main(int argc, char *argv[], char *envp[])
 	case 12:
 		if (bso_locknode(&fa)) {
 			if(verb) log("call %s\n", ftnaddrtoa(&fa));
-			rc=force_call(&fa);
+			rc=force_call(&fa,call_flags);
 			bso_unlocknode(&fa);
 		} else
 			rc=0;
