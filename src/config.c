@@ -1,6 +1,6 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.12 2004/02/26 23:55:17 sisoft Exp $
+ * $Id: config.c,v 1.13 2004/03/06 14:53:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
@@ -287,7 +287,7 @@ contl:		line++;p=s;
 void dumpconfig()
 {
 	int i;
-	char buf[MAX_STRING];
+	char buf[MAX_STRING*16];
 	cfgitem_t *c;
 	slist_t *sl;
 	falist_t *al;
@@ -297,31 +297,31 @@ void dumpconfig()
 			   configtab[i].keyword,configtab[i].type,
 			   configtab[i].required,configtab[i].found);
 		for(c=configtab[i].items;c;c=c->next) {
-			xstrcpy(buf,"conf:   ",MAX_STRING);
-			if(c->condition)snprintf(buf+8,MAX_STRING,"if %s: ",c->condition);
-			    else xstrcat(buf,"default: ",MAX_STRING);
+			xstrcpy(buf,"conf:   ",MAX_STRING*16);
+			if(c->condition)snprintf(buf+8,MAX_STRING*16,"if %s: ",c->condition);
+			    else xstrcat(buf,"default: ",MAX_STRING*16);
 			switch(configtab[i].type) {
 			    case C_PATH:
 			    case C_STR:
-				snprintf(buf+strlen(buf),MAX_STRING,"'%s'",c->value.v_char);break;
+				snprintf(buf+strlen(buf),MAX_STRING*16,"'%s'",c->value.v_char);break;
 			    case C_STRL:
 				for(sl=c->value.v_sl;sl;sl=sl->next)
-					snprintf(buf+strlen(buf),MAX_STRING,"'%s', ",sl->str);
-				xstrcat(buf,"%",MAX_STRING);
+					snprintf(buf+strlen(buf),MAX_STRING*16,"'%s', ",sl->str);
+				xstrcat(buf,"%",MAX_STRING*16);
 				break;
 			    case C_ADRSTRL:
 				for(fasl=c->value.v_fasl;fasl;fasl=fasl->next)
-					snprintf(buf+strlen(buf),MAX_STRING,"%s '%s', ",fasl->addr.d?ftnaddrtoda(&fasl->addr):ftnaddrtoa(&fasl->addr),fasl->str);
-				xstrcat(buf,"%",MAX_STRING);
+					snprintf(buf+strlen(buf),MAX_STRING*16,"%s '%s', ",fasl->addr.d?ftnaddrtoda(&fasl->addr):ftnaddrtoa(&fasl->addr),fasl->str);
+				xstrcat(buf,"%",MAX_STRING*16);
 				break;
 			    case C_ADDRL:
 				for(al=c->value.v_al;al;al=al->next)
-					snprintf(buf+strlen(buf),MAX_STRING,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
-				xstrcat(buf,"%",MAX_STRING);
+					snprintf(buf+strlen(buf),MAX_STRING*16,"%s, ",al->addr.d?ftnaddrtoda(&al->addr):ftnaddrtoa(&al->addr));
+				xstrcat(buf,"%",MAX_STRING*16);
 				break;
-			    case C_INT:     snprintf(buf+strlen(buf),MAX_STRING,"%d",c->value.v_int);break;
-			    case C_OCT:     snprintf(buf+strlen(buf),MAX_STRING,"%o",c->value.v_int);break;
-			    case C_YESNO:   snprintf(buf+strlen(buf),MAX_STRING,"%s",c->value.v_int?"yes":"no");break;
+			    case C_INT:     snprintf(buf+strlen(buf),MAX_STRING*16,"%d",c->value.v_int);break;
+			    case C_OCT:     snprintf(buf+strlen(buf),MAX_STRING*16,"%o",c->value.v_int);break;
+			    case C_YESNO:   snprintf(buf+strlen(buf),MAX_STRING*16,"%s",c->value.v_int?"yes":"no");break;
 			}
 			write_log("%s",buf);
 		}

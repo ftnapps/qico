@@ -1,9 +1,10 @@
-/* $Id: TodayFixes,v 1.43 2004/03/06 12:50:56 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.44 2004/03/06 14:53:34 sisoft Exp $ */
 ---
-set rts/cts flow control for tty's on linux.
-fix directory tree creating.
+improve BP_VER message parsing.
+increase binkp temp buffer (for support lots akas).
 .
 previous:
 ---
-fix expressions binkp and tcp.
+set rts/cts flow control for tty's on linux.
+fix directory tree creating.
 .
