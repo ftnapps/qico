@@ -7,11 +7,17 @@ QCTL=/usr/bin/qctl
 FLAGS="defaults 63"
 
 test -f $DAEMON || exit 0
+if ! test -f /etc/ftn/qico.conf; then
+  if [ "$1" = "start" ]; then
+    echo "Before run qico, rename /etc/ftn/qico.conf.sample to qico.conf and edit it!"
+  fi
+  exit 0
+fi
 
 case "$1" in
   start)
     echo -n "Starting FTN services: qico"
-    start-stop-daemon --start --verbose --exec $DAEMON
+    start-stop-daemon --start --exec $DAEMON
     echo "."
     ;;
   stop)
@@ -19,7 +25,7 @@ case "$1" in
     if [ -f $QCTL ]; then
 	$QCTL -q
     else
-	start-stop-daemon --stop --verbose --exec $DAEMON
+	start-stop-daemon --stop --exec $DAEMON
     fi
     echo "."
     ;;
@@ -27,7 +33,7 @@ case "$1" in
     if [ -f $QCTL ]; then
 	$QCTL -R
     else
-	start-stop-daemon --stop --signal 1 --verbose --exec $DAEMON
+	start-stop-daemon --stop --signal 1 --exec $DAEMON
     fi
     ;;
   restart|force-reload)
@@ -35,10 +41,10 @@ case "$1" in
     if [ -f $QCTL ]; then
 	$QCTL -q
     else
-	start-stop-daemon --stop --verbose --exec $DAEMON
+	start-stop-daemon --stop --exec $DAEMON
     fi
     sleep 1
-    start-stop-daemon --start --verbose --exec $DAEMON
+    start-stop-daemon --start --exec $DAEMON
     echo "."
     ;;
   *)

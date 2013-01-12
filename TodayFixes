@@ -1,10 +1,8 @@
-/* $Id: TodayFixes,v 1.78 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.78.2.5 2004/06/14 20:28:21 sisoft Exp $ */
 ---
-fix sending *.req if ASO used.
-add if-expressions 'mailer' and 'exec'.
-other small changes.
+fix kill files from *.hlo and *.hut, when holdout=yes.
 .
 previous:
 ---
-fix <if>-expressions parsing.
+fix freqs: do not include path in outgoing filenames.
 .

@@ -1,6 +1,6 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.23 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: protfm.c,v 1.23.2.2 2004/06/09 13:21:11 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef HAVE_UTIME_H
@@ -118,7 +118,7 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	snprintf(p, MAX_PATH, "%s/tmp/%s", ccs, bn);
 
 	if(!stat(p, &sb)) {
-		if(sb.st_size<rsize && sb.st_mtime==rtime) {
+		if(sb.st_size<rsize && sb.st_mtime==recvf.mtime) {
 			*f=fopen(p, "ab");
 			if(!*f) {
 				write_log("can't open file %s for writing: %s", p,strerror(errno));

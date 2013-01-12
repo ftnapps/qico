@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.37 2004/05/29 23:34:45 sisoft Exp $
+ * $Id: binkp.c,v 1.37.2.1 2004/06/07 18:45:50 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -380,7 +380,8 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 								if(chal_len>0)opt_md|=O_THEY;
 							}
 							if((opt_md&O_THEY)&&(opt_md&O_WANT))opt_md=O_YES;
-						} else DEBUG(('B',1,"got unknown option '%s'",p));
+						} else if(strcmp(p,"GZ")&&strcmp(p,"BZ2")&&
+							strcmp(p,"EXTCMD"))DEBUG(('B',1,"got unknown option '%s'",p));
 					}
 				} else if(!strncmp(tmp,"VER ",4)) {
 					restrcpy(&rnode->mailer,tmp+4);
