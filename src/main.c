@@ -214,7 +214,7 @@ static void answer_mode(int type)
     int rc, spd;
     char *cs;
     char host[ MAXHOSTNAMELEN + 1 ];
-    struct sockaddr_in sa;
+    struct sockaddr_storage sa;
     socklen_t ss = sizeof( sa );
     TIO tio;
     sts_t sts;
@@ -252,7 +252,7 @@ static void answer_mode(int type)
     tty_fd = 0;
     tty_online = TRUE;
     if( is_ip && getpeername( 0, (struct sockaddr*) &sa, &ss ) == 0 ) {
-        get_hostname( &sa, host, sizeof( host ));
+        get_hostname( &sa, ss, host, sizeof( host ));
         write_log( "remote is %s", host );
         spd = TCP_SPEED;
         tcp_setsockopts( tty_fd );
