@@ -1,3 +1,9 @@
+Version 0.57.2xe
+~~~~~~~~~~~~~~~~
+- Apply IPv6 related changes from patch file qico-0.57.1xe-ipv6.patch,
+  as downloaded from http://andre.grueneberg.de/binkd/.
+
+
 Version 0.57.1xe
 ~~~~~~~~~~~~~~~~
 - changed: cvs address
