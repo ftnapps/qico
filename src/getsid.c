@@ -1,3 +1,3 @@
-/* $Id: getsid.c,v 1.2 2003/07/14 17:54:22 sisoft Exp $ */
+/* $Id: getsid.c,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $ */
 #include "headers.h"
 pid_t getsid(pid_t pid) { return pid; }

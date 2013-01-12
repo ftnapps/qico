@@ -3,16 +3,27 @@
                  Arjen G. Lentz, LENTZ SOFTWARE-DEVELOPMENT and
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
- =============================================================================*/
-/* $Id: hydra.h,v 1.7 2004/06/09 22:25:50 sisoft Exp $ */
-#ifndef __HYDRA_H__
-#define __HYDRA_H__
-
-enum boolean { false, true };
-typedef int boolean;
-
-typedef long FILE_OFS;                          /* Offset in a disk file     */
-#define OFS_NONE (-1L)
+=============================================================================*/
+/*
+ * $Id: hydra.h,v 1.12 2005/05/16 11:20:13 mitry Exp $
+ *
+ * $Log: hydra.h,v $
+ * Revision 1.12  2005/05/16 11:20:13  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ * Revision 1.11  2005/04/07 20:58:24  mitry
+ * Cleaned code
+ *
+ * Revision 1.10  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ * Revision 1.9  2005/03/28 15:17:42  mitry
+ * Added non-blocking i/o support
+ *
+ * Revision 1.8  2005/02/12 18:57:17  mitry
+ * Hydra-4/8/16k and chat are back. Chat is still buggy. Oversized Hydra too.
+ *
+ */
 
 
 /* HYDRA Specification Revision/Timestamp ---------Revision------Date------- */
@@ -20,12 +31,28 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define H_REVISION   1
 
 /* HYDRA Basic Values ------------------------------------------------------ */
+#ifndef XON
+#define XON          ('Q' - '@')        /* Ctrl-Q (^Q) xmit-on character     */
+#define XOFF         ('S' - '@')        /* Ctrl-S (^S) xmit-off character    */
+#endif
 #define H_DLE        ('X' - '@')        /* Ctrl-X (^X) HYDRA DataLinkEscape  */
 #define H_MINBLKLEN    64               /* Min. length of a HYDRA data block */
-#define H_MAXBLKLEN(n) 2048*n           /* Max. length of a HYDRA data block */
-#define H_OVERHEAD     8                /* Max. no. control bytes in a pkt   */
+#define H_OVERHEAD      8               /* Max. no. control bytes in a pkt   */
+
+#ifndef HYDRA8K16K
+
+#define H_MAXBLKLEN  2048               /* Max. length of a HYDRA data block */
+#define H_MAXPKTLEN  ((H_MAXBLKLEN + H_OVERHEAD + 5) * 3)     /* Encoded pkt */
+#define H_BUFLEN     (H_MAXPKTLEN + 16) /* Buffer sizes: max.enc.pkt + slack */
+
+#else
+
+#define H_MAXBLKLEN(n) (2048*(n))       /* Max. length of a HYDRA data block */
 #define H_MAXPKTLEN(n) ((H_MAXBLKLEN(n)+H_OVERHEAD+5)*3)      /* Encoded pkt */
 #define H_BUFLEN(n)    (H_MAXPKTLEN(n)+16) /* Buffer sizes: max.enc.pkt + slack */
+
+#endif
+
 #define H_PKTPREFIX    31               /* Max length of pkt prefix string   */
 #define H_FLAGLEN       3               /* Length of a flag field            */
 #define H_RETRIES      10               /* No. retries in case of an error   */
@@ -35,11 +62,17 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define H_IDLE         20               /* Idle? tx IDLE pkt every 20 secs   */
 #define H_BRAINDEAD   120               /* Braindead in 2 mins (120 secs)    */
 
+/* HYDRA Special file offsets ---------------------------------------------- */
+#define H_SKIP      (-1L)               /* Skip file                         */
+#define H_SUSPEND   (-2L)               /* Suspend (refuse) file             */
+
 /* HYDRA Return codes ------------------------------------------------------ */
 #define XFER_ABORT    (-1)              /* Failed on this file & abort xfer  */
 #define XFER_SKIP       0               /* Skip this file but continue xfer  */
 #define XFER_OK         1               /* File was sent, continue transfer  */
+/* New */
 #define XFER_SUSPEND    2               /* Suspend file (don't delete)       */
+
 
 /* HYDRA Transmitter States ------------------------------------------------ */
 #define HTX_DONE        0               /* All over and done                 */
@@ -97,10 +130,6 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define H_DEVTXTIME   (-5)              /* Device transmitter timeout        */
 #define H_BRAINTIME   (-6)              /* Braindead timeout (quite fatal)   */
 
-/* HYDRA Specila file offsets ---------------------------------------------- */
-#define H_SKIP      (-1L)               /* Skip file                         */
-#define H_SUSPEND   (-2L)               /* Suspend (refuse) file             */
-
 /* HYDRA Packet Format: START[<data>]<type><crc>END ------------------------ */
 #define HCHR_PKTEND    'a'              /* End of packet (any format)        */
 #define HCHR_BINPKT    'b'              /* Start of binary packet            */
@@ -120,27 +149,34 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 #define HOPT_CRC32    (0x00000100L)     /* Packets with CRC-32 allowed       */
 #define HOPT_DEVICE   (0x00000200L)     /* DEVICE packets allowed            */
 #define HOPT_FPT      (0x00000400L)     /* Can handle filenames with paths   */
+#define HOPT_NFI      (0x00000800L)     /* Numerated FINFO/RPOS/FINFOACK     */
 
 /* What we can do */
-#define HCAN_OPTIONS (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE)
+#define HCAN_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANBRK|HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE)
+/* leave HOPT_DEVICE for later processing */
+
 /* Vital options if we ask for any; abort if other side doesn't support them */
 #define HNEC_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT|HOPT_CANBRK)
+
 /* Non-vital options; nice if other side supports them, but doesn't matter */
 #define HUNN_OPTIONS  (HOPT_CANASC|HOPT_CANUUE|HOPT_CRC32|HOPT_DEVICE)
+
 /* Default options */
 #define HDEF_OPTIONS  (0x0L)
+
 /* rxoptions during init (needs to handle ANY link yet unknown at that point */
 #define HRXI_OPTIONS  (HOPT_XONXOFF|HOPT_TELENET|HOPT_CTLCHRS|HOPT_HIGHCTL|HOPT_HIGHBIT)
+
 /* ditto, but this time txoptions */
 #define HTXI_OPTIONS  (0x0L)
 
 /* HYDRA Prototypes */
-extern void hydra_init (dword want_options, boolean originator, int hmod, int rxwin, int txwin);
-extern void hydra_deinit ();
-extern int  hydra_file   (char *txpathname, char *txalias);
-extern boolean hydra_devfree ();
-extern boolean hydra_devsend (char *dev, byte *data, word len);
-extern boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
-extern boolean hdxsession;
 
-#endif
+void	hydra_init(dword, int, int);
+void	hydra_deinit(void);
+int	hydra_send(char *, char *);
+boolean	hydra_devfree(void);
+boolean	hydra_devsend(char *, byte *, word);
+boolean	hydra_devfunc(char *, void (*) (byte *, word));
+
+/* end of hydra.h */

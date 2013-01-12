@@ -1,12 +1,53 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.10 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
-#include "headers.h"
+/*
+ * $Id: perl.c,v 1.8 2005/08/22 17:17:18 mitry Exp $
+ *
+ * $Log: perl.c,v $
+ * Revision 1.8  2005/08/22 17:17:18  mitry
+ * Removed useless static function
+ *
+ * Revision 1.7  2005/08/16 15:17:22  mitry
+ * Removed unused ninfo_t.haswtime field
+ *
+ * Revision 1.6  2005/05/16 11:17:30  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ * Revision 1.5  2005/04/08 18:11:12  mitry
+ * Insignificant changes
+ *
+ * Revision 1.4  2005/02/12 19:01:10  mitry
+ * Minor cosmetic changes.
+ *
+ */
+
+#include "config.h"
+
 #ifdef WITH_PERL
+
+#include "have.h"
+#include "types.h"
+
+#undef WORD
+#undef PACKAGE
+
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
+
+#undef keyword
+#undef DEBUG
+
+#include "defs.h"
+#include "qslib.h"
+#include "ftn.h"
+#include "tools.h"
+#include "mailer.h"
+#include "globals.h"
+#include "qconf.h"
+#include "qipc.h"
+
 
 #ifndef sv_undef
 #	define sv_undef PL_sv_undef
@@ -134,7 +175,7 @@ static XS(perl_qexpr)
 	XSRETURN_IV(rc);
 }
 
-static void perl_xs_init()
+static void perl_xs_init(void)
 {
 	static char *file=__FILE__;
 	newXS("wlog",perl_wlog,file);
@@ -142,7 +183,7 @@ static void perl_xs_init()
 	newXS("qexpr",perl_qexpr,file);
 }
 
-static void perl_setup(int daemon,int init)
+static void perl_setup(int daemon, int init)
 {
 	int i;
 	SV *sv;
@@ -210,7 +251,7 @@ static void perl_setup(int daemon,int init)
 	perl_flg=0;
 }
 
-int perl_init(char *script,int mode)
+int perl_init(const char *script, int mode)
 {
 	int rc;
 	SV *sv;
@@ -224,7 +265,7 @@ int perl_init(char *script,int mode)
 	}
 	perl=perl_alloc();
 	if(perl) {
-		perlargs[1]=script;
+		perlargs[1] = (char *) script;
 		perl_construct(perl);
 		rc=perl_parse(perl,perl_xs_init,2,perlargs,NULL);
 	} else {
@@ -324,13 +365,14 @@ void perl_on_log(char *str)
 			rc=1;
 		} else if(rc&&sv) {
 			char *p=SvPV(sv,len);
-			if(p&&len)strncpy(str,p,MIN(len+1,LARGE_STRING-1));
+			if(p&&len)
+				xstrcpy(str,p,MIN(len+1,LARGE_STRING-1));
 		}
 		Lock=0;
 	}
 }
 
-int perl_on_call(ftnaddr_t *fa,char *site,char *port)
+int perl_on_call(const ftnaddr_t *fa, const char *site, const char *port)
 {
 	if(PerlHave(PERL_ON_CALL)) {
 		SV *sv,*svret;
@@ -401,7 +443,7 @@ int perl_on_session(char *sysflags)
 		plhadd_str(hv,sv,"station",rnode->name);
 		plhadd_str(hv,sv,"place",rnode->place);
 		plhadd_str(hv,sv,"flags",rnode->flags);
-		plhadd_str(hv,sv,"wtime",rnode->haswtime?rnode->wtime:NULL);
+		plhadd_str(hv,sv,"wtime",rnode->wtime);
 		plhadd_str(hv,sv,"password",rnode->pwd);
 		plhadd_int(hv,sv,"time",rnode->time);
 		plhadd_int(hv,sv,"speed",rnode->speed);
@@ -446,7 +488,7 @@ int perl_on_session(char *sysflags)
 	return S_OK;
 }
 
-void perl_end_session(long sest,int result)
+void perl_end_session(long sest, int result)
 {
 	if(PerlHave(PERL_END_SESSION)) {
 		SV *sv;
@@ -471,7 +513,7 @@ void perl_end_session(long sest,int result)
 	}
 }
 
-int perl_on_recv()
+int perl_on_recv(void)
 {
 	if(PerlHave(PERL_ON_RECV)) {
 		SV *sv,*svret;
@@ -538,7 +580,7 @@ char *perl_end_recv(int state)
 	return NULL;
 }
 
-char *perl_on_send(char *tosend)
+char *perl_on_send(const char *tosend)
 {
 	if(PerlHave(PERL_ON_SEND)) {
 		SV *sv,*svret;
@@ -549,7 +591,7 @@ char *perl_on_send(char *tosend)
 		DEBUG(('P',4,"perl_on_send(%s)",tosend));
 		hv=perl_get_hv("send",TRUE);
 		hv_clear(hv);
-		plhadd_str(hv,sv,"file",tosend);
+		plhadd_str(hv,sv,"file",(char *) tosend);
 		plhadd_str(hv,sv,"name",sendf.fname);
 		plhadd_int(hv,sv,"size",sendf.ftot);
 		plhadd_int(hv,sv,"time",sendf.mtime);

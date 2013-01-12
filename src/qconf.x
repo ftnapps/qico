@@ -1,6 +1,6 @@
 #**********************************************************
 #* config keywords definition
-#* $Id: qconf.x,v 1.21 2004/06/22 14:26:21 sisoft Exp $
+#* $Id: qconf.x,v 1.11 2005/08/16 19:15:05 mitry Exp $
 #**********************************************************
 address,C_ADDRL,1,NULL
 aftermail,C_STR,0,NULL
@@ -14,7 +14,7 @@ autosuspend,C_STRL,0,NULL
 autoticskip,C_YESNO,0,"no"
 binkpopt,C_STR,0,"MB"
 bsooutbound,C_PATH,2,NULL
-callonflavors,C_STR,0,"NDCIR"
+callonflavors,C_STR,0,"NDCI"
 cancall,C_STR,0,"CM"
 chathallostr,C_STR,0,"\n * Hello %s!\n"
 chatlog,C_PATH,0,NULL
@@ -48,6 +48,10 @@ holdout,C_YESNO,0,"no"
 hrxwin,C_INT,0,"0"
 hstimeout,C_INT,0,"60"
 htxwin,C_INT,0,"0"
+hydracrc16,C_YESNO,0,"no"
+hydrahdx,C_YESNO,0,"no"
+hydralogverbose,C_YESNO,0,"no"
+hydrarh1,C_YESNO,0,"yes"
 ignorenrq,C_YESNO,0,"no"
 immonflavors,C_STR,0,"CI"
 inbound,C_PATH,1,NULL
@@ -57,6 +61,7 @@ killbadpkt,C_YESNO,0,"no"
 localcp,C_PATH,0,"none"
 lockdir,C_PATH,0,"/tmp"
 log,C_PATH,1,NULL
+loginscript,C_STR,0,NULL
 loglevels,C_STR,0,""
 longboxpath,C_PATH,0,NULL
 longrescan,C_INT,0,"0"
@@ -74,6 +79,7 @@ mincpsout,C_INT,0,"0"
 minspeed,C_INT,0,"0"
 modemalive,C_STR,0,"AT|"
 modembusy,C_STRL,0,NULL
+modemcheckdsr,C_YESNO,0,"no"
 modemconnect,C_STRL,0,NULL
 modemerror,C_STRL,0,NULL
 modemhangup,C_STRL,0,NULL
@@ -103,6 +109,7 @@ realmincps,C_YESNO,0,"yes"
 recodepkts,C_YESNO,0,"yes"
 remotecp,C_PATH,0,"none"
 rescanperiod,C_INT,0,"300"
+resolvehostname,C_YESNO,0,"no"
 rmboxes,C_YESNO,0,"no"
 rootdir,C_PATH,2,NULL
 runoncall,C_STR,0,NULL

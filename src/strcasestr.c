@@ -1,7 +1,10 @@
-/* $Id: usleep.c,v 1.2 2004/03/08 22:02:43 sisoft Exp $
- *
- * Copyright (c) 1989, 1993
+/* $Id: strcasestr.c,v 1.2 2005/03/29 20:39:46 mitry Exp $ */
+/*-
+ * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * Chris Torek.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,20 +36,33 @@
  */
 
 #include <config.h>
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
-int
-usleep(useconds)
-	unsigned int useconds;
+#ifdef HAVE_SYS_CDEFS_H
+#include <sys/cdefs.h>
+#endif
+#include <ctype.h>
+#include <string.h>
+
+/*
+ * Find the first occurrence of find in s, ignore case.
+ */
+char *
+strcasestr(s, find)
+	register const char *s, *find;
 {
-	struct timespec time_to_sleep;
+	register char c, sc;
+	register size_t len;
 
-	time_to_sleep.tv_nsec = (useconds % 1000000) * 1000;
-	time_to_sleep.tv_sec = useconds / 1000000;
-	return (_nanosleep(&time_to_sleep, NULL));
+	if ((c = *find++) != 0) {
+		c = tolower((unsigned char)c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+			} while ((char)tolower((unsigned char)sc) != c);
+		} while (strncasecmp(s, find, len) != 0);
+		s--;
+	}
+	return ((char *)s);
 }

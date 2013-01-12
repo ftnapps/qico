@@ -1,7 +1,0 @@
-etc/ftn
-usr/bin
-usr/sbin
-usr/share/doc/qico/stuff
-usr/share/man/man8
-var/log/ftn
-var/spool/ftn

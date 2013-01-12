@@ -1,7 +1,18 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.21 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
+/*
+ * $Id: flagexp.y,v 1.3 2005/05/06 20:31:58 mitry Exp $
+ *
+ * $Log: flagexp.y,v $
+ * Revision 1.3  2005/05/06 20:31:58  mitry
+ * Changed strtok() to strsep()
+ *
+ * Revision 1.2  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
 %{
 #include "headers.h"
 #include <fnmatch.h>
@@ -19,17 +30,17 @@ extern char yytext[];
 extern char *yyPTR;
 extern int yylex();
 static int logic(int e1,int op,int e2);
-static int checkflag();
-static int checkconnstr();
-static int checkspeed(int op,int speed,int real);
-static int checksfree(int op,int sp);
-static int checkmailer();
-static int checkphone();
-static int checkport();
-static int checkcid();
-static int checkhost();
-static int checkfile();
-static int checkexec();
+static int checkflag(void);
+static int checkconnstr(void);
+static int checkspeed(int op, int speed, int real);
+static int checksfree(int op, int sp);
+static int checkmailer(void);
+static int checkphone(void);
+static int checkport(void);
+static int checkcid(void);
+static int checkhost(void);
+static int checkfile(void);
+static int checkexec(void);
 static int checkline(int lnum);
 static int yyerror(char *s);
 static int flxpres;
@@ -108,7 +119,7 @@ gapstring	: GAPSTR
 		;
 %%
 
-static int logic(int e1, int op,int e2)
+static int logic(int e1, int op, int e2)
 {
 	DEBUG(('Y',2,"Logic: %d (%d,%s) %d",e1,op,
 		(AND==op?"AND":
@@ -126,7 +137,7 @@ static int logic(int e1, int op,int e2)
 	}
 }
 
-static int checkflag()
+static int checkflag(void)
 {
 	int fln;
 	char *p, *q;
@@ -171,14 +182,15 @@ static int checkflag()
 		return rnode->options&O_BAD;
 	}
 	if(rnode->flags) {
-		q=xstrdup(rnode->flags);p=strtok(q,",");
-		while(p) {
+		char *r;
+		q = xstrdup(rnode->flags);
+		r = q;;
+		while(( p = strsep( &r, "," ))) {
 			if(!strcasecmp(yytext,p)) {
 				xfree(q);
 				DEBUG(('Y',3,"checkflag: other: 1"));
 				return 1;
 			}
-			p=strtok(NULL,",");
 		}
 		xfree(q);
 	}
@@ -187,7 +199,7 @@ static int checkflag()
 }
 
 
-static int checkconnstr()
+static int checkconnstr(void)
 {
 	DEBUG(('Y',2,"checkconnstr: \"%s\"",yytext));
 	if(!connstr||is_ip) return 0;
@@ -222,7 +234,7 @@ static int checkspeed(int op, int speed, int real)
 	}
 }
 
-static int checksfree(int op,int sf)
+static int checksfree(int op, int sf)
 {
 	int fs=getfreespace((const char*)yytext);
 	DEBUG(('Y',2,"checksfree: '%s' %d (%d,%s) %d",yytext,fs,op,
@@ -239,7 +251,7 @@ static int checksfree(int op,int sf)
 	}
 }
 
-static int checkphone()
+static int checkphone(void)
 {
 	DEBUG(('Y',2,"checkphone: \"%s\"",yytext));
 	if(!rnode||!rnode->phone) return 0;
@@ -248,7 +260,7 @@ static int checkphone()
 	return 0;
 }
 
-static int checkmailer()
+static int checkmailer(void)
 {
 	DEBUG(('Y',2,"checkmailer: \"%s\"",yytext));
 	if(!rnode||!rnode->mailer) return 0;
@@ -257,7 +269,7 @@ static int checkmailer()
 	return 0;
 }
 
-static int checkcid()
+static int checkcid(void)
 {
 	char *cid = getenv("CALLER_ID");
 	if(!cid||strlen(cid)<4) cid = "none";
@@ -266,7 +278,7 @@ static int checkcid()
 	return 0;
 }
 
-static int checkhost()
+static int checkhost(void)
 {
 	DEBUG(('Y',2,"checkhost: \"%s\"",yytext));
 	if(!rnode || !rnode->host) return 0;
@@ -275,7 +287,7 @@ static int checkhost()
 	return 0;
 }
 
-static int checkport()
+static int checkport(void)
 {
 	DEBUG(('Y',2,"checkport: \"%s\"",yytext));
 	if(!rnode || !rnode->tty) return 0;
@@ -284,7 +296,7 @@ static int checkport()
 	return 0;
 }
 
-static int checkfile()
+static int checkfile(void)
 {
 	struct stat sb;
 	DEBUG(('Y',2,"checkfile: \"%s\" -> %d",yytext,!stat(yytext,&sb)));
@@ -292,7 +304,7 @@ static int checkfile()
 	return 0;
 }
 
-static int checkexec()
+static int checkexec(void)
 {
 	int rc;
 	char *cmd=xstrdup(yytext);
@@ -313,7 +325,7 @@ static int checkline(int lnum)
 	return 0;
 }
 
-int flagexp(slist_t *expr,int strict)
+int flagexp(slist_t *expr, int strict)
 {
 	char *p;
 #if YYDEBUG==1

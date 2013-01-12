@@ -1,11 +1,61 @@
 /******************************************************************
  * common protocols' file management
- * $Id: protfm.c,v 1.25 2004/06/16 20:24:34 sisoft Exp $
  ******************************************************************/
+/*
+ * $Id: protfm.c,v 1.18 2005/08/22 17:16:05 mitry Exp $
+ *
+ * $Log: protfm.c,v $
+ * Revision 1.18  2005/08/22 17:16:05  mitry
+ * Removed useless static function
+ *
+ * Revision 1.17  2005/08/16 14:49:01  mitry
+ * Replaced strncpy() with xstrcpy()
+ *
+ * Revision 1.16  2005/08/12 15:36:19  mitry
+ * Changed gmtoff()
+ *
+ * Revision 1.15  2005/05/17 18:17:42  mitry
+ * Removed system basename() usage.
+ * Added qbasename() implementation.
+ *
+ * Revision 1.14  2005/05/16 20:32:42  mitry
+ * Changed code a bit
+ *
+ * Revision 1.13  2005/05/06 20:37:38  mitry
+ * Fixed dangerous syntax BUG :)
+ *
+ * Revision 1.12  2005/05/05 19:20:09  mitry
+ * Changed rxopen() and rxclose() a bit
+ *
+ * Revision 1.11  2005/04/08 18:12:31  mitry
+ * check_cps() sets tty_gothup to HUP_CPS
+ *
+ * Revision 1.10  2005/04/07 13:05:11  mitry
+ * Added check of nullable tosend arg
+ *
+ * Revision 1.9  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ * Revision 1.8  2005/03/28 17:02:52  mitry
+ * Pre non-blocking i/o update. Mostly non working.
+ *
+ * Revision 1.7  2005/02/23 21:47:47  mitry
+ * tty_online and tty_gothup logic
+ *
+ * Revision 1.6  2005/02/22 13:56:53  mitry
+ * Removed warning about difference in signedness
+ *
+ * Revision 1.5  2005/02/21 16:33:42  mitry
+ * Changed tty_hangedup to tty_online
+ *
+ */
+
 #include "headers.h"
+
 #ifdef HAVE_UTIME_H
 #include <utime.h>
 #endif
+
 #include <fnmatch.h>
 #include "hydra.h"
 #include "ls_zmodem.h"
@@ -15,18 +65,19 @@
 
 /*  Common protocols' vars */
 FILE   *txfd=NULL,     *rxfd=NULL;
-long    txpos,          rxpos;
-word    txretries,      rxretries;
-long    txwindow,       rxwindow;
+volatile long    txpos,          rxpos;
 word    txblklen,       rxblklen;
-long    txsyncid,       rxsyncid;
 byte   *txbuf,         *rxbuf;
+/*
+word    txretries,      rxretries;
+long    txsyncid,       rxsyncid;
 dword   txoptions,      rxoptions;
+*/
 unsigned effbaud=DEFAULT_SPEED;
 byte    *rxbufptr;
-byte    txstate,        rxstate;
+int     txstate,        rxstate;
 byte    *rxbufmax;
-long    txstart,        rxstart;
+long    txstart; /*,        rxstart; */
 word    txmaxblklen;
 word    timeout;
 byte    txlastc;
@@ -51,7 +102,7 @@ static int sifname(char *s)
 	return 0;
 }
 
-char *estimatedtime(size_t size, int cps, unsigned long baud)
+static char *estimatedtime(off_t size, int cps, unsigned long baud)
 {
 	static char et[16];
 	int h,m,s;
@@ -65,18 +116,20 @@ char *estimatedtime(size_t size, int cps, unsigned long baud)
 	return et;
 }
 
-int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
+int rxopen(char *name, time_t rtime, off_t rsize, FILE **f)
 {
 	struct stat sb;
 	slist_t *i;
-	char p[MAX_PATH], bn[MAX_PATH];
+	char p[MAX_PATH + 5], bn[MAX_PATH + 5];
 	int prevcps = (recvf.start&&(time(NULL)-recvf.start>2))?recvf.cps:effbaud/10,rc;
-	xstrcpy(bn, basename(name), MAX_PATH);
+
+	if(!name || !*name) return FOP_ERROR;
+	xstrcpy(bn, qbasename(name), MAX_PATH);
 	mapname((char*)bn, cfgs(CFG_MAPIN), MAX_PATH);
  	recvf.start=time(NULL);
 	xfree(recvf.fname);
  	recvf.fname=xstrdup(bn);
-	recvf.mtime=rtime-gmtoff(recvf.start,1);
+	recvf.mtime=rtime-gmtoff(recvf.start);
 	recvf.ftot=rsize;
 	if(recvf.toff+rsize > recvf.ttot) recvf.ttot+=rsize;
 	recvf.nf++;if(recvf.nf>recvf.allf) recvf.allf++;
@@ -127,10 +180,10 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 				skipiftic=FOP_SUSPEND;
 				return FOP_SUSPEND;
 			}
-			recvf.foff=recvf.soff=ftell(*f);
+			recvf.foff = recvf.soff = ftello( *f );
 			if(cfgi(CFG_ESTIMATEDTIME)) {
-				write_log("start recv: %s, %d bytes (from %d), estimated time %s",
-					recvf.fname, rsize, recvf.soff, estimatedtime(rsize-recvf.soff,prevcps,effbaud));
+				write_log("start recv: %s, %lu bytes (from %lu), estimated time %s",
+					recvf.fname, (long) rsize, (long) recvf.soff, estimatedtime(rsize-recvf.soff,prevcps,effbaud));
 			}
 			return FOP_CONT;
 		}
@@ -145,16 +198,17 @@ int rxopen(char *name, time_t rtime, size_t rsize, FILE **f)
 	}
 	recvf.foff=recvf.soff=0;
 	if(cfgi(CFG_ESTIMATEDTIME)) {
-		write_log("start recv: %s, %d bytes, estimated time %s",
-			recvf.fname, rsize, estimatedtime(rsize,prevcps,effbaud));
+		write_log("start recv: %s, %lu bytes, estimated time %s",
+			recvf.fname, (long) rsize, estimatedtime(rsize,prevcps,effbaud));
 	}
 	return FOP_OK;
 }
 
 int rxclose(FILE **f, int what)
 {
-	int cps=time(NULL)-recvf.start,rc,overwrite;
-	char *ss, p[MAX_PATH], p2[MAX_PATH];
+	long cps=time(NULL)-recvf.start;
+	int rc,overwrite;
+	char *ss, p[MAX_PATH+5], p2[MAX_PATH+5];
 	struct utimbuf ut;struct stat sb;
 	slist_t *i;
 
@@ -164,7 +218,7 @@ int rxclose(FILE **f, int what)
 	if(!cps) cps=1;cps=(recvf.foff-recvf.soff)/cps;
 	IFPerl(if((ss=perl_end_recv(what))) {
 		if(!*ss)what=FOP_SKIP;
-		else strncpy(p2,ss,MAX_PATH);});
+		else xstrcpy(p2,ss,MAX_PATH);});
 	switch(what) {
 		case FOP_SUSPEND: ss="suspended";break;
 		case FOP_SKIP: ss="skipped";break;
@@ -173,11 +227,11 @@ int rxclose(FILE **f, int what)
 		default: ss="";
 	}
 	if(recvf.soff)
-		write_log("recd: %s, %d bytes (from %d), %d cps [%s]",
-			recvf.fname, recvf.foff, recvf.soff, cps, ss);
+		write_log("rcvd: %s, %lu bytes (from %lu), %ld cps [%s]",
+			recvf.fname, (long) recvf.foff, (long) recvf.soff, cps, ss);
 	else
-		write_log("recd: %s, %d bytes, %d cps [%s]",
-			recvf.fname, recvf.foff, cps, ss);
+		write_log("rcvd: %s, %lu bytes, %ld cps [%s]",
+			recvf.fname, (long) recvf.foff, cps, ss);
 	fclose(*f);*f=NULL;
 	snprintf(p, MAX_PATH, "%s/tmp/%s", cfgs(CFG_INBOUND), recvf.fname);
 	if(*p2) {
@@ -211,7 +265,7 @@ int rxclose(FILE **f, int what)
 					ss--;
 					while('.' == *ss && ss >= p2) ss--;
 					if(ss < p2) {
-						write_log("can't find situable name for %s: leaving in temporary directory",p);
+						write_log("can't find suitable name for %s: leaving in temporary directory",p);
 						p2[0] = '\x00';
 					}
 				}
@@ -238,6 +292,10 @@ FILE *txopen(char *tosend, char *sendas)
 	FILE *f;
 	struct stat sb;
 	int prevcps = (sendf.start&&(time(NULL)-sendf.start>2))?sendf.cps:effbaud/10;
+
+	if ( !tosend )
+	    return NULL;
+
 	if(stat(tosend, &sb)) {
 		write_log("can't find file %s", tosend);
 		return NULL;
@@ -248,7 +306,7 @@ FILE *txopen(char *tosend, char *sendas)
 	sendf.ftot=sb.st_size;
 	sendf.foff=sendf.soff=0;
 	sendf.start=time(NULL);
-	sendf.mtime=sb.st_mtime+gmtoff(sendf.start,1);
+	sendf.mtime=sb.st_mtime+gmtoff(sendf.start);
 	if(sendf.toff+sb.st_size > sendf.ttot) sendf.ttot+=sb.st_size;
 	sendf.nf++;if(sendf.nf>sendf.allf) sendf.allf++;
 	IFPerl({char *p=perl_on_send(tosend);if(p&&!*p)return NULL;
@@ -259,15 +317,15 @@ FILE *txopen(char *tosend, char *sendas)
 		return NULL;
 	}
 	if(cfgi(CFG_ESTIMATEDTIME)) {
-		write_log("start send: %s, %d bytes, estimated time %s",
-			sendf.fname, sendf.ftot, estimatedtime(sendf.ftot,prevcps,effbaud));
+		write_log("start send: %s, %lu bytes, estimated time %s",
+			sendf.fname, (long) sendf.ftot, estimatedtime(sendf.ftot,prevcps,effbaud));
 	}
 	return f;
 }
 
 int txclose(FILE **f, int what)
 {
-	int cps=time(NULL)-sendf.start;
+	long cps=time(NULL)-sendf.start;
 	char *ss;
 
 	if(!f || !*f) return FOP_ERROR;
@@ -282,10 +340,10 @@ int txclose(FILE **f, int what)
 		case FOP_OK: ss="ok";break;
 		default: ss="";
 	}
-	if(sendf.soff)write_log("sent: %s, %d bytes (from %d), %d cps [%s]",
-		sendf.fname, sendf.foff, sendf.soff, cps, ss);
-	    else write_log("sent: %s, %d bytes, %d cps [%s]",
-		sendf.fname, sendf.foff, cps, ss);
+	if(sendf.soff)write_log("sent: %s, %lu bytes (from %lu), %ld cps [%s]",
+		sendf.fname, (long) sendf.foff, (long) sendf.soff, cps, ss);
+	    else write_log("sent: %s, %lu bytes, %ld cps [%s]",
+		sendf.fname, (long) sendf.foff, cps, ss);
 	sendf.foff=0;sendf.ftot=0;
 	sendf.start=0;
 	fclose(*f);*f=NULL;
@@ -303,7 +361,6 @@ void chatinit(int prot)
 	chatlg=0;
 	qsndbuflen=0;
 	*qsnd_buf=0;
-	calling=0;
 	switch(prot) {
 		case P_ZEDZAP:
 		case P_DIRZAP:
@@ -328,7 +385,7 @@ void chatinit(int prot)
 	}
 }
 
-int c_devfree()
+int c_devfree(void)
 {
 	int rc=0;
 	switch(chatprot) {
@@ -340,7 +397,7 @@ int c_devfree()
 			break;
 #ifdef WITH_BINKP
 		case P_BINKP:
-			rc=bink_devfree();
+			rc=binkp_devfree();
 #endif
 	}
 	return rc;
@@ -358,7 +415,7 @@ int c_devsend(unsigned char *str,unsigned len)
 			break;
 #ifdef WITH_BINKP
 		case P_BINKP:
-			rc=bink_devsend(str,len);
+			rc=binkp_devsend(str,len);
 #endif
 	}
 	return rc;
@@ -373,7 +430,7 @@ int chatsend(unsigned char *str)
 		chatlg=chatlog_init(rnode->sysop,&rnode->addrs->addr,0);
 		qchat("");
 	} else if(*str!=5) {
-		strncpy(ubuf,str,CHAT_BUF);
+		xstrcpy( (char*) ubuf, (char*) str, CHAT_BUF);
 		recode_to_remote((char*)ubuf);
 		if(!c_devsend(ubuf,strlen((char*)ubuf)))return 1;
 		if(chatlg)chatlog_write((char*)str,0);
@@ -401,7 +458,7 @@ void c_devrecv(unsigned char *data,unsigned len)
 	qchat((char*)data);
 }
 
-void getevt()
+void getevt(void)
 {
 	int i;
 	while(qrecvpkt((char*)qrcv_buf)) {
@@ -413,7 +470,7 @@ void getevt()
 				rxstatus=RX_SUSPEND;
 				break;
 			case QR_HANGUP:
-				tty_hangedup=1;
+				tty_gothup = HUP_OPERATOR;
 				break;
 			case QR_CHAT:
 				if(qrcv_buf[3]) {
@@ -438,7 +495,7 @@ void getevt()
 	if(qsndbuflen>0)if(!chatsend(qsnd_buf))qsndbuflen=0;
 }
 
-void check_cps()
+void check_cps(void)
 {
 	int cpsdelay=cfgi(CFG_MINCPSDELAY),ncps=rnode->realspeed/1000,r=cfgi(CFG_REALMINCPS);
 	if(!(sendf.cps=time(NULL)-sendf.start))sendf.cps=1;
@@ -447,11 +504,11 @@ void check_cps()
 	    else recvf.cps=(recvf.foff-recvf.soff)/recvf.cps;
 	if(sendf.start&&cfgi(CFG_MINCPSOUT)>0&&(time(NULL)-sendf.start)>cpsdelay&&sendf.cps<(r?cci:cci*ncps)) {
 		write_log("mincpsout=%d reached, aborting session",r?cci:cci*ncps);
-		tty_hangedup=1;
+		tty_gothup = HUP_CPS;
 	}
 	if(recvf.start&&cfgi(CFG_MINCPSIN)>0&&(time(NULL)-recvf.start)>cpsdelay&&recvf.cps<(r?cci:cci*ncps)) {
 		write_log("mincpsin=%d reached, aborting session",r?cci:cci*ncps);
-		tty_hangedup=1;
+		tty_gothup = HUP_CPS;
 	}
 	getevt();
 }

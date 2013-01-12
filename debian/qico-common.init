@@ -1,16 +1,22 @@
 #!/bin/sh
 # initscript for qico.
-# $Id: init.d,v 1.4 2004/06/13 17:05:46 sisoft Exp $
+# $Id: qico-common.init,v 1.2 2005/08/23 16:21:29 mitry Exp $
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DAEMON=/usr/sbin/qico
 QCTL=/usr/bin/qctl
-FLAGS="defaults 63"
+FLAGS="-d"
+CONF=/etc/qico/qico.conf
 
 test -f $DAEMON || exit 0
-if ! test -f /etc/ftn/qico.conf; then
+if [ ! -f $CONF ]; then
   if [ "$1" = "start" ]; then
-    echo "Before run qico, rename /etc/ftn/qico.conf.sample to qico.conf and edit it!"
+    if [ -f $CONF.sample ]; then
+       echo "Before running qico rename $CONF.sample to $CONF.conf,"
+       echo "edit, and check it with qico -T"
+    else
+       echo "There is no qico config files in /etc/qico !!!"
+    fi
   fi
   exit 0
 fi
@@ -18,7 +24,7 @@ fi
 case "$1" in
   start)
     echo -n "Starting FTN services: qico"
-    start-stop-daemon --start --exec $DAEMON
+    start-stop-daemon --start --exec $DAEMON -- $FLAGS
     echo "."
     ;;
   stop)
@@ -45,11 +51,11 @@ case "$1" in
 	start-stop-daemon --stop --exec $DAEMON
     fi
     sleep 1
-    start-stop-daemon --start --exec $DAEMON
+    start-stop-daemon --start --exec $DAEMON -- $FLAGS
     echo "."
     ;;
   *)
-    echo "Usage: /etc/init.d/qico {start|stop|restart|force-reload}"
+    echo "Usage: /etc/init.d/qico {start|stop|reload|restart|force-reload}"
     exit 1
     ;;
 esac

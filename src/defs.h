@@ -1,11 +1,13 @@
 /**********************************************************
  * common definitions
- * $Id: defs.h,v 1.7 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: defs.h,v 1.5 2005/05/16 20:33:46 mitry Exp $
  **********************************************************/
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+#undef TRUE
 #define TRUE	1
+#undef FALSE
 #define FALSE	0
 
 #define OK	0
@@ -38,7 +40,16 @@
 #define STDERR_FILENO	2
 #endif
 
-#define LARGE_STRING (MAX_STRING*16)
-#define C0(c) (((c)>=' ')?(c):'.')
+#define LARGE_STRING	((MAX_STRING*8) + 1)
+
+#define C0(c) ((( c ) >= ' ' && ( c ) != 127 ) ? (c) : '.' )
+
+/* daemon modes */
+#define DM_NONE		-1
+#define DM_ANSWER	0
+#define DM_DAEMON	1
+#define DM_NODELIST	2
+#define DM_CONFIG	3
+#define DM_CALL		12
 
 #endif

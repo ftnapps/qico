@@ -1,14 +1,15 @@
 /**********************************************************
  * for exchange with qcc
- * $Id: qcconst.h,v 1.7 2004/02/13 22:29:01 sisoft Exp $
+ * $Id: qcconst.h,v 1.6 2005/05/06 20:46:23 mitry Exp $
  **********************************************************/
 #ifndef __QCCONST_H__
 #define __QCCONST_H__
 
 typedef struct {
-	char *fname;
-	int foff,ftot,toff,ttot,nf,allf,cps,soff,stot,sts;
-	time_t start,mtime;
+    char   *fname;
+    int    foff,ftot,toff,ttot,soff,stot;
+    int    nf,allf,cps,sts;
+    time_t start,mtime;
 } pfile_t;
 
 #define MSG_BUFFER 2048
@@ -16,6 +17,27 @@ typedef struct {
 #define MO_IFC		1
 #define MO_BINKP	2
 #define MO_CHAT		4
+
+/* 9 most right bits are zeros */
+#define O_BASE 9
+#define O_NRQ (1<<O_BASE)	/* 0000 0000 0000 0000 0010 0000 0000 */
+#define O_HRQ (1<<(O_BASE+1))	/* 0000 0000 0000 0000 0100 0000 0000 */
+#define O_FNC (1<<(O_BASE+2))	/* 0000 0000 0000 0000 1000 0000 0000 */
+#define O_XMA (1<<(O_BASE+3))	/* 0000 0000 0000 0001 0000 0000 0000 */
+#define O_HAT (1<<(O_BASE+4))	/* 0000 0000 0000 0010 0000 0000 0000 */
+#define O_HXT (1<<(O_BASE+5))	/* 0000 0000 0000 0100 0000 0000 0000 */
+#define O_NPU (1<<(O_BASE+6))	/* 0000 0000 0000 1000 0000 0000 0000 */
+#define O_PUP (1<<(O_BASE+7))	/* 0000 0000 0001 0000 0000 0000 0000 */
+#define O_PUA (1<<(O_BASE+8))	/* 0000 0000 0010 0000 0000 0000 0000 */
+#define O_PWD (1<<(O_BASE+9))	/* 0000 0000 0100 0000 0000 0000 0000 */
+#define O_BAD (1<<(O_BASE+10))	/* 0000 0000 1000 0000 0000 0000 0000 */
+#define O_RH1 (1<<(O_BASE+11))	/* 0000 0001 0000 0000 0000 0000 0000 */
+#define O_LST (1<<(O_BASE+12))	/* 0000 0010 0000 0000 0000 0000 0000 */
+#define O_INB (1<<(O_BASE+13))	/* 0000 0100 0000 0000 0000 0000 0000 */
+#define O_TCP (1<<(O_BASE+14))	/* 0000 1000 0000 0000 0000 0000 0000 */
+#define O_EII (1<<(O_BASE+15))	/* 0001 0000 0000 0000 0000 0000 0000 */
+
+#define O_NOFREQS	( O_NRQ | O_HRQ | O_HAT )
 
 #define Q_STRING 80
 #define Q_PATH   40
@@ -34,23 +56,8 @@ typedef struct {
 #define Q_WAITX		0x0000200
 #define Q_WAITA		0x0000400
 #define Q_ANYWAIT	(Q_WAITR|Q_WAITX|Q_WAITA)
+#define Q_CANPOLL	(Q_NORM|Q_DIR|Q_CRASH|Q_IMM)
 #define Q_MAXBIT	11
-
-#define O_NRQ 1<<9
-#define O_HRQ 1<<10
-#define O_FNC 1<<11
-#define O_XMA 1<<12
-#define O_HAT 1<<13
-#define O_HXT 1<<14
-#define O_NPU 1<<15
-#define O_PUP 1<<16
-#define O_PUA 1<<17
-#define O_PWD 1<<18
-#define O_BAD 1<<19
-#define O_RH1 1<<20
-#define O_LST 1<<21
-#define O_INB 1<<22
-#define O_TCP 1<<23
 
 #define QR_POLL   'A'
 #define QR_REQ    'B'

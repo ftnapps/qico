@@ -1,0 +1,20 @@
+#! /bin/sh
+
+case $2 in
+PRE-INSTALL)
+	;;
+POST-INSTALL)
+	QBASEDIR=${QBASEDIR:=/var/spool/ftn}
+	QLOGDIR=${QLOGDIR:=/var/log/ftn}
+	
+	mkdir -p $QLOGDIR
+	mkdir -p $QBASEDIR/inbound/unknown
+	mkdir -p $QBASEDIR/outbound
+	mkdir -p $QBASEDIR/qstoutb
+	mkdir -p $QBASEDIR/fbox
+	;;
+*)
+	echo >&2 "Unknown argument in $0 $@"
+	exit 1
+	;;
+esac

@@ -1,0 +1,7 @@
+etc/qico
+etc/init.d
+usr/share/doc/qico-common/stuff
+var/log/qico
+var/run/qico
+var/spool/ftn/inb
+var/spool/ftn/outb

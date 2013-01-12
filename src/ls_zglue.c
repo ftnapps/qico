@@ -2,7 +2,8 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zglue.c,v 1.5 2004/05/27 18:50:03 sisoft Exp $
+
+   $Id: ls_zglue.c,v 1.3 2005/03/28 17:02:52 mitry Exp $
 */
 #include "headers.h"
 #include "ls_zmodem.h"
@@ -113,7 +114,10 @@ int zmodem_receive(char *c, int canzap) {
 		DEBUG(('Z',2,"zmodem_receive: ZFILE after INIT"));
 		break;
 	default:
+                /*
 		DEBUG(('Z',1,"zmodem_receive: something strange after init: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                */
+		DEBUG(('Z',1,"zmodem_receive: something strange after init: rc=%ld",rc));
 		ls_zabort();
 		ls_zdonereceiver();
 		return LSZ_ERROR;
@@ -177,7 +181,10 @@ int zmodem_receive(char *c, int canzap) {
 			ls_zdonereceiver();
 			return LSZ_ERROR;
 		default:
+                        /*
 			DEBUG(('Z',1,"zmodem_receive: something strange: %d, %s ",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"zmodem_receive: something strange: rc=%ld",rc));
 			ls_zabort();
 			ls_zdonereceiver();
 			return LSZ_ERROR;
