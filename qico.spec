@@ -1,10 +1,10 @@
 Summary:	qico, an ftn-compatible mailer
 Name:		qico
-Version:	0.55si
+Version:	0.57.1xe
 Release:	1
 Copyright:	BSD
 Group:		System Environment/Daemons
-Source:		http://prdownloads.sourceforge.net/qico/qico-%{version}.tar.bz2
+Source:		http://193.232.248.13:8080/qicoxe/qico-%{version}.tar.bz2
 URL:		http://qico.sourceforge.net/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 Prefix:		%{_prefix}

@@ -1,11 +1,19 @@
-#ifndef _LS_ZMODEM_H_
-#define _LS_ZMODEM_H_
 /*
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
 */
-/* $Id: ls_zmodem.h,v 1.5 2004/02/05 19:51:17 sisoft Exp $ */
+/*
+ * $Id: ls_zmodem.h,v 1.3 2005/03/31 19:40:38 mitry Exp $
+ *
+ * $Log: ls_zmodem.h,v $
+ * Revision 1.3  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
+#ifndef _LS_ZMODEM_H_
+#define _LS_ZMODEM_H_
 
 /* Dirty hack */
 #define LSZ_TRUSTZFINS		3		/* We trust only in MANY ZFINs during initialization */
@@ -62,12 +70,12 @@
 #define ZRUB1 'm'	/* Translate to rubout 0377 */
 
 /* Return codes -- pseudo-chracters */
-#define LSZ_OK			OK		/* 0 */
+#define LSZ_OK			OK	/* 0 */
 #define LSZ_TIMEOUT		TIMEOUT	/* -2 */
 #define LSZ_RCDO		RCDO	/* -3 */
 #define LSZ_CAN			GCOUNT	/* -4*/
 #define LSZ_ERROR		ERROR	/* -5 */
-#define LSZ_NOHEADER	-6
+#define LSZ_NOHEADER		-6
 #define LSZ_BADCRC		-7
 #define LSZ_XONXOFF		-8
 #define LSZ_CRCE		(ZCRCE | 0x0100)
@@ -101,14 +109,19 @@
 #define LSZ_P2		2
 #define LSZ_P3		3		/* High order 8 bits of file position */
 
+/* canzap constants */
+#define CZ_ZEDZIP		0
+#define CZ_ZEDZAP		1
+#define CZ_DIRZAP		2
+
 /* different protocol variations */
 #define LSZ_OPTZEDZAP		0x00000001		/* We could big blocks, ZModem variant (ZedZap) */
 #define LSZ_OPTDIRZAP		0x00000002		/* We escape nothing, ZModem variant (DirZap) */
 #define LSZ_OPTESCAPEALL	0x00000004		/* We must escape ALL contorlo characters */
 #define LSZ_OPTCRC32		0x00000008		/* We must send CRC 32 */
-#define LSZ_OPTVHDR			0x00000010		/* We must send variable headers */
-#define LSZ_OPTRLE			0x00000020		/* We must send RLEd data (NOT SUPPORTED)! */
-#define LSZ_OPTESC8			0x00000040		/* We must escape all 8-bit data (NOT SUPPORTED!) */
+#define LSZ_OPTVHDR		0x00000010		/* We must send variable headers */
+#define LSZ_OPTRLE		0x00000020		/* We must send RLEd data (NOT SUPPORTED)! */
+#define LSZ_OPTESC8		0x00000040		/* We must escape all 8-bit data (NOT SUPPORTED!) */
 #define LSZ_OPTSKIPGUARD	0x00000080		/* We use double-skip guard */
 #define LSZ_OPTFIRSTBATCH	0x00000100		/* It is first batch -- trust in first ZFIN */
 
@@ -130,7 +143,7 @@
 /* Conversion options (ZF0 in ZFILE frame) */
 #define LSZ_CONVBIN		1		/* Binary transfer - inhibit conversion */
 #define LSZ_CONVCNL		2		/* Convert NL to local end of line convention */
-#define LSZ_CONVRECOV	3		/* Resume interrupted file transfer -- binary */
+#define LSZ_CONVRECOV		3		/* Resume interrupted file transfer -- binary */
 
 /* File management options (ZF1 in ZFILE frame) */
 #define LSZ_MSKNOLOC	0x80	/* Skip file if not present at rx */
@@ -174,20 +187,20 @@ extern int ls_Protocol;			/* Plain/ZedZap/DirZap and other options */
 extern int ls_CANCount;			/* Count of CANs to go */
 extern int ls_Garbage;			/* Count of garbage characters */
 extern int ls_SerialNum;		/* Serial number of file -- for Double-skip protection */
-extern int ls_HeaderTimeout;	/* Timeout for headers */
+extern int ls_HeaderTimeout;		/* Timeout for headers */
 extern int ls_DataTimeout;		/* Timeout for data blocks */
 extern int ls_MaxBlockSize;		/* Maximum block size */
-extern int ls_SkipGuard;			/* double-skip protection on/off */
+extern int ls_SkipGuard;		/* double-skip protection on/off */
 
 /* Variables to control sender */
 extern int ls_txWinSize;		/* Receiver Window/Buffer size (0 for streaming) */
 extern int ls_rxCould;			/* Receiver could fullduplex/streamed IO (from ZRINIT) */
-extern int ls_txCurBlockSize;	/* Current block size */
+extern int ls_txCurBlockSize;		/* Current block size */
 extern int ls_txLastSent;		/* Last sent character -- for escaping */
 extern long ls_txLastACK;		/* Last ACKed byte */
 extern long ls_txLastRepos;		/* Last requested byte */
-extern long ls_txReposCount;	/* Count of REPOSes on one position */
-extern long ls_txGoodBlocks;	/* Good blocks sent */
+extern long ls_txReposCount;		/* Count of REPOSes on one position */
+extern long ls_txGoodBlocks;		/* Good blocks sent */
 
 typedef struct _ZFILEINFO {
 	char name[MAX_PATH];
@@ -224,9 +237,9 @@ extern int ls_zinitsender(int protocol, int baud, int window, char *attstr);
 /* Send one file */
 extern int ls_zsendfile(ZFILEINFO *f, unsigned long sernum);
 /* Done sender -- finish sending */
-extern int ls_zdonesender();
+extern int ls_zdonesender(void);
 
-extern void ls_zabort();
+extern void ls_zabort(void);
 
 /* Init receiver, return ZFILE, ZFIN or error. Leave ZFILE data frame in buffer */
 extern int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f);
@@ -235,13 +248,13 @@ extern int ls_zrecvfile(int pos);
 /* Prepare to receive next file (and, any be skeip or refuse current file) */
 extern int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first);
 /* Done receiver */
-extern int ls_zdonereceiver();
+extern int ls_zdonereceiver(void);
 
 /* chat */
 extern void z_devsend_c(int buffr);
 extern void z_devrecv_c(unsigned char c,int flushed);
 
-extern int z_devfree();
+extern int z_devfree(void);
 extern int z_devsend(unsigned char *data,unsigned short len);
 
 

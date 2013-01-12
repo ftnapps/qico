@@ -1,35 +1,51 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.55si $Id: qico.conf.sample,v 1.41 2004/06/23 17:59:35 sisoft Exp $
+# $Id: qico.conf.sample,v 1.13 2005/08/21 01:28:11 mitry Exp $
+# for 0.57.1xe
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
 # common config structure is similar to ifcico's:
-# <keyword> <value>
-# strings, beginning with '#', ';' or '//' are comments and will be
-# ignored. leading and trailing spaces and tabs will be stripped.
-# lines may be breaked by trailing character ' \' (perl style).
-# here is 3 types of parameters - string, integer and boolean.
-# for boolean 'y[es]','1','t[rue]' assumed as yes, all other - as no.
+#
+#   <keyword> <value>
+#
+# all charactes after '#', ';' or '//' are comments and will be ignored.
+# leading and trailing spaces and tabs are stripped.
+#
+# back slash could be used to escape the next character:
+#
+#   station		Cool Station, Line \#1
+#
+# multi-line stucture is also allowed - use trailing back slash  \
+# to continue the statement on the next line.
+#
+# there are 3 types of parameters - string, integer and boolean.
+# for boolean 'y[es]','1','t[rue]' are assumed as yes and all other as no.
+#
+# if you specify time value keep in mind that Txy form is evaluated as UTC
+# time. numeric form (01:20-20:15) is local time.
 #
 # also you can use defines, ex.:
-#   $foo = test                     -- define $foo to string 'test'.
-#   $bar = $(foo)-                  -- in define can be used other defines.
+#   $foo = test                     -- defines $foo to string 'test'.
+#   $bar = $(foo)-                  -- other defines can be used in the define.
+#   $dac = $(LOGNAME)               -- evironment value can be used too.
 #   flags $(bar)lala $(foo)         -- main goal: use defines in keywords.
 # now value of keyword 'flags' become 'test-lala test'.
 #
-# keywords, marked as '(required)' must be defined, but keywords, marked
+# keywords marked as '(required)' must be defined but keywords marked
 # as '(required for modem)' required only for non-ip calls (ex. modem).
-# keywords, marked as '(nonif)' can't be defined inside if-expressions.
+# keywords marked as '(nonif)' can't be defined inside if-expressions.
 #
 ###############################################################################
 #
 # include:
 # ~~~~~~~
-# you can include some subconfigs using:
+# you can include some sub-configs using:
+#
 #   include <included_config_file>
-# inclusion is recursive, so be careful ;)
+#
+# inclusion is recursive so be careful ;)
 #
 ###############################################################################
 #
@@ -37,18 +53,23 @@
 # ~~~~~~~~~~~~~~~~~~~~~
 # some parts of config can be overridden at runtime.
 # standard use:
+#
 #   if <conditions>
 #     <keyword> <value>
 #           ...
 #     <keyword> <value>
 #   endif
+#
 # inline use:
+#
 #   if <conditions> : <keyword> <value>
-# if-endif blocks may be recursive.
-# also 'if' and 'endif' commands may be replaced to '{' and '}' accordingly.
+#
+# if-endif blocks may be recursive. also 'if' and 'endif' commands may be
+# replaced with '{' and '}' accordingly.
 # 
 # *last* matching condition will be used!!!
-# where <conditions> is expression with syntax similar to ifcico's one.
+#
+# where <conditions> are expressions with syntax similar to ifcico's one.
 # you can use round brackets, '|' 'or', '&' 'and', '^' 'xor'
 # and '!' 'not' operators, and some tokens:
 #
@@ -56,13 +77,13 @@
 #                              ex.: 'address 1:2345/*'
 # + port <wildcard>          - connection is on <port>
 #                              ex.: 'port ttyS?'
-# + phone <substr>           - remote's phone begins with <substr>
+# + phone <substr>           - remote phone begins with <substr>
 #                              ex.: 'phone 7-812-'
-# + mailer <substring>       - remote's mailer name includes <substring>
+# + mailer <substring>       - remote mailer name includes <substring>
 #                              ex.: 'mailer KittenMail'
-# + cid <caller_id>          - $CALLER_ID's value begins with <caller_id>
+# + cid <caller_id>          - $CALLER_ID value begins with <caller_id>
 #                              ex.: cid 12345
-# + speed <comp> <value>     - remote's speed is <comp> <value>
+# + speed <comp> <value>     - remote speed is <comp> <value>
 #                              ex.: speed <= 9600
 #                              NB! Speed is taken from nodelist!
 # + connect <comp> <value>   - similar to 'speed', but means real connection
@@ -72,18 +93,21 @@
 # + time <time>[,<time>...]  - current time matches one of <time>s
 #                              <time> is [d.]hh[:mm]-[d.]hh[:mm],
 #                              ex.: 'time 1.00:01-08:00, 5.21-7'
-# + itime <time>[,<time>...] - current time matching one of <time>s
+# + itime <time>[,<time>...] - current time matches one of <time>s
 #                              <time> is <pfx>hhmm-hhmm, where <pfx> is
-#                              Any, Wk, Mon, Tue, Wed, Thu, Fri, Sat, Sun
+#                              Mon, Tue, Wed, Thu, Fri, Sat, Sun
+#                              Any == Mon - Sun
+#                              Wk == Mon - Fri
+#                              We == Sat - Sun
 #                              ex.: 'itime Wk2300-0700,Sat2100-0900,Su'
-# + date <date>[,<date>...]  - current date matching one of <date>s
-#                              <date> is <mon>[dd-dd], where <mon> is
+# + date <date>[,<date>...]  - current date matches one of <date>s
+#                              <date> is <mon>[dd[-dd]], where <mon> is
 #                              Jan-Dec, Any
-#                              ex.: 'date Any10-13, Feb, Mar1-30
-# + file <full-path>         - file <full-path> present
+#                              ex.: 'date Any10-13, Feb, Mar1-30, Dec31
+# + file <full-path>         - file <full-path> exists
 #                              ex.: 'file /var/fido/flags/flag'
 # + exec <prog[,args]>       - <prog> return 0 (true). all spaces in <prog>
-#                              string might be change to commas.
+#                              string must be replaced by commas.
 #                              ex.: 'exec /bin/ping,-c,1,-i,1,myhost.com'
 # + connstr <substring>      - connect string includes <substring>
 #                              ex.: 'connstr LAP-M'
@@ -99,11 +123,18 @@
 #                                - 'bad' - got bad password
 #                                - 'tcp[ip]' - identifies tcp/ip session
 #                                - 'binkp' - identifies Binkp session
-#                                - 'perl[0-9]' - flags, setted from perl
+#                                - 'perl[0-9]' - flags, set from perl
 #                                - nodelist flag
 #                              ex.: 'in & (!listed | !V34)'
 #
 ###############################################################################
+
+
+# for easy change define some useful magic words to use the all over config
+$spool		/var/spool/ftn
+$logz		/var/log/ftn
+$conf		/etc/ftn
+
 
 ###############################################################################
 ### addresses and passwords ###################################################
@@ -116,22 +147,19 @@
 # default domain name
 domain		fidonet.org
 
-# passwords for nodes
-;password	2:2345/1234		COOLPASS
-;password	111:222/13		SOMEPWD
-
-# You're could include passwords file
-;include	/etc/ftn/passwd
+# include passwords file
+include		$(conf)/qico.passwd
 
 ###############################################################################
 ### paths and filenames #######################################################
 ###############################################################################
-# Root directory is directory, to which qico changes it work directory
-# when become daemon or is called for answer. It is could be directory,
-# writable for qico's owner, for successful core generation in accident.
+# Root directory is one to which qico is cd-ing when becomes a daemon or
+# is called for answer. It should be writable for qico's owner directory
+# for successful core generation in accident.
+#
 # qico will not change work directory, if this keyword is missed or empty
 # (nonif)
-;rootdir	/var/spool/ftn
+;rootdir	$(spool)
 
 # log variables can be:
 #  - filenames
@@ -142,22 +170,28 @@ domain		fidonet.org
 #    ex.: log $local2
 
 # daemon's log ("master" log) (required)(nonif)
-masterlog 	/var/log/ftn/qico-master.log
+masterlog 	$(logz)/qico-master.log
 ;masterlog	$local3:info
 
 # log file (required)
-log		/var/log/ftn/qico.log
+log		$(logz)/qico.log
 
-# Level of debug logging. It works, only if qico was compiled with
+# emsi log file (to save both `in' and `out' emsi_dat packets)
+emsilog		$(logz)/emsi.log
+
+# chat log file
+chatlog		$(logz)/chat.log
+
+# Level of debug logging. It works only if qico was compiled with
 # debug logging (debug logging could be switched off in compile time
-# with --disable-debug option for configure script).
+# with configure script option --disable-debug).
 # Logging is not ``free'' operation. qico with disabled logging will be run
-# slightly faster, than one with enabled logging and all levels set to zero
+# slightly faster than one with enabled logging and all levels are set to zero
 # (no debug logging).
 # Format is: <F><L>[,<F><L>...]
 #       <F>  is one-character facility name
 #       <L>  is number -- level of log.
-#            Default is 0 (no debug logging).
+#            Default is 0 - no debug logging.
 #
 # Facilities are:
 #  B -- Binkp
@@ -167,6 +201,7 @@ log		/var/log/ftn/qico.log
 #  I -- IP routines
 #  J -- Janus
 #  M -- Modem
+#  N -- Nodelist
 #  P -- Perl
 #  Q -- Queue management
 #  R -- File requests
@@ -175,67 +210,79 @@ log		/var/log/ftn/qico.log
 #  Y -- Config `if' expressions parsing and executing
 #  Z -- ZModem
 #
-loglevels	C0,E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0,P0
+loglevels	B0,C0,E0,H0,I0,J0,M0,N0,P0,Q0,R0,S0,X0,Y0,Z0
 
-# Write to log estimated transfer time before each file transfer
+# Show estimated transfer time before each file transfer
 estimatedtime	no
 
-# for easy change, define spooldir only once.
-$spool		/var/spool/ftn
-
-# and use it anywhere:
-
-# nodelists path (required)(nonif)
-;nlpath		/var/spool/ftn/nl
-nlpath 		$(spool)/nl
-
-# node- and pointlists (zone can be specified, if omitted in list)
+# path for nodelists and index file.
+#
 # (required)(nonif)
-;nodelist 	NET5030.999 2
-;nodelist 	PNT5030.999
-nodelist 	nodelist.999
+nlpath		$(spool)/nl
+
+# Node- and point lists. zone can be specified if omitted in list.
+# The lists order is important: specify most actual list first.
+#
+# (required)(nonif)
+;nodelist	$(spool)/files/NET5030.999 2
+;nodelist	$(spool)/files/PNT5030.999
+nodelist	nodelist.999
 
 # Check for `listed' all addresses of remote or only one (any).
-needalllisted no
+needalllisted	no
 
-# ASO and(or) BSO outbound path (required)(nonif)
-asooutbound 	$(spool)/outb
-;bsooutbound 	$(spool)/outb
+# ASO and/or BSO outbound path
+#
+# (required)(nonif)
+;asooutbound	$(spool)/aso
+bsooutbound	$(spool)/outbound
 
-# status outbound (path to .qst files). default, same as `outbound' (nonif)
+# status outbound where .qst files reside.
+# default: the same as `bsooutbound' (if defined) or 'asooutbound'
+#
+# (nonif)
 qstoutbound	$(spool)/qstoutb
 
-# unprotected inbound (required)
-inbound         $(spool)/unp
+# unprotected inbound
+#
+# (required)
+inbound		$(spool)/inbound/unknown
 
 # protected inbound (you can add also listed, personal and other inbounds)
 if protected | outbound
-    inbound	$(spool)/inb
+    inbound	$(spool)/inbound
 endif
 
-# if file <nodial>.<portname> exists, we won't dial on this device
-# if file <nodial>.tcpip exists, we won't "call" via tcp/ip.
-nodial         	/etc/nodial
+# if <nodial>.<portname> file exists we won't dial on this device
+# if <nodial>.tcpip file exists we won't "call" via tcp/ip.
+nodial		/etc/nodial
 
 # history file
-history	        /var/log/ftn/history
+history		$(logz)/history
 
 # personal fileboxes
-;filebox 	1:2345/999	/var/spool/ftn/fbox/uplink
-;filebox 	1:2345/888	/var/spool/ftn/fbox/downlink
-;filebox 	111:222/0	/var/spool/ftn/fbox/leftnet.nc
+;filebox 	1:2345/999	$(spool)/fbox/uplink
+;filebox 	1:2345/888	$(spool)/fbox/downlink
+;filebox 	111:222/0	$(spool)/fbox/leftnet.nc
 
-# long name fileboxes base directory
+
+# Long name fileboxes base directory
+# Longboxes look like personal fileboxes with predefined name format:
+#
+# zone.net.node.point[.flavour]
+#
+# where flavour can be omitted (flavour in this case is defined by `defboxflv')
+# or can be first letter of `Outbound flavors' (see later in config)
+# Examples:
+# 1.2345.999.0.c	- longbox for 1:2345/999 with Crash flavour
+# 111.222.0.4		- longbox for 111:222/0.4 with `defboxflv' flavour
+#
 ;longboxpath	$(spool)/lbox
 
-# emsi log file (for saving remote emsi_dat packets)
-emsilog		/var/log/ftn/emsi.log
-
-# chat log file
-chatlog		/var/log/ftn/chat.log
 
 # pid file (required)(nonif)
 pidfile		/var/run/qico.pid
+
 
 # lock directory path (required for modem)
 lockdir		/var/lock
@@ -247,26 +294,28 @@ dirperm		0755
 defperm		0644
 
 # use setproctitle()
+# default: yes
 ;useproctitle	no
 
-# Recode table for convert from local to transport (remote) charset.
-# define to 'none' for disable, or 'internal' for internal KOI8-R -> CP866.
-# may specify filename for using your own tables in format: "<from> <to>",
+# Recode table for converting from local to transport (remote) charset.
+# define to 'none' to disable, or 'internal' for internal KOI8-R -> CP866.
+# You may specify filename to use your own tables in format: "<from> <to>",
 # where 'from' and 'to' decimal or hex (prefixed with 0x) digits, one per line.
 # also you may use prefix 'revert' for format "<to> <from>".
-;remotecp internal
-;remotecp /etc/ftn/koi8r_866.cp
+;remotecp	internal
+;remotecp	$(conf)/koi8r_866.cp
 
-# Recode table for convert from transport to local charset (see remotecp).
+# Recode table for converting from transport to local charset (see remotecp).
 # convert CP866 -> KOI8-R if 'internal' specified. default: none.
-;localcp revert /etc/ftn/koi8r_866.cp
+;localcp	revert $(conf)/koi8r_866.cp
+
 
 ###############################################################################
 ### modem and dialing parameters ##############################################
 ###############################################################################
-# modem ports (only one at line) in form <device>[:speed]
+# modem ports (one at a line) in form <device>[:speed]
 # (default speed is 9600) (required for modem)
-port 		ttyS1:57600
+port		ttyS1:115200
 ;port		ttyS2
 
 # delay between calls in seconds = dialdelay + (-dialdelta .. dialdelta)
@@ -277,7 +326,7 @@ dialdelta	30
 # outbound rescan period (in seconds)
 rescanperiod	30
 
-# long rescan. each 'longrescan' rescanning, ?lo files checked force
+# Long rescan. Each 'longrescan' time the rescanning of ?lo files is forced.
 ;longrescan	4
 
 # phone translations, `=' means all other phones - must be last translation,
@@ -286,8 +335,14 @@ phonetr		7-095-
 phonetr		7-	8W-
 phonetr		=	8W10-
 
-# outbound calls enable time
+# when outbound calls are enabled
 cancall		CM
+
+# Check that there is a DSR or a CTS signal coming from the modem and
+# if not we won't try to call out.
+# WARNING: this can fail on systems not allowing to read out the
+# RS232 status lines, thus it is optional and off by default!
+;modemcheckdsr	yes
 
 # modem connect strings (required for modem)
 modemconnect    CONNECT
@@ -311,14 +366,18 @@ modemnodial	NO DIALTONE
 modemringing    RINGING
 
 # max ringings count (don't check if 0)
+# default: 0
 ;maxrings	8
 
+###############################################################################
 # modem commands substs: | - CR/LF and 0.3 sec pause,
-#			 v - down DTR, ^ - up DTR,
+#			 v - low DTR, ^ - up DTR,
 #			 ' - 0.2 sec pause, ~ - 1 sec pause.
+
 # modem hangup sequence (several lines allowed)
+# if not defined `modemhangup' defaults to `low DTR' 0.5 sec pause `up DTR'
 modemhangup	~~+++~~ATH0|
-;modemhangup	'v~~~^'|
+;modemhangup	'v~~~^'
 
 # command to check for modem is alive (modem must answer 'OK')
 modemalive	AT|
@@ -327,13 +386,14 @@ modemalive	AT|
 ;modemstat	AT%S|
 ;modemstat	|~AT&V1|
 
-# modem reset sequence (usually you needn't it if you have mgetty)
+# modem reset sequence (usually you don't need it if you have mgetty)
 ;modemreset 	ATZ|
 ;modemreset 	ATM0L0|
 
 # dial strings
 dialprefix	ATM0DT
 dialsuffix	|
+
 
 ###########################################
 ### Outbound flavors and call control #####
@@ -351,11 +411,11 @@ dialsuffix	|
 #
 # Call to node, if one of these presents in outbound for this node
 # Default is NDCI
-callonflavors	NDCIR
+;callonflavors	NDCIR
 
 # Don't check work time, if these flavors present in outbound for this node
 # Default is CI
-immonflavors	CI
+;immonflavors	I
 
 # Flavor for polls and attaches. Could be overwritten from command line.
 # Also, this flavor is used, when restore poll after disconnection
@@ -375,8 +435,8 @@ max_fails	30
 # automatically clear undialable flag after this time [minutes]
 clearundial	5760
 
-# if fails count divide on `fails_hold_div' be integer, set hold status on
-# `fails_hold_time` minutes.
+# each time the fails count is divisible by `fails_hold_div' set hold status
+# on `fails_hold_time` minutes.
 fails_hold_div	3
 fails_hold_time	30
 
@@ -399,7 +459,8 @@ place		Urupinsk
 worktime	0:00-7:00
 phone		7-095-y0U-kN0W
 speed		33600
-flags		Linux, qico-si team
+flags		qico team
+
 # freq time for EMSI only. default used `freqtime' (see below) or "Never".
 ;emsifreqtime	Always!
 
@@ -416,13 +477,13 @@ flags		Linux, qico-si team
 ;serverpwd	coolpwd
 
 # Send **EMSI_INQC816 twice, as required by standard (FSC-0056.TXT).
-standardemsi yes
+standardemsi	yes
 
-# ZMH (better use Txy) (time in GMT!)
+# ZMH (better use Txy)
 zmh		Tcd
 
-# extra mailonly time (additional to zmh) (time in GMT!)
-;mailonly 	4:00-5:00
+# extra mailonly time (additional to zmh)
+;mailonly	4:00-5:00
 
 # HAT in emsi, if enabled. (hold all traffic).
 ;sendonly	no
@@ -439,12 +500,14 @@ zmh		Tcd
 # 6 - Hydra-16k (16k blocks, emsi code - H16)
 # C - Chat enabled (don't work with Janus and BinkP!)
 # NB: Hydra-(4,8,16)K could block and should be enabled at compilation time.
+# default: JHZ1C
 protorder	HJDZ1C
 
 # it's better to use Janus on tcp/ip
 ;if tcpip
 ;   protorder	JDZ1C
 ;endif
+
 # it's not recommended to use these extensions on lower speeds!
 ;if connect >= 14400
 ;   protorder	84HJDZ1C
@@ -452,6 +515,10 @@ protorder	HJDZ1C
 ;if connect >= 28800
 ;   protorder	684HJDZ1C
 ;endif
+
+# Resolve remote ip address to host name (default no). If you use this option
+# make sure you have properly working DNS.
+;resolvehostname	yes
 
 # Binkp options:
 # M - MD5 authentication
@@ -500,10 +567,26 @@ binkpopt	MRBCT
 # Receive window for Hydra (in bytes). 0 -- streamed mode.
 ;hrxwin          0
 
-# suspend files with status 'hold' on outgoing calls.
+# By default Hydra uses CRC32. If you think that CRC16 is enough
+# on Hydra session set this to yes. This won't work if remote wants CRC32!
+;hydracrc16 no
+
+# By default Hydra starts as two-way xfer (full duplex).
+# You can tell Hydra to use one-way xfer (half duplex). If you
+# have /HST connect this is your key.
+;hydrahdx no
+
+# Use verbose ("HCHR_PKTEND") or short ('a') form of messages in Hydra debug
+# log
+;hydralogverbose no
+
+# Use RH1 mode on hydra session (default)
+;hydrarh1 no
+
+# Shall we send files with 'hold' status on outgoing calls.
 holdout		no
 
-# show intro (received before EMSI_REQ) lines in log
+# show intro lines (received before EMSI_REQ) in log
 showintro      	yes
 
 # session limit (in minutes) (0 means unlimited)
@@ -570,7 +653,11 @@ realmincps	yes
 ###############################################################################
 ### freq processor support ####################################################
 ###############################################################################
-## external freq processor, compatible with ifextrp by Serge Oskin (WaZOO)
+#
+# If neither extrp nor srifrp is defined then freq support is disabled
+#
+
+# external freq processor, compatible with ifextrp by Serge Oskin (WaZOO)
 ;extrp         	/usr/local/bin/sfreq
 
 # external freq processor, compatible with SRIF file format.
@@ -631,69 +718,46 @@ mapout 	bScr
 # incoming files names conversion
 mapin	lkr
 
-###############################################################################
-### substs #######################################################(changed!!!)#
-###############################################################################
-# substs in format: subst <addr> <phone|host> [<wtime> [<flag>]]
-# each field can be replaced with '-' for keep unchanged.
-# supported flags:  (may be only one flag for each subst!)
-#	binkp - can Binkp calls to node,
-#	ifc - can ifcico calls to node.
-# on ip calls field <phone> must contain ip-addr, or host of node, or
-# '-' for translate ftn-addr to [p.]f.n.z.fidonet.net.
-#
-# ex:
-#
-;subst	1:2345/123	-			23:30-8:00	ifc
-# addr: 1:2345/123, host: f123.n2345.z1.fidonet.net, prot: ifcico.
-;subst	1:2345/546	123-4567		-		-
-# addr: 1:2345/546, phone: 123-4567, prot: emsi via modem.
-;subst	1:2345/666	fido.foobar.com		CM 		binkp
-# addr: 1:2345/666, host: fido.foobar.com, prot: binkp; main line.
-;subst	1:2345/666	-			-
-# addr: 1:2345/666, phone: from nodelist, prot: emsi via modem; hidden line.
-#
-# Subst override nodelist, so for second (hidden) line you must specify
-# two (or more) `subst':
-#		One for nodelist line
-;subst 111:222/33		-			-
-#		One (ore more) for hidden line(s)
-;subst 111:222/33		987-6543	18:00-9:00
-
-# WARNING!
-# translatesubst is off by default.
-# In this case subst phones are used _WITHOUT_ translation!
-# if translatesubst = yes, Subst phones are used _WITH_ translation!!!
-;translatesubst	yes
-
 # You could include subst file.
-;include	/etc/ftn/substs
+include		$(conf)/qico.substs
 
 ###############################################################################
 ### external processes ########################################################
 ###############################################################################
-# calling format: <progname> <address> <I|O> <0|1>
+# format: <progname> <address> <I|O> <0|1>
 # executed after session (see samples in ./stuff)
 ;aftersession	/usr/local/bin/tossing
 
-# calling format: <progname> <address> <I|O> <0|1>
+# format: <progname> <address> <I|O> <0|1>
 # executed after session with received files
 ;aftermail	/usr/local/bin/up
 
-# calling format: <progname> <address>
+# format: <progname> <address>
 # executed after chat open by remote side (see samples in ./stuff)
 ;runonchat	/usr/local/bin/onchat
 
-# calling format: <progname> <address>
+# format: <progname> <address> <port|site>
+# executed after successful dialing (got CONNECT from modem) but before EMSI.
+# Address and port are sent to the given script unless script name begins 
+# with '!' (!/usr/bin/false)
+# On return:
+#      0 - ok to start EMSI session
+#      1 - everything is done external. Don't try EMSI session and set
+#          call status to [ok]
+#      2 - I gave up. Try EMSI session yourself
+#  other - connection failed. No EMSI session will be performed.
+;loginscript	/usr/local/bin/mychat.sh
+
+# format: <progname> <address>
 # executed after session established
 ;runonemsi	/usr/local/bin/onemsi
 
-# calling format: <progname> <address> <phone|host>
+# format: <progname> <address> <phone|host>
 # executed before dialing or connecting to remote.
 ;runoncall	/usr/local/bin/oncall
 
 # perl script file with hooks. (nonif)
-;perlfile	/etc/ftn/qico.pl
+;perlfile	$(conf)/qico.pl
 
 ###############################################################################
 ### some example conditions ###################################################
@@ -710,7 +774,7 @@ mapin	lkr
 {bad
  flags	***BAD PASSWORD!***
  sysop	Check your security settings!
- phone	Contact to sysop!
+ phone	Contact sysop!
 }
 
 # Binkp without session timeout
@@ -727,3 +791,5 @@ mapin	lkr
 ; dialtelta 0
 ; flags Linux,NoFreqsNow!
 ;endif
+
+### That's all.

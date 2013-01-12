@@ -2,8 +2,16 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Receiver logic.
-   $Id: ls_zreceive.c,v 1.7 2004/05/19 09:52:13 sisoft Exp $
 */
+/*
+ * $Id: ls_zreceive.c,v 1.4 2005/03/31 19:40:38 mitry Exp $
+ *
+ * $Log: ls_zreceive.c,v $
+ * Revision 1.4  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
 #include "headers.h"
 #include "ls_zmodem.h"
 #include "qipc.h"
@@ -35,7 +43,9 @@ int ls_zinitreceiver(int protocol, int baud, int window, ZFILEINFO *f)
 
 	ls_SkipGuard = (ls_Protocol&LSZ_OPTSKIPGUARD)?1:0;
 
-	if(NULL==(rxbuf=xmalloc((ls_MaxBlockSize+16)))) return LSZ_ERROR;
+	rxbuf = xmalloc((ls_MaxBlockSize+16));
+	if ( rxbuf == NULL )
+	    return LSZ_ERROR;
 
 	return ls_zrecvfinfo(f,ZRINIT,(protocol&LSZ_OPTFIRSTBATCH)?1:0);
 }
@@ -163,14 +173,20 @@ int ls_zrecvfinfo(ZFILEINFO *f, int frame, int first)
 			retransmit = 1;
 			break;
 		default:
-			DEBUG(('Z',1,"ls_zrecvfinfo: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        /*
+			DEBUG(('Z',1,"ls_zrecvfinfo: something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zrecvfinfo: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		}
 	} while(trys < 10);
-	DEBUG(('Z',1,"ls_zrecvfinfo: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zrecvfinfo: timeout or something other: %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zrecvfinfo: timeout or something other: rc=%ld",rc));
 	return LSZ_TIMEOUT;
 }
 
@@ -203,14 +219,20 @@ int ls_zrecvnewpos(unsigned long oldpos, unsigned long *pos)
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		default:
-			DEBUG(('Z',1,"ls_zrecvnewpos: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        /*
+			DEBUG(('Z',1,"ls_zrecvnewpos: something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zrecvnewpos: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			ls_storelong(ls_txHdr,0L);
 			ls_zsendhhdr(ZNAK,4,ls_txHdr);
 			break;
 		}
 	} while (++trys < 10);
-	DEBUG(('Z',1,"ls_zrecvnewpos: timeout or something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zrecvnewpos: timeout or something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zrecvnewpos: timeout or something strange rc=%ld",rc));
 	return LSZ_TIMEOUT;
 }
 
@@ -266,7 +288,7 @@ int ls_zrecvfile(int pos)
 				needzdata = 1;
 				break;
 			default:
-				DEBUG(('Z',1,"ls_zrecvfile: something strange %d",rc));
+				DEBUG(('Z',1,"ls_zrecvfile: something strange %ld",rc));
 				if(rc<0) return rc;
 				if(ls_rxAttnStr[0]) PUTSTR(ls_rxAttnStr);
 				PURGE();
@@ -299,7 +321,7 @@ int ls_zrecvfile(int pos)
 	return LSZ_OK;
 }
 
-int ls_zdonereceiver()
+int ls_zdonereceiver(void)
 {
 	int rc;
 	int trys = 0;

@@ -2,8 +2,16 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Sender logic.
-   $Id: ls_zsend.c,v 1.7 2004/05/19 09:52:13 sisoft Exp $
 */
+/*
+ * $Id: ls_zsend.c,v 1.4 2005/03/31 19:40:38 mitry Exp $
+ *
+ * $Log: ls_zsend.c,v $
+ * Revision 1.4  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
 #include "headers.h"
 #include "ls_zmodem.h"
 #include "qipc.h"
@@ -11,7 +19,7 @@
 #include "tty.h"
 
 /* Finish sending after CANs, ZABORTs and ZFINs in bad places */
-int ls_finishsend()
+int ls_finishsend(void)
 {
 	ls_storelong(ls_txHdr,0);
 	ls_zsendhhdr(ZFIN,4,ls_txHdr);
@@ -72,12 +80,18 @@ int ls_zsendsinit(char *attstr)
 			retransmit = 1;
 			break;
 		default:
-			DEBUG(('Z',1,"ls_zsendsinit: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        /*
+			DEBUG(('Z',1,"ls_zsendsinit: something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zsendsinit: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			break;
 		}
 	} while(trys < 10);
-	DEBUG(('Z',1,"ls_zsendsinit: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zsendsinit: timeout or something other: %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zsendsinit: timeout or something other: rc=%ld",rc));
 	return rc;
 }
 
@@ -162,7 +176,9 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 			DEBUG(('Z',2,"ls_zinitsender: Block sizes: %d, %d",ls_MaxBlockSize,ls_txCurBlockSize));
 
 			/* Allocate memory for send buffer */
-			if(NULL==(txbuf=xmalloc((ls_MaxBlockSize+16)))) return LSZ_ERROR;
+			txbuf = xmalloc((ls_MaxBlockSize+16));
+			if ( txbuf == NULL )
+			    return LSZ_ERROR;
 
 			/* Send ZSINIT, if we need it */
 			if(attstr || (!(rxOptions&LSZ_RXWNTESCCTL) && (ls_Protocol&LSZ_OPTESCAPEALL)))
@@ -192,12 +208,18 @@ int ls_zinitsender(int protocol, int baud, int window, char *attstr)
 			DEBUG(('Z',2,"ls_zinitsender: ABORT"));
 			return LSZ_ERROR;
 		default:
-			DEBUG(('Z',1,"ls_zinitsender: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        /*
+			DEBUG(('Z',1,"ls_zinitsender: something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zinitsender: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			break;
 		}
 	} while(trys < 10);
-	DEBUG(('Z',1,"ls_zinitsender: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zinitsender: timeout or something other: %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zinitsender: timeout or something other: rc=%ld",rc));
 	return rc;
 }
 
@@ -288,12 +310,18 @@ int ls_zsendfinfo(ZFILEINFO *f, unsigned long sernum, long *pos)
 			if((rc=ls_zsendhhdr(ZNAK,4,ls_txHdr))<0) return rc;
 			break;
 		default:
-			DEBUG(('Z',1,"ls_zsendfinfo: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        /*
+			DEBUG(('Z',1,"ls_zsendfinfo: something strange %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zsendfinfo: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			break;
 		}
 	} while (trys < 10);
-	DEBUG(('Z',1,"ls_zsendfinfo: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zsendfinfo: timeout or something other: %ld, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zsendfinfo: timeout or something other: rc=%ld",rc));
 	return rc;
 }
 
@@ -305,7 +333,7 @@ int ls_zrpos(int newpos)
 
 	if(txpos == ls_txLastRepos) {
 		if(++ls_txReposCount > 10) {
-			DEBUG(('Z',1,"ls_zrpos: ZRPOS to %d limit reached",txpos));
+			DEBUG(('Z',1,"ls_zrpos: ZRPOS to %ld limit reached",txpos));
 			return LSZ_ERROR;
 		}
 	} else {
@@ -315,7 +343,7 @@ int ls_zrpos(int newpos)
 	ls_txLastACK = txpos;	/* Drop window */
 	clearerr(txfd);			/* May be EOF */
 	if(fseek(txfd,txpos,SEEK_SET)) {
-		DEBUG(('Z',1,"ls_zrpos: ZRPOS to %d seek error",txpos));
+		DEBUG(('Z',1,"ls_zrpos: ZRPOS to %ld seek error",txpos));
 		return LSZ_ERROR;
 	}
 	if(ls_txCurBlockSize > 32) ls_txCurBlockSize >>= 1;
@@ -357,7 +385,7 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 		return LSZ_ERROR;
 	default:
 		if(rc < 0) return rc;
-		DEBUG(('Z',1,"ls_zsendfile: Strange anwfer on ZFILE:  %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+		DEBUG(('Z',1,"ls_zsendfile: Strange answer on ZFILE:  %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
 		return LSZ_ERROR;
 	}
 
@@ -444,7 +472,10 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 			case LSZ_TIMEOUT:	/* Ok! */
 				break;
 			default:		/* STRANGE! */
+				/*
 				DEBUG(('Z',1,"ls_zsendfile: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                                */
+				DEBUG(('Z',1,"ls_zsendfile: something strange rc=%d",rc));
 				if(rc < 0) return rc;
 				break;
 			}
@@ -503,17 +534,20 @@ int ls_zsendfile(ZFILEINFO *f, unsigned long sernum)
 				}
 			} while(feof(txfd) && trys < 10);
 			if(feof(txfd)) {
-				DEBUG(('Z',1,"ls_zsendfile: Trys when waiting for ZEOF ACK exceed"));
+				DEBUG(('Z',1,"ls_zsendfile: To many tries waiting for ZEOF ACK"));
 				return LSZ_ERROR;
 			}
 		}
 	}
+        /*
 	DEBUG(('Z',1,"ls_zsendfile: timeout or something else %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zsendfile: timeout or something else rc=%ld",rc));
 	return rc;
 }
 
 /* Done sender -- good way */
-int ls_zdonesender()
+int ls_zdonesender(void)
 {
 	int rc;
 	int hlen;
@@ -536,11 +570,17 @@ int ls_zdonesender()
 			retransmit = 1;
 			break;
 		default:
+                        /*
 			DEBUG(('Z',1,"ls_zdonesender: something strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+                        */
+			DEBUG(('Z',1,"ls_zdonesender: something strange rc=%ld",rc));
 			if(rc<0) return rc;
 			retransmit = 1;
 		}
 	} while (trys < 10);
+        /*
 	DEBUG(('Z',1,"ls_zdonesender: timeout or somethin strange %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zdonesender: timeout or somethin strange rc=%ld",rc));
 	return rc;
 }

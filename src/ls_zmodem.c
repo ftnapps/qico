@@ -2,36 +2,50 @@
    ZModem file transfer protocol. Written from scratches.
    Support CRC16, CRC32, variable header, ZedZap (big blocks) and DirZap.
    Global variables, common functions.
-   $Id: ls_zmodem.c,v 1.8 2004/06/05 06:49:13 sisoft Exp $
 */
+/*
+ * $Id: ls_zmodem.c,v 1.6 2005/05/16 20:31:07 mitry Exp $
+ *
+ * $Log: ls_zmodem.c,v $
+ * Revision 1.6  2005/05/16 20:31:07  mitry
+ * Changed code a bit
+ *
+ * Revision 1.5  2005/04/05 09:36:50  mitry
+ * Updated BUFFLUSH() calls
+ *
+ * Revision 1.4  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
 #include "headers.h"
 #include "ls_zmodem.h"
 #include "crc.h"
 #include "tty.h"
 
 /* Common variables */
-byte ls_txHdr[LSZ_MAXHLEN];	/* Sended header */
-byte ls_rxHdr[LSZ_MAXHLEN];	/* Receiver header */
+byte ls_txHdr[LSZ_MAXHLEN];		/* Sended header */
+byte ls_rxHdr[LSZ_MAXHLEN];		/* Receiver header */
 int ls_GotZDLE;				/* We seen DLE as last character */
-int ls_GotHexNibble;		/* We seen one hex digit as last character */
+int ls_GotHexNibble;			/* We seen one hex digit as last character */
 int ls_Protocol;			/* Plain/ZedZap/DirZap and other options */
 int ls_CANCount;			/* Count of CANs to go */
 int ls_Garbage;				/* Count of garbage characters */
 int ls_SerialNum;			/* Serial number of file -- for Double-skip protection */
-int ls_HeaderTimeout;		/* Timeout for headers */
+int ls_HeaderTimeout;			/* Timeout for headers */
 int ls_DataTimeout;			/* Timeout for data blocks */
-int ls_MaxBlockSize;		/* Maximum block size */
+int ls_MaxBlockSize;			/* Maximum block size */
 int ls_SkipGuard;			/* double-skip protection on/off */
 
 /* Variables to control sender */
 int ls_txWinSize;			/* Receiver Window/Buffer size (0 for streaming) */
 int ls_rxCould;				/* Receiver could fullduplex/streamed IO (from ZRINIT) */
-int ls_txCurBlockSize;		/* Current block size */
+int ls_txCurBlockSize;			/* Current block size */
 int ls_txLastSent;			/* Last sent character -- for escaping */
 long ls_txLastACK;			/* Last ACKed byte */
-long ls_txLastRepos;		/* Last requested byte */
-long ls_txReposCount;		/* Count of REPOSes on one position */
-long ls_txGoodBlocks;		/* Good blocks sent */
+long ls_txLastRepos;			/* Last requested byte */
+long ls_txReposCount;			/* Count of REPOSes on one position */
+long ls_txGoodBlocks;			/* Good blocks sent */
 
 /* Variables to control receiver */
 
@@ -122,7 +136,7 @@ int ls_zsendbhdr(int frametype, int len, byte *hdr)
 		ls_sendchar(crc & 0xff);
 	}
 	/* Clean buffer, do real send */
-	return BUFFLUSH();
+	return BUFFLUSH(ls_HeaderTimeout);
 }
 
 /* Send HEX header. Use CRC16, send var. len. if could */
@@ -160,7 +174,7 @@ int ls_zsendhhdr(int frametype, int len, byte *hdr)
 	BUFCHAR(LF|(char)0x80);
 	if(frametype != ZACK && frametype != ZFIN) BUFCHAR(XON);
 	/* Clean buffer, do real send */
-	return BUFFLUSH();
+	return BUFFLUSH(ls_HeaderTimeout);
 }
 
 int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
@@ -191,12 +205,12 @@ int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
 	} readmode = rm7BIT;
 
 	static int frametype = LSZ_ERROR;	/* Frame type */
-	static int crcl = 2;				/* Length of CRC (CRC16 is default) */
-	static int crcgot = 0;				/* Number of CRC bytes already got */
-	static long incrc = 0;				/* Calculated CRC */
-	static long crc = 0;				/* Received CRC */
-	static int len = 4;					/* Length of header (4 is default) */
-	static int got = 0;					/* Number of header bytes already got */
+	static int crcl = 2;			/* Length of CRC (CRC16 is default) */
+	static int crcgot = 0;			/* Number of CRC bytes already got */
+	static long incrc = 0;			/* Calculated CRC */
+	static long crc = 0;			/* Received CRC */
+	static int len = 4;			/* Length of header (4 is default) */
+	static int got = 0;			/* Number of header bytes already got */
 	static int inhex = 0;
 	int c = -1;
 	int rc;
@@ -216,7 +230,7 @@ int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
 		readmode = rm7BIT;
 	}
 
-	while(OK == (rc = HASDATAT(&timeout))) {
+	while((rc = HASDATAT( &timeout ))) {
 		switch(readmode) {
 		case rm8BIT: c = ls_readcanned(&timeout); break;
 		case rm7BIT: c = ls_read7bit(&timeout);   break;
@@ -359,7 +373,10 @@ int ls_zrecvhdr(byte *hdr, int *hlen, int timeout)
 			break;
 		}
 	}
-	DEBUG(('Z',1,"ls_zrecvhdr: timeout ot something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        /*
+	DEBUG(('Z',1,"ls_zrecvhdr: timeout or something other: %d, %s",rc,LSZ_FRAMETYPES[rc+LSZ_FTOFFSET]));
+        */
+	DEBUG(('Z',1,"ls_zrecvhdr: timeout or something other: rc=%ld",rc));
 	return rc;
 }
 
@@ -413,18 +430,18 @@ int ls_zsenddata(byte *data, int len, int frame)
 	}
 
 	if(!(ls_Protocol & LSZ_OPTDIRZAP) && ZCRCW == frame) BUFCHAR(XON);
-	return BUFFLUSH();
+	return BUFFLUSH(ls_DataTimeout);
 }
 
 /* Receive data subframe with CRC16, return frame type or error (may be -- timeout) */
 int ls_zrecvdata16(byte *data, int *len, int timeout)
 {
 	int c;
-	int got = 0;					/* Bytes total got */
-	long incrc = LSZ_INIT_CRC16;	/* Calculated CRC */
-	long crc = 0;					/* Received CRC */
+	int got = 0;				/* Bytes total got */
+	long incrc = LSZ_INIT_CRC16;		/* Calculated CRC */
+	long crc = 0;				/* Received CRC */
 	int frametype = LSZ_ERROR;		/* Type of frame - ZCRC(G|W|Q|E) */
-	int rcvdata = 1;				/* Data is being received NOW (not CRC) */
+	int rcvdata = 1;			/* Data is being received NOW (not CRC) */
 
 	DEBUG(('Z',1,"ls_zrecvdata16: timeout %d",timeout));
 
@@ -455,7 +472,10 @@ int ls_zrecvdata16(byte *data, int *len, int timeout)
 	}
 	/* We finish loop by error in ls_readzdle() */
 	if(rcvdata) {
+                /*
 		DEBUG(('Z',1,"ls_zrecvdata16: timeout or something else: %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]));
+                */
+		DEBUG(('Z',1,"ls_zrecvdata16: timeout or something else: c=%ld",c));
 		return c;
 	}
 
@@ -502,7 +522,7 @@ int ls_zrecvdata32(byte *data, int *len, int timeout)
 			case LSZ_CRCW:
 				rcvdata = 0;
 				frametype = c & 0xff;
-				DEBUG(('Z',2,"ls_zrecvdata21: frameend %c",(char)frametype));
+				DEBUG(('Z',2,"ls_zrecvdata32: frameend %c",(char)frametype));
 				incrc = LSZ_UPDATE_CRC32((unsigned char)c,incrc);
 				break;
 			default:
@@ -513,7 +533,10 @@ int ls_zrecvdata32(byte *data, int *len, int timeout)
 	}
 	/* We finish loop by error in ls_readzdle() */
 	if(rcvdata) {
+                /*
 		DEBUG(('Z',1,"ls_zrecvdata32: timeout or something else: %d, %s",c,LSZ_FRAMETYPES[c+LSZ_FTOFFSET]));
+                */
+		DEBUG(('Z',1,"ls_zrecvdata32: timeout or something else: c=%ld",c));
 		return c;
 	}
 
@@ -571,8 +594,8 @@ void ls_sendchar(int c)
 void ls_sendhex(int i)
 {
 	char c = (char)(i & 0xff);
-	BUFCHAR(hexdigits[(c & 0xf0) >> 4]);
-	BUFCHAR(ls_txLastSent = hexdigits[c & 0x0f]);
+	BUFCHAR(hexdigitslower[(c & 0xf0) >> 4]);
+	BUFCHAR(ls_txLastSent = hexdigitslower[c & 0x0f]);
 }
 
 /* Retrun 7bit character, strip XON/XOFF if not DirZap, with timeout */
@@ -716,17 +739,17 @@ long ls_fetchlong(unsigned char *buf)
 }
 
 /* Send 8*CAN */
-void ls_zabort()
+void ls_zabort(void)
 {
 	int i;
-	BUFFLUSH();
+	BUFFLUSH(ls_DataTimeout);
 	BUFCHAR(XON);
 	for(i = 0; i < 8; i++) BUFCHAR(CAN);
-	BUFFLUSH();
+	BUFFLUSH(ls_DataTimeout);
 }
 
 /* chat routines */
-int z_devfree()
+int z_devfree(void)
 {
 	if(chattxstate||!(rnode->opt&MO_CHAT))return 0;
 	    else return 1;

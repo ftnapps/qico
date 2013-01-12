@@ -1,5 +1,5 @@
 #!/bin/awk -f
-# $Id: synctime,v 1.1.1.1 2003/07/12 21:27:20 sisoft Exp $
+# $Id: synctime,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $
 # script to qico for synchronize local and remote time by sisoft\\trg'2OO2
 # exec: synctime qico_log
 

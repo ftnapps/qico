@@ -1,38 +1,88 @@
 /**********************************************************
  * qico control center.
- * $Id: qcc.c,v 1.45 2004/06/05 06:49:13 sisoft Exp $
  **********************************************************/
+/*
+ * $Id: qcc.c,v 1.16 2005/08/12 16:40:51 mitry Exp $
+ *
+ * $Log: qcc.c,v $
+ * Revision 1.16  2005/08/12 16:40:51  mitry
+ * Added wktime_str()
+ *
+ * Revision 1.15  2005/08/12 15:36:19  mitry
+ * Changed gmtoff()
+ *
+ * Revision 1.14  2005/05/17 19:52:34  mitry
+ * Added check for broken Sys5 signals
+ *
+ * Revision 1.13  2005/05/16 20:25:48  mitry
+ * Fixed improper speed over 64K displaying
+ *
+ * Revision 1.12  2005/05/06 20:41:07  mitry
+ * Changed setproctitle() code
+ *
+ * Revision 1.11  2005/04/05 09:25:29  mitry
+ * Fix for tty device name > 8 symbols
+ *
+ * Revision 1.10  2005/04/01 20:33:33  mitry
+ * envp is back to main()
+ *
+ * Revision 1.9  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ * Revision 1.8  2005/03/28 17:02:52  mitry
+ * Pre non-blocking i/o update. Mostly non working.
+ *
+ * Revision 1.7  2005/02/23 21:27:59  mitry
+ * Changed '* Node' to '* Address'
+ *
+ */
+
 #include <config.h>
 #include <stdio.h>
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
 #include <string.h>
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
 #ifdef STDC_HEADERS
 #include <stdarg.h>
 #else
 #include <varargs.h>
 #endif
+
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
+
 #include <signal.h>
 #include <ctype.h>
+
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
+
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
+
 #ifdef HAVE_NCURSES_H
 #include <ncurses.h>
 #else
@@ -40,6 +90,7 @@
 #include <curses.h>
 #endif
 #endif
+
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -50,38 +101,41 @@
 #include <time.h>
 #endif
 #endif
+
 #ifndef GWINSZ_IN_SYS_IOCTL
 #include <termios.h>
 #endif
+
+#ifdef MAXPATHLEN
+#  define MAX_PATH MAXPATHLEN
+#else
+#  define MAX_PATH 1024
+#endif
+
+
 #include "replace.h"
 #include "types.h"
 #include "qcconst.h"
 #include "qslib.h"
-#include "crc.h"
+#include "md5q.h"
 #include "clserv.h"
 
-/* number of lines for queue. (up window of screen) */
-#define MAXMH 10
-/* max line height */
-#define CHH 256
-/* max number of slots */
-#define MAX_SLOTS 16
-/* max scroll lines for log */
-#define LGMAX 255
-/* max input line history */
-#define HSTMAX 50
-/* max shown loglines */
-#define LOGSIZE (LINES-MH-4)
-/* max shown columns */
-#define COL (COLS-2)
-/* set to 1 for debug */
-#define QDEBUG 0
+#define MAXMH		10		/* number of lines for queue.
+					   (up window of screen) */
+#define CHH		256		/* max line height */
+#define MAX_SLOTS	16		/* max number of slots */
+#define LGMAX		255		/* max scroll lines for log */
+#define HSTMAX		50		/* max input line history */
+#define LOGSIZE		(LINES-MH-4)	/* max shown loglines */
+#define COL		(COLS-2)	/* max shown columns */
+#define QDEBUG		0		/* set to 1 for debug */
+
 
 #define xbeep() if(!beepdisable){beep();}
 
 typedef struct {
 	unsigned short id;
-	char tty[8];
+	char tty[QCC_TTYLEN];
 	int  session;
 	char *lb[LGMAX];
 	char *header;
@@ -125,11 +179,12 @@ static char *hm[]={
 	"P","oll, "
 	"In","f","o, "
 	"Fr","e","q, ",
-	"S","ent, ",
+	"S","end, ",
 	"0-9;Tab",", ",
 	"Q","uit",
 NULL
 };
+
 static char *hl[]={
  	"H","angup, ",
 	"\03X","\03-skip file, ",
@@ -140,6 +195,7 @@ static char *hl[]={
 	"Q","uit",
 NULL
 };
+
 static char *hc[]={
  	"ESC",";","F8","-close, ",
 	"F2","-send string, ",
@@ -147,6 +203,7 @@ static char *hc[]={
 	"Tab","-change window",
 NULL
 };
+
 static char *hi[]={
 	"\01Ins","-insert mode, ",
 	"\02Ins","-overwrite mode, ",
@@ -158,16 +215,7 @@ static char *hi[]={
 	"Enter",
 NULL
 };
-static char *infostrs[]={
-	"Address",
-	"Station",
-	"  Place",
-	"  Sysop",
-	"  Phone",
-	"  Flags",
-	"  Speed",
-NULL
-};
+
 static char *help[]={
 	"\01* qico control center %s, sisoft\\\\trg edition. help about keys:",
 	"\01 All windows: F10 - quit, Tab/Right - next and Left - previous window",
@@ -179,8 +227,9 @@ static char *help[]={
 	"\01  Space - reset waiting cycle   R - suspend file",
 	"\01  F/f - info about node         c - open chat window",
 	"\01  K/k - kill files for node     Space - reset wait cycle",
-	"\01  S/s - sent file,  p - poll    F8 - close window",
-	"\01  E/e - request file           !warn: all keys case sensitivity!",
+	"\01  S/s - send file,  p - poll    F8 - close window",
+	"\01  E/e - request file",
+	"\01           !Warning: all keys are case sensitive!",
 NULL
 };
 
@@ -194,6 +243,45 @@ static int sock=-1,hstlast=0;
 static char *hst[HSTMAX+1],*myaddr=NULL;
 static char qflgs[Q_MAXBIT]=Q_CHARS;
 static int qclrs[Q_MAXBIT]=Q_COLORS;
+
+
+char progname[] = "qcc";
+
+#ifdef DEBUG
+    #undef DEBUG
+#endif
+#define DEBUG(p)
+
+
+void write_log(char *str, ...)
+{
+    int y, x;
+    struct tm *t;
+    char s[MAX_STRING];
+    va_list args;
+    time_t tim;
+
+    tim = time( NULL );
+    t = localtime( &tim );
+    getyx( wlog, y, x );
+    wattron( wlog, A_BOLD );
+    if ( x )
+        waddch( wlog, '\n' );
+    if ( *str != 1 ) {
+	snprintf( s, MAX_STRING, "%02d %3s %02d:%02d:%02d: ",
+            t->tm_mday, engms[t->tm_mon], t->tm_hour, t->tm_min, t->tm_sec );
+    } else
+        s[0] = '\0';
+    
+    va_start( args, str );
+    vsnprintf( s + strlen( s ), MAX_STRING - strlen( s ), str, args );
+    va_end( args );
+    waddnstr( wlog, s + ( *s == 1 ), COL );
+    wattroff( wlog, A_BOLD );
+    if ( currslot < 0 )
+        wrefresh( wlog );
+}
+
 
 static void usage(char *ex)
 {
@@ -228,7 +316,7 @@ static void mvwhline(WINDOW *win,int y,int x,int ch,int n)
 }
 #endif
 
-static void draw_screen()
+static void draw_screen(void)
 {
 	redrawwin(stdscr);
 	attrset(COLOR_PAIR(2));
@@ -250,7 +338,7 @@ static void draw_screen()
 	refresh();
 }
 
-static void initscreen()
+static void initscreen(void)
 {
 	initscr();start_color();
 	cbreak();noecho();nonl();
@@ -296,7 +384,7 @@ static void initscreen()
 	wrefresh(whelp);
 }
 
-static void donescreen()
+static void donescreen(void)
 {
 	int i;
 	for(i=0;i<allslots;i++)delwin(slots[i]->wlog);
@@ -310,7 +398,7 @@ static void donescreen()
 	endwin();
 }
 
-static void freshhelp()
+static void freshhelp(void)
 {
 	int i,k=0;
 	char **hlp=(edm?hi:((currslot<0)?hm:(slots[currslot]->chat?hc:hl)));
@@ -329,19 +417,19 @@ static void freshhelp()
 	mvwprintw(whelp,0,COL-4-strlen(version),"qcc-%s",version);
 }
 
-static void freshhdr()
+static void freshhdr(void)
 {
 	werase(whdr);
 	wattron(whdr,COLOR_PAIR(14));
 	mvwprintw(whdr,0,0,"[%d/%d] ",currslot+1,allslots);
 	wattron(whdr,COLOR_PAIR(13));
-	waddstr(whdr,currslot>=0?slots[currslot]->tty:"master");
+	waddnstr(whdr,currslot>=0?slots[currslot]->tty:"master", QCC_TTYLEN);
 	waddch(whdr,' ');
 	wattron(whdr,COLOR_PAIR(12));
 	waddstr(whdr,currslot>=0?slots[currslot]->header:m_header);
 }
 
-static void freshstatus()
+static void freshstatus(void)
 {
 	werase(wstat);
 	waddstr(wstat,currslot>=0?slots[currslot]->status:m_status);
@@ -357,13 +445,13 @@ static char *timestr(time_t tim)
 	return ts;
 }
 
-static void bar(int o,int t,int l)
+static void bar(int o, int t, int l)
 {
 	int i,k=t/l,x=0;
 	for(i=0;i<l;i++,x+=k)waddch(wmain,(k<o-x+1)?ACS_BLOCK:ACS_CKBOARD);
 }
 
-static void freshpfile(int b,int e,pfile_t *s,int act)
+static void freshpfile(int b, int e, pfile_t *s, int act)
 {
 	char bf[20];
 	if(!s->ftot)return;
@@ -377,19 +465,19 @@ static void freshpfile(int b,int e,pfile_t *s,int act)
 	snprintf(bf,20," %d cps",s->cps);
 	mvwaddstr(wmain,4,e-strlen(bf),bf);
 	wattroff(wmain,A_BOLD);
-	mvwprintw(wmain,6,b,"Current: %d of %d bytes",s->foff,s->ftot);
+	mvwprintw(wmain,6,b,"Current: %ld of %ld bytes",(unsigned long) s->foff,(unsigned long) s->ftot);
 	wattron(wmain,A_BOLD);
 	wmove(wmain,7,b);bar(s->foff,s->ftot,e-b-9);waddch(wmain,' ');
 	waddstr(wmain,timestr((s->ftot-s->foff)/s->cps));
 	wattrset(wmain,COLOR_PAIR(1));
-	mvwprintw(wmain,8,b,"Total: %d%c of %d%c",SIZES(s->toff+s->foff),
-	    SIZEC(s->toff+s->foff),SIZES(s->ttot),SIZEC(s->ttot));
+	mvwprintw(wmain,8,b,"Total: %ld%c of %ld%c",(unsigned long) SIZES(s->toff+s->foff),
+	    SIZEC(s->toff+s->foff),(unsigned long) SIZES(s->ttot),SIZEC(s->ttot));
 	wattron(wmain,A_BOLD);
 	wmove(wmain,9,b);bar(s->toff+s->foff,s->ttot,e-b-9);waddch(wmain,' ');
 	waddstr(wmain,timestr((s->ttot-s->toff-s->foff)/s->cps));
 }
 
-static void freshslot()
+static void freshslot(void)
 {
 	werase(wmain);
 	if(slots[currslot]->chat) {
@@ -422,42 +510,27 @@ static void freshslot()
 	}
 }
 
-void write_log(char *str,...)
-{
-	int y,x;
-	struct tm *tt;
-	char s[MAX_STRING];
-	va_list args;
-	time_t tim;
-	tim=time(NULL);
-	tt=localtime(&tim);
-	getyx(wlog,y,x);
-	wattron(wlog,A_BOLD);
-	if(x)waddch(wlog,'\n');
-	if(*str!=1) {
-		strftime(s,MAX_STRING,"%d %b %H:%M:%S : ",tt);
-		waddnstr(wlog,s,18);
-	}
-	va_start(args,str);
-	vsnprintf(s,MAX_STRING,str,args);
-	va_end(args);
-	waddnstr(wlog,s+(*s==1),COL-18*(*s!=1));
-	wattroff(wlog,A_BOLD);
-	if(currslot<0)wrefresh(wlog);
-}
-
 static void logit(char *str,WINDOW *w,int s)
 {
 	char bbf[CHH];
-	int len,y,x,cu=1;
+	int len = 0, y, x = 2, cu = 1;
+
+	while( str && *str && x ) {
+	    if ( *str == ' ' )
+	        x--;
+	    bbf[len++] = *str++;
+	}
+	while( str && *str && *str++ != ' ' );
+	while( str && *str && *str != ' ' && *str != '.' )
+	    bbf[len++] = *str++;
+
+	while( str && *str && *str++ != ']' );
+	xstrcpy( bbf + len, str, COL - len );
+	len = strlen( bbf ) > COL ? COL : strlen( bbf );
+
 	if(s>=0)cu=(slots[s]->lm==slots[s]->lc);
 	getyx(w,y,x);
 	if(cu&&x)waddch(w,'\n');
-	xstrcpy(bbf,str,8);
-	xstrcpy(bbf+7,str+10,10);
-	str=strchr(str+18,':');
-	xstrcpy(bbf+16,str,COL-11);
-	len=strlen(bbf)>COL?COL:strlen(bbf);
 	if(cu) {
 		scrollok(w,FALSE);
 		waddnstr(w,bbf,COL);
@@ -511,15 +584,15 @@ static void killqueue(qslot_t **l)
 	}
 }
 
-static void freshqueue()
+static void freshqueue(void)
 {
-	int i,k,l;
+	int i,k,l, current_selector;
 	char str[MAX_STRING];
 	qslot_t *q;
 	werase(wmain);
 	scrollok(wmain,FALSE);
 	wattrset(wmain,COLOR_PAIR(6)|A_BOLD);
-	mvwaddstr(wmain,0,0,"* Node");
+	mvwaddstr(wmain,0,0,"* Address");
 	mvwaddstr(wmain,0,COL-19-Q_MAXBIT,"Mail   Files  Try  Flags");
 	for(q=queue;q&&q->n<q_first;q=q->next);
 	if(!q) {
@@ -527,12 +600,15 @@ static void freshqueue()
 		mvwaddstr(wmain,MH/2,COL/2-8,"* Empty queue *");
 	} else for(i=0;q&&i<MH-1;i++,q=q->next) {
 		wattrset(wmain,COLOR_PAIR(3)|(q->flags&Q_DIAL?A_BOLD:0));
-		if(q_pos==q->n)wattrset(wmain,COLOR_PAIR(16));
+		current_selector = ( q_pos == q->n );
+		if( current_selector )
+		    wattrset(wmain,COLOR_PAIR(16));
 		for(k=0;k<allslots;k++)if(slots[k]->session&&!strcmp(slots[k]->addrs,q->addr))k=999;
 		mvwaddch(wmain,i+1,0,(k>=999)?'=':' ');
-		mvwaddch(wmain,i+1,1,' ');waddstr(wmain,q->addr);
+  		mvwaddch( wmain, i + 1, 1, current_selector ? '>' : ' ' );
+		waddstr(wmain,q->addr);
 		for(k=0;k<COL-24-Q_MAXBIT-strlen(q->addr);k++)waddch(wmain,' ');
-		snprintf(str,MAX_STRING," %5d%c %6d%c  %3d  ",
+		snprintf(str,MAX_STRING," %5lu%c %6lu%c  %3d  ",
 		    SIZES(q->mail),SIZEC(q->mail),SIZES(q->files),SIZEC(q->files),q->try);
 		waddstr(wmain,str);
 		for(k=0,l=1;k<Q_MAXBIT;k++) {
@@ -543,7 +619,7 @@ static void freshqueue()
 	}
 }
 
-static void freshall()
+static void freshall(void)
 {
 	freshhdr();wnoutrefresh(whdr);
 	freshstatus();wnoutrefresh(wstat);
@@ -558,13 +634,17 @@ static void freshall()
 static RETSIGTYPE sigwinch(int sig)
 {
 	sizechanged=1;
+#ifdef SYS5SIGNALS
  	signal(SIGWINCH,sigwinch);
+#endif
 }
 
 static RETSIGTYPE sighup(int sig)
 {
 	quitflag=1;
+#ifdef SYS5SIGNALS
 	signal(sig,sighup);
+#endif
 }
 
 static int findslot(char *slt)
@@ -574,11 +654,11 @@ static int findslot(char *slt)
 	return -1;
 }
 
-static int createslot(char *slt,char d)
+static int createslot(char *slt, char d)
 {
 	slots[allslots]=xmalloc(sizeof(slot_t));
 	memset(slots[allslots],0,sizeof(slot_t));
-	xstrcpy(slots[allslots]->tty,slt,8);
+	xstrcpy(slots[allslots]->tty,slt,QCC_TTYLEN);
 	if(!memcmp(slt,"CHT",3)||!memcmp(slt,"IP",2)) {
 		slots[allslots]->chat=1;
 		slots[allslots]->cl=(char*)xcalloc(MH+1,CHH+1);
@@ -605,7 +685,7 @@ static void delslot(int slt)
 	freshall();
 }
 
-static int inputstr(char *str,char *name,int mode)
+static int inputstr(char *str, char *name, int mode)
 {
 	WINDOW *iw;
 	int ch,cp=0,sl=0,sp=0,bp=0,vl,i,getkey=0,fr,hstcurr=hstlast,ms,tmp,yp;
@@ -843,7 +923,7 @@ static int inputstr(char *str,char *name,int mode)
 static char *getnode(char *name)
 {
 	int i,flv;
-	char buf[MAX_STRING],*nm;
+	char buf[MAX_STRING + 5],*nm;
 	static char ou[64];
 	unsigned long zone,net,node,n,point=0;
 	if(!myaddr)myaddr="0:0/0";
@@ -864,8 +944,8 @@ rei:	zone=strtoul(myaddr,&nm,10);
 		}
 		if(strchr(buf,'.'))point=n?n:point;
 		    else {node=n?n:node;point=0;}
-		sprintf(ou,"%c%lu:%lu/%lu",flv,zone,net,node);
-		if(point)sprintf(ou+strlen(ou),".%lu",point);
+		snprintf(ou,63,"%c%lu:%lu/%lu",flv,zone,net,node);
+		if(point)snprintf(ou+strlen(ou),63 - strlen(ou),".%lu",point);
 		if(flv=='e') {
 			write_log("err: in: '%s', ident as '%s', ignored",buf,ou);
 			*(int*)ou=0;
@@ -877,7 +957,7 @@ rei:	zone=strtoul(myaddr,&nm,10);
 	return ou;
 }
 
-static void xcmd(char *buf,int cmd,int len)
+static void xcmd(char *buf, int cmd, int len)
 {
 	STORE16(buf,0);
 	buf[2]=cmd;
@@ -887,7 +967,7 @@ static void xcmd(char *buf,int cmd,int len)
 	if(xsend(sock,buf,len)<0)write_log("can't send to server: %s",strerror(errno));
 }
 
-static void xcmdslot(char *buf,int cmd,int len)
+static void xcmdslot(char *buf, int cmd, int len)
 {
 	STORE16(buf,slots[currslot]->id);
 	buf[2]=cmd;
@@ -897,35 +977,37 @@ static void xcmdslot(char *buf,int cmd,int len)
 	if(xsend(sock,buf,len)<0)write_log("can't send to server: %s",strerror(errno));
 }
 
-static void printinfo(char *addr,int what,char *buf)
+static void printinfo(char *addr, int what, char *buf)
 {
-	int rc;char *p,*u,*t;
-	time_t tm=time(NULL);
-	long tz=gmtoff(tm,1)/3600;
-	if(strchr("NDICH",toupper(*addr)))addr++;
-	    else if(what)return;
-	if(!*addr||!addr)return;
-	xstrcpy(buf+3,addr,64);
-	xcmd(buf,QR_INFO,strlen(addr)+4);
-	while(getmessages(buf)>0);rc=buf[2];
-	if(rc)return;
-	for(p=buf+3;strlen(p);rc++) {
-		write_log("%s: %s",infostrs[rc],p);
-		u=p;p+=strlen(p)+1;
-		if(rc==5)while((t=strsep(&u,","))) {
-			if(!strcmp(t,"CM")) {
-			    write_log(" WkTime: 00:00-24:00");
-			    break;
-			}
-			if(*t=='T'&&t[3]==0) {
-			    write_log(" WkTime: %02ld:%02d-%02ld:%02d",
-				(toupper(t[1])-'A'+tz)%24,islower((int)t[1])?30:0,
-				(toupper(t[2])-'A'+tz)%24,islower((int)t[2])?30:0);
-			    break;
-			}
-		}
+	int	rc;
+	char	*p, *t;
+
+	if ( strchr( "NDICH", toupper( *addr )))
+		addr++;
+	else if( what )
+		return;
+
+	if ( !addr || !*addr )
+		return;
+
+	xstrcpy( buf + 3, addr, 64 );
+	xcmd( buf, QR_INFO, strlen( addr ) + 4 );
+	while( getmessages( buf ) > 0 );
+
+	rc = buf[2];
+	if ( rc )
+		return;
+
+	for( p = buf + 3; strlen( p ); rc++ ) {
+		write_log( "%s: %s", infostrs[rc], p );
+
+		if ( rc == 5 && (t = wktime_str( p )))
+			write_log( " WkTime: %s", t );
+
+		p += strlen( p ) + 1;
 	}
 }
+
 
 static int getmessages(char *bbx)
 {
@@ -956,7 +1038,7 @@ static int getmessages(char *bbx)
 			rc=findslot(buf+3);
 			if(type==QC_ERASE) {
 				if(rc>=0&&allslots<MAX_SLOTS&&buf[3]=='i'&&buf[4]=='p') {
-					xstrcpy(slots[rc]->tty,"ipline",8);
+					xstrcpy(slots[rc]->tty,"ipline",QCC_TTYLEN);
 					freshhdr();wrefresh(whdr);
 					slots[rc]->session=0;
 					slots[rc]->id=0;
@@ -969,7 +1051,7 @@ static int getmessages(char *bbx)
 				if(buf[3]=='i'&&buf[4]=='p') {
 					for(rc=0;rc<allslots;rc++)
 					    if(!slots[rc]->session&&!slots[rc]->id&&*slots[rc]->tty=='i'&&slots[rc]->tty[1]=='p') {
-						xstrcpy(slots[rc]->tty,buf+3,8);
+						xstrcpy(slots[rc]->tty,buf+3,QCC_TTYLEN);
 						break;
 					    }
 					if(rc>=allslots)rc=-1;
@@ -1005,7 +1087,7 @@ static int getmessages(char *bbx)
 					slots[rc]->session=0;
 				} else {
 					p=data;
-					slots[rc]->speed=FETCH16(p);INC16(p);
+					slots[rc]->speed=FETCH32(p);INC32(p);
 					slots[rc]->opt=FETCH16(p);INC16(p);
 					slots[rc]->options=FETCH32(p);INC32(p);
 					slots[rc]->start=FETCH32(p);INC32(p);
@@ -1175,7 +1257,7 @@ static int getmessages(char *bbx)
 	return(bbx?1:(type==QC_QUEUE));
 }
 
-int main(int argc,char **argv,char **envp)
+int main(int argc, char **argv, char **envp)
 {
 	int len,ch,rc;
 	struct tm *tt;
@@ -1187,9 +1269,9 @@ int main(int argc,char **argv,char **envp)
 #ifdef CURS_HAVE_RESIZETERM
 	struct winsize size;
 #endif
-#ifndef HAVE_SETPROCTITLE
-	setargspace(argc,argv,envp);
-#endif
+
+	initsetproctitle( argc, argv, envp );
+
  	while((c=getopt(argc,argv,"hnvP:a:w:"))!=-1) {
 		switch(c) {
 		    case 'P':
@@ -1210,11 +1292,7 @@ int main(int argc,char **argv,char **envp)
 			usage(argv[0]);
 		}
 	}
-	setproctitle(
-#ifdef HAVE_LIBUTIL
-	    "%s",
-#endif
-	    "qico control center");
+	setproctitle( "qico control center" );
 	signal(SIGPIPE,SIG_IGN);
 	signal(SIGHUP,sighup);
 	signal(SIGTERM,sighup);
@@ -1225,7 +1303,7 @@ int main(int argc,char **argv,char **envp)
 		return 1;
 	}
 #ifdef HAVE_SETLOCALE
-	setlocale(LC_ALL, "");
+	setlocale(LC_ALL, "C");
 #endif
 /*cyr*/	printf("\033(K");fflush(stdout);
 
@@ -1271,6 +1349,7 @@ int main(int argc,char **argv,char **envp)
 	}
 	signal(SIGINT,sighup);
 	signal(SIGKILL,sighup);
+	srand(time(NULL));
 	initscreen();
 	currslot=-1;
 	allslots=0;
@@ -1279,7 +1358,7 @@ int main(int argc,char **argv,char **envp)
 	for(ch=0;ch<=HSTMAX;ch++)hst[ch]=NULL;
 	hstlast=0;
 	freshall();
-	write_log("I'm, qcc-%s, successfully started! ;)",version);
+	write_log("I'm, qcc-%s, successfully started! ;)", version );
 	while(!quitflag) {
 #ifdef CURS_HAVE_RESIZETERM
 		if (sizechanged) {
@@ -1326,7 +1405,13 @@ int main(int argc,char **argv,char **envp)
 		if(ch==('L'-'@')) {
 			draw_screen();
 			freshall();
-		} else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
+		} else if ( ch == '|' ) {
+		    FILE *save_view = fopen( "qcc.view", "w" );
+		    if ( save_view ) {
+		        putwin( stdscr, save_view );
+		        fclose( save_view );
+		    }
+		}else if(allslots&&(ch=='\t'||ch==KEY_RIGHT)) {
 			if(currslot<(allslots-1)||ch=='\t') {
 				currslot++;
 				if(currslot==allslots)currslot=-1;
@@ -1360,7 +1445,9 @@ int main(int argc,char **argv,char **envp)
 			wrefresh(slots[currslot]->wlog);
 			getyx(slots[currslot]->wlog,slots[currslot]->chaty,slots[currslot]->chatx);
 		    } else {
-		if(ch>='0'&&ch<='9') {
+                    if ( ch == '`' || ( ch >= '0' && ch <= '9' )) {
+		        if ( ch == '`' )
+		            ch = '0';
 			ch=ch-'1';
 			if(ch<allslots) {
 				currslot=ch;
@@ -1476,7 +1563,7 @@ int main(int argc,char **argv,char **envp)
 			case 's': case 'S':
 				for(;que&&que->n!=q_pos;que=que->next);if(!que&&ch=='S')break;
 				if(ch=='s') {
-					bf=getnode("Sent file to node: ");
+					bf=getnode("Send file to node: ");
 					if(!bf||!strchr("HDNCI",toupper(*bf))||!bf[1])break;
 					ch=*bf++;
 				} else bf=que->addr;
@@ -1535,7 +1622,7 @@ int main(int argc,char **argv,char **envp)
 				    else xbeep();
 				break;
 			case 'h':
-				xstrcpy(buf+3,slots[currslot]->tty,8);
+				xstrcpy(buf+3,slots[currslot]->tty,QCC_TTYLEN);
 				if(!(slots[currslot]->opt&(MO_IFC|MO_BINKP)))
 					xcmd(buf,QR_HANGUP,strlen(buf+3)+4);
 				xcmdslot(buf,QR_HANGUP,3);

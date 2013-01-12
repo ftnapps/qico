@@ -1,0 +1,34 @@
+###############################################################################
+### substs #######################################################(changed!!!)#
+###############################################################################
+# substs in format: subst <addr> <phone|host> [<wtime> [<flag>]]
+# each field can be replaced with '-' for keep unchanged.
+# supported flags:  (may be only one flag for each subst!)
+#	binkp - can Binkp calls to node,
+#	ifc - can ifcico calls to node.
+# on ip calls field <phone> must contain ip-addr, or host of node, or
+# '-' for translate ftn-addr to [p.]f.n.z.fidonet.net.
+#
+# ex:
+#
+;subst	1:2345/123	-			23:30-8:00	ifc
+# addr: 1:2345/123, host: f123.n2345.z1.fidonet.net, prot: ifcico.
+;subst	1:2345/546	123-4567		-		-
+# addr: 1:2345/546, phone: 123-4567, prot: emsi via modem.
+;subst	1:2345/666	fido.foobar.com		CM 		binkp
+# addr: 1:2345/666, host: fido.foobar.com, prot: binkp; main line.
+;subst	1:2345/666	-			-
+# addr: 1:2345/666, phone: from nodelist, prot: emsi via modem; hidden line.
+#
+# Subst override nodelist, so for second (hidden) line you must specify
+# two (or more) `subst':
+#		One for nodelist line
+;subst 111:222/33		-			-
+#		One (ore more) for hidden line(s)
+;subst 111:222/33		987-6543	18:00-9:00
+
+# WARNING!
+# translatesubst is off by default.
+# In this case subst phones are used _WITHOUT_ translation!
+# if translatesubst = yes, Subst phones are used _WITH_ translation!!!
+;translatesubst	yes

@@ -1,6 +1,6 @@
 /**********************************************************
  * lexical parser
- * $Id: flaglex.l,v 1.24 2004/06/24 09:53:32 sisoft Exp $
+ * $Id: flaglex.l,v 1.5 2005/05/11 13:22:40 mitry Exp $
  **********************************************************/
 %option noyywrap case-insensitive never-interactive nounput
 %{
@@ -15,7 +15,7 @@
 #define malloc xmalloc
 #define realloc xrealloc
 
-#define YY_NO_UNPUT
+/* #define YY_NO_UNPUT */
 #ifdef FLEX_SCANNER
 #undef YY_INPUT
 #define YY_INPUT(buf,result,max_size) \
@@ -45,6 +45,8 @@
 
 #include "flagexp.h"
 #include "headers.h"
+#include "nodelist.h"
+
 static int chkaddr(char*);
 static int chktime(char*);
 static int chkdate(char*);
@@ -58,7 +60,7 @@ minute		[0-5][0-9]
 ihour		([0-1][0-9]|2[0-3])
 hour        	([0-1]?[0-9]|2[0-3])
 day		([0-2]?[0-9]|3[01])
-dow		(sun?|mon?|tue?|wed?|thu?|fri?|sat?|any|wk|we)
+dow		(sun|mon|tue|wed|thu|fri|sat|any|wk|we)
 month           (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|any)
 decimal		[1-9][0-9]*
 numeric		[0-9][0-9]*
@@ -68,7 +70,7 @@ pathstr		\/([^\/]+\/)*[^\/]+
 timestr		{dow}({ihour}{minute}\-{ihour}{minute})?
 gapstr      	(([0-7].)?{hour}:{minute}\-{hour}:{minute}|(([0-7].)?{hour}\-{hour})|([0-7].{hour}:{minute}\-[0-7].{hour}:{minute})|([0-7].{hour}\-[0-7].{hour})|cm|t[a-x][a-x])
 addrstr		(({decimal}|\*):)?(({decimal}|\*)\/)?({numeric}|\*)(.({numeric}|\*))?(@({ident}|\*))?
-datestr         {month}({day}-{day})?
+datestr         {month}({day}|{day}-{day})?
 %%
 [ \t\n]+	;
 {decimal}	RETN(NUMBER,atol(yytext));
@@ -160,13 +162,13 @@ static int chktime(char *str)
 	time_t tt;
 	time(&tt);now=localtime(&tt);
 
-	if (strncasecmp(str,"Su",2) == 0) day=0;
-	else if (strncasecmp(str,"Mo",2) == 0) day=1;
-	else if (strncasecmp(str,"Tu",2) == 0) day=2;
-	else if (strncasecmp(str,"We",2) == 0) day=3;
-	else if (strncasecmp(str,"Th",2) == 0) day=4;
-	else if (strncasecmp(str,"Fr",2) == 0) day=5;
-	else if (strncasecmp(str,"Sa",2) == 0) day=6;
+	if (strncasecmp(str,"Sun",3) == 0) day=0;
+	else if (strncasecmp(str,"Mon",3) == 0) day=1;
+	else if (strncasecmp(str,"Tue",3) == 0) day=2;
+	else if (strncasecmp(str,"Wed",3) == 0) day=3;
+	else if (strncasecmp(str,"Thu",3) == 0) day=4;
+	else if (strncasecmp(str,"Fri",3) == 0) day=5;
+	else if (strncasecmp(str,"Sat",3) == 0) day=6;
 	else if (strncasecmp(str,"Any",3) == 0) day=-1;
 	else if (strncasecmp(str,"Wk",2) == 0) day=-2;
 	else if (strncasecmp(str,"We",2) == 0) day=-3;

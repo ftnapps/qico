@@ -1,4 +1,33 @@
-/* $Id: ftn.h,v 1.21 2004/06/23 17:59:35 sisoft Exp $ */
+/*
+ * $Id: ftn.h,v 1.11 2005/08/16 15:17:22 mitry Exp $
+ *
+ * $Log: ftn.h,v $
+ * Revision 1.11  2005/08/16 15:17:22  mitry
+ * Removed unused ninfo_t.haswtime field
+ *
+ * Revision 1.10  2005/05/16 11:17:30  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ * Revision 1.9  2005/05/11 16:34:01  mitry
+ * Removed commented out typedefs
+ *
+ * Revision 1.8  2005/05/11 13:22:40  mitry
+ * Snapshot
+ *
+ * Revision 1.7  2005/05/06 20:21:55  mitry
+ * Changed nodelist handling
+ *
+ * Revision 1.6  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ * Revision 1.5  2005/03/28 17:02:52  mitry
+ * Pre non-blocking i/o update. Mostly non working.
+ *
+ * Revision 1.4  2005/02/08 19:53:14  mitry
+ * Added outbound_addr_busy()
+ *
+ */
+
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -22,11 +51,12 @@
 #define NT_PVT    3
 #define NT_HUB    4
 
-#define IS_ERR    4
-#define IS_REQ    3
-#define IS_FILE   2
-#define IS_ARC    1
-#define IS_PKT    0
+#define IS_ERR		5
+#define IS_FLO		4
+#define IS_REQ		3
+#define IS_FILE		2
+#define IS_ARC		1
+#define IS_PKT		0
 
 #define LCK_x   0
 #define LCK_c	1
@@ -37,7 +67,7 @@
 #define ASO	2
 
 typedef struct {
-	short z,n,f,p;
+	int z, n, f, p;
 	char *d;
 } ftnaddr_t;
 
@@ -46,32 +76,20 @@ typedef struct {
 #include "slists.h"
 
 typedef struct {
-	char sign[20];
-	char nlname[MAX_NODELIST][20];
-	time_t nltime[MAX_NODELIST];
-} idxh_t;
-
-typedef struct {
-	ftnaddr_t addr;
-	unsigned offset:24;
-	unsigned index:8;
-} idxent_t;
-
-typedef struct {
 	falist_t *addrs;
 	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host,*tty;
-	int options,speed,realspeed,netmail,files,type,haswtime,hidnum,holded,opt;
+	int options,speed,realspeed,netmail,files,type,hidnum,holded,opt;
 	time_t time,starttime;
 } ninfo_t;
 
 typedef struct _qitem_t {
-	ftnaddr_t addr;
-	int try,flv,what,touched;
-	off_t sizes[F_MAX+1];
-	time_t times[F_MAX+1];
-	off_t reqs,pkts;
-	time_t onhold;
-	struct _qitem_t *next;
+	ftnaddr_t	addr;
+	int		try, flv, what, touched, canpoll;
+	off_t		reqs, pkts;
+	off_t		sizes[F_MAX+1];
+	time_t		times[F_MAX+1];
+	time_t		onhold;
+	struct _qitem_t	*next;
 } qitem_t;
 
 typedef struct _dialine_t {
@@ -140,61 +158,54 @@ typedef struct {
 	bp_status_t bp;
 } sts_t;
 
-extern void addr_cpy(ftnaddr_t *a,ftnaddr_t *b);
-extern int addr_cmp(ftnaddr_t *a,ftnaddr_t *b);
-extern int parseftnaddr(char *s, ftnaddr_t *a, ftnaddr_t *b, int wc);
-extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
-extern char *ftnaddrtoa(ftnaddr_t *a);
-extern char *ftnaddrtoda(ftnaddr_t *a);
-extern char *ftnaddrtoia(ftnaddr_t *a);
-extern char *strip8(char *s);
-extern int has_addr(ftnaddr_t *a, falist_t *l);
-extern char *engms[];
-extern int showpkt(char *fn);
-extern FILE *openpktmsg(ftnaddr_t *fa, ftnaddr_t *ta, char *from, char *to, char *subj, char *pwd, char *fn,unsigned attr);
-extern void closepkt(FILE *f, ftnaddr_t *fa, char *tear, char *orig);
-extern void closeqpkt(FILE *f,ftnaddr_t *fa);
-extern falist_t *falist_find(falist_t *, ftnaddr_t *);
-extern int havestatus(int status, int cfgkey);
-extern int needhold(int status, int what);
-extern int xfnmatch(char *pattern,char *name,int flags);
-extern char *findpwd(ftnaddr_t *a);
-/* nodelist.c */
-extern char *NL_SIGN;
-extern char *NL_IDX;
-extern char *nlerr[];
-extern int query_nodelist(ftnaddr_t *addr, char *nlpath, ninfo_t **nl);
-extern int is_listed(falist_t *addr, char *nlpath, int needall);
-extern void phonetrans(char **pph, slist_t *phtr);
-extern int checktimegaps(char *ranges);
-extern int chktxy(char *p);
-extern int checktxy(char *flags);
-extern subst_t *findsubst(ftnaddr_t *fa, subst_t *subs);
-extern subst_t *parsesubsts(faslist_t *sbs);
-extern int applysubst(ninfo_t *nl, subst_t *subs);
-extern void killsubsts(subst_t **l);
-extern int can_dial(ninfo_t *nl, int ct);
-extern int find_dialable_subst(ninfo_t *nl, int ct, subst_t *subs);
-extern void nlfree(ninfo_t *nl);
-extern void nlkill(ninfo_t **nl);
-extern int compile_nodelists();
-/* aso.c */
-extern int aso_init(char *asopath,char *bsopath,char *stspath,int def_zone);
-extern void aso_done();
-extern int aso_flavor(char fl);
-extern int aso_rescan(void (*each)(char *, ftnaddr_t *, int, int,int),int rslow);
-extern int aso_locknode(ftnaddr_t *adr,int lev);
-extern int aso_unlocknode(ftnaddr_t *adr,int lev);
-extern int aso_attach(ftnaddr_t *adr, int flv, slist_t *files);
-extern int aso_request(ftnaddr_t *adr, slist_t *files);
-extern int aso_poll(ftnaddr_t *fa, int flavor);
-extern int aso_setstatus(ftnaddr_t *fa, sts_t *st);
-extern int aso_getstatus(ftnaddr_t *fa, sts_t *st);
-extern int asoflist(flist_t **fl,ftnaddr_t *fa,int mode);
+typedef void (*qeach_t)(const char *, const ftnaddr_t *, int, int, int);
+
+void	addr_cpy(ftnaddr_t *, const ftnaddr_t *);
+int	addr_cmp(const ftnaddr_t *, const ftnaddr_t *);
+int	parseftnaddr(const char *, ftnaddr_t *, const ftnaddr_t *, int);
+ftnaddr_t	*akamatch(const ftnaddr_t *, falist_t *);
+char	*ftnaddrtoa(const ftnaddr_t *);
+char	*ftnaddrtoda(const ftnaddr_t *);
+char	*ftnaddrtoia(const ftnaddr_t *);
+char	*strip8(char *);
+int	has_addr(const ftnaddr_t *, falist_t *);
+int	showpkt(const char *);
+FILE	*openpktmsg(const ftnaddr_t *, const ftnaddr_t *, char *, char *, char *, char *, char *, unsigned);
+void	closepkt(FILE *, const ftnaddr_t *, const char *, char *);
+void	closeqpkt(FILE *, const ftnaddr_t *);
+int	whattype(const char *);
+int	istic(const char *);
+int	havestatus(int, int);
+int	needhold(int, int);
+int	xfnmatch(char *, const char *, int);
+char	*findpwd(const ftnaddr_t *);
+
+
+/* outbound.c */
+int	outbound_init(const char *, const char *, const char *, int);
+void	outbound_done(void);
+int	outbound_rescan(qeach_t, int);
+int	outbound_addr_busy(const ftnaddr_t *);
+int	outbound_locknode(const ftnaddr_t *, int);
+int	outbound_unlocknode(const ftnaddr_t *, int);
+int	outbound_flavor(char fl);
+int	outbound_attach(const ftnaddr_t *, int, slist_t *);
+int	outbound_request(const ftnaddr_t *, slist_t *);
+int	outbound_poll(const ftnaddr_t *, int);
+int	outbound_setstatus(const ftnaddr_t *fa, sts_t *);
+int	outbound_getstatus(const ftnaddr_t *fa, sts_t *);
+int	asoflist(flist_t **fl, const ftnaddr_t *, int);
+
 /* queue.c */
-extern qitem_t *q_find(ftnaddr_t *fa);
-extern int q_rescan(qitem_t **curr,int rslow);
-extern off_t q_sum(qitem_t *q);
-extern void qsendqueue();
+int	q_cmp(const void *, const void *);
+qitem_t	*q_find(const ftnaddr_t *);
+qitem_t	*q_add(const ftnaddr_t *);
+int	q_recountflo(const char *, off_t *, time_t *, int);
+void	q_recountbox(const char *, off_t *, time_t *, int);
+void	q_each(const char *, const ftnaddr_t *, int, int, int);
+off_t	q_sum(const qitem_t *);
+void	rescan_boxes(int);
+int	q_rescan(qitem_t **, int);
+void	qsendqueue(void);
 
 #endif
