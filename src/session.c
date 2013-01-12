@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.31 2004/05/29 23:34:50 sisoft Exp $
+ * $Id: session.c,v 1.31.2.1 2004/06/14 20:28:21 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -171,7 +171,7 @@ void flkill(flist_t **l,int rc)
 void simulate_send(ftnaddr_t *fa)
 {
 	flist_t *fl=NULL,*l=NULL;
-	makeflist(&fl,fa,1);
+	makeflist(&fl,fa,0);
 	for(l=fl;l;l=l->next)flexecute(l);
 	flkill(&fl,1);
 }

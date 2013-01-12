@@ -1,6 +1,6 @@
 /***************************************************************************
  * File request support
- * $Id: freq.c,v 1.8 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: freq.c,v 1.8.2.1 2004/06/13 11:06:38 sisoft Exp $
  ***************************************************************************/
 #include "headers.h"
 
@@ -72,8 +72,8 @@ int freq_ifextrp(slist_t *reqs)
 		while(*p=='\r'||*p=='\n')*p--=0;
 		p=strrchr(ss,' ');
 		if(p)*p++=0;else p=ss;
-		DEBUG(('R',1,"sending '%s' as '%s'%s",ss,(p!=s)?p:basename(s),kil?" and kill":""));
-		addflist(&fl,xstrdup(ss),xstrdup((p!=s)?p:basename(s)),kil?'^':' ',0,NULL,0);
+		DEBUG(('R',1,"sending '%s' as '%s'%s",ss,basename((p!=ss)?p:ss),kil?" and kill":""));
+		addflist(&fl,xstrdup(ss),xstrdup(basename((p!=ss)?p:ss)),kil?'^':' ',0,NULL,0);
 	}
 	fclose(f);lunlink(fn);
 	snprintf(fn,MAX_PATH,"/tmp/qrep.%04lx",tpid);
