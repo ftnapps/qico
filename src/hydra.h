@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.h,v 1.6 2004/02/06 21:54:46 sisoft Exp $ */
+/* $Id: hydra.h,v 1.7 2004/06/09 22:25:50 sisoft Exp $ */
 #ifndef __HYDRA_H__
 #define __HYDRA_H__
 
@@ -136,9 +136,9 @@ typedef long FILE_OFS;                          /* Offset in a disk file     */
 
 /* HYDRA Prototypes */
 extern void hydra_init (dword want_options, boolean originator, int hmod, int rxwin, int txwin);
-extern void hydra_deinit (void);
+extern void hydra_deinit ();
 extern int  hydra_file   (char *txpathname, char *txalias);
-extern boolean hydra_devfree (void);
+extern boolean hydra_devfree ();
 extern boolean hydra_devsend (char *dev, byte *data, word len);
 extern boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len));
 extern boolean hdxsession;

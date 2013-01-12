@@ -5,7 +5,7 @@
 #
 
 PORTNAME=	qicosi
-PORTVERSION=	0.54
+PORTVERSION=	0.55
 CATEGORIES=	comms
 MASTER_SITES=	http://santinel.bas-net.by/files/
 DISTNAME=	qico-${PORTVERSION}si
@@ -34,8 +34,8 @@ CONFIGURE_ARGS+=--with-config=${CONFDIR}/qico.conf \
 CONFIGURE_TARGET=--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 
 DOCS=		Changes FAQ README
-EXAMPLES=	fts-0001 onchat qhistory qico.xpm qlinks sfreq \
-		stat.run synctime tossing
+EXAMPLES=	onchat qhistory qico.xpm qlinks sfreq \
+		stat.run synctime tossing test.pl
 
 MAN8=		qcc.8 qctl.8 qico.8
 

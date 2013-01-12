@@ -1,6 +1,6 @@
 /**********************************************************
  * stuff
- * $Id: tools.c,v 1.15 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: tools.c,v 1.17 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_SYS_MOUNT_H
@@ -27,7 +27,7 @@ char *sigs[]={"","HUP","INT","QUIT","ILL","TRAP","IOT","BUS","FPE",
 static int initcharset(char *name,unsigned char *tab)
 {
 	FILE *f;
-	int rev=0;
+	int rev=0,n;
 	unsigned i,c;
 	char buf[MAX_STRING];
 	if(!name||!strcasecmp(name,"none"))return -1;
@@ -49,11 +49,11 @@ static int initcharset(char *name,unsigned char *tab)
 		} else {
 			if(sscanf(buf,"%u %u",&i,&c)!=2)continue;
 		}
-		if(rev) { rev=i;i=c;c=rev; }
+		if(rev) { n=i;i=c;c=n; }
 		if(c>255||i<128||i>255)continue;
 		tab[i-128]=c;
 	}
-	for(rev=0;rev<128;rev++)if(!tab[rev])tab[rev]=rev+128;
+	for(n=0;n<128;n++)if(!tab[n])tab[n]=n+128;
 	fclose(f);
 	return 1;
 }
@@ -107,60 +107,6 @@ char *qver(int w)
 		    if(cfgs(CFG_VERSION))return ccs;
 		return version;
 	} else return(cfgs(CFG_OSNAME)?ccs:osname);
-}
-
-slist_t *slist_add(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=xstrdup(s);
-	return *t;
-}
-
-slist_t *slist_addl(slist_t **l,char *s)
-{
-	slist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(slist_t *)xmalloc(sizeof(slist_t));
-	(*t)->next=NULL;
-	(*t)->str=s;
-	return *t;
-}
-
-char *slist_dell(slist_t **l)
-{
-	char *p=NULL;
-	slist_t *t,*cc=NULL;
-	for(t=*l;t&&t->next;cc=t,p=t->next->str,t=t->next);
-	if(cc)xfree(cc->next);
-	    else {
-		xfree(t);
-		*l=NULL;
-	}
-	return p;
-}
-
-void slist_kill(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree((*l)->str);
-		xfree(*l);
-		*l=t;
-	}
-}
-
-void slist_killn(slist_t **l)
-{
-	slist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree(*l);
-		*l=t;
-	}
 }
 
 void strbin2hex(char *s,const unsigned char *bptr,size_t blen)

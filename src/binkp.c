@@ -1,6 +1,6 @@
 /******************************************************************
  * Binkp protocol implementation.
- * $Id: binkp.c,v 1.37.2.1 2004/06/07 18:45:50 sisoft Exp $
+ * $Id: binkp.c,v 1.40 2004/06/16 20:24:33 sisoft Exp $
  ******************************************************************/
 #include "headers.h"
 #ifdef WITH_BINKP
@@ -460,13 +460,11 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 	rnode->starttime=time(NULL);
 	if(cfgi(CFG_MAXSESSION))alarm(cci*60);
 	DEBUG(('S',1,"Maxsession: %d",cci));
-	qemsisend(rnode);
-	qpreset(0);qpreset(1);
 	if(opt_cht&O_WANT)chatinit(0);
 	if(opt_nd&O_WE||(mode&&(opt_nr&O_WANT)&&bp_ver>=11))opt_nr|=O_WE;
 	if((opt_cht&O_WE)&&(opt_cht&O_WANT))opt_cht=O_YES;
 	if(bp_ver>=11||(opt_md&O_WE))opt_mb=O_YES;
-	write_log("options: Binkp%s%s%s%s%s%s%s%s%s",
+	snprintf(tmp,BP_BUFS-1,"Binkp%s%s%s%s%s%s%s%s%s",
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
 		(opt_nr&O_WE)?"/NR":"",
@@ -476,6 +474,10 @@ int binkpsession(int mode,ftnaddr_t *remaddr)
 		(opt_md==O_YES)?"/MD5":"/Plain",
 		(opt_cr==O_YES)?"/CRYPT":"",
 		(opt_cht==O_YES)?"/Chat":"");
+	write_log("options: %s",tmp);
+	IFPerl(if((rc=perl_on_session(tmp))!=S_OK)goto failed);
+	qemsisend(rnode);
+	qpreset(0);qpreset(1);
 	sendf.allf=totaln;sendf.ttot=totalf+totalm;
 	recvf.ttot=rnode->netmail+rnode->files;
 	effbaud=rnode->speed;lst=fl;

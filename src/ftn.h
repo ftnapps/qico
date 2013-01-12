@@ -1,4 +1,4 @@
-/* $Id: ftn.h,v 1.19 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: ftn.h,v 1.21 2004/06/23 17:59:35 sisoft Exp $ */
 #ifndef __FTN_H__
 #define __FTN_H__
 
@@ -43,6 +43,8 @@ typedef struct {
 
 #define FTNADDR_T(a) ftnaddr_t (a)={0,0,0,0,NULL}
 
+#include "slists.h"
+
 typedef struct {
 	char sign[20];
 	char nlname[MAX_NODELIST][20];
@@ -55,36 +57,11 @@ typedef struct {
 	unsigned index:8;
 } idxent_t;
 
-typedef struct _falist_t {
-	ftnaddr_t addr;
-	struct _falist_t *next;
-} falist_t;
-
-typedef struct _slist_t {
-	char *str;
-	struct _slist_t *next;
-} slist_t;
-
-typedef struct _faslist_t {
-	ftnaddr_t addr;
-	char *str;
-	struct _faslist_t *next;
-} faslist_t;
-
-typedef struct _flist_t {
-	struct _flist_t *next;
-	char *tosend, *sendas, kill;
-	FILE *lo;
-	off_t loff;
-	int type;
-} flist_t;
-
 typedef struct {
 	falist_t *addrs;
-	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host;
-	int options,speed,realspeed,netmail,files,haswtime,hidnum,type,holded,opt;
+	char *name,*place,*sysop,*phone,*wtime,*flags,*pwd,*mailer,*host,*tty;
+	int options,speed,realspeed,netmail,files,type,haswtime,hidnum,holded,opt;
 	time_t time,starttime;
-	char *tty;
 } ninfo_t;
 
 typedef struct _qitem_t {
@@ -170,10 +147,6 @@ extern ftnaddr_t *akamatch(ftnaddr_t *a, falist_t *akas);
 extern char *ftnaddrtoa(ftnaddr_t *a);
 extern char *ftnaddrtoda(ftnaddr_t *a);
 extern char *ftnaddrtoia(ftnaddr_t *a);
-extern void falist_add(falist_t **l, ftnaddr_t *a);
-extern void falist_kill(falist_t **l);
-extern void faslist_add(faslist_t **l, char *s, ftnaddr_t *a);
-extern void faslist_kill(faslist_t **l);
 extern char *strip8(char *s);
 extern int has_addr(ftnaddr_t *a, falist_t *l);
 extern char *engms[];

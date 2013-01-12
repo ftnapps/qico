@@ -1,6 +1,6 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.25 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: ftn.c,v 1.26 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -138,54 +138,6 @@ char *ftnaddrtoia(ftnaddr_t *a)
 	if(a->p)snprintf(s,64,"p%d.f%d.n%d.z%d." FTNDOMAIN,a->p,a->f,a->n,a->z);
 	    else snprintf(s,64,"f%d.n%d.z%d." FTNDOMAIN,a->f,a->n,a->z);
 	return s;
-}
-
-void falist_add(falist_t **l,ftnaddr_t *a)
-{
-	falist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(falist_t *)xmalloc(sizeof(falist_t));
-	(*t)->next=NULL;
-	addr_cpy(&(*t)->addr,a);
-}
-
-void falist_kill(falist_t **l)
-{
-	falist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree((*l)->addr.d);
-		xfree(*l);
-		*l=t;
-	}
-}
-
-falist_t *falist_find(falist_t *l,ftnaddr_t *a)
-{
-	for(;l;l=l->next)if(addr_cmp(&l->addr,a))return l;
-	return NULL;
-}
-
-void faslist_add(faslist_t **l,char *s,ftnaddr_t *a)
-{
-	faslist_t **t;
-	for(t=l;*t;t=&((*t)->next));
-	*t=(faslist_t *)xmalloc(sizeof(faslist_t));
-	(*t)->next=NULL;
-	(*t)->str=xstrdup(s);
-	addr_cpy(&(*t)->addr,a);
-}
-
-void faslist_kill(faslist_t **l)
-{
-	faslist_t *t;
-	while(*l) {
-		t=(*l)->next;
-		xfree((*l)->addr.d);
-		xfree((*l)->str);
-		xfree(*l);
-		*l=t;
-	}
 }
 
 char *strip8(char *s)

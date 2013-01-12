@@ -4,7 +4,7 @@
                              Joaquim H. Homrighausen
                   COPYRIGHT (C) 1991-1993; ALL RIGHTS RESERVED
  =============================================================================*/
-/* $Id: hydra.c,v 1.12 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: hydra.c,v 1.13 2004/06/09 22:25:50 sisoft Exp $ */
 #include "headers.h"
 #include "hydra.h"
 #include "crc.h"
@@ -134,7 +134,7 @@ static  struct _h_dev h_dev[] = {
 
 /*---------------------------------------------------------------------------*/
 
-boolean hydra_devfree (void)
+boolean hydra_devfree ()
 {
 	if (devtxstate || !(txoptions & HOPT_DEVICE) || txstate >= HTX_END)
 		return (false);                      /* busy or not allowed       */
@@ -183,7 +183,7 @@ boolean hydra_devfunc (char *dev, void (*func) (byte *data, word len))
 
 
 /*---------------------------------------------------------------------------*/
-static void hydra_devrecv (void)
+static void hydra_devrecv ()
 {
 	register char *p = (char *) rxbuf;
 	register int   i;
@@ -408,7 +408,7 @@ static void txpkt (register word len, int type)
 
 
 /*---------------------------------------------------------------------------*/
-static int rxpkt (void)
+static int rxpkt ()
 {
 	register byte *p, *q=NULL;
 	register int   c, n, i;
@@ -659,7 +659,7 @@ void hydra_init (dword want_options, boolean orig, int hmod, int rxwin, int txwi
 
 
 /*---------------------------------------------------------------------------*/
-void hydra_deinit (void)
+void hydra_deinit ()
 {
 	qpreset(0);qpreset(1);
 	xfree(txbuf);xfree(rxbuf);

@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.31.2.1 2004/06/14 20:28:21 sisoft Exp $
+ * $Id: session.c,v 1.40 2004/07/07 08:58:32 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -263,7 +263,7 @@ static int hydra(int mode,int hmod,int rh1)
 void log_rinfo(ninfo_t *e)
 {
 	falist_t *i;
-	struct tm *t,*mt;
+	struct tm *t,mt;
 	char s[MAX_STRING];
 	int k=0;
 	time_t tt=time(NULL);
@@ -286,10 +286,10 @@ void log_rinfo(ninfo_t *e)
 	write_log("  phone: %s",e->phone);
 	write_log("  flags: [%d] %s",e->speed,e->flags);
 	write_log(" mailer: %s",e->mailer);
-	t=localtime(&e->time);mt=localtime(&tt);
+	mt=*localtime(&tt);t=gmtime(&e->time);
 	write_log("   time: %02d:%02d:%02d, %s",t->tm_hour,t->tm_min,t->tm_sec,e->wtime?e->wtime:"unknown");
-	if(t->tm_mday!=mt->tm_mday||t->tm_mon!=mt->tm_mon||t->tm_year!=mt->tm_year)
-		write_log("   date: %02d.%02d.%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);
+	if(t->tm_mday!=mt.tm_mday||t->tm_mon!=mt.tm_mon||t->tm_year!=mt.tm_year)
+		write_log("   date: %02d/%02d/%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);
 	if(e->holded&&!e->files&&!e->netmail)write_log(" for us: %d%c on hold",
 		SIZES(e->holded),SIZEC(e->holded));
 	else if(e->files||e->netmail)write_log(" for us: %d%c mail; %d%c files",
@@ -301,7 +301,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	int rc,emsi_lo=0,proto;
 	unsigned long nfiles;
 	unsigned char *mydat;
-	char *t,pr[3];
+	char *t,pr[3],s[MAX_STRING];
 	falist_t *pp=NULL;
 	qitem_t *q=NULL;
 	was_req=0;got_req=0;
@@ -410,8 +410,6 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 	rnode->starttime=time(NULL);
 	if(cfgi(CFG_MAXSESSION))alarm(cci*60);
 	DEBUG(('S',1,"Maxsession: %d",cci));
-	qemsisend(rnode);
-	qpreset(0);qpreset(1);
 	proto=(mode?rnode->options:emsi_lo)&P_MASK;
 	switch(proto) {
 	    case P_NCP:
@@ -440,7 +438,7 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		t="Unknown";
 	}
 	DEBUG(('S',1,"emsopts: %s %x %x %x %x",t,rnode->options&P_MASK,rnode->options,emsi_lo,rnode->opt));
-	write_log("options: %s%s%s%s%s%s%s%s%s%s",t,
+	snprintf(s,MAX_STRING-1,"%s%s%s%s%s%s%s%s%s%s",t,
 		(rnode->options&O_LST)?"/LST":"",
 		(rnode->options&O_PWD)?"/PWD":"",
 		(rnode->options&O_HXT)?"/MO":"",
@@ -450,7 +448,12 @@ int emsisession(int mode,ftnaddr_t *calladdr,int speed)
 		(rnode->options&O_FNC)?"/FNC":"",
 		(rnode->options&O_BAD)?"/BAD":"",
 		(rnode->opt&MO_CHAT)?"/CHT":"");
+	write_log("options: %s",s);
 	chatinit(proto);
+	IFPerl(rc=perl_on_session(s);
+	    if(rc!=S_OK){flkill(&fl,0);return rc;});
+	qemsisend(rnode);
+	qpreset(0);qpreset(1);
 	switch(proto) {
 	    case P_ZEDZAP:
 	    case P_DIRZAP:
@@ -529,7 +532,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	signal(SIGINT,tty_sighup);
 	signal(SIGCHLD,SIG_DFL);
 	switch(type) {
-	    case SESSION_AUTO:
+/*	    case SESSION_AUTO:
 		write_log("trying EMSI...");
 		rc=emsi_init(mode);
 		if(rc<0) {
@@ -537,7 +540,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 			return S_REDIAL|S_ADDTRY;
 		}
 		rc=emsisession(mode,calladdr,speed);
-		break;
+		break;*/
 	    case SESSION_EMSI:
 		rc=emsisession(mode,calladdr,speed);
 		break;
@@ -556,6 +559,7 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 	if(rnode->options&O_HAT)rc|=S_HOLDA;
 	signal(SIGALRM,SIG_DFL);
 	sest=rnode->starttime?time(NULL)-rnode->starttime:0;
+	IFPerl(perl_end_session(sest,rc));
 	write_log("total: %d:%02d:%02d online, %d%c sent, %d%c received",
 		sest/3600,sest%3600/60,sest%60,
 		SIZES(sendf.toff-sendf.soff),SIZEC(sendf.toff-sendf.soff),
@@ -576,8 +580,8 @@ int session(int mode,int type,ftnaddr_t *calladdr,int speed)
 			fclose(h);
 		}
 	}
-	while(--freq_pktcount) {
-		snprintf(s,MAX_STRING,"/tmp/qpkt.%04lx%02x",(long)getpid(),freq_pktcount);
+	while(freq_pktcount) {
+		snprintf(s,MAX_STRING,"/tmp/qpkt.%04lx%02x",(long)getpid(),--freq_pktcount);
 		if(fexist(s))lunlink(s);
 	}
 	if(chatlg)chatlog_done();
