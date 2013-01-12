@@ -1,0 +1,8 @@
+/* $Id: TodayFixes,v 1.78.2.5 2004/06/14 20:28:21 sisoft Exp $ */
+---
+fix kill files from *.hlo and *.hut, when holdout=yes.
+.
+previous:
+---
+fix freqs: do not include path in outgoing filenames.
+.

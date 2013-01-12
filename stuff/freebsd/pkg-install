@@ -1,0 +1,20 @@
+#! /bin/sh
+
+case $2 in
+PRE-INSTALL)
+	;;
+POST-INSTALL)
+	BTBASEDIR=${BTBASEDIR:=/var/spool/fido/bt}
+	BTLOGDIR=${LOGDIR:=/var/log/fido/qico}
+	
+	mkdir -p $LOGDIR
+	mkdir -p $BTBASEDIR/in
+	mkdir -p $BTBASEDIR/pin
+	mkdir -p $BTBASEDIR/out
+	mkdir -p $BTBASEDIR/fbox
+	;;
+*)
+	echo >&2 "Unknown argument in $0 $@"
+	exit 1
+	;;
+esac

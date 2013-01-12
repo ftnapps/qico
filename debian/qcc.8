@@ -1,0 +1,50 @@
+.TH QCC 8 "2 Jun 2004"
+.SH NAME
+qcc \- ncurses frontend for qico ftn mailer.
+.SH SYNOPSIS
+.B qcc
+.RB [ \-nhvPaw ]
+.SH DESCRIPTION
+.B qcc
+is a graphical ncurses-based frontend for qico ftn mailer.
+.SH OPTIONS
+.TP
+.BI \-P port
+Connect to
+.I port.
+default port is service 'qicoui' or 60178.
+.TP
+.BI \-a host
+Connect to
+.I host.
+default host is localhost (127.0.0.1).
+.TP
+.BI \-w password
+Use
+.I password
+for connect to server. also may request password from user, if
+.I password
+is '-' (-w-).
+.TP
+.BI \-n
+Start
+.B qcc
+in silent mode (without stupid beeps).
+.TP
+.BI \-h
+Print help message.
+.TP
+.BI \-v
+Print version message.
+.SH SEE ALSO
+qico(8), qctl(8)
+
+qico homepage,
+http://qico.sourceforge.net/
+.SH AUTHORS
+Stepan Pologov <sisoft@bk.ru>, and others:
+ Cyril Margorin <cyrilm@tower.pp.ru> (official branch),
+ Lev Serebryakov <lev@serebryakov.spb.ru> (up to 0.49.9),
+ Pavel Kurnosoff <pqr@yasp.com> (up to 0.45pl3.1).
+.SH "REPORTING BUGS"
+Report bugs to <sisoft@bk.ru>
