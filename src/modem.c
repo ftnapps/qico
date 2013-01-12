@@ -1,6 +1,6 @@
 /**********************************************************
  * work with modem
- * $Id: modem.c,v 1.4 2004/06/02 13:20:08 sisoft Exp $
+ * $Id: modem.c,v 1.5 2004/06/19 22:31:57 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include "qipc.h"
@@ -235,7 +235,7 @@ int mdm_dial(char *phone,char *port)
 	xstrcpy(s,cfgs(CFG_DIALPREFIX),MAX_STRING);
 	xstrcat(s,phone,MAX_STRING);
 	xstrcat(s,cfgs(CFG_DIALSUFFIX),MAX_STRING);
-	tty_local();
+	tty_local(1);
 	sline("Dialing %s",s);vidle();
 	rc=modem_chat(s,cfgsl(CFG_MODEMCONNECT),cfgsl(CFG_MODEMNODIAL),cfgsl(CFG_MODEMERROR),
 			cfgsl(CFG_MODEMBUSY),cfgs(CFG_MODEMRINGING),cfgi(CFG_MAXRINGS),
@@ -254,13 +254,13 @@ int mdm_dial(char *phone,char *port)
 		return rc;
 	}
 	write_log("*** %s",conn);
-	tty_nolocal();
+	tty_local(0);
 	return rc;
 }
 
 void mdm_done()
 {
-	tty_local();
+	tty_local(1);
 	hangup();
 	stat_collect();
 	tty_close();

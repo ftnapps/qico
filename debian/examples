@@ -1,4 +1,3 @@
-stuff/fts-0001
 stuff/onchat
 stuff/sfreq
 stuff/synctime
@@ -8,3 +7,4 @@ stuff/qlinks
 stuff/stat.run
 stuff/qico.xpm
 stuff/koi8r_866.cp
+stuff/test.pl

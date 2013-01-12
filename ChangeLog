@@ -1,0 +1,1097 @@
+2004-06-24 13:53  sisoft
+
+	* src/: flaglex.l, session.c, slists.c, slists.h:
+
+	add lost files slists.[ch].
+	remove unused /tmp/qpkt*.pkt's.
+
+2004-06-23 21:59  sisoft
+
+	* Changes, qico.conf.sample, debian/control, src/Makefile.am,
+	  src/config.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/perl.c, src/session.c, src/tools.c, src/tools.h,
+	  stuff/test.pl:
+
+	now show remote time in node info again (was buggy local).
+	add support for defines in config (see conf.sample).
+
+2004-06-22 18:26  sisoft
+
+	* qico.conf.sample, src/config.c, src/flagexp.y, src/flaglex.l,
+	  src/perl.c, src/qconf.x, src/tools.h, src/x2c.awk, stuff/test.pl:
+
+	fix parse short time expressions, such as 'time 1-2'.
+	perl: add function qexpr(string) - test qico expression.
+	perl: speedup execute and support for END perl blocks.
+
+2004-06-22 12:28  sisoft
+
+	* src/: config.c, flagexp.y, perl.c, qconf.x, tty.c, tty.h:
+
+	check for some keywords not placed inside if-expressions.
+	fix chat with modem.
+
+2004-06-21 01:34  sisoft
+
+	* src/flagexp.y:
+
+	fix compiling.
+
+2004-06-21 01:30  sisoft
+
+	* autogen.sh, src/flagexp.y, src/flaglex.l:
+
+	fix pasring solid expressions.
+
+2004-06-20 22:50  sisoft
+
+	* autogen.sh, src/perl.c:
+
+	perl: fix error, if 'perlfile' undefined or not exist.
+
+2004-06-20 02:29  sisoft
+
+	* Changes, Makefile.am, README, configure.in, src/main.c,
+	  src/modem.c, src/tty.c, src/tty.h:
+
+	fix timeouts.
+
+2004-06-17 00:24  sisoft
+
+	* src/binkp.c, src/mailer.h, src/perl.c, src/protfm.c,
+	  src/session.c, stuff/test.pl:
+
+	perl: fix on_session and implement on_recv/end_recv/on_send/end_send hooks.
+
+2004-06-16 10:22  sisoft
+
+	* debian/copyright, src/mailer.h, src/perl.c, src/session.c,
+	  stuff/test.pl:
+
+	perl: fix compiling, implement end_session() hook.
+
+2004-06-16 07:42  sisoft
+
+	* Changes, INSTALL, qico.conf.sample, src/binkp.c, src/call.c,
+	  src/daemon.c, src/ftn.h, src/mailer.h, src/perl.c, src/session.c,
+	  stuff/test.pl:
+
+	some perl-related changes.
+
+2004-06-15 00:29  sisoft
+
+	* Changes, src/flaglex.l, src/session.c:
+
+	fix compile with old flex.
+	fix kill files from *.hlo and *.hut, when holdout=yes.
+
+2004-06-13 21:05  sisoft
+
+	* Changes, debian/changelog, debian/examples, debian/inetd.conf,
+	  debian/init.d, debian/rules, debian/services, src/freq.c,
+	  stuff/Makefile.am, stuff/freebsd/pkg-plist:
+
+	fix freqs: do not include path in outgoing filenames.
+	fix debian packages install.
+	distrubute stuff/test.pl.
+
+2004-06-12 00:30  sisoft
+
+	* src/daemon.c, src/flagexp.y, src/flaglex.l, src/perl.c,
+	  stuff/test.pl:
+
+	partially rewrite lexical config parser and fix possibly fuzzy detections.
+
+2004-06-10 02:25  sisoft
+
+	* cvs_com, src/daemon.c, src/flagexp.y, src/flaglex.l, src/hydra.c,
+	  src/hydra.h, src/log.c, src/mailer.h, src/main.c, src/perl.c,
+	  src/tools.c, src/tools.h, stuff/test.pl:
+
+	add if-expression flags 'perl[0-9]' - flags, setted from perl script.
+	other perl-related changes.
+
+2004-06-08 15:11  sisoft
+
+	* Changes, qico.conf.sample, src/protfm.c, stuff/test.pl:
+
+	fix receiving files from last position after abort, not from begin.
+
+2004-06-07 22:50  sisoft
+
+	* Changes, Makefile.am, README, autogen.sh, configure.in,
+	  qico.spec, debian/Makefile.am, debian/changelog, src/Makefile.am,
+	  src/binkp.c, src/daemon.c, src/log.c, src/main.c, src/perl.c,
+	  src/qconf.x, stuff/test.pl, stuff/freebsd/Makefile:
+
+	change version to 0.55si.
+	release 0.54si (cvs tag - stbl54).
+	add 'make deb' target for make debian packages.
+	begin write perl support code.
+	add configure option --enable-perl and keyword 'perlfile'.
+
+2004-06-05 10:49  sisoft
+
+	* Changes, qico.conf.sample, src/aso.c, src/config.c, src/daemon.c,
+	  src/emsi.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/hydra.c, src/ls_zmodem.c, src/protfm.c, src/qcc.c,
+	  src/qipc.c, src/qipc.h, src/tools.c, src/tools.h, src/tty.h:
+
+	fix sending *.req if ASO used.
+	add if-expressions 'mailer' and 'exec'.
+	other small changes.
+
+2004-06-05 04:15  sisoft
+
+	* Changes, src/config.c, src/protfm.c, src/qcc.c:
+
+	fix <if>-expressions parsing.
+
+2004-06-03 06:01  sisoft
+
+	* src/: daemon.c, protfm.c, qslib.c:
+
+	fix compile without binkp.
+
+2004-06-02 17:20  sisoft
+
+	* Changes, cvs_com, qico.conf.sample, debian/qcc.8, debian/qctl.8,
+	  src/config.c, src/daemon.c, src/modem.c:
+
+	fix multiline defines in config.
+	add support for change if--endif to {--} blocks (see conf.sample).
+
+2004-06-01 05:14  sisoft
+
+	* src/: qslib.c, qslib.h:
+
+	add files qslib.[ch].
+	add support for recursive <if>-expressions and conditional includes.
+
+2004-06-01 05:12  sisoft
+
+	* Changes, src/config.c, src/flagexp.y, src/tools.h:
+
+	add support for recursive <if>-expressions and conditional includes.
+
+2004-05-31 17:19  sisoft
+
+	* src/: Makefile.am, byteop.h, gmtoff.c, headers.h, qcc.c, qctl.c,
+	  ver.c.in, ver.h, xmem.c, xmem.h, xstr.c, xstr.h:
+
+	manage files.
+
+2004-05-31 17:15  sisoft
+
+	* Changes, configure.in, debian/qcc.8, debian/qctl.8,
+	  src/Makefile.am, src/byteop.h, src/defs.h, src/ftn.c,
+	  src/gmtoff.c, src/headers.h, src/log.c, src/main.c, src/modem.c,
+	  src/qcc.c, src/qctl.c, src/replace.h, src/tools.c, src/tools.h,
+	  src/tty.c, src/ver.h, src/xmem.c, src/xmem.h, src/xstr.c,
+	  src/xstr.h:
+
+	join files xstr,xmem,gtmoff,ver in qslib.
+	fix internal setproctitle().
+	in qcc/qctl: request password from user, if option '-w-' used.
+	qcc: don't show real cmdline in 'ps' command.
+
+2004-05-30 03:34  sisoft
+
+	* Changes, src/Makefile.am, src/aso.c, src/binkp.c, src/bso.c,
+	  src/call.c, src/config.c, src/daemon.c, src/ftn.h, src/globals.c,
+	  src/globals.h, src/log.c, src/mailer.h, src/main.c, src/queue.c,
+	  src/session.c, src/tools.h, stuff/Makefile.am, stuff/ftn,
+	  stuff/freebsd/distinfo:
+
+	changes in config parser.
+	merge aso and bso outbounds code.
+
+2004-05-29 15:56  sisoft
+
+	* Makefile.am, src/execsh.c:
+
+	remove src/execsh.c.
+
+2004-05-29 15:54  sisoft
+
+	* Changes, qico.spec, src/Makefile.am, src/call.c, src/defs.h,
+	  src/execsh.c, src/headers.h, src/mailer.h, src/modem.c,
+	  src/qcc.c, src/tools.c, src/tools.h, stuff/Makefile.am,
+	  stuff/freebsd/Makefile, stuff/freebsd/distinfo,
+	  stuff/freebsd/pkg-descr, stuff/freebsd/pkg-install,
+	  stuff/freebsd/pkg-plist:
+
+	[no log message]
+
+2004-05-28 08:15  sisoft
+
+	* src/modem.c:
+
+	add mistaked modem.c.
+
+2004-05-27 22:50  sisoft
+
+	* src/: Makefile.am, binkp.c, call.c, config.c, daemon.c, emsi.c,
+	  ftn.h, hydra.c, log.c, ls_zglue.c, mailer.h, main.c, nodelist.c,
+	  protfm.c, qcc.c, qnlc.c, session.c, tcp.c, tools.h, tty.c, tty.h:
+
+	fix end 'qico -c' calls.
+	move modem functions to modem.c, calls to call.c.
+
+2004-05-26 11:46  sisoft
+
+	* configure.in, src/binkp.c, src/crc.h, src/daemon.c, src/md5.c,
+	  src/qcc.c, src/qctl.c:
+
+	last fix for --with-config.
+	other small changes.
+
+2004-05-24 07:21  sisoft
+
+	* Changes, INSTALL, README, qico.conf.sample, debian/qctl.8,
+	  src/Makefile.am, src/binkp.c, src/clserv.c, src/clserv.h,
+	  src/daemon.c, src/ftn.c, src/ftn.h, src/qcc.c, src/qconf.x,
+	  src/qctl.c, src/tcp.c, src/tools.c, src/tools.h, src/xstr.c,
+	  src/xstr.h:
+
+	[no log message]
+
+2004-05-21 18:15  sisoft
+
+	* debian/.cvsignore, debian/changelog, debian/rules, src/daemon.c,
+	  src/qctl.c:
+
+	fix several bugs in qctl.
+	try to fix daemon hung under *BSD.
+
+2004-05-19 13:52  sisoft
+
+	* Changes, configure.in, qico.conf.sample, src/config.c, src/ftn.c,
+	  src/ls_zreceive.c, src/ls_zsend.c:
+
+	next try to fix configure error (without --with-config).
+	now C++ style comments are allowed in config (//).
+	fix crash if z[tr]xwin keywords used.
+
+2004-05-18 02:29  sisoft
+
+	* Changes, FAQ, configure.in, qico.conf.sample, debian/qcc.8,
+	  debian/qctl.8, src/clserv.c, src/clserv.h, src/daemon.c,
+	  src/emsi.c, src/main.c, src/qcc.c, src/qctl.c, src/tools.c,
+	  src/ver.c.in:
+
+	remove -cvs suffix from version.
+	fix charset recoding.
+	now qcc and qctl may connect on any host (option '-a').
+
+2004-04-17 11:25  sisoft
+
+	* Changes, INSTALL, configure.in, src/binkp.c, src/main.c,
+	  src/nodelist.c, src/protfm.c, src/session.c:
+
+	fix binkp voracious (last byte).
+	configure: another fix configuration without --with-config.
+	configure: add --disable-binkp option.
+	add file INSTALL.
+
+2004-04-15 02:21  sisoft
+
+	* src/: binkp.c, log.c, qcc.c, tcp.c:
+
+	show milliseconds in logtime if loglevel T >= 1.
+
+2004-04-13 21:37  sisoft
+
+	* Changes, qico.conf.sample, src/binkp.c, src/config.c,
+	  src/daemon.c, src/ftn.c, src/main.c, src/qcc.c, src/qconf.x,
+	  src/tools.c, src/tools.h:
+
+	in qcc: now screen splitted at: lines>=20?10:lines/2.
+	improve config parsing error reports.
+	add support for filename escaping to binkp.
+	support for recode codepages of name/station/place/phone in binkp.
+	now keywords 'lockdir', 'modem*', 'phonetr' and 'port' not required.
+	in qcc: support for request many space-separated files. filenames, containing spaces must be quoted.
+
+2004-04-11 05:03  sisoft
+
+	* configure.in, src/qcc.c:
+
+	fix configure without --with-config.
+
+2004-04-09 13:51  sisoft
+
+	* Changes, configure.in, debian/Makefile.am, debian/rules,
+	  src/Makefile.am, src/protfm.c, src/qcc.c, src/session.c,
+	  stuff/Makefile.am:
+
+	configure: change default config location to {sysconfdir} (was {prefix}/etc).
+	configure: test for config is not a directory.
+	in qcc: fix inputstr() windows on short terminals.
+
+2004-03-28 00:38  sisoft
+
+	* Changes, README, src/binkp.c, src/daemon.c, src/flagexp.y,
+	  src/log.c, src/main.c, src/protfm.c, src/qcc.c, src/qipc.c,
+	  src/session.c, src/tcp.c, src/xmem.c, src/xstr.h:
+
+	fix a-conf option --with-default-speed.
+	in qcc: fix cmd 'h' for numbers >255.
+	in qcc: fix mark '='.
+	show remote date if it's differ from local.
+	set mtime for sending and received files relative to timezone. (patch from Konstantin Marchik)
+
+2004-03-24 20:52  sisoft
+
+	* stuff/koi8r_866.cp:
+
+	add file.
+
+2004-03-24 20:50  sisoft
+
+	* Changes, configure.in, qico.conf.sample, debian/examples,
+	  src/Makefile.am, src/charset.h, src/config.c, src/daemon.c,
+	  src/emsi.c, src/flaglex.l, src/freq.c, src/ftn.c, src/log.c,
+	  src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/qipc.c,
+	  src/tools.c, src/tools.h, stuff/Makefile.am:
+
+	fix compile on old systems without socklen_t.
+	fix logging about qico execute errors.
+	in qcc: print qcc's log time with strftime().
+	don't try exchange with daemon, if its not exists.
+	new option for map(in|out): 'r' - recode filenames in *.req files (was: always recode).
+	add keyword 'recodepkts' - recode freq-report packets to transport charset. (was: always recode).
+	add keywords 'remotecp' and 'localcp' - see conf.sample for description.
+	remove obsoleted keyword 'remoterecode'.
+
+2004-03-21 13:42  sisoft
+
+	* Changes, configure.in, src/daemon.c, src/flagexp.y,
+	  src/flaglex.l, src/log.c, src/qcc.c, src/qipc.c, src/tty.h,
+	  src/xstr.h:
+
+	fix vsnprintf() and tm.tm_gmtoff detection.
+	add if-expression 'line' (was documented, but unreleased).
+
+2004-03-20 19:04  sisoft
+
+	* Changes, configure.in, debian/rules, src/basename.c,
+	  src/headers.h, src/memcmp.c, src/qcc.c, src/qctl.c,
+	  src/strcspn.c, src/strsep.c, src/tcp.c, src/tools.c:
+
+	try to fix compile under Solaris.
+	fix [n]curses library detection.
+	fix stat[v]fs struct detection.
+
+2004-03-18 00:28  sisoft
+
+	* Changes, src/protfm.c:
+
+	fix autoopening chat with TheBrake.
+
+2004-03-15 04:19  sisoft
+
+	* Changes, FAQ, README, qico.conf.sample, debian/control,
+	  debian/qcc.8, debian/qico.8, src/clserv.c, src/clserv.h,
+	  src/qcc.c:
+
+	apply ispell to docs.
+	work on old systems with simple recv() implementation.
+	in qcc: fix resize terminal.
+	in qcc: add key 'ctrl+l' for refresh screen.
+
+2004-03-10 02:11  sisoft
+
+	* Changes, qico.conf.sample, src/daemon.c, src/main.c, src/qconf.x:
+
+	add keyword 'runoncall'.
+
+2004-03-09 01:41  sisoft
+
+	* Changes, README, configure.in, debian/changelog:
+
+	0.53si-cvs.
+
+2004-03-09 01:02  sisoft
+
+	* configure.in, src/basename.c, src/malloc.c, src/memcmp.c,
+	  src/strcspn.c, src/strsep.c, src/usleep.c:
+
+	stable version 0.52 forking. current=0.53.
+
+2004-03-06 17:53  sisoft
+
+	* Changes, qico.conf.sample, src/binkp.c, src/binkp.h,
+	  src/config.c:
+
+	improve BP_VER message parsing.
+	increase binkp temp buffer (for support lots akas).
+
+2004-03-06 15:50  sisoft
+
+	* Changes, README, configure.in, debian/init.d, debian/rules,
+	  src/binkp.c, src/flaglex.l, src/tools.c, src/tty.c, src/tty.h:
+
+	set rts/cts flow control for tty's on linux.
+	fix directory tree creating.
+
+2004-03-03 18:12  sisoft
+
+	* src/flaglex.l, src/qcc.c, stuff/ftn:
+
+	fix expressions binkp and tcp.
+
+2004-02-27 02:55  sisoft
+
+	* configure.in, src/aso.c, src/binkp.c, src/bso.c, src/config.c,
+	  src/daemon.c, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/globals.c, src/hydra.c, src/janus.c, src/ls_zreceive.c,
+	  src/main.c, src/nodelist.c, src/protfm.c, src/qcc.c, src/qctl.c,
+	  src/queue.c, src/session.c, src/ver.c.in:
+
+	remove compiler warnings under gcc3.
+	fix segfault crash on some systems.
+
+2004-02-23 04:02  sisoft
+
+	* Changes, configure.in, qico.conf.sample, debian/copyright,
+	  src/binkp.c, src/config.c, src/flaglex.l:
+
+	add short aliases for weekdays (su,mo,tu...).
+	add aliases 'or','no[t]','xor','and' for same symbols (|!^&).
+	add support for multiline breaking (line must end on " \").
+
+2004-02-23 00:33  sisoft
+
+	* Changes, TODO, qico.conf.sample, src/binkp.c, src/config.c,
+	  src/emsi.c, src/ftn.h, src/qcc.c, src/session.c, src/xmem.h:
+
+	in qcc: fix crash on terminals wider 127 columns.
+	fix unnecessary error '..too slow'.
+	fix domains in binkp.
+	add domain parts to addresses in emsi.
+	truncate Changes file.
+	TODO removed, as unusable.
+
+2004-02-20 02:36  sisoft
+
+	* Changes, FAQ, configure.in, qico.conf.sample, src/binkp.h,
+	  src/config.c, src/daemon.c, src/defs.h, src/flaglex.l,
+	  src/main.c, src/tools.h:
+
+	fix config dumping.
+	add keyword 'else'.
+	add support for inline if-expressions.
+	add alias 'addr' for expression 'address'.
+
+2004-02-17 14:23  sisoft
+
+	* src/: call.c, emsi.c, flagexp.y, flaglex.l:
+
+	try to fix emsi.
+
+2004-02-15 04:22  sisoft
+
+	* Changes, qico.conf.sample, src/config.c, src/flagexp.y,
+	  src/flaglex.l, src/tools.c:
+
+	fix some if-expressions.
+	check expressions syntax on config read.
+	change syntax of if-expression 'sfree'.
+
+2004-02-14 18:58  sisoft
+
+	* Changes, src/binkp.c, src/hydra.c, src/log.c, src/protfm.c,
+	  src/qcc.c:
+
+	fix binkp session closing with opened chat.
+	in qcc: split input history into groups.
+
+2004-02-14 14:55  sisoft
+
+	* src/tools.c:
+
+	fix segfault on session begin.
+
+2004-02-14 01:29  sisoft
+
+	* FAQ, README, src/Makefile.am, src/binkp.c, src/binkp.h,
+	  src/byteop.h, src/clserv.c, src/clserv.h, src/crc.c, src/crc.h,
+	  src/daemon.c, src/defs.h, src/emsi.c, src/ftn.c, src/ftn.h,
+	  src/globals.c, src/globals.h, src/headers.h, src/hydra.c,
+	  src/janus.c, src/ls_zglue.c, src/ls_zmodem.c, src/ls_zreceive.c,
+	  src/ls_zsend.c, src/mailer.h, src/main.c, src/md5.c, src/opts.h,
+	  src/qcc.c, src/qcconst.h, src/qctl.c, src/qipc.c, src/qipc.h,
+	  src/session.c, src/tcp.c, src/tools.c, src/tools.h, src/tty.c,
+	  src/tty.h, src/types.h, stuff/qhistory, stuff/qico.stat,
+	  stuff/qlinks, stuff/qst_hist.lnk, stuff/qst_hist.ses,
+	  stuff/stat.run:
+
+	fix updating stat scripts. ;)
+	another src's correcting.
+
+2004-02-11 15:44  sisoft
+
+	* Changes, src/main.c, src/tty.c, stuff/Makefile.am, stuff/ftn,
+	  stuff/fts-0001, stuff/qico.xpm, stuff/tossing:
+
+	update stat scripts in stuff.
+
+2004-02-10 15:08  sisoft
+
+	* Changes, TODO, src/freq.c, src/queue.c:
+
+	fix boxes queue scan.
+	fix freqs.
+
+2004-02-09 04:05  sisoft
+
+	* Changes, configure.in, qico.conf.sample, src/aso.c, src/binkp.c,
+	  src/bso.c, src/call.c, src/config.c, src/crc.c, src/crc.h,
+	  src/daemon.c, src/emsi.c, src/flagexp.y, src/flaglex.l,
+	  src/freq.c, src/ftn.c, src/ftn.h, src/globals.c, src/globals.h,
+	  src/headers.h, src/log.c, src/mailer.h, src/main.c, src/protfm.c,
+	  src/qcc.c, src/qctl.c, src/qipc.h, src/qnlc.c, src/queue.c,
+	  src/session.c, src/tcp.c, src/tools.c, src/tools.h, src/tty.c,
+	  src/tty.h, src/ver.c.in, src/ver.h, src/xmem.c, src/xmem.h,
+	  src/xstr.c:
+
+	add if-expression 'sfree' - free disk space.
+	small resctructure srcs.
+	try to fix arbitrarily open chat.
+
+2004-02-07 23:37  sisoft
+
+	* src/: qcc.c, qctl.c:
+
+	in qcc: change error to warning if file not accessed.
+	in qcc: increase maximum lines to 16.
+
+2004-02-07 00:52  sisoft
+
+	* Changes, Makefile.am, cvs_com, debian/.cvsignore,
+	  debian/Makefile.am, src/binkp.c, src/call.c, src/clserv.c,
+	  src/daemon.c, src/defs.h, src/emsi.c, src/flagexp.y, src/ftn.c,
+	  src/headers.h, src/hydra.c, src/hydra.h, src/janus.c, src/log.c,
+	  src/ls_zglue.c, src/ls_zmodem.c, src/ls_zreceive.c,
+	  src/ls_zsend.c, src/mailer.h, src/main.c, src/md5.c,
+	  src/protfm.c, src/qcc.c, src/qcconst.h, src/qctl.c, src/qipc.c,
+	  src/qipc.h, src/queue.c, src/replace.h, src/session.c, src/tcp.c,
+	  src/tools.c, src/tools.h, src/tty.c, src/tty.h, src/xstr.c,
+	  stuff/tossing:
+
+	correct includes.
+	fix crash on outoging calls over ip.
+	more debugs in queue scan.
+	fix chat in binkp.
+	in qcc: show '=' in queue on active addresses.
+
+2004-02-05 22:51  sisoft
+
+	* Changes, FAQ, Makefile.am, README, configure.in,
+	  qico.conf.sample, debian/.cvsignore, debian/Makefile.am,
+	  debian/docs, src/Makefile.am, src/aso.c, src/binkp.c, src/bso.c,
+	  src/byteop.h, src/call.c, src/clserv.c, src/config.c,
+	  src/daemon.c, src/emsi.c, src/flagexp.y, src/flaglex.l,
+	  src/ftn.c, src/ftn.h, src/headers.h, src/hydra.c, src/hydra.h,
+	  src/janus.c, src/log.c, src/ls_zmodem.c, src/ls_zmodem.h,
+	  src/ls_zsend.c, src/mailer.h, src/main.c, src/md5.c,
+	  src/nodelist.c, src/protfm.c, src/qcc.c, src/qconf.x, src/qctl.c,
+	  src/qipc.c, src/qnlc.c, src/queue.c, src/session.c, src/tcp.c,
+	  src/tools.c, src/tools.h, src/tty.c, src/tty.h, src/types.h:
+
+	in conf.sample: remove (new!) markers and some corrections.
+	remove trailing spaces from sources.
+	add makefile in /debian.
+	strip down ftn* to tools*.
+
+2004-02-05 16:09  sisoft
+
+	* Changes, qico.conf.sample, src/ftn.c, src/qconf.x, src/tcp.c:
+
+	added socks4 and socks5 support. added keword 'socks'.
+
+2004-02-02 20:31  sisoft
+
+	* cvs_com, qico.conf.sample, src/binkp.c, src/binkp.h, src/emsi.c,
+	  src/ftn.c, src/protfm.c, src/qcc.c:
+
+	in qcc: fix get info about node.
+	free unused memory after binkp.
+	fix making emsi data.
+	added chat for binkp and option 'T' for 'binkpopt'.
+
+2004-02-01 21:11  sisoft
+
+	* Changes, configure.in, src/clserv.c, src/daemon.c, src/emsi.c,
+	  src/freq.c, src/ftn.c, src/log.c, src/protfm.c, src/session.c,
+	  src/tcp.c:
+
+	another paranoidal changes.
+	change f_notify to dnotify (as in kernel).
+	fix crash if bad ip packet recv.
+	fix 'mapout' keyword.
+	use basename() in mapping.
+
+2004-01-27 00:24  sisoft
+
+	* Changes, src/daemon.c, src/nodelist.c, src/qipc.c:
+
+	fix 'translatesubst' on outgoing from daemon.
+
+2004-01-23 15:43  sisoft
+
+	* TODO, src/daemon.c, src/qcc.c, src/qipc.c, src/queue.c:
+
+	add debugs in queue scan.
+	change id of first client to 1.
+	don't send unnecessary info to new clients.
+	in qcc: show new ip lines on first free window.
+	in qcc: fix chat.
+
+2004-01-21 18:40  sisoft
+
+	* src/: clserv.h, daemon.c, qipc.c:
+
+	send info about current sessions to new ui-clients.
+
+2004-01-21 01:02  sisoft
+
+	* debian/docs, src/config.c, src/freq.c, src/ftn.c, src/protfm.c,
+	  src/qnlc.c, src/session.c, src/tty.c:
+
+	more informative some errors.
+
+2004-01-20 13:42  sisoft
+
+	* Changes, src/binkp.c, src/session.c:
+
+	fix send files.
+	fix binkp detect NR mode with binkd <= 0.9.5.
+	fix binkp crash, if can't lock outbound on incoming call.
+
+2004-01-19 23:21  sisoft
+
+	* Changes, src/binkp.c, src/clserv.c, src/clserv.h, src/daemon.c,
+	  src/log.c, src/main.c, src/qcc.c, src/qipc.c, src/qipc.h:
+
+	in qcc: fix ESC key.
+	perfect daemon latency.
+	fix skip/suspend/chat/hup functions.
+	in qcc: fix for support multiple ip lines.
+	send cmd for remove old ip windows.
+	fix binkp.
+
+2004-01-19 00:13  sisoft
+
+	* src/: config.c, daemon.c, qcc.c:
+
+	in qcc: fix ESC key.
+	perfect daemon latency.
+
+2004-01-18 18:58  sisoft
+
+	* Changes, README, configure.in, qico.conf.sample,
+	  debian/conffiles, debian/qcc.8, debian/qctl.8, src/aso.c,
+	  src/binkp.c, src/bso.c, src/clserv.c, src/clserv.h, src/daemon.c,
+	  src/emsi.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/hydra.c,
+	  src/log.c, src/ls_zreceive.c, src/ls_zsend.c, src/main.c,
+	  src/md5.c, src/qcc.c, src/qctl.c, src/qipc.c, src/session.c,
+	  src/tcp.c:
+
+	fix work without daemon.
+	in qcc&qctl: quit, if connection to server broken.
+	set default port to service 'qicoui' or 60178.
+	fix some memory leak.
+	add autorescan if system GNU-compatible, have F_NOTIFY and ASO used.
+	added option '--disable-notify' to configure for disable autorescan.
+	add if-expression 'host'.
+	fix 'connstr' if-expression.
+	more portable ip exchange.
+	change loglevel 'X' - max dubug level, for send to clients.
+
+2004-01-17 03:05  sisoft
+
+	* Changes, compile, qico.conf.sample, debian/rules, src/binkp.c,
+	  src/clserv.c, src/daemon.c, src/emsi.c, src/hydra.c,
+	  src/mailer.h, src/protfm.c, src/qcc.c, src/qctl.c, src/qipc.c,
+	  src/session.c:
+
+	[no log message]
+
+2004-01-16 02:39  sisoft
+
+	* Changes, README, TODO, configure.in, qico.conf.sample,
+	  debian/changelog, debian/qcc.8, debian/qctl.8, debian/qico.8,
+	  debian/services, src/Makefile.am, src/clserv.c, src/clserv.h,
+	  src/daemon.c, src/headers.h, src/log.c, src/main.c, src/qcc.c,
+	  src/qcconst.h, src/qconf.x, src/qctl.c, src/qipc.c, src/qipc.h:
+
+	rewrite ipc code to (tcp+udp)/ip.
+	remove 'ipcperm' keyword.
+	added 'server' keyword: server port.
+	added -P <port> options to qcc and qctl.
+	some code cleanup... may be.
+	many bugs added too. ;)
+
+2004-01-13 12:42  sisoft
+
+	* Makefile.am, debian/init.d, src/main.c, src/qcc.c:
+
+	none.
+
+2004-01-13 00:41  sisoft
+
+	* src/: Makefile.am, clserv.c, clserv.h, daemon.c, flagexp.y,
+	  ftn.h, globals.c, globals.h, hydra.h, log.c, ls_zmodem.h,
+	  mailer.h, main.c, qcc.c, qctl.c, qipc.c, qipc.h, session.c,
+	  xmem.h, xstr.h:
+
+	change IPC to IP in progress..
+
+2004-01-10 12:26  sisoft
+
+	* src/daemon.c:
+
+	daemon.c added.
+
+2004-01-10 12:24  sisoft
+
+	* .cvsignore, Changes, FAQ, cvs_com, qico.conf.sample,
+	  debian/changelog, debian/conffiles, debian/control,
+	  debian/copyright, debian/dirs, debian/examples,
+	  debian/inetd.conf, debian/init.d, debian/qcc.8, debian/qcc.files,
+	  debian/qctl.8, debian/qctl.files, debian/qico.8, debian/rules,
+	  debian/services, src/Makefile.am, src/aso.c, src/binkp.c,
+	  src/binkp.h, src/bso.c, src/call.c, src/charset.h, src/config.c,
+	  src/emsi.c, src/ftn.c, src/ftn.h, src/hydra.c, src/hydra.h,
+	  src/janus.c, src/janus.h, src/log.c, src/ls_zmodem.c,
+	  src/ls_zmodem.h, src/mailer.h, src/main.c, src/protfm.c,
+	  src/qcc.c, src/qconf.x, src/qipc.c, src/qipc.h, src/qnlc.c,
+	  src/session.c, src/tcp.c, src/tty.c, src/x2c.awk, src/x2h.awk,
+	  stuff/fts-0001, stuff/onchat, stuff/tossing:
+
+	add keyword 'rmboxes' - remove empty fileboxes.
+	again fix poorly remove outbound dir.
+	change faq q about gdb.
+	support for additional info in .qst's for ND mode.
+	more fixes..
+
+2003-10-14 22:44  sisoft
+
+	* src/ftn.h:
+
+	fix crash due to empty domain.
+
+2003-10-14 03:04  sisoft
+
+	* Changes, FAQ, README, qico.conf.sample:
+
+	cosmetical.
+	something...
+
+2003-10-08 20:45  sisoft
+
+	* qico.conf.sample, src/tcp.c:
+
+	add http/https proxy support. yet not tested.
+
+2003-10-08 14:07  sisoft
+
+	* qico.conf.sample, src/call.c, src/qconf.x, src/tcp.c:
+
+	add keyword 'failpolls yes/no' - create polls after failed session.
+	add description for keyword 'killbadpkt' to sample config.
+
+2003-10-08 05:26  sisoft
+
+	* src/: binkp.c, mailer.h, qcc.c, qcconst.h, qconf.x, tcp.c:
+
+	move some defines.
+	partially add work with proxy.
+
+2003-10-06 17:37  sisoft
+
+	* Changes, configure.in, src/binkp.c, src/main.c:
+
+	fix configure.
+
+2003-10-05 23:37  sisoft
+
+	* cvs_com, src/Makefile.am:
+
+	fix makefile for make dist.
+
+2003-10-05 21:48  sisoft
+
+	* Changes, FAQ, README, TODO, cvs_com, src/main.c, src/qcc.c,
+	  src/qctl.c, src/ver.c.in, src/ver.h:
+
+	added -v option for all programs. see this for version.
+	change faq about bugs.
+
+2003-10-05 19:01  sisoft
+
+	* qico.conf.sample, src/binkp.c, src/binkp.h, src/session.c:
+
+	apply new exchange-flags algo.
+	add support for CRYPT mode.
+	partially support for NDA (ND-async) mode.
+
+2003-10-03 04:11  sisoft
+
+	* .cvsignore, cvs_com, src/binkp.c, src/binkp.h, src/freq.c:
+
+	another fix of binkp opt.
+	tested with binkd-0.9.6a and binkleyforce-0.22.8.kst7 - success.
+	fix work with multiple batches.
+	fix set MD5-auth mode on incoming binkp calls.
+	add freq support. work only with MB mode (binkp/1.1).
+	change position of message TRF in handshake.
+
+2003-10-02 19:17  sisoft
+
+	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
+	  configure.in, cvs_com, qico.conf.sample, src/binkp.c,
+	  src/binkp.h, src/ftn.c, src/main.c, src/qcc.c, src/qctl.c,
+	  src/session.c, src/tcp.c:
+
+	change version to 0.50si-cvs.
+	small change in configure.in.
+	add support for NR and MB modes in binkp.
+	fix binkp: change spaces to underlines in filenames.
+	fix stupid error in parse M_GET.
+	more correct set PWD flag on outbound binkp sess.
+	fix 'binkpopt' keyword.
+	added TodayFixes: changes in current commit.
+
+2003-09-24 01:48  sisoft
+
+	* README, src/binkp.c:
+
+	fix binkp loop.
+
+2003-09-23 17:07  sisoft
+
+	* src/tcp.c:
+
+	fix run ./qico -bi.
+
+2003-09-23 16:55  sisoft
+
+	* Changes, qico.conf.sample, src/binkp.c, src/binkp.h, src/call.c,
+	  src/emsi.c, src/flagexp.y, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/globals.c, src/globals.h, src/log.c, src/ls_zmodem.c,
+	  src/mailer.h, src/main.c, src/nodelist.c, src/qcc.c,
+	  src/qcconst.h, src/qconf.x, src/qipc.c, src/session.c, src/tcp.c:
+
+	fix loglevel Y.
+	change keyword 'subst'.
+	'domain' - default domain for binkp.
+	perse domain part of addresses (only for binkp).
+	add if-expression 'connstr'.
+	daemon may calls to ip-nodes.
+	new file flag: nodial.tcpip - can't call via ip.
+	add 'p' opt for binkpopt: disable plain auth.
+
+2003-09-16 15:05  sisoft
+
+	* .cvs2cl, Changes, README, configure.in:
+
+	release 0.49.12si stable version.
+	current version 0.50si
+
+2003-09-16 14:05  sisoft
+
+	* src/: binkp.c, queue.c:
+
+	add flavor N to defbsoflv.
+
+2003-09-14 20:45  sisoft
+
+	* Changes, qico.conf.sample, src/binkp.c, src/qconf.x, src/queue.c,
+	  src/session.c, src/tty.c:
+
+	add keyword 'defboxflv' - default longbox flavor.
+	small change in binkp.
+	more accurate loglevel M9.
+
+2003-09-13 19:31  sisoft
+
+	* qico.conf.sample, src/binkp.c, src/ftn.c:
+
+	fix binkp.
+
+2003-09-12 23:16  sisoft
+
+	* src/: binkp.c, session.c:
+
+	fix ASO. tnx for Michael Kulinich for patch.
+
+2003-09-12 22:24  sisoft
+
+	* src/binkp.c:
+
+	some fixes in binkp.
+
+2003-09-09 01:17  sisoft
+
+	* src/: aso.c, bso.c, queue.c:
+
+	fix ASO and BSO scan in one directory. add fool-shield.
+
+2003-09-08 00:27  sisoft
+
+	* Changes, FAQ, README, qico.conf.sample, src/qconf.x:
+
+	fix descriptions in config sample. add Q in faq. add keyword `binkpopt`.
+
+2003-09-07 13:34  sisoft
+
+	* src/: aso.c, emsi.c, ftn.h, queue.c:
+
+	fix ASO rescan. fix something in emsi.
+
+2003-09-03 01:00  sisoft
+
+	* Changes, src/emsi.c:
+
+	fix in emsi.
+
+2003-09-01 23:12  sisoft
+
+	* Changes, README, src/queue.c, src/session.c:
+
+	add work with longbox in zone.net.node.point.flavour format.
+
+2003-08-28 17:42  sisoft
+
+	* src/: binkp.c, binkp.h, md5.c:
+
+	really add binkp files.
+
+2003-08-25 21:28  sisoft
+
+	* README, configure.in:
+
+	correct my email address.
+
+2003-08-25 19:27  sisoft
+
+	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO,
+	  configure.in, qico.conf.sample, src/Makefile.am, src/crc.c,
+	  src/crc.h, src/emsi.c, src/flaglex.l, src/ftn.c, src/ftn.h,
+	  src/globals.c, src/globals.h, src/mailer.h, src/main.c,
+	  src/protfm.c, src/qcc.c, src/qconf.x, src/session.c, src/tcp.c,
+	  src/tty.c, src/types.h:
+
+	write my emsi, if loglevel E greather 1.
+	add keyword 'sendonly': HAT in emsi if enabled.
+	fix set node to hold HRQ after failure session.
+	fix reset wait call timer.
+	fix LST flag on outbound calls.
+	fix in emsi: send \r until receive anything.
+	more informative loglevel M.
+	remove CR's from crc.h and types.h.
+	add files: binkp.c, binkp.h, md5.c.
+	correct other files for support binkp protocol.
+	describe more info about 'qctl -f'.
+	added binkp protocol. be happy, but worry. ;)
+	warn: binkp for test mode only, use on your risk.
+	add -b opt for qico: binkp if enabled, else ifcico.
+	add keyword 'domain': domain name for binkp.
+	add if-expression 'binkp': true, if binkp session established.
+	add debug level 'B' - binkp.
+	qcc: print 'empty queue' string, if queue really empty.
+	fix 'holdout' keyword.
+	todo:qcc: add ctrl+l combination for refresh screen.
+	don't send and recv mail-poll's (pkt's with 60 bytes).
+
+2003-07-25 01:50  sisoft
+
+	* Changes, README, src/aso.c, src/bso.c, src/ftn.h, src/main.c,
+	  src/session.c:
+
+	add work with .csy busy flags, change work with .bsy flags.
+
+2003-07-24 20:46  sisoft
+
+	* .cvs2cl, .cvsignore:
+
+	foo
+
+2003-07-24 15:53  sisoft
+
+	* Changes, qico.conf.sample, src/ftn.c, src/log.c:
+
+	fix %F macro.
+	add loglevels X: sent debug log to qcc.
+
+2003-07-24 15:30  sisoft
+
+	* src/session.c:
+
+	fix 'holdout' func.
+
+2003-07-24 00:33  sisoft
+
+	* Changes, qico.conf.sample, src/qconf.x, src/session.c:
+
+	add keyword 'holdout': hold files with 'hold' status on outgoing calls.
+
+2003-07-23 14:45  sisoft
+
+	* Changes, TODO, qico.conf.sample, src/aso.c, src/ftn.c, src/ftn.h,
+	  src/main.c, src/protfm.c, src/qcc.c, src/qconf.x, src/session.c:
+
+	add func 'sent file' to qcc.
+	add keyword 'autohold <files>': automatically hold these files.
+	add macro '%F', '%N', '%E' in ,atch filename's and char '!' as NOT expr.
+	fix rename files with 'b' map*.
+	add keyword 'killbadpkt': kill partially received packets.
+
+2003-07-14 21:54  sisoft
+
+	* Changes, FAQ, Makefile.am, README, TODO, configure.in,
+	  qico.conf.sample, src/Makefile.am, src/aso.c, src/basename.c,
+	  src/bso.c, src/byteop.h, src/call.c, src/charset.h, src/config.c,
+	  src/crc.c, src/crc.h, src/defs.h, src/emsi.c, src/execsh.c,
+	  src/flagexp.y, src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h,
+	  src/getsid.c, src/globals.c, src/globals.h, src/gmtoff.c,
+	  src/headers.h, src/hydra.c, src/hydra.h, src/janus.c,
+	  src/janus.h, src/log.c, src/ls_zglue.c, src/ls_zmodem.c,
+	  src/ls_zmodem.h, src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h,
+	  src/main.c, src/malloc.c, src/nodelist.c, src/opts.h,
+	  src/protfm.c, src/qcc.c, src/qcconst.h, src/qconf.x, src/qctl.c,
+	  src/qipc.c, src/qipc.h, src/qnlc.c, src/queue.c, src/replace.h,
+	  src/session.c, src/tcp.c, src/tty.c, src/tty.h, src/types.h,
+	  src/ver.c.in, src/ver.h, src/x2c.awk, src/x2h.awk, src/xmem.c,
+	  src/xmem.h, src/xstr.c, src/xstr.h:
+
+	tipa new version. ;)
+
+2003-07-13 01:26  sisoft
+
+	* .cvsignore, Changes, FAQ, Makefile.am, README, TODO, autogen.sh,
+	  compile, configure.in, qico.conf.sample, stamp-h.in,
+	  src/.cvsignore, src/Makefile.am, src/basename.c, src/bso.c,
+	  src/byteop.h, src/call.c, src/charset.h, src/config.c, src/crc.c,
+	  src/crc.h, src/defs.h, src/emsi.c, src/execsh.c, src/flagexp.y,
+	  src/flaglex.l, src/freq.c, src/ftn.c, src/ftn.h, src/getsid.c,
+	  src/globals.c, src/globals.h, src/gmtoff.c, src/headers.h,
+	  src/hydra.c, src/hydra.h, src/janus.c, src/janus.h, src/log.c,
+	  src/ls_zglue.c, src/ls_zmodem.c, src/ls_zmodem.h,
+	  src/ls_zreceive.c, src/ls_zsend.c, src/mailer.h, src/main.c,
+	  src/malloc.c, src/memcmp.c, src/nodelist.c, src/opts.h,
+	  src/protfm.c, src/qcc.c, src/qcconst.h, src/qconf.x, src/qctl.c,
+	  src/qipc.c, src/qipc.h, src/qnlc.c, src/queue.c, src/replace.h,
+	  src/session.c, src/strcspn.c, src/strsep.c, src/tcp.c, src/tty.c,
+	  src/tty.h, src/types.h, src/usleep.c, src/ver.c.in, src/ver.h,
+	  src/x2c.awk, src/x2h.awk, src/xmem.c, src/xmem.h, src/xstr.c,
+	  src/xstr.h, stuff/.cvsignore, stuff/Makefile.am, stuff/ftn,
+	  stuff/fts-0001, stuff/onchat, stuff/qico.stat, stuff/qico.xpm,
+	  stuff/qst_hist.lnk, stuff/qst_hist.ses, stuff/sfreq,
+	  stuff/synctime, stuff/tossing:
+
+	Initial revision
+

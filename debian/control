@@ -11,7 +11,7 @@ Suggests: qcc
 Description: ftn compatible mailer with many features.
  ftn compatible mailer with many features,
  such as: dynamic configuration, color ncurses frontend,
- chat, outbound manager. supported emsi and binkp
+ chat, outbound manager, perl. supported emsi and binkp
  protocols over modem and(or) tcp/ip.
 
 Package: qcc

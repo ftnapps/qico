@@ -1,6 +1,6 @@
 /**********************************************************
  * protocol definitions
- * $Id: mailer.h,v 1.15 2004/05/29 23:34:49 sisoft Exp $
+ * $Id: mailer.h,v 1.20 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #ifndef __MAILER_H__
 #define __MAILER_H__
@@ -42,9 +42,7 @@
 
 #define SESSION_AUTO    0
 #define SESSION_EMSI    1
-#define SESSION_FTS0001 2
-#define SESSION_YOOHOO  3
-#define SESSION_BINKP   4
+#define SESSION_BINKP   2
 
 #define RX_SKIP		1
 #define RX_SUSPEND	2
@@ -123,5 +121,24 @@ extern void tcp_done(int fd);
 extern void chatinit(int prot);
 extern void c_devrecv(unsigned char *str,unsigned len);
 extern void getevt();
+/* perl.c */
+#ifdef WITH_PERL
+#define IFPerl(x) x
+extern unsigned short perl_flg;
+extern int perl_init(char *script,int mode);
+extern void perl_done(int rc);
+extern void perl_on_reload(int mode);
+extern void perl_on_std(int sub);
+extern void perl_on_log(char *str);
+extern int perl_on_call(ftnaddr_t *fa,char *site,char *port);
+extern int perl_on_session(char *sysflags);
+extern void perl_end_session(long sest,int result);
+extern int perl_on_recv();
+extern char *perl_end_recv(int state);
+extern char *perl_on_send(char *tosend);
+extern void perl_end_send(int state);
+#else
+#define IFPerl(x)
+#endif
 
 #endif

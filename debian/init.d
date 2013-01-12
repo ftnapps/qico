@@ -1,5 +1,6 @@
 #!/bin/sh
 # initscript for qico.
+# $Id: init.d,v 1.4 2004/06/13 17:05:46 sisoft Exp $
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DAEMON=/usr/sbin/qico

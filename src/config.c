@@ -1,11 +1,10 @@
 /**********************************************************
  * work with config
- * $Id: config.c,v 1.22 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: config.c,v 1.25 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 
-extern int flagexp(slist_t *expr,int strict);
-
+static aslist_t *defs=NULL;
 static slist_t *condlist=NULL,*curcond;
 
 static int getstr(char **to,char *from)
@@ -146,6 +145,7 @@ int readconfig(char *cfgname)
 	cfgitem_t *ci;
 	curcond=NULL;
 	rc=parseconfig(cfgname);
+	aslist_kill(&defs);
 	if(curcond) {
 		write_log("%s: not all <if>-expressions closed",cfgname);
 		while(curcond)slist_dell(&curcond);
@@ -153,8 +153,8 @@ int readconfig(char *cfgname)
 	}
 	if(!rc)return 0;
 	for(i=0;i<CFG_NNN;i++)
-	    if(configtab[i].found<2) {
-		if(configtab[i].required) {
+	    if(!(configtab[i].flags&8)) {
+		if(configtab[i].flags&1) {
 			write_log("required keyword '%s' not defined",configtab[i].keyword);
 			rc=0;
 		}
@@ -163,7 +163,7 @@ int readconfig(char *cfgname)
 		    setvalue(ci,configtab[i].def_val,configtab[i].type);
 		else memset(&ci->value,0,sizeof(ci->value));
 		ci->condition=NULL;ci->next=NULL;
-		if(configtab[i].found) {
+		if(configtab[i].flags&12) {
 			cfgitem_t *cia=configtab[i].items;
 			for(;cia&&cia->next;cia=cia->next);
 			if(cia)cia->next=ci;
@@ -185,6 +185,10 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 	while(configtab[i].keyword&&strcasecmp(configtab[i].keyword,kw))i++;
 	DEBUG(('C',2,"parse: '%s', '%s' [%d] on %s:%d%s",kw,arg,i,cfgname,line,curcond?" (c)":""));
 	if(configtab[i].keyword) {
+		if(curcond&&(configtab[i].flags&2)) {
+			write_log("%s:%d: keyword '%s' can't be defined inside if-expression's",cfgname,line,kw);
+			return 0;
+		}
 		for(ci=configtab[i].items;ci;ci=ci->next) {
 			slist_t *a=ci->condition,*b=curcond;
 			for(;a&&b&&a->str==b->str;a=a->next,b=b->next);
@@ -198,9 +202,9 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 			configtab[i].items=ci;
 		}
 		if(setvalue(ci,arg,configtab[i].type)) {
-			if(configtab[i].found<2) {
-			    if(!curcond)configtab[i].found=2;
-				else configtab[i].found=1;
+			if(!(configtab[i].flags&8)) {
+			    if(!curcond)configtab[i].flags|=8;
+				else configtab[i].flags|=4;
 			}
 		} else {
 			xfree(ci);
@@ -217,36 +221,60 @@ int parsekeyword(char *kw,char *arg,char *cfgname,int line)
 int parseconfig(char *cfgname)
 {
 	FILE *f;
-	char s[MAX_STRING*2],*p,*t,*k;
+	char s[LARGE_STRING],*p,*t,*k;
 	int line=0,rc=1;
 	slist_t *cc;
 	if(!(f=fopen(cfgname,"rt"))) {
 		write_log("can't open config file '%s': %s",cfgname,strerror(errno));
 		return 0;
 	}
-	while(fgets(s,MAX_STRING*2,f)) {
-contl:		line++;p=s;
+	while(fgets(s,LARGE_STRING,f)) {
+		line++;
+contl:		p=s;
 		strtr(p,'\t',' ');
 		while(*p==' ')p++;
 		if(*p&&*p!='#'&&*p!='\n'&&*p!=';'&&(*p!='/'||p[1]!='/')) {
 			for(t=p+strlen(p)-1;*t==' '||*t=='\r'||*t=='\n';t--);
 			if(*t=='\\'&&t>p&&*(t-1)==' ') {
-				do if(!fgets(t,MAX_STRING*2-(t-p),f))*t=0;
-				while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
+				do {
+					line++;
+					if(!fgets(t,LARGE_STRING-(t-p),f))*t=0;
+				} while(*t&&(*t==';'||*t=='#'||(*t=='/'&&t[1]=='/')));
 				for(k=t;*k==' ';k++);
 				if(k>t)xstrcpy(t,k,strlen(k));
 				goto contl;
 			}
 			if(*p!='{') {
+				if(*p=='$'&&isgraph(p[1]))
+				    if((k=strchr(p,'=')))*k=' ';
 				t=strchr(p,' ');
 				if(!t)t=strchr(p,'\n');
 				if(!t)t=strchr(p,'\r');
 				if(!t)t=strchr(p,0);
 				*t++=0;
 			} else t=p+1;
-			while(*t==' ')t++;
+contd:			while(*t==' ')t++;
+			if((k=strchr(t,'$'))&&k[1]=='(') {
+				char *e=k+1;
+				aslist_t *as;
+				for(;isgraph(*e)&&*e!=')';e++);
+				if(*e==')') {
+					*e++=0;
+					if((as=aslist_find(defs,k+2))) {
+						e=xstrdup(e);
+						xstrcpy(k,as->arg,LARGE_STRING);
+						if(*e)xstrcat(k,e,LARGE_STRING);
+						xfree(e);
+					} else {
+						write_log("%s:%d: use of uninitialized constant '$%s'",cfgname,line,k+2);
+						rc=0;*k=0;
+					}
+					goto contd;
+				}
+			}
 			for(k=t+strlen(t)-1;*k=='\n'||*k=='\r'||*k==' ';k--)*k=0;
-			if(!strcasecmp(p,"include")) {
+			if(*p=='$'&&isgraph(p[1]))aslist_add(&defs,p+1,t);
+			else if(!strcasecmp(p,"include")) {
 				if(!strncmp(cfgname,t,MAX_STRING)) {
 					write_log("%s:%d: <include> including itself -> infinity loop",cfgname,line);
 					rc=0;
@@ -284,7 +312,7 @@ contl:		line++;p=s;
 					rc=0;
 				} else {
 					k=slist_dell(&curcond);
-					snprintf(s,MAX_STRING*2,"not(%s)",k);
+					snprintf(s,LARGE_STRING,"not(%s)",k);
 					cc=slist_add(&condlist,s);
 					slist_addl(&curcond,cc->str);
 				}
@@ -310,9 +338,8 @@ void dumpconfig()
 	falist_t *al;
 	faslist_t *fasl;
 	for(i=0;i<CFG_NNN;i++) {
-		write_log("conf: %s. (type=%d, need=%d, found=%d)",
-			   configtab[i].keyword,configtab[i].type,
-			   configtab[i].required,configtab[i].found);
+		write_log("conf: %s. (type=%d, flags=%d)",configtab[i].keyword,
+				configtab[i].type,configtab[i].flags);
 		for(c=configtab[i].items;c;c=c->next) {
 			xstrcpy(buf,"conf:   ",LARGE_STRING);
 			if(c->condition) {
@@ -383,6 +410,6 @@ void killconfig()
 			xfree(c);
 		}
 		configtab[i].items=NULL;
-		configtab[i].found=0;
+		configtab[i].flags=0;
 	}
 }
