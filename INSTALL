@@ -250,6 +250,9 @@ Extra `configure' options
 
 `--disable-binkp'
     Disable BinkP protocol support.
+
+`--enable-perl'
+    Enable Perl-hooks support.
     
 `--with-config=FILE'
     Set default config file to FILE.

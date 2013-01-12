@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([qico],[0.54si],[sisoft@bk.ru])
-AM_INIT_AUTOMAKE([qico],[0.54si])
+AC_INIT([qico],[0.55si],[sisoft@bk.ru])
+AC_REVISION([$Id: configure.in,v 1.30 2004/06/19 22:31:57 sisoft Exp $])
 AC_PREREQ(2.53)
-AC_REVISION([$Id: configure.in,v 1.28.2.1 2004/06/07 18:45:44 sisoft Exp $])
-AC_CONFIG_SRCDIR([src/main.c])
 AM_CONFIG_HEADER([config.h])
+AC_CONFIG_SRCDIR([src/main.c])
+AM_INIT_AUTOMAKE([qico],[0.55si])
 AM_MAINTAINER_MODE
 
 dnl Checks for programs.
@@ -42,10 +42,9 @@ AC_FUNC_MEMCMP
 AC_FUNC_STRFTIME
 AC_FUNC_UTIME_NULL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([dup2 getcwd getpass gettimeofday memmove mktime])
-AC_CHECK_FUNCS([select setlocale statfs statvfs strcasecmp])
-AC_CHECK_FUNCS([strchr strdup strerror strncasecmp strrchr])
-AC_CHECK_FUNCS([strspn strstr strtol strtoul uname vsnprintf])
+AC_CHECK_FUNCS([getcwd getpass gettimeofday memmove mktime])
+AC_CHECK_FUNCS([setlocale statfs statvfs strcasecmp strerror])
+AC_CHECK_FUNCS([strncasecmp strspn strtol strtoul uname vsnprintf])
 AC_REPLACE_FUNCS([strsep usleep getsid strcspn])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -314,6 +313,57 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+dnl Check for perl support
+AC_MSG_CHECKING(for perl support);
+AC_ARG_ENABLE(perl,AC_HELP_STRING([--enable-perl],[Enable perl hooks support]),,enable_perl=no)
+if test "${enable_perl}x" != "nox"; then
+	AC_MSG_RESULT(yes)
+	AC_PATH_PROG(PERL,perl,perl)
+	AC_MSG_CHECKING(for libperl)
+	PERLDIR=`$PERL -MConfig -e 'print $Config{archlib}' 2>/dev/null`
+	if PERLCFLAGS=`$PERL -MExtUtils::Embed -e ccopts 2>/dev/null`; then
+		PERLLDFLAGS=`$PERL -MExtUtils::Embed -e ldopts 2>/dev/null`
+		case x$PERLDIR in
+		    x) AC_MSG_RESULT(yes);;
+		    *) AC_MSG_RESULT($PERLDIR);;
+		esac
+	else
+		case x$PERLDIR in
+		    x) AC_MSG_RESULT(no);;
+		    *)
+			PERLCFLAGS="-I $PERLDIR/CORE"
+			PERLLDFLAGS="$PERLDIR/auto/DynaLoader/DynaLoader.a -L$PERLDIR/CORE -lperl -ldl -lcrypt -lm"
+			AC_CHECK_LIB(dl,main,PERLLDFLAGS="$PERLLDFLAGS -ldl")
+			AC_CHECK_LIB(crypt,main,PERLLDFLAGS="$PERLLDFLAGS -lcrypt")
+			AC_CHECK_LIB(m,main,PERLLDFLAGS="$PERLLDFLAGS -lm")
+			AC_MSG_RESULT($PERLDIR)
+			;;
+		esac
+	fi
+	case x$PERLCFLAGS in
+		x) ;;
+		*)
+		    AC_MSG_CHECKING(for working libperl)
+		    OLD_LIBS=$LIBS
+		    OLD_CFLAGS=$CFLAGS
+		    LIBS="$LIBS $PERLLDFLAGS"
+		    CFLAGS="$CFLAGS $PERLCFLAGS"
+		    AC_TRY_RUN([
+#include <EXTERN.h>
+#include <perl.h>
+#include <XSUB.h>
+int main(int argc, char** argv, char** env) {
+return perl_alloc() ? 0 : 1;
+}],
+		    AC_DEFINE(WITH_PERL,1,[Support for perl hooks])
+		    AC_MSG_RESULT(yes),AC_MSG_RESULT(no),AC_MSG_RESULT(no))
+		    CFLAGS=$OLD_CFLAGS; LIBS=$OLD_LIBS
+		    ;;
+	esac
+else
+	AC_MSG_RESULT(no)
+fi
+
 dnl calculate real config -- prefix already known, so we could eval config
 if test "x`expr "$with_config" : '/.*'`" != "x`expr "$with_config" : '.*'`"; then
 	AC_MSG_ERROR([Parameter for --with-config must be absolute filename])
@@ -326,7 +376,7 @@ CONFIG=$with_config
 
 dnl My defines -- from acconfig.h, hack for new autoconf
 AC_DEFINE_UNQUOTED(MAX_PATH,256,[Maximum length of file path])
-AC_DEFINE_UNQUOTED(MAX_STRING,256,[Maximum length of string on stack for log and some other places])
+AC_DEFINE_UNQUOTED(MAX_STRING,256,[Maximum length of standard string])
 AC_DEFINE_UNQUOTED(MAX_NODELIST,32,[Maximum number of compiled nodelists])
 
 dnl My substs
@@ -336,6 +386,8 @@ AC_SUBST(TCP_SPEED)
 AC_SUBST(DEFAULT_SPEED)
 AC_SUBST(SHELL)
 AC_SUBST(CONFIG)
+AC_SUBST(PERLCFLAGS)
+AC_SUBST(PERLLDFLAGS)
 
 dnl add warn flags in maintainer mode
 CFLAGS="$CFLAGS -Wall"

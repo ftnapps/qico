@@ -1,6 +1,6 @@
 /**********************************************************
  * qico main
- * $Id: main.c,v 1.31 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: main.c,v 1.35 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #ifdef HAVE_LOCALE_H
@@ -21,20 +21,19 @@
 
 static void usage(char *ex)
 {
-	printf("usage: %s [<options>] [<node>]\n"
-		"<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n",ex);
-	puts(	"-h           this help screen\n"
+	printf("usage: %s [<options>] [<node>]\n",ex);
+	puts(	"<node>       must be in ftn-style (i.e. zone:net/node[.point])!\n"
+		"-h           this help screen\n"
 		"-I<config>   override default config\n"
 		"-d           start in daemon (originate) mode\n"
  		"-a<type>     start in answer mode with <type> session, type can be:\n"
-		"                       auto - autodetect\n"
-		"             **EMSI_INQC816 - EMSI session without init phase\n"
+		"                 **emsi, or auto, or"
+		"                 **EMSI_INQC816 - EMSI session\n"
 #ifdef WITH_BINKP
-		"                      binkp - Binkp session\n"
+		"                      binkp, or\n"
+		"                      \\x80.\\x00 - Binkp session\n"
 #endif
-		"                      tsync - FTS-0001 session (unsuppported)\n"
-		"                     yoohoo - YOOHOO session (unsuppported)");
-	puts(	"-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
+		"-i<host>     start TCP/IP connection to <host> (node must be specified!)\n"
 		"-c[N|I|A]    force call to <node>\n"
 		"             N - normal call\n"
 		"             I - call <i>mmediately (don't check node worktime)\n"
@@ -52,6 +51,7 @@ static void usage(char *ex)
 void stopit(int rc)
 {
 	vidle();qqreset();
+	IFPerl(perl_done(0));
 	write_log("exiting with rc=%d",rc);
 	log_done();
 	cls_close(ssock);
@@ -66,6 +66,7 @@ RETSIGTYPE sigerr(int sig)
 	aso_done();
 	write_log("got SIG%s signal",sigs[sig]);
 	if(cfgs(CFG_PIDFILE))if(getpid()==islocked(ccs))lunlink(ccs);
+	IFPerl(perl_done(1));
 	log_done();
 	tty_close();
 	qqreset();sline("");title("");
@@ -113,7 +114,7 @@ static void answer_mode(int type)
 	signal(SIGSEGV,sigerr);
 	signal(SIGFPE,sigerr);
 	signal(SIGPIPE,SIG_IGN);
-
+	IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 	log_callback=NULL;xsend_cb=NULL;
 	ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 	if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
@@ -140,9 +141,9 @@ static void answer_mode(int type)
 	}
 	if((cs=getenv("CALLER_ID"))&&strcasecmp(cs,"none")&&strlen(cs)>3)write_log("caller-id: %s",cs);
 	tty_setattr(0);
-	tty_nolocal();
+	tty_local(0);
 	rc=session(0,type,NULL,spd);
-	tty_local();
+	tty_local(1);
 	if(!is_ip) {
 		hangup();
 		stat_collect();
@@ -168,7 +169,7 @@ static void answer_mode(int type)
 
 int main(int argc,char **argv,char **envp)
 {
-	int c,daemon=-1,rc,sesstype=SESSION_AUTO,line=0,call_flags=0;
+	int c,daemon=-1,rc,sesstype=SESSION_EMSI,line=0,call_flags=0;
 	char *hostname=NULL,*str=NULL;
 	FTNADDR_T(fa);
 #ifndef HAVE_SETPROCTITLE
@@ -205,11 +206,14 @@ int main(int argc,char **argv,char **envp)
 		    case 'a':
 			daemon=0;
 			sesstype=SESSION_AUTO;
-			if(!strncasecmp(optarg,"**emsi",6))sesstype=SESSION_EMSI;
-			if(!strncasecmp(optarg,"tsync",5))sesstype=SESSION_FTS0001;
-			if(!strncasecmp(optarg,"yoohoo",6))sesstype=SESSION_YOOHOO;
+			if(!strncasecmp(optarg,"**emsi",6)||
+			    !strncasecmp(optarg,"auto",4))sesstype=SESSION_EMSI;
 #ifdef WITH_BINKP
-			if(!strncasecmp(optarg,"binkp",5))sesstype=SESSION_BINKP,bink=1;
+			if(strncasecmp(optarg,"binkp",5)&&
+			    (*optarg!=0x80||!optarg[1]||optarg[2]))break;
+			sesstype=SESSION_BINKP;
+		    case 'b':
+			bink=1;
 #endif
 			break;
 		    case 'n':
@@ -218,11 +222,6 @@ int main(int argc,char **argv,char **envp)
 		    case 't':
 			daemon=3;
 			break;
-#ifdef WITH_BINKP
-		    case 'b':
-			bink=1;
-			break;
-#endif
 		    case 'v':
 			u_vers(progname);
 		    default:
@@ -277,7 +276,7 @@ int main(int argc,char **argv,char **envp)
 		signal(SIGTERM,sigerr);
 		signal(SIGSEGV,sigerr);
 		signal(SIGPIPE,SIG_IGN);
-
+		IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 		log_callback=NULL;xsend_cb=NULL;
 		ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 		if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
@@ -316,6 +315,7 @@ int main(int argc,char **argv,char **envp)
 			signal(SIGTERM,sigerr);
 			signal(SIGSEGV,sigerr);
 			signal(SIGPIPE,SIG_IGN);
+			IFPerl(perl_init(cfgs(CFG_PERLFILE),0));
 			rc=force_call(&fa,line,call_flags);
 			aso_unlocknode(&fa,LCK_x);
 		} else rc=S_FAILURE;

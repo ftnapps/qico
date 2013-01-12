@@ -1,47 +1,49 @@
 /**********************************************************
  * expression parser
- * $Id: flagexp.y,v 1.14 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: flagexp.y,v 1.21 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
-%token DATE DATESTR GAPSTR ITIME NUMBER PHSTR TIMESTR ADDRSTR IDENT 
-%token CONNSTR SPEED CONNECT PHONE MAILER TIME ADDRESS FLEXEC FLLINE
-%token DOW ANY WK WE SUN MON TUE WED THU FRI SAT EQ NE
-%token GT GE LT LE LB RB AND OR NOT XOR COMMA ASTERISK
-%token AROP LOGOP PORT CID FLFILE PATHSTR HOST SFREE ANYSTR
-%expect 2
 %{
 #include "headers.h"
 #include <fnmatch.h>
+
+#ifdef NEED_DEBUG
+#define YYERROR_VERBOSE 1
+#endif
+#define YYDEBUG 0
+
 #ifdef YYTEXT_POINTER
 extern char *yytext;
 #else
 extern char yytext[];
 #endif
-#ifdef NEED_DEBUG
-#define YYERROR_VERBOSE 1
-#endif
-
-int yylex();
-int flxpres;
-
-static int logic(int e1, int op,int e2);
-static int checkconnstr(void);
-static int checkspeed(int op, int speed, int real);
+extern char *yyPTR;
+extern int yylex();
+static int logic(int e1,int op,int e2);
+static int checkflag();
+static int checkconnstr();
+static int checkspeed(int op,int speed,int real);
 static int checksfree(int op,int sp);
-static int checkmailer(void);
-static int checkphone(void);
-static int checkport(void);
-static int checkcid(void);
-static int checkhost(void);
-static int checkfile(void);
-static int checkexec(void);
+static int checkmailer();
+static int checkphone();
+static int checkport();
+static int checkcid();
+static int checkhost();
+static int checkfile();
+static int checkexec();
 static int checkline(int lnum);
 static int yyerror(char *s);
-extern char *yyPTR;
+static int flxpres;
 %}
+
+%token DATESTR GAPSTR PHSTR TIMESTR ADDRSTR PATHSTR ANYSTR IDENT NUMBER
+%token AROP LOGOP EQ NE GT GE LT LE AND OR NOT XOR LB RB COMMA
+%token ADDRESS ITIME CONNSTR SPEED CONNECT PHONE MAILER CID
+%token FLTIME FLDATE EXEC FLLINE PORT FLFILE HOST SFREE
+%expect 2
 
 %%
 fullline	: expression
-                {flxpres=$1;}
+			{flxpres=$1;}
 		;
 expression	: elemexp
 			{$$ = $1;}
@@ -71,7 +73,7 @@ elemexp		: flag
 			{$$ = checkhost();}
 		| PORT IDENT
 			{$$ = checkport();}
-		| FLEXEC ANYSTR
+		| EXEC ANYSTR
 			{$$ = checkexec();}
 		| FLFILE PATHSTR
 			{$$ = checkfile();}
@@ -79,15 +81,15 @@ elemexp		: flag
 			{$$ = checkline($2);}
 		| ITIME timestring
 			{$$ = $2;}
-		| TIME gapstring
+		| FLTIME gapstring
 			{$$ = $2;}
-		| DATE datestring
+		| FLDATE datestring
 			{$$ = $2;}
 		| ADDRESS ADDRSTR
 			{$$ = $2;}
 		;
-flag		:IDENT
-		{$$ = $1;}
+flag		: IDENT
+			{$$ = checkflag();}
 		;
 datestring	: DATESTR
 			{$$ = $1;}
@@ -124,7 +126,68 @@ static int logic(int e1, int op,int e2)
 	}
 }
 
-static int checkconnstr(void)
+static int checkflag()
+{
+	int fln;
+	char *p, *q;
+	DEBUG(('Y',2,"checkflag: \"%s\"",yytext));
+#ifdef WITH_PERL
+	if(!strncasecmp(yytext,"perl",4)) {
+		if((fln=atoi(yytext+4))<0||fln>9) {
+			write_log("error: invalid perl flag: %s",yytext);
+			return 0;
+		}
+		DEBUG(('Y',3,"checkflag: perl%d: %d",fln,(perl_flg&(1<<fln))?1:0));
+		return((perl_flg&(1<<fln))?1:0);
+	}
+#endif
+	if(!rnode)return 0;
+ 	if(!strncasecmp(yytext,"list",4)) {
+		DEBUG(('Y',3,"checkflag: listed: %d",rnode->options&O_LST));
+		return rnode->options&O_LST;
+	}
+	if(!strncasecmp(yytext,"prot",4)) {
+		DEBUG(('Y',3,"checkflag: protected: %d",rnode->options&O_PWD));
+		return rnode->options&O_PWD;
+	}
+	if(!strncasecmp(yytext,"in",2)) {
+		DEBUG(('Y',3,"checkflag: inbound: %d",rnode->options&O_INB));
+		return rnode->options&O_INB;
+	}
+	if(!strncasecmp(yytext,"out",3)) {
+		DEBUG(('Y',3,"checkflag: outbound: %d",!(rnode->options&O_INB)));
+		return !(rnode->options&O_INB);
+	}
+	if(!strncasecmp(yytext,"tcp",3)) {
+		DEBUG(('Y',3,"checkflag: tcp/ip: %d",rnode->options&O_TCP));
+		return rnode->options&O_TCP;
+	}
+	if(!strncasecmp(yytext,"binkp",5)) {
+		DEBUG(('Y',3,"checkflag: binkp: %d",bink));
+		return bink;
+	}
+	if(!strncasecmp(yytext,"bad",3)) {
+		DEBUG(('Y',3,"checkflag: bad password: %d",rnode->options&O_BAD));
+		return rnode->options&O_BAD;
+	}
+	if(rnode->flags) {
+		q=xstrdup(rnode->flags);p=strtok(q,",");
+		while(p) {
+			if(!strcasecmp(yytext,p)) {
+				xfree(q);
+				DEBUG(('Y',3,"checkflag: other: 1"));
+				return 1;
+			}
+			p=strtok(NULL,",");
+		}
+		xfree(q);
+	}
+	DEBUG(('Y',3,"checkflag: other: 0"));
+	return 0;
+}
+
+
+static int checkconnstr()
 {
 	DEBUG(('Y',2,"checkconnstr: \"%s\"",yytext));
 	if(!connstr||is_ip) return 0;
@@ -176,7 +239,7 @@ static int checksfree(int op,int sf)
 	}
 }
 
-static int checkphone(void)
+static int checkphone()
 {
 	DEBUG(('Y',2,"checkphone: \"%s\"",yytext));
 	if(!rnode||!rnode->phone) return 0;
@@ -185,7 +248,7 @@ static int checkphone(void)
 	return 0;
 }
 
-static int checkmailer(void)
+static int checkmailer()
 {
 	DEBUG(('Y',2,"checkmailer: \"%s\"",yytext));
 	if(!rnode||!rnode->mailer) return 0;
@@ -194,7 +257,7 @@ static int checkmailer(void)
 	return 0;
 }
 
-static int checkcid(void)
+static int checkcid()
 {
 	char *cid = getenv("CALLER_ID");
 	if(!cid||strlen(cid)<4) cid = "none";
@@ -203,7 +266,7 @@ static int checkcid(void)
 	return 0;
 }
 
-static int checkhost(void)
+static int checkhost()
 {
 	DEBUG(('Y',2,"checkhost: \"%s\"",yytext));
 	if(!rnode || !rnode->host) return 0;
@@ -212,7 +275,7 @@ static int checkhost(void)
 	return 0;
 }
 
-static int checkport(void)
+static int checkport()
 {
 	DEBUG(('Y',2,"checkport: \"%s\"",yytext));
 	if(!rnode || !rnode->tty) return 0;
@@ -221,7 +284,7 @@ static int checkport(void)
 	return 0;
 }
 
-static int checkfile(void)
+static int checkfile()
 {
 	struct stat sb;
 	DEBUG(('Y',2,"checkfile: \"%s\" -> %d",yytext,!stat(yytext,&sb)));
@@ -229,7 +292,7 @@ static int checkfile(void)
 	return 0;
 }
 
-static int checkexec(void)
+static int checkexec()
 {
 	int rc;
 	char *cmd=xstrdup(yytext);
@@ -250,11 +313,12 @@ static int checkline(int lnum)
 	return 0;
 }
 
-int yyparse();
-
 int flagexp(slist_t *expr,int strict)
 {
 	char *p;
+#if YYDEBUG==1
+	yydebug=1;
+#endif
 	for(;expr;expr=expr->next) {
 		DEBUG(('Y',1,"checkexpression: \"%s\"",expr->str));
 		p=xstrdup(expr->str);
@@ -266,7 +330,7 @@ int flagexp(slist_t *expr,int strict)
 			return(strict?-1:0);
 		}
 #ifdef NEED_DEBUG
-		if(!strict)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
+		if(strict!=1)DEBUG(('Y',1,"checkexpression: result is \"%s\"",flxpres?"true":"false"));
 #endif
 		xfree(p);
 		if(!flxpres)return 0;
@@ -276,6 +340,6 @@ int flagexp(slist_t *expr,int strict)
 
 static int yyerror(char *s)
 {
-	DEBUG(('Y',1,"yyerror: %s",s));
+	DEBUG(('Y',1,"yyerror: %s at %s",s,(yytext&&*yytext)?yytext:"end of input"));
 	return 0;
 }

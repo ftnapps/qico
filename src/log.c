@@ -1,6 +1,6 @@
 /**********************************************************
  * work with log file
- * $Id: log.c,v 1.21 2004/05/31 13:15:39 sisoft Exp $
+ * $Id: log.c,v 1.23 2004/06/09 22:25:50 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #define SYSLOG_NAMES
@@ -158,6 +158,7 @@ void vwrite_log(char *fmt, char *prefix,int dbg,va_list args)
 		p=str+strlen(str);
 	}
 	vsnprintf(p,LARGE_STRING-50,fmt,args);
+	IFPerl(perl_on_log(str));
 	if(log_callback&&dbg)log_callback(str);
 	switch(log_type) {
 		case 0:

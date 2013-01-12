@@ -1,6 +1,6 @@
 /**********************************************************
  * qico daemon
- * $Id: daemon.c,v 1.31 2004/06/05 06:49:13 sisoft Exp $
+ * $Id: daemon.c,v 1.35 2004/06/16 03:42:20 sisoft Exp $
  **********************************************************/
 #include <config.h>
 #ifdef HAVE_DNOTIFY
@@ -55,6 +55,7 @@ static RETSIGTYPE sighup(int sig)
 #ifdef NEED_DEBUG
 	parse_log_levels();
 #endif
+	IFPerl(perl_on_reload(0));
 	do_rescan=1;
 }
 
@@ -181,6 +182,7 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		write_log("exiting by request");
 		if(cfgs(CFG_PIDFILE))
 		    if(getpid()==islocked(ccs))lunlink(ccs);
+		IFPerl(perl_done(0));
 		log_done();
 		qqreset();sline("");title("");
 		qsendpkt(QC_QUIT,"master","",1);
@@ -201,7 +203,9 @@ static void daemon_evt(int chld,char *buf,int rc,int mode)
 		psubsts=parsesubsts(cfgfasl(CFG_SUBST));
 #ifdef NEED_DEBUG
 		parse_log_levels();
+		if(facilities_levels['C']>=8)dumpconfig();
 #endif
+		IFPerl(perl_on_reload(0));
 		do_rescan=1;
 		break;
 	    case QR_SCAN:
@@ -471,6 +475,7 @@ void daemon_mode()
 	}
 	to_dev_null();setsid();
 	write_log("%s-%s/%s daemon started",progname,version,osname);
+	IFPerl(perl_init(cfgs(CFG_PERLFILE),1));
 #ifdef HAVE_DNOTIFY
 	if(ASO) {
 		dnot=open(cfgs(CFG_ASOOUTBOUND),O_RDONLY);
@@ -578,6 +583,7 @@ void daemon_mode()
 						ssock=cls_conn(CLS_LINE,cfgs(CFG_SERVER),NULL);
 						if(ssock<0)write_log("can't connect to server: %s",strerror(errno));
 						    else log_callback=vlogs;
+						IFPerl(perl_on_reload(1));
 						if(is_ip)rc=do_call(&current->addr,rnode->host,NULL);
 						    else {
 							if(rnode->hidnum) {
@@ -589,6 +595,7 @@ void daemon_mode()
 							}
 							rc=do_call(&current->addr,rnode->phone,port);
 						}
+						IFPerl(perl_done(0));
 						log_done();hld=0;
 						if(!log_init(cfgs(CFG_MASTERLOG),NULL))write_log("can't init master log %s",ccs);
 						if(rc&S_ANYHOLD&&(rc&S_MASK)==S_OK) {
@@ -655,7 +662,7 @@ void daemon_mode()
 						cls_close(ssock);
 						exit(rc);
 					}
-					if(chld<0) write_log("can't fork() caller");
+					if(chld<0)write_log("can't fork() caller");
 					c_delay=randper(cfgi(CFG_DIALDELAY),cfgi(CFG_DIALDELTA));
 				} else current->flv&=~Q_DIAL;
 nlkil:				is_ip=0;bink=0;

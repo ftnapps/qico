@@ -1,4 +1,4 @@
-/* $Id: tools.h,v 1.14 2004/06/05 06:49:13 sisoft Exp $ */
+/* $Id: tools.h,v 1.17 2004/06/23 17:59:35 sisoft Exp $ */
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
@@ -27,7 +27,7 @@ typedef struct _cfgitem_t {
 
 typedef struct {
 	char *keyword;
-	int type,required,found;
+	int type,flags;
 	cfgitem_t *items;
 	char *def_val;
 } cfgstr_t;
@@ -38,17 +38,12 @@ extern char *sigs[];
 extern void recode_to_remote(char *str);
 extern void recode_to_local(char *str);
 extern int hexdcd(char d,char c);
-extern slist_t *slist_add(slist_t **l, char *s);
-extern slist_t *slist_addl(slist_t **l,char *s);
-extern char *slist_dell(slist_t **l);
-extern void slist_kill(slist_t **l);
-extern void slist_killn(slist_t **l);
 extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
 extern int strhex2bin(unsigned char *binptr,const char *string);
 extern size_t filesize(char *fname);
 extern int lockpid(char *pidfn);
 extern int islocked(char *pidfn);
-extern unsigned long sequencer(void);
+extern unsigned long sequencer();
 extern int mkdirs(char *name);
 extern void rmdirs(char *name);
 extern FILE *mdfopen(char *fn,char *pr);
@@ -74,7 +69,7 @@ extern falist_t *cfgal(int i);
 extern int readconfig(char *cfgname);
 extern int parsekeyword(char *kw,char *arg,char *cfgname,int line);
 extern int parseconfig(char *cfgname);
-extern void killconfig(void);
+extern void killconfig();
 #ifdef NEED_DEBUG
 extern void dumpconfig();
 #endif
@@ -98,11 +93,13 @@ extern void write_debug_log(unsigned char facility,int level,char *fmt,...);
 #else
 #define DEBUG(all)
 #endif
-extern void log_done(void);
+extern void log_done();
 /* main.c */
 extern RETSIGTYPE sigerr(int sig);
 extern void stopit(int rc);
 /* daemon.c */
 extern void daemon_mode();
+/* flagexp.y */
+extern int flagexp(slist_t *expr,int strict);
 
 #endif

@@ -1,7 +1,7 @@
 ###############################################################################
 ########################  qico configuration file  ############################
 ###############################################################################
-#for 0.54si $Id: qico.conf.sample,v 1.37.2.1 2004/06/08 11:15:44 sisoft Exp $
+#for 0.55si $Id: qico.conf.sample,v 1.41 2004/06/23 17:59:35 sisoft Exp $
 #
 # config structure:
 # ~~~~~~~~~~~~~~~~
@@ -13,8 +13,15 @@
 # here is 3 types of parameters - string, integer and boolean.
 # for boolean 'y[es]','1','t[rue]' assumed as yes, all other - as no.
 #
+# also you can use defines, ex.:
+#   $foo = test                     -- define $foo to string 'test'.
+#   $bar = $(foo)-                  -- in define can be used other defines.
+#   flags $(bar)lala $(foo)         -- main goal: use defines in keywords.
+# now value of keyword 'flags' become 'test-lala test'.
+#
 # keywords, marked as '(required)' must be defined, but keywords, marked
 # as '(required for modem)' required only for non-ip calls (ex. modem).
+# keywords, marked as '(nonif)' can't be defined inside if-expressions.
 #
 ###############################################################################
 #
@@ -92,6 +99,7 @@
 #                                - 'bad' - got bad password
 #                                - 'tcp[ip]' - identifies tcp/ip session
 #                                - 'binkp' - identifies Binkp session
+#                                - 'perl[0-9]' - flags, setted from perl
 #                                - nodelist flag
 #                              ex.: 'in & (!listed | !V34)'
 #
@@ -122,7 +130,7 @@ domain		fidonet.org
 # when become daemon or is called for answer. It is could be directory,
 # writable for qico's owner, for successful core generation in accident.
 # qico will not change work directory, if this keyword is missed or empty
-#
+# (nonif)
 ;rootdir	/var/spool/ftn
 
 # log variables can be:
@@ -133,7 +141,7 @@ domain		fidonet.org
 #    Priority level could be omitted, default is LOG_INFO:
 #    ex.: log $local2
 
-# daemon's log ("master" log) (required)
+# daemon's log ("master" log) (required)(nonif)
 masterlog 	/var/log/ftn/qico-master.log
 ;masterlog	$local3:info
 
@@ -159,6 +167,7 @@ log		/var/log/ftn/qico.log
 #  I -- IP routines
 #  J -- Janus
 #  M -- Modem
+#  P -- Perl
 #  Q -- Queue management
 #  R -- File requests
 #  S -- Session
@@ -166,15 +175,22 @@ log		/var/log/ftn/qico.log
 #  Y -- Config `if' expressions parsing and executing
 #  Z -- ZModem
 #
-loglevels	C0,E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0
+loglevels	C0,E0,H0,J0,Q0,S0,Y0,Z0,M0,R0,X0,B0,I0,P0
 
 # Write to log estimated transfer time before each file transfer
 estimatedtime	no
 
-# nodelists path (required)
-nlpath 		/var/spool/ftn/nl
+# for easy change, define spooldir only once.
+$spool		/var/spool/ftn
 
-# node- and pointlists (zone can be specified, if omitted in list) (required)
+# and use it anywhere:
+
+# nodelists path (required)(nonif)
+;nlpath		/var/spool/ftn/nl
+nlpath 		$(spool)/nl
+
+# node- and pointlists (zone can be specified, if omitted in list)
+# (required)(nonif)
 ;nodelist 	NET5030.999 2
 ;nodelist 	PNT5030.999
 nodelist 	nodelist.999
@@ -182,19 +198,19 @@ nodelist 	nodelist.999
 # Check for `listed' all addresses of remote or only one (any).
 needalllisted no
 
-# ASO and(or) BSO outbound path (required)
-asooutbound 	/var/spool/ftn/outb
-;bsooutbound 	/var/spool/ftn/outb
+# ASO and(or) BSO outbound path (required)(nonif)
+asooutbound 	$(spool)/outb
+;bsooutbound 	$(spool)/outb
 
-# status outbound (path to .qst files). default, same as `outbound'
-qstoutbound	/var/spool/ftn/qstoutb
+# status outbound (path to .qst files). default, same as `outbound' (nonif)
+qstoutbound	$(spool)/qstoutb
 
 # unprotected inbound (required)
-inbound         /var/spool/ftn/unp
+inbound         $(spool)/unp
 
 # protected inbound (you can add also listed, personal and other inbounds)
 if protected | outbound
-    inbound	/var/spool/ftn/inb
+    inbound	$(spool)/inb
 endif
 
 # if file <nodial>.<portname> exists, we won't dial on this device
@@ -210,7 +226,7 @@ history	        /var/log/ftn/history
 ;filebox 	111:222/0	/var/spool/ftn/fbox/leftnet.nc
 
 # long name fileboxes base directory
-;longboxpath	/var/spool/ftn/lbox
+;longboxpath	$(spool)/lbox
 
 # emsi log file (for saving remote emsi_dat packets)
 emsilog		/var/log/ftn/emsi.log
@@ -218,7 +234,7 @@ emsilog		/var/log/ftn/emsi.log
 # chat log file
 chatlog		/var/log/ftn/chat.log
 
-# pid file (required)
+# pid file (required)(nonif)
 pidfile		/var/run/qico.pid
 
 # lock directory path (required for modem)
@@ -393,7 +409,7 @@ flags		Linux, qico-si team
 ;osname		Windows95
 
 # client/server port. default is 60178.
-# may use number or service from /etc/services.
+# can be use number or service from /etc/services. (nonif)
 ;server		qicoui
 
 # password for clients auth.
@@ -676,6 +692,9 @@ mapin	lkr
 # executed before dialing or connecting to remote.
 ;runoncall	/usr/local/bin/oncall
 
+# perl script file with hooks. (nonif)
+;perlfile	/etc/ftn/qico.pl
+
 ###############################################################################
 ### some example conditions ###################################################
 ###############################################################################
@@ -698,7 +717,7 @@ mapin	lkr
 ;if binkp: maxsession 0
 
 # only send, if free space less 1Mb
-;if sfree < 1024 /var/spool/ftn
+;if sfree < 1024 $(spool)
 ; sendonly yes
 ;endif
 
