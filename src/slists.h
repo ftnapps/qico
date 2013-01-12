@@ -1,7 +1,15 @@
 /**********************************************************
  * for work with various lists.
- * $Id: slists.h,v 1.1 2004/06/24 09:53:32 sisoft Exp $
  **********************************************************/
+/*
+ * $Id: slists.h,v 1.3 2005/05/16 11:17:30 mitry Exp $
+ *
+ * $Log: slists.h,v $
+ * Revision 1.3  2005/05/16 11:17:30  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ */
+
 #ifndef __SLISTS_H__
 #define __SLISTS_H__
 
@@ -33,20 +41,21 @@ typedef struct _flist_t {
 	FILE *lo;
 	off_t loff;
 	int type;
+	int suspend;
 } flist_t;
 
-extern slist_t *slist_add(slist_t **l, char *s);
-extern slist_t *slist_addl(slist_t **l,char *s);
-extern char *slist_dell(slist_t **l);
-extern void slist_kill(slist_t **l);
-extern void slist_killn(slist_t **l);
-extern aslist_t *aslist_add(aslist_t **l,char *s,char *a);
-extern aslist_t *aslist_find(aslist_t *l,char *s);
-extern void aslist_kill(aslist_t **l);
-extern void falist_add(falist_t **l, ftnaddr_t *a);
-extern falist_t *falist_find(falist_t *l,ftnaddr_t *a);
-extern void falist_kill(falist_t **l);
-extern void faslist_add(faslist_t **l, char *s, ftnaddr_t *a);
-extern void faslist_kill(faslist_t **l);
+slist_t		*slist_add(slist_t **, const char *);
+slist_t		*slist_addl(slist_t **, const char *);
+char		*slist_dell(slist_t **);
+void		slist_kill(slist_t **);
+void		slist_killn(slist_t **);
+aslist_t	*aslist_add(aslist_t **, const char *, const char *);
+aslist_t	*aslist_find(aslist_t *, const char *);
+void		aslist_kill(aslist_t **);
+void		falist_add(falist_t **, const ftnaddr_t *);
+falist_t	*falist_find(falist_t *, const ftnaddr_t *);
+void		falist_kill(falist_t **);
+void		faslist_add(faslist_t **, const char *, const ftnaddr_t *);
+void		faslist_kill(faslist_t **);
 
 #endif

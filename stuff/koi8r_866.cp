@@ -1,5 +1,5 @@
 # Recode table for convert KOI8-R codepage to CP866. (Russian language).
-# $Id: koi8r_866.cp,v 1.1 2004/03/24 17:52:09 sisoft Exp $
+# $Id: koi8r_866.cp,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $
 #in  out
 0x80 0xC4
 0x81 0xB3

@@ -1,6 +1,6 @@
 /**********************************************************
  * koi8r->cp866 and cp866->koi8-r tables by sisoft\\trg.
- * $Id: charset.h,v 1.4 2004/03/24 17:50:04 sisoft Exp $
+ * $Id: charset.h,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $
  **********************************************************/
 #ifndef __CHARSET_H__
 #define __CHARSET_H__

@@ -1,34 +1,69 @@
 /**********************************************************
  * ftn tools
- * $Id: ftn.c,v 1.26 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
+/*
+ * $Id: ftn.c,v 1.10 2005/08/18 16:21:25 mitry Exp $
+ *
+ * $Log: ftn.c,v $
+ * Revision 1.10  2005/08/18 16:21:25  mitry
+ * Added debug messages
+ *
+ * Revision 1.9  2005/08/10 19:19:30  mitry
+ * Changed strncasecmp() to strcasecmp() in whattype()
+ *
+ * Revision 1.8  2005/05/16 11:17:30  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ * Revision 1.7  2005/05/11 20:18:26  mitry
+ * Cosmetic change
+ *
+ * Revision 1.6  2005/05/06 20:34:09  mitry
+ * whattype() is slightly changed.
+ * Misc code cleanup.
+ *
+ * Revision 1.5  2005/03/28 17:02:52  mitry
+ * Pre non-blocking i/o update. Mostly non working.
+ *
+ */
+
 #include "headers.h"
 #include <fnmatch.h>
 #include "crc.h"
 
-/* domain name for translate ftn addr to inet host. */
+/* domain name to translate ftn address to inet host. */
 #define FTNDOMAIN "fidonet.net"
 
-void addr_cpy(ftnaddr_t *a,ftnaddr_t *b)
+
+void addr_cpy(ftnaddr_t *a, const ftnaddr_t *b)
 {
-	if(!a||!b)return;
-	a->z=b->z;a->n=b->n;
-	a->f=b->f;a->p=b->p;
-	if(b->d&&*b->d)a->d=xstrdup(b->d);
-	    else a->d=NULL;
+	if ( !a || !b )
+		return;
+	a->z = b->z;
+	a->n = b->n;
+	a->f = b->f;
+	a->p = b->p;
+	if ( b->d && *b->d )
+		a->d = xstrdup( b->d );
+	else
+		a->d = NULL;
 }
 
-int addr_cmp(ftnaddr_t *a,ftnaddr_t *b)
+
+int addr_cmp(const ftnaddr_t *a, const ftnaddr_t *b)
 {
-	if(!a||!b)return 0;
-	if(a->z==b->z&&a->n==b->n&&a->f==b->f&&a->p==b->p)return 1;
-	return 0;
+	if ( !a || !b )
+		return 0;
+
+	return ( a->z == b->z && a->n == b->n 
+		&& a->f == b->f && a->p == b->p ) ? 1 : 0;
 }
 
-int parseftnaddr(char *s,ftnaddr_t *a,ftnaddr_t *b,int wc)
+
+int parseftnaddr(const char *s, ftnaddr_t *a, const ftnaddr_t *b, int wc)
 {
-	char *p=s,*pn;
-	int n=-1,wn=0,pq=1;
+	const char	*p = s,	*pn;
+	int		n = -1, wn = 0, pq = 1;
+
 	if(!s||!*s)return 0;
 	if(b) {
 		addr_cpy(a,b);
@@ -88,7 +123,8 @@ int parseftnaddr(char *s,ftnaddr_t *a,ftnaddr_t *b,int wc)
 	return 1;
 }
 
-ftnaddr_t *akamatch(ftnaddr_t *a,falist_t *akas)
+
+ftnaddr_t *akamatch(const ftnaddr_t *a, falist_t *akas)
 {
 	int m,bm=0;
 	falist_t *i;
@@ -113,7 +149,7 @@ ftnaddr_t *akamatch(ftnaddr_t *a,falist_t *akas)
 	return best;
 }
 
-char *ftnaddrtoa(ftnaddr_t *a)
+char *ftnaddrtoa(const ftnaddr_t *a)
 {
 	static char s[30];
 	if(a->p)snprintf(s,30,"%d:%d/%d.%d",a->z,a->n,a->f,a->p);
@@ -121,7 +157,7 @@ char *ftnaddrtoa(ftnaddr_t *a)
 	return s;
 }
 
-char *ftnaddrtoda(ftnaddr_t *a)
+char *ftnaddrtoda(const ftnaddr_t *a)
 {
 	char *d=cfgs(CFG_DOMAIN);
 	static char s[64];
@@ -132,7 +168,7 @@ char *ftnaddrtoda(ftnaddr_t *a)
 	return s;
 }
 
-char *ftnaddrtoia(ftnaddr_t *a)
+char *ftnaddrtoia(const ftnaddr_t *a)
 {
 	static char s[64];
 	if(a->p)snprintf(s,64,"p%d.f%d.n%d.z%d." FTNDOMAIN,a->p,a->f,a->n,a->z);
@@ -142,26 +178,39 @@ char *ftnaddrtoia(ftnaddr_t *a)
 
 char *strip8(char *s)
 {
-	int i=0;
-	unsigned char t;
-	char buf[MAX_STRING+1],*ss=s;
-	if(*s)recode_to_remote(s);
-	while(*s&&i<MAX_STRING) {
-		t=*s;
-		if(t>127) {
-			buf[i++]='\\';
-			buf[i++]=t/16+((t/16)>9?'a'-10:'0');
-			buf[i]=t%16+((t%16)>9?'a'-10:'0');
-		} else buf[i]=t;
-		if(!bink&&(buf[i]=='}'||buf[i]==']'))buf[i]=')';
-		i++;s++;
+	register int	t, i = 0;
+	static char	buf[MAX_STRING + 5];
+
+	if ( !s )
+		return NULL;
+
+	if ( *s )
+		recode_to_remote( s );
+
+	while( *s && i < MAX_STRING) {
+		t = *s;
+		if ( t == '}' || t == ']' ) {
+			if ( !bink ) {
+				buf[i++] = t;
+				buf[i] = t;
+			}
+		} else if ( isprint( t ))
+			buf[i] = t;
+		else {
+			buf[i++] = '\\';
+			buf[i++] = hexdigitsupper[(t >> 4) & 0x0f];
+			buf[i] = hexdigitsupper[t & 0x0f];
+		}
+		i++;
+		s++;
 	}
-	buf[i]=0;
-	restrcpy(&ss,buf);
-	return ss;
+
+	buf[i] = '\0';
+	return xstrdup( buf );
 }
 
-int has_addr(ftnaddr_t *a,falist_t *l)
+
+int has_addr(const ftnaddr_t *a, falist_t *l)
 {
 	while(l) {
 		if(addr_cmp(a,&l->addr))return 1;
@@ -170,7 +219,7 @@ int has_addr(ftnaddr_t *a,falist_t *l)
 	return 0;
 }
 
-int showpkt(char *fn)
+int showpkt(const char *fn)
 {
 	FILE *f;
 	int i,n=1;
@@ -194,14 +243,15 @@ int showpkt(char *fn)
 			while(fgetc(f)>0&&i<72)i++;
 			if(i>=72)break;
 			while(fgetc(f)>0);
-			write_log(" *msg:%d from: \"%s\", to: \"%s\"",n++,from,to);
+			write_log("*msg: %d from: \"%s\", to: \"%s\"",n++,from,to);
 		    }
 	}
 	fclose(f);
 	return 0;
 }
 
-FILE *openpktmsg(ftnaddr_t *fa,ftnaddr_t *ta,char *from,char *to,char *subj,char *pwd,char *fn,unsigned attr)
+FILE *openpktmsg(const ftnaddr_t *fa, const ftnaddr_t *ta,
+	char *from, char *to, char *subj, char *pwd, char *fn, unsigned attr)
 {
 	FILE *f;
 	pkthdr_t ph;
@@ -263,120 +313,97 @@ FILE *openpktmsg(ftnaddr_t *fa,ftnaddr_t *ta,char *from,char *to,char *subj,char
 	return f;
 }
 
-void closepkt(FILE *f,ftnaddr_t *fa,char *tear,char *orig)
+void closepkt(FILE *f, const ftnaddr_t *fa, const char *tear, char *orig)
 {
 	if(cfgi(CFG_RECODEPKTS))recode_to_remote(orig);
 	fprintf(f,"--- %s\r * Origin: %s (%s)\r%c%c%c",tear,orig,ftnaddrtoa(fa),0,0,0);
 	fclose(f);
 }
 
-void closeqpkt(FILE *f,ftnaddr_t *fa)
+
+void closeqpkt(FILE *f, const ftnaddr_t *fa)
 {
-	char str[MAX_STRING];
-	snprintf(str,MAX_STRING*4,"%s-%s/%s",qver(0),qver(1),qver(2));
-	closepkt(f,fa,str,cfgs(CFG_STATION));
+	char str[MAX_STRING+1];
+
+	snprintf( str, MAX_STRING, "%s-%s/%s", qver( 0 ), qver( 1 ), qver( 2 ));
+	closepkt( f, fa, str, cfgs( CFG_STATION ));
 }
 
-int whattype(char *fn)
+
+int whattype(const char *fn)
 {
-	static char *ext[]={"su","mo","tu","we","th","fr","sa","pkt","req"};
-	int i,l;
-	char *p,low;
-	if(!fn)return IS_ERR;
-	p=strrchr(fn,'.');
-	if(!p)return IS_FILE;
-	l=strlen(++p);
-	if(l!=3)return IS_FILE;
-	for(i=0;i<9;i++)if(!strncasecmp(p,ext[i],strlen(ext[i])))
-	    switch(i) {
-		case 7: return IS_PKT;
-		case 8: return IS_REQ;
-		default:
-			low=tolower(p[2]);
-			if((low>='0'&&low<='9')||(low>='a'&&low<='z'))return IS_ARC;
-			break;
-	}
+	static char	*ext[] = {"su","mo","tu","we","th","fr","sa","pkt","req"};
+	register int	i;
+	char		*p, low;
+
+	if ( !fn )
+		return IS_ERR;
+
+	p = strrchr( fn, '.' );
+	if ( !p )
+		return IS_FILE;
+
+	if ( strlen( ++p ) != 3 )
+		return IS_FILE;
+
+	if ( strcasecmp( p + 1, "lo" ) == 0 )
+		return IS_FLO;
+
+	for( i = 0; i < 9; i++ )
+		if ( !strncasecmp( p, ext[i], strlen( ext[i] )))
+			switch( i ) {
+			case 7: return IS_PKT;
+			case 8: return IS_REQ;
+			default:
+				low = tolower( p[2] );
+				if (( low >= '0' && low <= '9' )
+					|| ( low >= 'a' && low <= 'z' ))
+					return IS_ARC;
+				break;
+			}
 	return IS_FILE;
 }
 
-int istic(char *fn)
+
+int istic(const char *fn)
 {
-	char *p;
-	if(!fn)return 0;
-	p=strrchr(fn,'.');
-	if(!p)return 0;
-	if(!strncasecmp(p+1,"tic",3))return 1;
-	    else return 0;
+	size_t flen;
+
+	if ( !fn || ( flen = strlen( fn )) < 4 )
+		return 0;
+
+	return ( strncasecmp( fn + flen - 4, ".tic", 4 ) == 0 );
 }
 
-char *mapname(char *fn,char *map,size_t size)
-{
-	int t;
-	char *l;
-	if(!map)return fn;
-	DEBUG(('S',3,"map : '%s', infname: '%s'",map,fn));
-	if(strchr(map,'c'))recode_to_remote(fn);
-	if(strchr(map,'k'))recode_to_local(fn);
-	if(strchr(map,'d')) {
-		if((l=strrchr(fn,'.'))) {
-			strtr(fn,'.','_');
-			*l='.';
-		}
-	}
-	t=whattype(fn);
-	if(strchr(map,'b')&&t!=IS_FILE) {
-		l=strrchr(fn,'.');
-		snprintf(fn,14,"%08lx%s",crc32s(fn),l);
-	}
-	if(strchr(map,'u'))strupr(fn);
-	if(strchr(map,'l'))strlwr(fn);
-	if(strchr(map,'f'))xstrcpy(fn,fnc(fn),size);
-	switch(t) {
-	    case IS_PKT:
-		if(strchr(map,'p'))strlwr(fn);
-		else if(strchr(map,'P'))strupr(fn);
-		break;
-	    case IS_ARC:
-		if(strchr(map,'a'))strlwr(fn);
-		else if(strchr(map,'A'))strupr(fn);
-		break;
-	    case IS_FILE:
-		if(istic(fn)) {
-			if(strchr(map,'t'))strlwr(fn);
-			else if(strchr(map,'T'))strupr(fn);
-		} else {
-			if(isdos83name(fn)) {
-				if(strchr(map,'o'))strlwr(fn);
-				else if(strchr(map,'O'))strupr(fn);
-			}
-		}
-		break;
-	}
-	if(bink)strtr(fn,' ','_');
-	DEBUG(('S',3,"mapex: '%s'",fn));
-	return fn;
-}
 
-int havestatus(int status,int cfgkey)
+int havestatus(int status, int cfgkey)
 {
-	static int stc[]={Q_NORM,Q_HOLD,Q_DIR,Q_CRASH,Q_IMM,Q_REQ};
-	static char stl[]=Q_CHARS;
-	int i;
-	char *callon=cfgs(cfgkey);
-	for(i=0;i<F_MAX;i++)if((status&stc[i])&&(strchr(callon,stl[i])))return 1;
+	static int stc[] = { Q_NORM, Q_HOLD, Q_DIR, Q_CRASH, Q_IMM, Q_REQ };
+	static char stl[] = Q_CHARS;
+	register int i;
+	char *callon = cfgs( cfgkey );
+
+	for( i = 0; i < F_MAX; i++ )
+		if (( status & stc[i] ) && ( callon && strchr( callon, stl[i] ))) {
+			DEBUG(('Q',1,"havestatus: yes, i %d, callon '%s', status 0x%X",i,callon,status));
+			return 1;
+		}
+	DEBUG(('Q',1,"havestatus: no, callon '%s', status 0x%X",callon,status));
 	return 0;
 }
 
-int needhold(int status,int what)
+
+int needhold(int status, int what)
 {
-	status&=Q_ANYWAIT;
-	if(status&Q_WAITA)return 1;
-	if((status&Q_WAITR)&&!(what&(~T_REQ)))return 1;
-	if((status&Q_WAITX)&&!(what&(~T_ARCMAIL)))return 1;
+	status &= Q_ANYWAIT;
+	if ( status & Q_WAITA ) return 1;
+	if (( status & Q_WAITR ) && !( what & (~T_REQ))) return 1;
+	if (( status & Q_WAITX ) && !( what & (~T_ARCMAIL)))return 1;
 	return 0;
 }
 
-int xfnmatch(char *pat,char *name,int flags)
+
+int xfnmatch(char *pat, const char *name, int flags)
 {
 	int type,rc=0,q=0;
 	if(!name||!pat)return FNM_NOMATCH;
@@ -402,10 +429,13 @@ int xfnmatch(char *pat,char *name,int flags)
 	return((rc^q)?0:FNM_NOMATCH);
 }
 
-char *findpwd(ftnaddr_t *a)
+
+char *findpwd(const ftnaddr_t *a)
 {
 	faslist_t *cf;
-	for(cf=cfgfasl(CFG_PASSWORD);cf;cf=cf->next)
-		if(addr_cmp(&cf->addr,a))return cf->str;
+
+	for( cf = cfgfasl( CFG_PASSWORD ); cf; cf = cf->next )
+		if ( addr_cmp( &cf->addr, a ))
+			return cf->str;
 	return NULL;
 }

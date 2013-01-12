@@ -1,6 +1,37 @@
-/* $Id: tools.h,v 1.17 2004/06/23 17:59:35 sisoft Exp $ */
+/*
+ * $Id: tools.h,v 1.12 2005/08/10 19:45:50 mitry Exp $
+ *
+ * $Log: tools.h,v $
+ * Revision 1.12  2005/08/10 19:45:50  mitry
+ * Added param to qscandir() to return full path with file name
+ *
+ * Revision 1.11  2005/05/17 18:17:42  mitry
+ * Removed system basename() usage.
+ * Added qbasename() implementation.
+ *
+ * Revision 1.10  2005/05/16 11:20:13  mitry
+ * Updated function prototypes. Changed code a bit.
+ *
+ * Revision 1.9  2005/05/06 20:48:55  mitry
+ * Misc code cleanup
+ *
+ * Revision 1.8  2005/04/14 18:04:26  mitry
+ * Changed scandir() to qscandir()
+ *
+ * Revision 1.7  2005/04/05 09:33:41  mitry
+ * Update write_debug_log() prototype
+ *
+ * Revision 1.6  2005/03/31 19:40:38  mitry
+ * Update function prototypes and it's duplication
+ *
+ */
+
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
+
+#define EXT_OK		0
+#define EXT_DID_WORK	1
+#define EXT_YOURSELF	2
 
 #define C_INT     1
 #define C_STR     2
@@ -14,92 +45,110 @@
 #define C_OCT     10
 
 typedef struct _cfgitem_t {
-	slist_t *condition;
+	slist_t			*condition;
 	union {
-		int v_int;
-		char *v_char;
-		falist_t *v_al;
-		faslist_t *v_fasl;
-		slist_t *v_sl;
+		int		v_int;
+		char		*v_char;
+		falist_t	*v_al;
+		faslist_t	*v_fasl;
+		slist_t		*v_sl;
 	} value;
-	struct _cfgitem_t *next;
+	struct _cfgitem_t	*next;
 } cfgitem_t;
 
 typedef struct {
-	char *keyword;
-	int type,flags;
-	cfgitem_t *items;
-	char *def_val;
+	char		*keyword;
+	int		type, flags;
+	cfgitem_t	*items;
+	char		*def_val;
 } cfgstr_t;
 
-extern char *hexdigits;
-extern char *engms[];
-extern char *sigs[];
-extern void recode_to_remote(char *str);
-extern void recode_to_local(char *str);
-extern int hexdcd(char d,char c);
-extern void strbin2hex(char *string,const unsigned char *binptr,size_t binlen);
-extern int strhex2bin(unsigned char *binptr,const char *string);
-extern size_t filesize(char *fname);
-extern int lockpid(char *pidfn);
-extern int islocked(char *pidfn);
-extern unsigned long sequencer();
-extern int mkdirs(char *name);
-extern void rmdirs(char *name);
-extern FILE *mdfopen(char *fn,char *pr);
-extern size_t getfreespace(const char *path);
-extern int randper(int base,int diff);
-extern void to_dev_null();
-extern int fexist(char *s);
-extern char *fnc(char *s);
-extern int whattype(char *fn);
-extern int lunlink(char *s);
-extern char *mapname(char *fn, char *map, size_t size);
-extern int isdos83name(char *fn);
-extern char *qver(int what);
-extern int istic(char *fn);
-extern int execsh(char *cmd);
-extern int execnowait(char *cmd,char *p1,char *p2,char *p3);
+extern	char *sigs[];
+
+void	recode_to_remote(char *);
+void	recode_to_local(char *);
+char	*mappath(const char *);
+char	*mapname(char *, char *, size_t);
+char	*qbasename(const char *);
+int	hexdcd(char, char);
+char	*qver(int);
+unsigned
+long	sequencer(void);
+off_t	filesize(const char *);
+int	lunlink(const char *);
+int	lockpid(const char *);
+int	islocked(const char *);
+
+FILE	*mdfopen(char *, const char *);
+int	fexist(const char *);
+int	mkdirs(char *);
+void	rmdirs(char *);
+int	qalphasort(const void *, const void *);
+int	qscandir(const char *, char ***, int,
+		int (*)(const char *), int (*)(const void *, const void *));
+int	fmatchcase(const char *, char ***);
+char	*fnc(char *);
+int	isdos83name(char *);
+size_t	getfreespace(const char *);
+void	to_dev_null(void);
+int	randper(int, int);
+int	execsh(const char *);
+int	execnowait(const char *, const char *, const char *, const char *);
+void	qsleep(int);
+
+
 /* config.c */
-extern int cfgi(int i);
-extern char *cfgs(int i);
-extern slist_t *cfgsl(int i);
-extern faslist_t *cfgfasl(int i);
-extern falist_t *cfgal(int i);
-extern int readconfig(char *cfgname);
-extern int parsekeyword(char *kw,char *arg,char *cfgname,int line);
-extern int parseconfig(char *cfgname);
-extern void killconfig();
+int		cfgi(int);
+char		*cfgs(int);
+slist_t		*cfgsl(int);
+faslist_t	*cfgfasl(int);
+falist_t	*cfgal(int);
+int		readconfig(const char *);
+void		rereadconfig(int);
+void		killconfig(void);
 #ifdef NEED_DEBUG
-extern void dumpconfig();
+void		dumpconfig(void);
 #endif
+
+
 /* log.c */
-extern void (*log_callback)(char *str);
-extern int log_init(char *,char *);
-extern void write_log(char *fmt, ...);
-extern int chatlog_init(char *remname,ftnaddr_t *remaddr,int side);
-extern void chatlog_write(char *text,int side);
-extern void chatlog_done();
+extern	void (*log_callback)(const char *str);
+
+int	log_init(const char *, const char *);
+void	vwrite_log(const char *, int);
+void	write_log(const char *, ...);
+
 #ifdef NEED_DEBUG
-extern int facilities_levels[256];
-extern void parse_log_levels();
-extern void write_debug_log(unsigned char facility,int level,char *fmt,...);
+extern	int facilities_levels[256];
+
+void	parse_log_levels(void);
+void	write_debug_log(unsigned char, int, const char *, ...);
+
 #ifdef __GNUC__
 #define DEBUG(all) __DEBUG all
-#define __DEBUG(F,L,A...) do { if(facilities_levels[(F)]>=(L)) write_debug_log((F),(L),##A); } while(0)
+#define __DEBUG(F,L,A...) do { if(facilities_levels[(unsigned char)(F)]>=(L)) write_debug_log((unsigned char)(F),(L),##A); } while(0)
 #else
 #define DEBUG(all) write_debug_log all
 #endif
 #else
 #define DEBUG(all)
 #endif
-extern void log_done();
+
+void	log_done(void);
+
+int	chatlog_init(const char *, const ftnaddr_t *, int);
+void	chatlog_write(const char *, int);
+void	chatlog_done(void);
+
+
 /* main.c */
-extern RETSIGTYPE sigerr(int sig);
-extern void stopit(int rc);
+RETSIGTYPE	sigerr(int);
+void		stopit(int);
+
 /* daemon.c */
-extern void daemon_mode();
+void	daemon_mode(void);
+
 /* flagexp.y */
-extern int flagexp(slist_t *expr,int strict);
+int	flagexp(slist_t *, int);
 
 #endif

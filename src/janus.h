@@ -1,6 +1,6 @@
 /******************************************************************
  * Janus protocol defines
- * $Id: janus.h,v 1.3 2004/01/10 09:24:40 sisoft Exp $
+ * $Id: janus.h,v 1.2 2005/03/31 19:40:38 mitry Exp $
  ******************************************************************/
 #ifndef __JANUS_H__
 #define __JANUS_H__
@@ -56,6 +56,6 @@
 #define JCAP_CLEAR8     0x20
 #define OUR_JCAPS       (JCAP_FREQ|JCAP_CRC32)
 
-extern int janus();
+extern int janus(void);
 
 #endif

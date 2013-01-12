@@ -1,11 +1,21 @@
 /**********************************************************
- * CRC tables.
- * $Id: crc.c,v 1.5 2004/02/13 22:29:01 sisoft Exp $
+ * CRC and crypt.
  **********************************************************/
+/*
+ * $Id: crc.c,v 1.5 2005/05/06 20:26:57 mitry Exp $
+ *
+ * $Log: crc.c,v $
+ * Revision 1.5  2005/05/06 20:26:57  mitry
+ * Misc changes
+ *
+ */
+
 #include "headers.h"
 #include "crc.h"
 
-UINT32 crc32_tab[256] =			/* CRC polynomial 0xedb88320 -- CCITT CRC32. */
+
+/* CRC polynomial 0xedb88320 -- CCITT CRC32. */
+UINT32 crc32_tab[256] =
 {
   0x00000000,0x77073096,0xee0e612c,0x990951ba,0x076dc419,0x706af48f,0xe963a535,0x9e6495a3,
   0x0edb8832,0x79dcb8a4,0xe0d5e91e,0x97d2d988,0x09b64c2b,0x7eb17cbd,0xe7b82d07,0x90bf1d91,
@@ -41,7 +51,9 @@ UINT32 crc32_tab[256] =			/* CRC polynomial 0xedb88320 -- CCITT CRC32. */
   0xb3667a2e,0xc4614ab8,0x5d681b02,0x2a6f2b94,0xb40bbe37,0xc30c8ea1,0x5a05df1b,0x2d02ef8d
 };
 
-UINT16 crc16usd_tab[256] =		/* CRC polynomial 0x1021 -- CCITT upside-down CRC16. EMSI,ZModem,Janus. */
+
+/* CRC polynomial 0x1021 -- CCITT upside-down CRC16. EMSI,ZModem,Janus. */
+UINT16 crc16usd_tab[256] =
 {
   0x0000,0x1021,0x2042,0x3063,0x4084,0x50a5,0x60c6,0x70e7,
   0x8108,0x9129,0xa14a,0xb16b,0xc18c,0xd1ad,0xe1ce,0xf1ef,
@@ -77,7 +89,9 @@ UINT16 crc16usd_tab[256] =		/* CRC polynomial 0x1021 -- CCITT upside-down CRC16.
   0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0
 };
 
-UINT16 crc16prp_tab[256] =		/* CRC polynomial 0x8408 -- CCITT proper CRC16. Hydra. */
+
+/* CRC polynomial 0x8408 -- CCITT proper CRC16. Hydra. */
+UINT16 crc16prp_tab[256] =
 {
   0x0000,0x1189,0x2312,0x329b,0x4624,0x57ad,0x6536,0x74bf,
   0x8c48,0x9dc1,0xaf5a,0xbed3,0xca6c,0xdbe5,0xe97e,0xf8f7,
@@ -113,99 +127,131 @@ UINT16 crc16prp_tab[256] =		/* CRC polynomial 0x8408 -- CCITT proper CRC16. Hydr
   0x7bc7,0x6a4e,0x58d5,0x495c,0x3de3,0x2c6a,0x1ef1,0x0f78
 };
 
-UINT32 crc32s(char *str)
+
+UINT32 crc32s(void *string)
 {
-	UINT32 crc;
-	for(crc=CRC32_INIT;*str;str++)crc=CRC32_UPDATE(*str,crc);
-	return crc;
+    register UINT8 *str = (UINT8 *) string;
+    register UINT32 crc;
+
+    for ( crc = CRC32_INIT; *str; str++ )
+        crc = (UINT32) CRC32_UPDATE( *str, crc );
+    return crc;
 }
 
-UINT32 crc32(char *data,size_t size)
+
+UINT32 crc32block(void *datablock, register size_t size)
 {
-	UINT32 crc;
-	for(crc=CRC32_INIT;size--;data++)crc=CRC32_UPDATE(*data,crc);
-	return crc;
+    register UINT8 *data = (UINT8 *) datablock;
+    register UINT32 crc;
+    
+    for ( crc = CRC32_INIT; size--; data++ )
+        crc = (UINT32) CRC32_UPDATE( *data, crc );
+    return crc;
 }
 
-UINT16 crc16usds(char *str)
+
+UINT16 crc16usds(void *string)
 {
-	UINT16 crc;
-	for(crc=CRC16USD_INIT;*str;str++)crc=CRC16USD_UPDATE(*str,crc);
-	return crc;
+    register UINT8 *str = (UINT8 *) string;
+    register UINT16 crc;
+
+    for ( crc = CRC16USD_INIT; *str; str++ )
+        crc = (UINT16) CRC16USD_UPDATE( *str, crc );
+    return crc;
 }
 
-UINT16 crc16usd(char *data,size_t size)
+
+UINT16 crc16usd(void *datablock, register size_t size)
 {
-	UINT16 crc;
-	for(crc=CRC16USD_INIT;size--;data++)crc=CRC16USD_UPDATE(*data,crc);
-	return crc;
+    register UINT8 *data = (UINT8 *) datablock;
+    register UINT16 crc;
+
+    for ( crc = CRC16USD_INIT; size--; data++ )
+        crc = (UINT16) CRC16USD_UPDATE( *data, crc );
+    return crc;
 }
 
-UINT16 crc16prps(char *str)
+
+UINT16 crc16prps(void *string)
 {
-	UINT16 crc;
-	for(crc=CRC16PRP_INIT;*str;str++)crc=CRC16PRP_UPDATE(*str,crc);
-	return crc;
+    register UINT8 *str = (UINT8 *) string;
+    register UINT16 crc;
+    
+    for ( crc = CRC16PRP_INIT; *str; str++ )
+        crc = (UINT16) CRC16PRP_UPDATE( *str, crc );
+    return crc;
 }
 
-UINT16 crc16prp(char *data,size_t size)
+
+UINT16 crc16prp(void *datablock, register size_t size)
 {
-	UINT16 crc;
-	for(crc=CRC16PRP_INIT;size--;data++)crc=CRC16PRP_UPDATE(*data,crc);
-	return crc;
+    register UINT8 *data = (UINT8 *) datablock;
+    register UINT16 crc;
+
+    for ( crc = CRC16PRP_INIT; size--; data++ )
+        crc = (UINT16) CRC16PRP_UPDATE( *data, crc );
+    return crc;
 }
 
-int update_keys(unsigned long keys[3],int c)
+
+int update_keys(unsigned long keys[], int c)
 {
 	int keyshift;
-	keys[0]=CRC32_CR(keys[0],c);
-	keys[1]+=keys[0]&0xff;
-	keys[1]=keys[1]*134775813L+1;
-        keyshift=(int)(keys[1]>>24);
-	keys[2]=CRC32_CR(keys[2],keyshift);
+
+	keys[0] = CRC32_CR( keys[0], c );
+	keys[1] += keys[0] & 0xff;
+	keys[1] = keys[1] * 134775813L + 1;
+        keyshift = (int) ( keys[1] >> 24 );
+	keys[2] = CRC32_CR( keys[2], keyshift );
 	return c;
 }
 
-void init_keys(unsigned long keys[3],char *passwd)
+
+void init_keys(unsigned long keys[], char *passwd)
 {
-	keys[0]=305419896L;
-	keys[1]=591751049L;
-	keys[2]=878082192L;
-	while(passwd&&*passwd) {
-		update_keys(keys,(int)*passwd);
+	keys[0] = 305419896L;
+	keys[1] = 591751049L;
+	keys[2] = 878082192L;
+	while( passwd && *passwd) {
+		update_keys( keys, (int) *passwd );
 		passwd++;
 	}
 }
 
-int decrypt_byte(unsigned long keys[3])
+
+int decrypt_byte(unsigned long keys[])
 {
-	unsigned temp=((unsigned)keys[2]&0xffff)|2;
-	return(((temp*(temp^1))>>8)&0xff);
+	unsigned temp = ((unsigned)keys[2] & 0xffff ) | 2;
+	return((( temp * ( temp ^ 1 )) >> 8 ) &0xff );
 }
 
-void decrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3])
+
+void decrypt_buf(char *buf, size_t bufsize, unsigned long keys[])
 {
-	while(bufsize--)
-		update_keys(keys,*buf++^=decrypt_byte(keys));
+	while( bufsize-- )
+		update_keys( keys, *buf++ ^= decrypt_byte( keys ));
 }
 
-void encrypt_buf(char *buf,unsigned bufsize,unsigned long keys[3])
+
+void encrypt_buf(char *buf, size_t bufsize, unsigned long keys[])
 {
 	int t;
-	while(bufsize--) {
-		t=decrypt_byte(keys);
-		update_keys(keys,*buf);
-		*buf++^=t;
+	while( bufsize-- ) {
+		t = decrypt_byte( keys );
+		update_keys( keys, *buf );
+		*buf++ ^= t;
 	}
 }
 
+
 static char b64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-int base64(char *data,size_t size,char *p)
+
+int base64(void *data, size_t size, char *p)
 {
-	int i,c;
+	int c;
+	size_t i;
 	char *s=p;
-	unsigned char *q;
-	q=(unsigned char*)data;
+	UINT8 *q = (UINT8 *) data;
 	for(i=0;i<size;) {
 		c=q[i++]*256;
 		if(i<size)c+=q[i];

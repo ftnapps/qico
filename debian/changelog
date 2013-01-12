@@ -1,3 +1,22 @@
+qico (0.57.1xe-1) unstable; urgency=low
+
+  * New upstream release
+  * Fixed postinst script
+
+ -- Kaliuta Yauheni <y.kaliuta@gmail.com>  Tue, 23 Aug 2005 15:47:59 +0300
+
+qico (0.57xe-1) unstable; urgency=low
+
+  * New upstream release
+  * New maintainer
+  * Use xe branch now
+  * Built with debconf instead debmake
+  * Fixed build dependences
+  * Changed package layout
+  * New Standards-Version
+
+ -- Kaliuta Yauheni <y.kaliuta@gmail.com>  Fri, 19 Aug 2005 20:47:46 +0300
+
 qico (0.55si-1) stable; urgency=low
 
   * new upstream release.
