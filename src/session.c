@@ -1,6 +1,6 @@
 /**********************************************************
  * session
- * $Id: session.c,v 1.40 2004/07/07 08:58:32 sisoft Exp $
+ * $Id: session.c,v 1.38 2004/06/25 09:46:42 sisoft Exp $
  **********************************************************/
 #include "headers.h"
 #include <fnmatch.h>
@@ -286,10 +286,10 @@ void log_rinfo(ninfo_t *e)
 	write_log("  phone: %s",e->phone);
 	write_log("  flags: [%d] %s",e->speed,e->flags);
 	write_log(" mailer: %s",e->mailer);
-	mt=*localtime(&tt);t=gmtime(&e->time);
+	mt=*localtime(&tt);t=localtime(&e->time);
 	write_log("   time: %02d:%02d:%02d, %s",t->tm_hour,t->tm_min,t->tm_sec,e->wtime?e->wtime:"unknown");
 	if(t->tm_mday!=mt.tm_mday||t->tm_mon!=mt.tm_mon||t->tm_year!=mt.tm_year)
-		write_log("   date: %02d/%02d/%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);
+		write_log("   date: %02d.%02d.%04d",t->tm_mday,t->tm_mon+1,t->tm_year+1900);
 	if(e->holded&&!e->files&&!e->netmail)write_log(" for us: %d%c on hold",
 		SIZES(e->holded),SIZEC(e->holded));
 	else if(e->files||e->netmail)write_log(" for us: %d%c mail; %d%c files",

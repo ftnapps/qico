@@ -1,5 +1,5 @@
 # test and info perl script for qicosi.
-# $Id: test.pl,v 1.11 2004/06/30 09:09:41 sisoft Exp $
+# $Id: test.pl,v 1.10 2004/06/25 09:46:42 sisoft Exp $
 
 # available qico functions:
 #  sub wlog([level,]string): write string to log.
@@ -79,7 +79,7 @@ sub on_session {
     wlog(" he akas: @akas, our akas: @addrs");
     wlog(" remote has flags '$info{flags}' and system flags '$flags'");
     wlog(" need to sent $queue{mail} bytes of mail and $queue{files} bytes of files ($queue{num} files)");
-#    return $S_NODIAL if(qexpr("!time 23-7")==1);
+    return $S_NODIAL if(qexpr("!time 23-7")==1);
     return $S_OK;
 }
 
