@@ -1,8 +1,10 @@
-/* $Id: TodayFixes,v 1.97 2004/07/07 08:58:32 sisoft Exp $ */
+/* $Id: TodayFixes,v 1.95 2004/06/25 09:46:42 sisoft Exp $ */
 ---
-fix compile with perl 5.6.
+change option '-a'.
+remove stuff/fts-001.
 .
 previous:
 ---
-show remote time in local timezone.
+add lost files slists.[ch].
+remove unused /tmp/qpkt*.pkt's.
 .

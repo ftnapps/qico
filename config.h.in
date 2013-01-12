@@ -55,9 +55,6 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
-/* Define to 1 if you have the `dup2' function. */
-#undef HAVE_DUP2
-
 /* Define to 1 if system defines 'EIDRM' errno value */
 #undef HAVE_EIDRM
 
@@ -155,9 +152,6 @@
 /* Define to 1 if you have the `recv' function. */
 #undef HAVE_RECV
 
-/* Define to 1 if you have the `select' function. */
-#undef HAVE_SELECT
-
 /* Define to 1 if you have the `send' function. */
 #undef HAVE_SEND
 
@@ -194,14 +188,8 @@
 /* Define to 1 if you have the `strcasecmp' function. */
 #undef HAVE_STRCASECMP
 
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
 /* Define to 1 if you have the `strcspn' function. */
 #undef HAVE_STRCSPN
-
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
 
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
@@ -218,17 +206,11 @@
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
 
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
 /* Define to 1 if you have the `strsep' function. */
 #undef HAVE_STRSEP
 
 /* Define to 1 if you have the `strspn' function. */
 #undef HAVE_STRSPN
-
-/* Define to 1 if you have the `strstr' function. */
-#undef HAVE_STRSTR
 
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
@@ -343,7 +325,7 @@
 /* Maximum length of file path */
 #undef MAX_PATH
 
-/* Maximum length of string on stack for log and some other places */
+/* Maximum length of standard string */
 #undef MAX_STRING
 
 /* Build debug loglevels support */
@@ -417,6 +399,9 @@
 
 /* Define if using the dmalloc debugging malloc package */
 #undef WITH_DMALLOC
+
+/* Support for perl hooks */
+#undef WITH_PERL
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

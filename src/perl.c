@@ -1,16 +1,12 @@
 /**********************************************************
  * perl support
- * $Id: perl.c,v 1.11 2004/07/07 08:58:32 sisoft Exp $
+ * $Id: perl.c,v 1.10 2004/06/23 17:59:35 sisoft Exp $
  **********************************************************/
-#include <config.h>
+#include "headers.h"
 #ifdef WITH_PERL
-#undef PACKAGE
 #include <EXTERN.h>
 #include <perl.h>
 #include <XSUB.h>
-#undef keyword
-#undef DEBUG
-#include "headers.h"
 
 #ifndef sv_undef
 #	define sv_undef PL_sv_undef

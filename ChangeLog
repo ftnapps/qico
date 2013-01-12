@@ -1,18 +1,3 @@
-2004-06-30 13:08  sisoft
-
-	* src/session.c, stuff/test.pl:
-
-	show remote time in local timezone.
-
-2004-06-25 13:46  sisoft
-
-	* debian/examples, src/call.c, src/mailer.h, src/main.c,
-	  src/session.c, stuff/Makefile.am, stuff/fts-0001, stuff/test.pl,
-	  stuff/freebsd/Makefile, stuff/freebsd/pkg-plist:
-
-	change option '-a'.
-	remove stuff/fts-001.
-
 2004-06-24 13:53  sisoft
 
 	* src/: flaglex.l, session.c, slists.c, slists.h:
