@@ -32,7 +32,7 @@ clean:
 	dh_testroot
 	rm -f build-stamp-qico build-stamp-qico-qcc
 	rm -rf $(TMPDIR)
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean
 
 binary-indep:
