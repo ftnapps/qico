@@ -1,10 +1,11 @@
-qico (0.57.2xe-1) UNRELEASED; urgency=low
+qico (0.57.2xe-1) stable; urgency=low
 
   * New maintainer.
+  * Update/correct distclean command in debian/rules.
   * Update debhelper compatibility to 5 in debian/compat.
   * Update debhelper Build-Depends in debian/control to >= 5.0.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 12 Jan 2013 00:49:23 -0500
+ -- Robert James Clay <jame@rocasa.us>  Sat, 12 Jan 2013 23:08:52 -0500
 
 qico (0.57.1xe-1) unstable; urgency=low
 
