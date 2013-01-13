@@ -1,8 +1,8 @@
 Source: qico
 Section: net
 Priority: optional
-Maintainer: Kaliuta Yauheni <y.kaliuta@gmail.com>
-Build-Depends: debhelper (>> 4.2), libncurses-dev
+Maintainer: Robert James Clay <jame@rocasa.us>
+Build-Depends: debhelper (>= 5.0), libncurses-dev
 Standards-Version: 3.6.2
 
 Package: qico-common

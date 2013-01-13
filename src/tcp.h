@@ -36,7 +36,7 @@
   #define MAXHOSTNAMELEN 255
 #endif
 
-char *get_hostname(struct sockaddr_in *, char *, int);
+char *get_hostname(struct sockaddr *, socklen_t, char *, int);
 int tcp_setsockopts(int);
 
 int tcp_dial(ftnaddr_t *, char *);

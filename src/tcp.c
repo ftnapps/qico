@@ -64,21 +64,20 @@
 
 
 /* Returns hostname or ip address */
-char *get_hostname(struct sockaddr_in *addr, char *host, int len)
+char *get_hostname(struct sockaddr *addr, socklen_t salen, char *host, int len)
 {
-	struct hostent		*he;
-	struct sockaddr_in	sa;
+	char ipaddr[MAXHOSTNAMELEN + 1];
+	char hostbuf[MAXHOSTNAMELEN + 1];
+	int niErr = 1;
 
-	memcpy( &sa, addr, sizeof( struct sockaddr_in ) );
-	if ( cfgi( CFG_RESOLVEHOSTNAME )) {
-		he = gethostbyaddr( (char *) &sa.sin_addr, sizeof sa.sin_addr, AF_INET );
-		if ( he ) {
-			snprintf( host, len, "%s (%s)", he->h_name, inet_ntoa( sa.sin_addr ));
-			return host;
-		}
-	}
+	getnameinfo( addr, salen, ipaddr, sizeof(ipaddr), NULL, 0, NI_NUMERICHOST );
+	if ( cfgi( CFG_RESOLVEHOSTNAME ))
+		niErr = getnameinfo( addr, salen, hostbuf, sizeof(hostbuf), NULL, 0, NI_NAMEREQD );
 
-	xstrcpy( host, inet_ntoa( sa.sin_addr ), len );
+	if ( niErr == 0 )
+		snprintf( host, len, "%s (%s)", hostbuf, ipaddr );
+	else
+		xstrcpy( host, ipaddr, len );
 
 	return host;
 }
@@ -398,7 +397,7 @@ tcp_connect_socks(char *name)
 }
 
 
-#define GET_PORT() ( proxy ? ( sp ? 1080 : 3128 ) : ( bink ? 24554 : 60179 ))
+#define GET_PORT() ( proxy ? ( sp ? "1080" : "3128" ) : ( bink ? "24554" : "60179" ))
 
 /*
  * Open tcp/ip connection to host. Arguments are:
@@ -414,111 +413,108 @@ static int
 tcp_connect(char *name, char *proxy, int sp)
 {
 	char			*portname, *p;
-	int			misc;
-	unsigned short		portnum;
-	struct servent		*se;
-	struct hostent		*he;
-	struct sockaddr_in	server;
-
-	server.sin_family = AF_INET;
+	struct addrinfo		hints =	      { .ai_family = PF_UNSPEC,
+						.ai_socktype = SOCK_STREAM,
+						.ai_protocol = IPPROTO_TCP };
+	struct addrinfo		*ai, *aiHead;
+	int			aiErr;
 
 	if (( portname = strchr( proxy ? proxy : name, ':' ))) {
 		*portname++ = '\0';
 		if (( p = strchr( portname, ' ' )))
 			*p = '\0';
-
-		if (( portnum = atoi( portname ))) {
-			server.sin_port = htons( portnum );
-		} else {
-			if (( se = getservbyname( portname, "tcp" )))
-				server.sin_port = se->s_port;
-			else
-				server.sin_port = htons( GET_PORT() );
-		}
 	} else {
-		if (( se = getservbyname( proxy ? ( sp ? "socks" : "proxy" ) :
-		    ( bink ? "binkp" : "fido" ), "tcp" )))
-			server.sin_port = se->s_port;
-		else {
-			if ( proxy && !sp && ( se = getservbyname( "squid", "tcp" )))
-				server.sin_port = se->s_port;
-			else
-				server.sin_port = htons( GET_PORT() );
-		}
+		portname = (proxy ? ( sp ? "socks" : "proxy" ) :
+                    ( bink ? "binkp" : "fido" ) );
 	}
 
-	if ( sscanf( proxy ? proxy : name, "%d.%d.%d.%d", &misc, &misc, &misc, &misc ) == 4 )
-		server.sin_addr.s_addr = inet_addr( proxy ? proxy : name );
-	else {
-		if (( he = gethostbyname( proxy ? proxy : name )))
-			memcpy( &server.sin_addr, he->h_addr, he->h_length );
-		else {
-			write_log("can't resolve ip for %s%s",
-				proxy ? ( sp ? "socks " : "proxy " ) : "",
-				proxy ? proxy : name );
-			return -1;
-		}
+	aiErr = getaddrinfo( proxy ? proxy : name, portname, &hints, &aiHead);
+	if ( aiErr == EAI_SERVICE ) {
+		hints.ai_flags |= AI_NUMERICSERV;
+		aiErr = getaddrinfo( proxy ? proxy : name, GET_PORT(), &hints, &aiHead);
 	}
 
-	sline("Connecting to %s%s%s%s:%d",
-		proxy ? name : "",
-		proxy ? " via " : "",
-		proxy ? ( sp ? "socks " : "proxy " ) : "",
-		inet_ntoa( server.sin_addr ),
-		(int) ntohs( server.sin_port ));
+	if ( aiErr != 0 ) {
+		write_log("can't resolve ip for %s%s: %s",
+			proxy ? ( sp ? "socks " : "proxy " ) : "",
+			proxy ? proxy : name, gai_strerror(aiErr) );
+
+		return -1;
+	}
 
 	signal( SIGTERM, tty_sighup );
 	signal( SIGPIPE, tty_sighup );
 	signal( SIGHUP, tty_sighup );
 
-	if (( tty_fd = socket( AF_INET, SOCK_STREAM, 0)) < 0 ) {
-		write_log("can't create socket: %s", strerror( errno ));
-		return -1;
-	}
+	for ( ai = aiHead; !tty_online && ai != NULL; ai = ai->ai_next ) {
+		char	hostbuf[MAXHOSTNAMELEN + 1];
+		char	servbuf[NI_MAXSERV + 1];
 
-	if ( fd_make_stddev( tty_fd ) != OK ) {
-		write_log( "tcp_connect: can't make stdin/stdout/stderr" );
-		close( tty_fd );
-		return ERROR;
-	}
+		getnameinfo( ai->ai_addr, ai->ai_addrlen, hostbuf, sizeof(hostbuf), servbuf, sizeof(servbuf), NI_NUMERICHOST | NI_NUMERICSERV );
+		sline("Connecting to %s%s%s%s:%s",
+			proxy ? name : "",
+			proxy ? " via " : "",
+			proxy ? ( sp ? "socks " : "proxy " ) : "",
+			hostbuf,
+			servbuf);
 
-	tty_fd = 0;
+		if (( tty_fd = socket( ai->ai_family, ai->ai_socktype, ai->ai_protocol)) < 0 ) {
+			write_log("can't create socket: %s", strerror( errno ));
+			continue;
+		}
 
-	if ( connect( tty_fd, (struct sockaddr*) &server, sizeof( server )) < 0 ) {
-		write_log( "can't connect to %s: %s", inet_ntoa( server.sin_addr ), strerror( errno ));
-		tcp_done();
-		return ERROR;
-	}
+		if ( fd_make_stddev( tty_fd ) != OK ) {
+			write_log( "tcp_connect: can't make stdin/stdout/stderr" );
+			close( tty_fd );
+			continue;
+		}
 
-	if ( !tcp_setsockopts( tty_fd )) {
-		write_log( "can't set socket options" );
-		tcp_done();
-		return ERROR;
-	}
+		tty_fd = 0;
 
-	write_log( "TCP/IP connection with %s%s:%d",
-		proxy ? ( sp ? "socks " : "proxy " ) : "" ,
-		inet_ntoa( server.sin_addr ),
-		(int) ntohs( server.sin_port ));
+		if ( connect( tty_fd, ai->ai_addr, ai->ai_addrlen) < 0 ) {
+			write_log( "can't connect to %s: %s", hostbuf, strerror( errno ));
+			close ( tty_fd );
+			continue;
+		}
 
-	tty_online = TRUE;
+		if ( !tcp_setsockopts( tty_fd )) {
+			write_log( "can't set socket options" );
+			close ( tty_fd );
+			continue;
+		}
 
-	if ( proxy ) {
-		sline("%s server found. waiting for reply...", sp ? "Socks" : "Proxy");
-		if ( !sp ) {
-			if ( !tcp_connect_proxy( name )) {
+		write_log( "TCP/IP connection with %s%s:%d",
+			proxy ? ( sp ? "socks " : "proxy " ) : "" ,
+			hostbuf,
+			servbuf);
+
+		tty_online = TRUE;
+
+		if ( proxy ) {
+			sline("%s server found. waiting for reply...", sp ? "Socks" : "Proxy");
+			if ( !sp ) {
+				if ( !tcp_connect_proxy( name )) {
+					tcp_done();
+					freeaddrinfo(aiHead);
+					return ERROR;
+				}
+			} else if ( !tcp_connect_socks( name )) {
 				tcp_done();
+				freeaddrinfo(aiHead);
 				return ERROR;
 			}
-		} else if ( !tcp_connect_socks( name )) {
-			tcp_done();
-			return ERROR;
 		}
 	}
 
-	sline("FTN server found. waiting for reply...");
-	
-	return tty_fd;
+	freeaddrinfo(aiHead);
+	if ( tty_online ) {
+		sline("FTN server found. waiting for reply...");
+		return tty_fd;
+	}
+
+	write_log( "Cannot connect %s: all addresses failed", name );
+	tcp_done();
+	return ERROR;
 }
 
 int tcp_dial(ftnaddr_t *fa, char *host)
