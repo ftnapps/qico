@@ -1,3 +1,9 @@
+2013-01-12 22:12  jame
+
+	* debian/rules:
+
+	Update/correct distclean command in debian/rules.
+
 2013-01-12 00:58  jame
 
 	* debian/control, debian/compat:
