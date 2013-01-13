@@ -1,10 +1,10 @@
 Summary:	qico, an ftn-compatible mailer
 Name:		qico
-Version:	0.57.1xe
+Version:	0.58
 Release:	1
 Copyright:	BSD
 Group:		System Environment/Daemons
-Source:		http://193.232.248.13:8080/qicoxe/qico-%{version}.tar.bz2
+Source:		http://sf.net/projects/qico/files/qico-%{version}/qico-%{version}.tar.bz2/download
 URL:		http://qico.sourceforge.net/
 BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 Prefix:		%{_prefix}
@@ -51,15 +51,4 @@ fi
 %doc %{_mandir}/man8/qico.8*
 %doc %{_mandir}/man8/qctl.8*
 %doc %{_mandir}/man8/qcc.8*
-
-%changelog
-* Sat May 29 2004 sisoft <sisoft@bk.ru>
-  [0.53si-1]
-- ported to current version.
-* Wed Sep 27 2000 pqr <pqr@yasp.com>
-  [0.49.0-1]
-- some fixes about prefix and others
-* Tue Aug 29 2000 pqr <pqr@yasp.com>
-  [0.47-1]
-- initial version
 
