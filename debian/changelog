@@ -1,0 +1,69 @@
+qico (0.57.2xe-1) stable; urgency=low
+
+  * New maintainer.
+  * Update/correct distclean command in debian/rules.
+  * Update debhelper compatibility to 5 in debian/compat.
+  * Update debhelper Build-Depends in debian/control to >= 5.0.
+
+ -- Robert James Clay <jame@rocasa.us>  Sat, 12 Jan 2013 23:08:52 -0500
+
+qico (0.57.1xe-1) unstable; urgency=low
+
+  * New upstream release
+  * Fixed postinst script
+
+ -- Kaliuta Yauheni <y.kaliuta@gmail.com>  Tue, 23 Aug 2005 15:47:59 +0300
+
+qico (0.57xe-1) unstable; urgency=low
+
+  * New upstream release
+  * New maintainer
+  * Use xe branch now
+  * Built with debconf instead debmake
+  * Fixed build dependences
+  * Changed package layout
+  * New Standards-Version
+
+ -- Kaliuta Yauheni <y.kaliuta@gmail.com>  Fri, 19 Aug 2005 20:47:46 +0300
+
+qico (0.55si-1) stable; urgency=low
+
+  * new upstream release.
+  * fix packages installation.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Sat,  5 Jun 2004 11:55:01 +0300
+
+qico (0.54si-1) stable; urgency=low
+
+  * new upstream release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Sat,  5 Jun 2004 11:46:13 +0300
+
+qico (0.53si-1) stable; urgency=low
+
+  * new upstream release.
+  * fix build
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Mon,  8 Mar 2004 22:27:54 +0300
+
+qico (0.52si-1) stable; urgency=low
+
+  * new upstream release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Mon,  8 Mar 2004 22:20:14 +0300
+
+qico (0.51si-1) unstable; urgency=low
+
+  * See Changes and ChangeLog.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Tue, 13 Jan 2004 13:00:27 +0300
+
+qico (0.50si-1) unstable; urgency=low
+
+  * Initial debian release.
+
+ -- Stepan A. Pologov <sisoft@bk.ru>  Wed, 29 Oct 2003 16:56:49 +0300
+
+Local variables:
+mode: debian-changelog
+End:

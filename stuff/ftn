@@ -1,0 +1,37 @@
+#! /bin/sh
+#
+# Start FTN services.
+#
+# This is a script for RedHat's startup process.
+#
+# $Id: ftn,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $
+# chkconfig: 345 86 14
+# description: FTN services
+#
+. /etc/rc.d/init.d/functions
+
+case "$1" in
+  start)
+	echo -n "Starting FTN services: "
+	su news -c 'qico -d'
+	echo qico
+	touch /var/lock/subsys/fido
+	;;
+  stop)
+	echo -n "Stopping FTN services: "
+	qctl -q
+	echo qico
+	rm -f /var/lock/subsys/fido
+	;;
+  status)
+	status qico
+	;;
+  restart|reload)
+	qctl -R
+	;;
+  *)
+	echo "Usage: $0 {start|stop|status|restart|reload}"
+	exit 1
+esac
+
+exit 0

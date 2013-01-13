@@ -1,0 +1,74 @@
+#!/bin/awk -f
+#qico.stat - генератор статистики для мэйлера qico
+#Использовать:  qlinks < /fido/log/history
+BEGIN {
+sumF = 0;sumC = 0;trafS=0;trafR=0;FS = ",";dat=strftime("%d/%m/%y", systime())}
+ {
+ rdat=strftime("%d/%m/%y",$2);
+ 
+ if(rdat==dat) 
+   {
+   trafS+=$6;trafR+=$7;sumLin+=$3
+   if (index ($5,"0")==0) {sumC++;} else {sumF++ }
+   total_link[$1,$4]+=1;
+   total_time[$1,$4]+=$3;
+   total_trafS[$1,$4]+=$6;
+   total_trafR[$1,$4]+=$7;
+   }
+ }
+END {
+     print ( "\n_Cтатистика по линкам_ " strftime("%A %d %B %Y") " (" dat ")")
+     #Двухмерный массив => в два одномерных, чтобы индексировать по i,j
+     for (k in total_link) 
+     {
+     split(k, si, SUBSEP)
+     line[si[1]]=0;
+     addr[si[2]]=0;
+     }
+     
+     for (i in line) 
+     {
+     printf("\n                            Линия: %5s\n", i)
+     print(".--------------------------------------------------------------------------.")
+     print("|     Адрес      |    Длит.  |   От нас  |    Нам    |     CPS    | Сессий |")
+     print("|----------------+-----------+-----------+-----------+------------+--------|")     
+#    Сортировка по линиям. i - (ttySx, modem, tcpip)     
+#    j - адрес линка.
+       for (j in addr) 
+       {
+        if (total_link[i,j]!=0) 
+        {
+	  printf("|%15s |", j) 
+          if (total_time[i,j]>59) {printf(" %5.1f %3s |",total_time[i,j]/60,"мин")} else {printf(" %5d %3s |",total_time[i,j],"сек")}
+          if (total_trafS[i,j]>999) {printf(" %8.1fК |", total_trafS[i,j]/1024)} else {printf(" %9d |", total_trafS[i,j])}
+          if (total_trafR[i,j]>999) {printf(" %8.1fК |", total_trafR[i,j]/1024)} else {printf(" %9d |", total_trafR[i,j])}
+          if (total_time[i,j]!=0)
+	   {total_cps=(total_trafS[i,j]+total_trafR[i,j])/total_time[i,j]}
+	  else
+	   {total_cps=0}
+	  printf("  %5d cps |",total_cps)
+	  printf(" %6d |\n",total_link[i,j])
+	  sum_time+=total_time[i,j]	  
+	  sum_trafS+=total_trafS[i,j]	  
+	  sum_trafR+=total_trafR[i,j]
+	  sum_link+=total_link[i,j]  	  
+	 }
+	}
+       print("`----------------+-----------+-----------+-----------+------------+--------|")
+       printf("          Итого: |")
+       printf(" %5.1f %3s |",sum_time/60,"мин")
+       printf(" %8.1fК |", sum_trafS/1024)
+       printf(" %8.1fК |", sum_trafR/1024)
+       printf("      -     |")
+       printf(" %6d |\n",sum_link)
+       print("                 `---------------------------------------------------------'\n")
+       sum_time=0;sum_trafS=0;sum_trafR=0;sum_link=0
+     }  
+     
+     print("Суммарная статистика по линиям за " dat)
+     printf("  Общий трафик, send/recv:  %0.1fК / %0.1fК\n", trafS/1024,trafR/1024)
+     print ("  Удачных сессий: " sumC)
+     print ("  Плохих сессий: " sumF)
+     print ("  Всего сессий: " sumC+sumF)
+     printf("  Общее время в online: %5.1f мин\n",  sumLin/60)
+     }

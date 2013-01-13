@@ -1,0 +1,45 @@
+#!/bin/awk -f
+#qico.stat - генератор статистики для мэйлера qico
+#Красоту столбцов мне было лень наводить т.к. писал в 3 часа ночи :)
+#Использовать: qhistory < /fido/log/history
+BEGIN {
+sumF = 0;sumC = 0;trafS=0;trafR=0;FS = ",";dat=strftime("%d/%m/%y", systime())
+print ( "_История сессий за_ " strftime("%A %d %B %Y") " (" dat ")")
+print("---------------------------------------------------------------------------")
+print("  Время      Длит          Адрес        От нас     Нам      CPS    Статус  ")
+print("---------------------------------------------------------------------------")
+      }
+ {
+ rdat=strftime("%d/%m/%y",$2);
+ if(rdat==dat) 
+   {
+   printf(" %8s",strftime("%H:%M:%S",$2))
+   if ($3>59) { printf(" %6.1f %3s",$3/60,"мин")} else { printf(" %6d %3s",$3,"сек")}
+   printf(" %15s",$4) 
+   if ($6>999) {printf(" %8.1fК", $6/1024)} else {printf(" %8d ", $6)}
+   if ($7>999) {printf(" %8.1fК", $7/1024)} else {printf(" %8d ", $7)}
+   trafS+=$6;trafR+=$7;sumLin+=$3
+   if ($3!=0)
+   {_cps=($6+$7)/$3}
+   else
+   {_cps==0}
+   printf("  %5d ",_cps)
+# "Статус" позаимствованный у Andrey Lomov     
+   if (index ($5,"0")==0) {stat="*C*";sumC++;} else {stat="_F_";sumF++ }
+   if (index ($5,"I")==0) {sts="O";sumO++;} else {sts="I";sumI++ }
+   if (index ($5,"L")==0) {sts_l=" ";sumU++;} else {sts_l="L";sumL++ }
+   if (index ($5,"P")==0) {sts_p=" ";sumN++;} else {sts_p="P";sumP++ }
+   printf("  %3s [%1s%1s%1s]\n",stat,sts,sts_l,sts_p)
+# Старый вариант столбца "Статус"   
+#   if (index ($5,"0")==0) {stat="*OK*";sumC++;} else {stat="_FAILED_";sumF++ }
+#   printf("  %8s\n",stat)  
+   }
+ }
+END {
+print("---------------------------------------------------------------------------")
+printf("  Total sessions : %0i\n",sumC+sumF)
+printf("  Good sessions: %3i  Aborted Sessions:%3i \n", sumC,sumF)
+printf("  With listed  : %3i  With unlisted   :%3i \n", sumL,sumU)
+printf("  Protected    : %3i  Unprotected     :%3i \n", sumP,sumN)
+printf("  Line usage : %3i\n",  sumLin/60)
+}

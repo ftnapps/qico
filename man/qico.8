@@ -1,0 +1,93 @@
+.TH QICO 8 "21 Jul 2005"
+.SH NAME
+qico \- an FTN compatible mailer.
+.SH SYNOPSIS
+.B qico
+.RB [ \-hdfbntTvc ]
+.RB [
+.B \-a
+.I type
+]
+.RB [
+.B \-i
+.I host
+] [
+.I node
+]
+.SH DESCRIPTION
+.B qico
+is an FTN compatible mailer with many features, such as:
+dynamic configuration, color ncurses frontend, chat, outbound manager.
+It supports emsi and binkp protocols over modem and/or tcp/ip.
+.SH OPTIONS
+.TP
+.BI \-d
+Start
+.B qico
+in daemon (originate) mode.
+.TP
+.BI \-f
+Start
+.B qico
+in foreground (originate) mode.
+.TP
+.BI \-b
+Use Binkp protocol.
+.TP
+.BI \-n
+Run
+.B qico
+nodelist compiler.
+.TP
+.BI \-t
+Test configuration files and exit.
+.TP
+.BI \-T
+Test configuration files and exit (verbose mode).
+.TP
+.BI \-c\ type
+Call node. May have suffix:
+    N (normal),
+    I (immediately),
+    A (force).
+.TP
+.BI \-a\ type
+Start
+.B qico
+in answer mode, with
+.I type
+session.
+.BR
+.I type
+can be:
+.BR
+  auto - autodetect,
+.BR
+  **EMSI_INQC816 - EMSI session,
+.BR
+  binkp - Binkp session.
+.TP
+.BI \-i\ host
+hostname or ip address for tcp/ip calls.
+.TP
+.BI \-h
+Print help message.
+.TP
+.BI \-v
+Print version message.
+.SH SEE ALSO
+qctl(8), qcc(8), inetd(8), mgetty(8)
+
+qico homepage:
+.BR
+     http://qico.sourceforge.net/
+.BR
+     http://193.232.248.13:8080/qicoxe/
+.SH AUTHORS
+ Stepan Pologov <sisoft@bk.ru>, and others:
+ Cyril Margorin <cyrilm@tower.pp.ru> (official branch),
+ Lev Serebryakov <lev@serebryakov.spb.ru> (up to 0.49.9),
+ Pavel Kurnosoff <pqr@yasp.com> (up to 0.45pl3.1).
+ Mitry Matyushkov <r45c at mail dot ru> (qicoxe branch).
+.SH "REPORTING BUGS"
+Report bugs to <r45c at mail dot ru>

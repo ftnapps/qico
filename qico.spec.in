@@ -1,0 +1,75 @@
+Summary:	qico, an ftn-compatible mailer
+Name:		qico
+Version:	@PACKAGE_VERSION@
+Release:	1
+Copyright:	BSD
+Group:		System Environment/Daemons
+Source:		http://lev.serebraykov.spb.ru/download/qico-%{version}.tar.gz
+URL:		http://www.yasp.com/~pqr
+BuildRoot:	/tmp/%{name}-%{version}-root
+
+%description
+Qico is an FidoNet Technology Network (FTN) compatible mailer for Unix
+systems. It has some original features. Full list of features you can
+find in README file. It works well (i.e. was runned at least once ;)
+under Linux, FreeBSD and even BeOS.
+
+%prep
+%setup -q
+
+%build
+LDFLAGS="-s" ./configure  --prefix=%{_prefix} --with-config=/etc/qico.conf
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{_prefix} install
+mkdir $RPM_BUILD_ROOT/etc
+cp qico.conf.sample $RPM_BUILD_ROOT/etc/qico.conf
+
+mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -m755 stuff/ftn $RPM_BUILD_ROOT/etc/rc.d/init.d/ftn
+
+for I in 0 1 2 6; do
+        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
+        ln -s ../init.d/ftn $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/K17ftn
+done
+for I in 3 5; do
+        mkdir -p $RPM_BUILD_ROOT/etc/rc.d/rc$I.d
+        ln -s ../init.d/ftn $RPM_BUILD_ROOT/etc/rc.d/rc$I.d/S83ftn
+done
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post
+/sbin/chkconfig --add ftn
+
+%files
+%attr(755,root,root) %{_sbindir}/qico 
+%attr(755,root,root) %{_bindir}/qctl 
+%attr(755,root,root) %{_bindir}/qcc 
+%config /etc/qico.conf
+%config /etc/rc.d/init.d/ftn
+%config(missingok) /etc/rc.d/rc3.d/S83ftn
+%config(missingok) /etc/rc.d/rc5.d/S83ftn
+%config(missingok) /etc/rc.d/rc0.d/K17ftn
+%config(missingok) /etc/rc.d/rc1.d/K17ftn
+%config(missingok) /etc/rc.d/rc2.d/K17ftn
+%config(missingok) /etc/rc.d/rc6.d/K17ftn
+%doc stuff README FAQ Changes LICENSE
+
+%preun
+if [ $1 = 0 ]; then
+   /sbin/chkconfig --del ftn
+fi
+
+%changelog
+* Wed Sep 27 2000 pqr <pqr@yasp.com>
+  [0.49.0-1]
+- some fixes about prefix and others
+* Tue Aug 29 2000 pqr <pqr@yasp.com>
+  [0.47-1]
+- initial version
+
