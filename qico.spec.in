@@ -4,8 +4,8 @@ Version:	@PACKAGE_VERSION@
 Release:	1
 Copyright:	BSD
 Group:		System Environment/Daemons
-Source:		http://lev.serebraykov.spb.ru/download/qico-%{version}.tar.gz
-URL:		http://www.yasp.com/~pqr
+Source:		http://sf.net/projects/qico/files/qico-%{version}/qico-%{version}.tar.bz2/download
+URL:		http://qico.sourceforge.net
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
@@ -64,12 +64,4 @@ rm -rf $RPM_BUILD_ROOT
 if [ $1 = 0 ]; then
    /sbin/chkconfig --del ftn
 fi
-
-%changelog
-* Wed Sep 27 2000 pqr <pqr@yasp.com>
-  [0.49.0-1]
-- some fixes about prefix and others
-* Tue Aug 29 2000 pqr <pqr@yasp.com>
-  [0.47-1]
-- initial version
 

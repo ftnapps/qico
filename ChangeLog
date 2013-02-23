@@ -1,3 +1,30 @@
+2013-02-23 09:24  jame
+
+    * stuff/test.pl, configure, configure.in:
+
+    Change 'qicosi' or 'qicoxe' references in the current documentation and
+    code to be to just "qico".
+
+2013-01-13 16:03  jame
+
+    * debian/:
+
+    The debian directory and its contents are separately vesioned, so removing
+    from the mainline branch and moving it to its own separate branch.
+
+    * LICENSE, man/gcc.8, man/qctl.8, man/qico.8:
+
+    Detail Copyright related for Robert James Clay <jame@rocasa.us>.
+
+    * man/gcc.8, man/qctl.8, man/qico.8:
+
+    Update the support information in the man pages.
+
+    * README, freebsd/Makefile, freebsd/pkg-descr, qico.spec, qico.spec.in,
+      qico.conf.sample:
+
+    Updates for next release.
+
 2013-01-12 22:12  jame
 
 	* debian/rules:

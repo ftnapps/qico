@@ -16283,5 +16283,5 @@ if test "$no_create" != yes; then
 fi
 
 
-echo "Do 'make' and 'make install' to compile and install qicoxe."
+echo "Do 'make' and 'make install' to compile and install qico."
 echo ""
