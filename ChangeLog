@@ -1,3 +1,10 @@
+2013-02-23 09:24  jame
+
+    * stuff/test.pl, configure, configure.in:
+
+    Change 'qicosi' or 'qicoxe' references in the current documentation and
+    code to be to just "qico".
+
 2013-01-13 16:03  jame
 
     * debian/:
