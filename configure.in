@@ -644,5 +644,5 @@ AC_CONFIG_FILES([
 ])
 AC_OUTPUT
 
-echo "Do 'make' and 'make install' to compile and install qicoxe."
+echo "Do 'make' and 'make install' to compile and install qico."
 echo ""
