@@ -1,17 +1,17 @@
-# New ports collection makefile for:	qicosi
+# New ports collection makefile for:	qico
 # Date created:				26 May 2004
 # Whom:					Andrey Slusar <vasallia@ukr.net>
-#
-# $FreeBSD: ports/comms/qicosi/Makefile,v 1.22 2005/04/12 03:24:59 obrien Exp $
-#
+# Date updated:				13 Jan 2013
+# Whom:					Robert James Clay <jame@rocasa.us>
 
-PORTNAME=	qicosi
-PORTVERSION=	0.57.1
+
+PORTNAME=	qico
+PORTVERSION=	0.58
 CATEGORIES=	comms
-MASTER_SITES=	http://193.232.248.13:8080/qicoxe/
-DISTNAME=	qico-${PORTVERSION}xe
+MASTER_SITES=	http://qico.sourceforge.net
+DISTNAME=	qico-${PORTVERSION}
 
-MAINTAINER=	anrays@gmail.com
+MAINTAINER=	jame@rocasa.us
 COMMENT=	Ip/modem fido compatible mailer
 
 USE_BZIP2=	yes

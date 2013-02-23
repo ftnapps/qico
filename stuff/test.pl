@@ -1,4 +1,4 @@
-# test and info perl script for qicosi.
+# test and info perl script for qico.
 # $Id: test.pl,v 1.1.1.1 2004/12/29 21:23:34 mitry Exp $
 
 # available qico functions:
