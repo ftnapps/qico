@@ -1,0 +1,60 @@
+TODO for v0.58 release
+----------------------
+
+
+- Update LICENSES file by adding the other authors and contributors,
+since that is where the Copyright years are actually mentioned. (Only
+two of the people otherwise mentioned are listed there.) Include
+adding myself (2013, at least.)  Already noted in the README?
+
+- stuff/test.pl:
+    - Change '$Id" line for mitry to copyright line
+    - Add copyright line for me (2013)
+
+
+- Will need to either update src/cvsdate.h or remove it before creating
+an archive (is it actually used during a build?) (do a test build
+without it? check makefile.in files?)
+
+- In at least the shell & bash scripts: for those that have the cvs
+info lines (all of them?), they're always associated with user id
+and day, so change them to to Copyright lines, and also add a line
+for me. If they do not otherwise have some kind of license information,
+use some kind of short form of the overall gico license. 
+
+- ChangeLog: change from using just user name to full email address,
+or make a cross reference note of that info perhaps at the top of 
+the file. (Like already present in, for instance, the README file.)
+
+- ChangeLog: change tabs to just spaces.
+
+- The "src/cvsdate.h" file is left over from when primarily using the 
+cvs repository.  It is still useful to have something like that
+but find another way to do the updates for it besides manually?
+Match it to the most recent entry in ChangeLog? It contains a timestamp
+consisting of date and time.
+
+- stuff/ftn: should really be renamed as stuff/qico as it only does 
+stop/start etc for qico and not any other FTN services.  ("FTN" is too
+generic.)  Do as part of otherwise updating the file? Like changing
+the "$ID" line (7) to be a copyright line.  (It's old & so may not
+still be valid on current Redhat systems.)  The author doesn't 
+otherwise note the license, so just use the qico one.
+
+- Convert overall build system to CMake.
+
+- configure:  since this is generated from configure.in, why is it in the code
+repository?
+
+- That 'cvs.todes.by' doesn't seem to be a valid domain name any longer.
+README:      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co qicoxe
+README:      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co -r xe-0_57-r1 qicoxe
+-> Remove altogether, since the code for it is now included in the main 
+branch at the xe archives are also available for download?
+
+- Rename the 'man' directory as 'doc' and use it for all documentation and
+example files.  Move that type of file from 'stuff' directory to 'doc'. For
+the example shell & perl scripts, use a 'doc/examples' directory instead of
+the existing 'stuff' directory?
+
+
