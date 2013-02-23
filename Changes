@@ -1,3 +1,12 @@
+Version 0.57.3
+~~~~~~~~~~~~~~
+- Change 'qicosi' or 'qicoxe' references in the current documentation and
+  code to be to just "qico".
+- The debian directory and its contents are separately versioned, so removing
+  from the mainline branch and moving it to its own separate branch in the 
+  code repository.
+- Update the support information in the man pages.
+
 Version 0.57.2xe
 ~~~~~~~~~~~~~~~~
 - Apply IPv6 related changes from patch file qico-0.57.1xe-ipv6.patch,
