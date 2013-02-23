@@ -1,0 +1,2 @@
+debian/tmp/qico/qico usr/sbin
+debian/tmp/qico/qctl usr/bin
