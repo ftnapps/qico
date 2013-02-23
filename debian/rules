@@ -1,0 +1,72 @@
+#!/usr/bin/make -f
+
+configure-options := --prefix=/usr --sysconfdir=/etc/qico --disable-notify --enable-hydra8k
+
+TMPDIR := $(CURDIR)/debian/tmp
+
+build: build-stamp-qico build-stamp-qico-qcc
+
+build-stamp-qico:
+	dh_testdir
+	[ -d $(TMPDIR)/qico ] || mkdir -p $(TMPDIR)/qico
+	./configure $(configure-options) --disable-qcc
+	$(MAKE)
+	cp src/qico $(TMPDIR)/qico
+	cp src/qctl $(TMPDIR)/qico
+
+	touch build-stamp-qico
+
+build-stamp-qico-qcc:
+	dh_testdir
+	[ -d $(TMPDIR)/qico-qcc ] || mkdir $(TMPDIR)/qico-qcc
+	./configure $(configure-options)
+	$(MAKE)
+	cp src/qico $(TMPDIR)/qico-qcc
+	cp src/qctl $(TMPDIR)/qico-qcc
+	cp src/qcc $(TMPDIR)/qico-qcc
+
+	touch build-stamp-qico-qcc
+
+clean:	
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp-qico build-stamp-qico-qcc
+	rm -rf $(TMPDIR)
+	[ ! -f Makefile ] || $(MAKE) distclean
+	dh_clean
+
+binary-indep:
+	dh_testdir
+	dh_testroot
+	dh_installdirs -i 
+	dh_installinit --init-script=qico
+	dh_installdocs -i
+	dh_installchangelogs -i
+	dh_install -i
+	dh_compress -i 
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
+binary-arch: build
+	dh_testdir
+	dh_testroot
+	dh_installdirs -a
+	dh_install -a
+	dh_installman -pqico man/qctl.8 man/qico.8
+	dh_link -pqico usr/share/doc/qico-common usr/share/doc/qico 
+	dh_installman -pqico-qcc man/qctl.8 man/qico.8 man/qcc.8
+	dh_link -pqico-qcc usr/share/doc/qico-common usr/share/doc/qico-qcc
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a 
+
+binary:  binary-indep binary-arch
+.PHONY: binary binary-indep binary-arch clean build
