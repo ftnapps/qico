@@ -160,15 +160,6 @@ current:
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
 
-XE:
- cvs: cvs -d:pserver:anonymous:@cvs.todes.by:/cvsroot login
-
- !!! Внимание: в current может лежать неработающая версия. !!!
- current:
-      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co qicoxe
- stable:
-      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co -r xe-0_57-r1 qicoxe
-
 
 Authors
 ~~~~~~~
