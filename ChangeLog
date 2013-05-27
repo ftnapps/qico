@@ -1,3 +1,13 @@
+2013-05-27 12:34  jame
+
+    * README:
+
+    Removed the no longer valid reference to the XE CVS repository in README.
+
+    * configure:
+
+    Remove the autoconf generated file 'configure' from the code repository.
+
 2013-02-23 09:24  jame
 
     * stuff/test.pl, configure, configure.in:
