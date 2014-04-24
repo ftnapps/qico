@@ -1,6 +1,8 @@
-Version 0.57.4
+Version 0.58
 ~~~~~~~~~~~~~~
-- Start development for version v0.57.4
+- Update/correct copyright information in the LICENSE file.
+- Save Russian version as README.ru. Create initial English version of README.
+- Correct format string for printing TCP/IP connection information.
 
 Version 0.57.3
 ~~~~~~~~~~~~~~
