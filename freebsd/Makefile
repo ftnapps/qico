@@ -6,7 +6,7 @@
 
 
 PORTNAME=	qico
-PORTVERSION=	0.57.4
+PORTVERSION=	0.58
 CATEGORIES=	comms
 MASTER_SITES=	http://qico.sourceforge.net
 DISTNAME=	qico-${PORTVERSION}
