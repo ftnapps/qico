@@ -1,7 +1,7 @@
 # New ports collection makefile for:	qico
 # Date created:				26 May 2004
 # Whom:					Andrey Slusar <vasallia@ukr.net>
-# Date updated:				13 Jan 2013
+# Date updated:				27 May 2013
 # Whom:					Robert James Clay <jame@rocasa.us>
 
 

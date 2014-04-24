@@ -1,60 +1,67 @@
-TODO for v0.58 release
-----------------------
+Qico TODO 
+---------
 
+- https://sourceforge.net/p/qico/bugs/15/
+  The source code repository was migrated from CVS to GIT but the old CVS '$Id'
+  lines are still present in source files. Those lines are associated  with a
+  user id and date, so change them to be Copyright lines. If they do not other-
+  wise have some kind of license information, use some kind of short form
+  reference of the overall gico (BSD) license. Can use the user id as a
+  reference to who did the last change to the file but may need to review the
+  commits to check for any others.
 
-- Update LICENSES file by adding the other authors and contributors,
-since that is where the Copyright years are actually mentioned. (Only
-two of the people otherwise mentioned are listed there.) Include
-adding myself (2013, at least.)  Already noted in the README?
+- Update any references to the code repository to be the new SF GIT repo.
 
-- stuff/test.pl:
-    - Change '$Id" line for mitry to copyright line
-    - Add copyright line for me (2013)
+- Will need to either update src/cvsdate.h or remove it before creating an
+  archive (is it actually used during a build?) (do a test build without it?
+  check makefile.in files?) 
+- src/cvsdate.h: at least update for version releases? Presumably it was getting
+  updated for each change in the cvs repo...  Or use date from whichever is most
+  recent;  the Changes or the ChangeLog file.
 
-
-- Will need to either update src/cvsdate.h or remove it before creating
-an archive (is it actually used during a build?) (do a test build
-without it? check makefile.in files?)
-
-- In at least the shell & bash scripts: for those that have the cvs
-info lines (all of them?), they're always associated with user id
-and day, so change them to to Copyright lines, and also add a line
-for me. If they do not otherwise have some kind of license information,
-use some kind of short form of the overall gico license. 
-
-- ChangeLog: change from using just user name to full email address,
-or make a cross reference note of that info perhaps at the top of 
-the file. (Like already present in, for instance, the README file.)
+- ChangeLog: change from using just user name to full email address, or make a
+  cross reference note of that info perhaps at the top of the file. (Like
+  already present in, for instance, the README file.)
 
 - ChangeLog: change tabs to just spaces.
 
-- The "src/cvsdate.h" file is left over from when primarily using the 
-cvs repository.  It is still useful to have something like that
-but find another way to do the updates for it besides manually?
-Match it to the most recent entry in ChangeLog? It contains a timestamp
-consisting of date and time.
+- The "src/cvsdate.h" file is left over from when primarily using the cvs
+  repository.  It is still useful to have something like that but find another
+  way to do the updates for it besides manually? Match it to the most recent
+  entry in ChangeLog? It contains a timestamp consisting of date and time.
 
-- stuff/ftn: should really be renamed as stuff/qico as it only does 
-stop/start etc for qico and not any other FTN services.  ("FTN" is too
-generic.)  Do as part of otherwise updating the file? Like changing
-the "$ID" line (7) to be a copyright line.  (It's old & so may not
-still be valid on current Redhat systems.)  The author doesn't 
-otherwise note the license, so just use the qico one.
+- stuff/ftn: should really be renamed as stuff/qico as it only does stop/start
+  etc for qico and not any other FTN services.  ("FTN" is too generic.)  Do as
+  part of otherwise updating the file? Like changing the "$ID" line (7) to be a
+  copyright line.  (It's old & so may not still be valid on current Redhat
+  systems.)  The author doesn't otherwise note the license, so just use the
+  qico one (BSD).
 
-- Convert overall build system to CMake.
+- qico.spec:  since this should be getting generated from qico.spec.in, why is
+  it in the code repository? Just left over from the xe or other version imports?
 
-- configure:  since this is generated from configure.in, why is it in the code
-repository?
+- https://sourceforge.net/p/qico/bugs/14/
+  Rename the 'man' directory as 'doc' and use it for all documentation and
+  example files.  Move that type of file from 'stuff' directory to 'doc'.
+  For the example shell & perl scripts, use a 'doc/examples' directory instead
+  of the existing 'stuff' directory?
 
-- That 'cvs.todes.by' doesn't seem to be a valid domain name any longer.
-README:      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co qicoxe
-README:      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co -r xe-0_57-r1 qicoxe
--> Remove altogether, since the code for it is now included in the main 
-branch at the xe archives are also available for download?
+- http://sourceforge.net/p/qico/feature-requests/6/
+  As part of converting the overall build system from Autoconf/Automake to CMake,
+  create a basic set of CMakeList.txt files
 
-- Rename the 'man' directory as 'doc' and use it for all documentation and
-example files.  Move that type of file from 'stuff' directory to 'doc'. For
-the example shell & perl scripts, use a 'doc/examples' directory instead of
-the existing 'stuff' directory?
+- http://sourceforge.net/p/qico/feature-requests/7/  
+  Add a basic test framework for Qico using CTest. (CTest can be used separately,
+  so may not need to wait until even the basic CMake files are working.)
 
+- http://sourceforge.net/p/qico/bugs/13/
+  English versions of the documentation, such as the README and the FAQ files,
+  are not available. At least add an English translations of the files, if not
+  also make them the primary version.
+
+- Mailing lists 'qico-devel' & 'qico-users' were apparently created at some
+  point but have not been used (no archives are showing).
+
+- Instead of using one of the devs email address (rjc, currently) at the 
+  AC_INIT line in configure.in, use the devel mailing list email address?
 

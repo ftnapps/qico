@@ -483,7 +483,7 @@ tcp_connect(char *name, char *proxy, int sp)
 			continue;
 		}
 
-		write_log( "TCP/IP connection with %s%s:%d",
+		write_log( "TCP/IP connection with %s%s:%s",
 			proxy ? ( sp ? "socks " : "proxy " ) : "" ,
 			hostbuf,
 			servbuf);
