@@ -2,7 +2,7 @@ Source: qico
 Section: net
 Priority: optional
 Maintainer: Robert James Clay <jame@rocasa.us>
-Build-Depends: debhelper (>= 5.0), libncurses-dev
+Build-Depends: debhelper (>= 8.0), libncurses-dev
 Standards-Version: 3.6.2
 
 Package: qico-common
