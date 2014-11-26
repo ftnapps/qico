@@ -1,3 +1,17 @@
+2014-11-26 06:25  jame
+
+    * Rename configure.in as configure.ac
+     
+    Closes https://sourceforge.net/p/qico/bugs/18/.
+	 
+2014-11-26 05:12  jame
+
+    * src/outbound.c
+     
+    Add case for ' ' in floflist() in file src/outbound.c.
+    Reference also https://sourceforge.net/p/qico/feature-requests/8/
+	 Thanks to Markus Reschke, 2:240/1661.
+
 2014-04-24 07:06  jame
 
     * LICENSE:
