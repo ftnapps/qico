@@ -1,6 +1,6 @@
 ,sS$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ss,
 $$$$'                    qico, an ftn compatible mailer                    `$$$$
-$$$$.                       * version 0.58 *                               ,$$$$
+$$$$.                       * version 0.59 *                               ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
 Features
@@ -151,12 +151,20 @@ Download
 ~~~~~~~~
 
 stable:
+<<<<<<< HEAD
  web: http://www.sf.net/projects/qico -> files -> qico-0.58
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.59
+>>>>>>> develop
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
 
 current:
+<<<<<<< HEAD
  web: http://www.sf.net/projects/qico -> files -> qico-0.58
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.59
+>>>>>>> develop
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
 

@@ -1,3 +1,17 @@
+2014-11-26 06:25  jame
+
+    * Rename configure.in as configure.ac
+
+    Closes https://sourceforge.net/p/qico/bugs/18/.
+
+2014-11-26 05:12  jame
+
+    * src/outbound.c
+
+    Add case for ' ' in floflist() in file src/outbound.c.
+    Reference also https://sourceforge.net/p/qico/feature-requests/8/
+    Thanks to Markus Reschke, 2:240/1661.
+
 2014-04-24 07:06  jame
 
     * LICENSE:
@@ -7,17 +21,17 @@
 2014-04-24 06:22  jame
 
     * README, README.ru;
-        
+
     Russian version as README.ru.  Initial English version of README.
 
 2014-04-24 03:30  jame
 
     * src/tcp.c:
 
-	 Correct display of port number such as "TCP/IP connection with
-	 78.80.60.233:-1077956934" instead of "TCP/IP connection with
-	 78.80.60.233:60179". (https://sourceforge.net/p/qico/bugs/16/)
-	 Thanks to Victor Cizek, 2:421/79@fidonet, RC42.
+    Correct display of port number such as "TCP/IP connection with
+    78.80.60.233:-1077956934" instead of "TCP/IP connection with
+    78.80.60.233:60179". (https://sourceforge.net/p/qico/bugs/16/)
+    Thanks to Victor Cizek, 2:421/79@fidonet, RC42.
 
 2013-05-27 12:34  jame
 
