@@ -778,7 +778,7 @@ static void floflist(flist_t **fl, char *flon)
 
                 case '^': /* kill */
                 case '#': /* trunc */
-                case ' '; /* filename starting with directive */
+                case ' ': /* filename starting with directive */
                     p++;
 
                 default:
