@@ -1,3 +1,19 @@
+2015-05-14 14:48  jame
+
+    * Update copyright years for Robert James Clay in LICENSE.
+
+2015-05-13 14:17  jame
+
+    * Correct ';' to ':' in the src/outbound.c file on line 782.
+
+    Closes https://sourceforge.net/p/qico/feature-requests/8/.
+
+2015-05-13 12:57  jame
+
+    * Rename configure.in as configure.ac in 'Makefile.in' file in sub-directories.
+
+    Closes https://sourceforge.net/p/qico/bugs/18/.
+
 2014-11-26 06:25  jame
 
     * Rename configure.in as configure.ac

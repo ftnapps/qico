@@ -1,6 +1,6 @@
 ,sS$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ss,
 $$$$'                    qico, an ftn compatible mailer                    `$$$$
-$$$$.                       * version 0.59 *                               ,$$$$
+$$$$.                       * version 0.59.1 *                             ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
 Features
@@ -152,19 +152,27 @@ Download
 
 stable:
 <<<<<<< HEAD
- web: http://www.sf.net/projects/qico -> files -> qico-0.58
-=======
- web: http://www.sf.net/projects/qico -> files -> qico-0.59
->>>>>>> develop
- git: https://sourceforge.net/p/qico/git
-      git clone git://git.code.sf.net/p/qico/git qico-git
-
-current:
 <<<<<<< HEAD
  web: http://www.sf.net/projects/qico -> files -> qico-0.58
 =======
  web: http://www.sf.net/projects/qico -> files -> qico-0.59
 >>>>>>> develop
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+>>>>>>> cb2afc55bcb22d8bf0dc093ac3260d6bd337baaf
+ git: https://sourceforge.net/p/qico/git
+      git clone git://git.code.sf.net/p/qico/git qico-git
+
+current:
+<<<<<<< HEAD
+<<<<<<< HEAD
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.59
+>>>>>>> develop
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+>>>>>>> cb2afc55bcb22d8bf0dc093ac3260d6bd337baaf
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
 
