@@ -1,3 +1,10 @@
+Version 0.59.1
+~~~~~~~~~~~~~~
+- Correct ';' to ':' in the src/outbound.c file.
+- Update copyright years for Robert James Clay in LICENSE.
+- Rename configure.in as configure.ac in 'Makefile.in' file in sub-directories.
+
+
 Version 0.59
 ~~~~~~~~~~~~~~
 - Renamed configure.in as configure.ac, closing Bug #18.
