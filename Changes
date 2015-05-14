@@ -1,11 +1,34 @@
+Version 0.59.1
+~~~~~~~~~~~~~~
+- Correct ';' to ':' in the src/outbound.c file.
+- Update copyright years for Robert James Clay in LICENSE.
+- Rename configure.in as configure.ac in 'Makefile.in' file in sub-directories.
+
+
+Version 0.59
+~~~~~~~~~~~~~~
+- Renamed configure.in as configure.ac, closing Bug #18.
+- Add case for ' ' in floflist() in file src/outbound.c. Reference also
+  https://sourceforge.net/p/qico/feature-requests/8/. Thanks to Markus Reschke,
+  2:240/1661.
+
+
+Version 0.58
+~~~~~~~~~~~~~~
+- Update/correct copyright information in the LICENSE file.
+- Save Russian version as README.ru. Create initial English version of README.
+- Correct format string for printing TCP/IP connection information.
+
+
 Version 0.57.3
 ~~~~~~~~~~~~~~
 - Change 'qicosi' or 'qicoxe' references in the current documentation and
   code to be to just "qico".
 - The debian directory and its contents are separately versioned, so removing
-  from the mainline branch and moving it to its own separate branch in the 
+  from the mainline branch and moving it to its own separate branch in the
   code repository.
 - Update the support information in the man pages.
+
 
 Version 0.57.2xe
 ~~~~~~~~~~~~~~~~

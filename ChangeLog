@@ -1,3 +1,60 @@
+2015-05-14 14:48  jame
+
+    * Update copyright years for Robert James Clay in LICENSE.
+
+2015-05-13 14:17  jame
+
+    * Correct ';' to ':' in the src/outbound.c file on line 782.
+
+    Closes https://sourceforge.net/p/qico/feature-requests/8/.
+
+2015-05-13 12:57  jame
+
+    * Rename configure.in as configure.ac in 'Makefile.in' file in sub-directories.
+
+    Closes https://sourceforge.net/p/qico/bugs/18/.
+
+2014-11-26 06:25  jame
+
+    * Rename configure.in as configure.ac
+
+    Closes https://sourceforge.net/p/qico/bugs/18/.
+
+2014-11-26 05:12  jame
+
+    * src/outbound.c
+
+    Add case for ' ' in floflist() in file src/outbound.c.
+    Reference also https://sourceforge.net/p/qico/feature-requests/8/
+    Thanks to Markus Reschke, 2:240/1661.
+
+2014-04-24 07:06  jame
+
+    * LICENSE:
+
+    Update/correct copyright information in the LICENSE file.
+
+2014-04-24 06:22  jame
+
+    * README, README.ru;
+
+    Russian version as README.ru.  Initial English version of README.
+
+2014-04-24 03:30  jame
+
+    * src/tcp.c:
+
+    Correct display of port number such as "TCP/IP connection with
+    78.80.60.233:-1077956934" instead of "TCP/IP connection with
+    78.80.60.233:60179". (https://sourceforge.net/p/qico/bugs/16/)
+    Thanks to Victor Cizek, 2:421/79@fidonet, RC42.
+
+2013-05-27 12:34  jame
+
+    * README:
+
+    Removed the no longer valid reference to the XE CVS repository in README.
+
 2013-02-23 09:24  jame
 
     * stuff/test.pl, configure, configure.in:

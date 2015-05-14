@@ -1,12 +1,12 @@
 # New ports collection makefile for:	qico
 # Date created:				26 May 2004
 # Whom:					Andrey Slusar <vasallia@ukr.net>
-# Date updated:				13 Jan 2013
+# Date updated:				27 May 2013
 # Whom:					Robert James Clay <jame@rocasa.us>
 
 
 PORTNAME=	qico
-PORTVERSION=	0.58
+PORTVERSION=	0.59.1
 CATEGORIES=	comms
 MASTER_SITES=	http://qico.sourceforge.net
 DISTNAME=	qico-${PORTVERSION}

@@ -1,30 +1,30 @@
 ,sS$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$Ss,
 $$$$'                    qico, an ftn compatible mailer                    `$$$$
-$$$$.                         * version 0.58 *                             ,$$$$
+$$$$.                       * version 0.59.1 *                             ,$$$$
 `?S$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$S?'
 
 Features
 ~~~~~~~~
- * Протоколы EMSI: ZModem, ZedZap, Hydra (Std, 4k, 8k, 16k), Janus; Binkp.
- * Поддержка 4D Binkley-Style, Amiga-style outbound, FileBoxes, LongNameBoxes.
- * "Морда" - программа, позволяющая управлять работой мейлера (ncurses based).
- * Режим демона для исходящих звонков и морды.
- * Асинхронная работа менеджера очереди и сессий(как входящих, так и исходящих).
- * Встроенный быстрый компилятор нодлистов c маленькими индексами.
- * Встроенная утилита для работы с аутбаундом, более удобная, т.к. следит за
-   состоянием bsy и csy файлов.
- * Подстановки (substs) с поддержкой ip и hidden-линий.
- * Проверка файл-флагов запрета исходящих звонков на портах.
- * Встроенная "гляделка" нодлиста и аутбаунда.
- * Динамическая конфигурация - возможность изменять большинство параметров
-   конфига во время работы в зависимости от различных условий.
- * Возможность ограничения времени на сессию.
- * Поддержка WaZOO- и SRIF-совместимых фрекпроцессоров.
- * Поддержка всевозможных преобразований локальных и посылаемых путей и имён
-   файлов (поддержка досовских аутбаундов и т.д.).
- * Возможность ограничения минимальной скорости коннекта.
- * Возможность пропуска/задерживания входящих файлов.
- * Чат (на Hydra, Z* и Binkp).
+ * Protocols EMSI: ZModem, ZedZap, Hydra (Std, 4k, 8k, 16k), Janus; Binkp.
+ * Support 4D Binkley-Style, Amiga-style outbound, FileBoxes, LongNameBoxes.
+ * "Muzzle" - a program that allows you to control the operation of mailer (ncurses based).
+ * Daemon mode for outgoing calls and muzzle.
+ * Asynchronous queue manager and sessions (both incoming and outgoing).
+ * Built-in fast compiler c nodelists small indices.
+ * Built-in utility for working with outbound resides, more convenient, because monitors
+   bsy state and csy files.
+ * Substitutions (substs) enabled ip and hidden-line.
+ * Check the file flags ban outgoing calls to ports.
+ * Built-in "peepers" nodelist and outbound resides.
+ * Dynamic configuration - the ability to change most of the parameters
+   config during operation depending on various conditions.
+ * Ability to limit the time for the session.
+ * Support WaZOO-and SRIF-compatible freq processor.
+ * Support all kinds of local transformations and path names sent
+   files (supports outbound resides ol 'DOS, etc.).
+ * Ability to limit the minimum speed of a connection.
+ * Ability to pass / retention incoming files.
+ * Live Chat (Hydra, Z * and Binkp).
  * Perl-hooks.
 
 Building & Installation
@@ -35,139 +35,140 @@ Building & Installation
    $ cd ../obj_qico
 
    $ [path_to/]configure --help
-   $ [path_to/]configure [нужные опции]
+   $ [path_to/]configure [options desired]
    $ make
-   $ make install или make install-strip
+   $ make install or make install-strip
 
-   Положить конфиг в нужное место, подправить его под свои нужды.
-
+  Config put in the right place to customize it to fit your needs.
+  
 Using
 ~~~~~
- * Для исходящих достаточно запускать qico -d из какого-нибудь startup-скрипта,
-   а poll'ы генерить по cron'у.
- * Для входящих (в случае mgetty) необходимо вписать следующую строчку в
-   login.config (mgetty должен быть собран с -DFIDO):
-       /FIDO/  $USER $USER $BINDIR/qico -a @
-   где $USER и $BINDIR значения соответствующих переменных из CONFIG.
- * Можно ещё прописать в inetd.conf для ответа по tcp/ip ifcico и(или) binkp.
- * qcc. Все кнопки регистрозависимы, краткую справку можно получить, нажав F1.
-   Там всё очень кратко/малопонятно, поэтому постараюсь объяснить тут.
-   Если в хелпе написана одна кнопка, то надо жать именно её. В командах
-   смены статуса кнопка в нижнем регистре сбрасывает соответствующий флаг,
-   а кнопка в верхнем регистре (с шифтом) - устанавливает. В командах, где
-   указано по две кнопки (т.е. одна, но в разных регистрах), при нажатии кнопки
-   в нижнем регистре спрашивается адрес, для которого нужно выполнить действие,
-   а при нажатии кнопки в верхнем регистре (с шифтом), в качестве адреса
-   используется текущий адрес (тот, что под курсором).
-   В поле адреса допускается краткая форма записи. Например, если ваш адрес
-   2:5050/125, то при вводе '33' получим адрес 2:5050/33, а при вводе '.12'
-   получим 2:5050/125.12. Поэкспериментируйте сами, разберётесь. ;)
-   Так-же редактор строки ввода запоминает 50 последних набранных строк,
-   прокручивание осуществляется клавишами `вверх' и `вниз', `pgdn` - очистка.
-   В окнах с коннектами можно листать последние 256 строчек лога клавишами
-   up\down\pgup\pgdn\home\end\ins\del. Последние две прокручивают по 2 строки.
-   В главном окне лог не листается. В чатовом окне, надеюсь, всё и так понятно.
+ * For outgoing enough qico-d run out of some startup-script
+   and poll'y generit by cron.
+ * For incoming (if mgetty) need to enter the following line in the
+   login.config (mgetty has to be compiled with-DFIDO):
+       / FIDO / $ USER $ USER $ BINDIR / qico-a @
+   where $ USER and $ BINDIR values of those variables of CONFIG.
+ * You can still register in inetd.conf for response to tcp / ip ifcico and (or) binkp.
+ * Qcc. All buttons are case sensitive, brief summaries can be accessed by pressing F1.
+   There are all very briefly / is obscure, so I will try to explain here.
+   If written in a help one button, you have to press it up. In teams
+   change the status button on the lower register clears the corresponding flag
+   a button in the upper register (with shiftom) - sets. In teams where
+   Specified by two buttons (ie one, but in different registers), pressing
+   lowercase wonders address for which you want to perform an action,
+   and when a button in the upper register (with shiftom) as the address
+   uses the current address (one that under the cursor).
+   In the address field may be a short form of writing. For example, if your address
+   2:5050 / 125 and then type '33 'obtain address 2:5050 / 33, and when you enter' .12 '
+   obtain 2:5050 / 125.12. Experiment yourself understand. ;)
+   So as the input line editor remembers the last 50 dialed strings
+   Scroll by the `up 'and` down', `pgdn` - cleaning.
+   For windows you can browse the latest CONNECT 256 lines log keys
+   up \ down \ pgup \ pgdn \ home \ end \ ins \ del. Last two scroll on 2 lines.
+   In the main window, the log is not flipping. In the chat window, I hope everything is clear.
+
 
 Notes
 ~~~~~
- # Поддерживается _только_ 4D BSO, т.к. 5D имхо и нафиг не нужен - только
-   глюки плодить. При ftn-style софте потери совсем незаметно, а для гейта,
-   если хочется f56.n34.z12.othernet.org, а не f56.n34.z12.fidonet.org, то
-   можно юзать domtrans. И потом, не забывайте про сим- и хардлинки ;)
+# Supports _only_ 4D BSO, because 5D IMHO nafig not needed - just
+  produce glitches. When ftn-style Soft loss completely unnoticed, but for the gate,
+  if you want f56.n34.z12.othernet.org, not f56.n34.z12.fidonet.org, then
+  can juzat domtrans. And then, do not forget the sim and hardlink ;)
 
- # .REQ является поводом для звонка и аналогичен паре .REQ+.FLO для ifcico.
+ #. REQ is the reason for the call and similar pair. REQ +. FLO for ifcico.
 
- # Структура .QST:
-   <N попытки> <флаги> <время окончания холда> <время окончания undial>
-  SP: В случае использования режима ND протокола Binkp, после этих параметров
-   могут быть ещё несколько. они должны просто игнорироваться.
+ # Structure. QST:
+   <N Popytki> <flags> <Hold Time> <Time undial>
+  SP: In the case of regime ND protocol Binkp, after these parameters
+   may be even more. they should simply be ignored.
 
- # Все временные промежутки могут быть указаны как в формате d.hh:mm-d.hh:mm
-   (дни и/или минуты могут быть опущены), тогда они воспринимаются как
-   локальное время, так и в формате Txy, тогда они считаются относительно UTC.
-   Вместо 00:00-23:59 можно просто написать CM, вместо 0:00-0:00 - Never
-   Можно написать несколько промежутков через запятую.
-   В условиях также можно использовать промежутки в формате ifcico (иногда
-   это удобнее).
+  # All time intervals can be specified in the format d.hh: mm-d.hh: mm
+   (Days and / or minutes may be omitted), then they are regarded as
+   local time, and in the format Txy, then they are considered relatively UTC.
+   Instead, you can simply write 00:00-23:59 CM, instead of 0:00-0:00 - Never
+   You can write a few periods separated by commas.
+   In the context of intervals can also be used in the format ifcico (sometimes
+   it is more convenient).
 
- # Чтобы описать хиддены, просто пропишите несколько subst'ов для одного адреса.
-   Нодлистовая линия в этом случае игнорируется, так что её надо тоже прописать
-   как subst.
+ # To describe Hidd, just list the few subst'ov one address.
+   Nodlistovaya line in this case is ignored, so it must also register
+   as subst.
 
- # Команда qctl -f или f в qcc выдают информацию _только_ из нодлиста, без
-   учёта subst'ов!
+ # Team qctl-f or f in qcc information _only_ issue of nodelist without
+   accounting subst'ov!
 
- # Если у вас совсем нет никаких листов и они и не нужны, все равно придётся
-   прописать хотя бы один (хоть и несуществующий) лист и создать пустой
-   индекс, запустив 'qico -n'.
+# If you have absolutely no sheets and they are not needed, you still have
+   register at least one (though non-existent) and create an empty sheet
+   index by running 'qico-n'.
 
- # Если нужно перечитать конфиги, не делайте "killall -HUP qico", т.к. это
-   загасит все открытые сессии ;) Правильнее делать qctl -R.
-   Это также относится и к "killall qico"/"qctl -q".
-  SP: открытые сессии не гасятся, но управление ими стаёт невозможным.
-   а вообще, можно просто нажать `R' в qcc, конфиги нормально перечитаются.
+ # If you want to reread the config files, do not do "killall-HUP qico", because it
+   extinguish all open sessions right thing to do ;) qctl-R.
+   This also applies to "killall qico" / "qctl-q".
+  SP: open session is not suppressed, but management ceases to be impossible.
+   but in general, you can simply press the `R 'in qcc, configs normally reread.
 
- # Вся информация, которая используется для проверки условий в конфиге
-   до emsi берётся из нодлиста и subst'ов, а после - из полученного emsi.
+ # All the information that is used to check conditions in the config
+   emsi taken up from the nodelist and subst'ov, and after - from the resulting emsi.
 
- # В качестве фрекпроцессора можно взять мой же ifextrp-pk (лежит там же,
-   где и qico) или оригинальный ifextrp by Serge Oskin.
-  SP: а теперь появилась возможность использовать SRIF-совместимые
-   фрекпроцессоры, которые обычно более функциональны.
+# As freq processor can take my same ifextrp-pk (is there, where qico) or
+  original ifextrp by Serge Oskin. SP: and it is now possible to use the
+  SRIF-compatible freq processor that typically more functional.
 
- # "History" сделана для быстрой и лёгкой генерации статистики (должно хватать
-   одного awk). Формат следующий (одна строка - одна сессия):
-   <line>,<time>,<length>,<address>,[P][L]{I|O}{1|0},<sent_bytes>,<recd_bytes>
-   где <line> - терминал или tcpip для tcp/ip-сессий
-       <time> и <length> - в секундах (unix time)
+ # "History" is made for quick and easy generation of statistics (should be enough
+   one awk). Following format (one line - one session):
+   <line>, <time>, <length>, <address>, [P] [L] {I | O} {1 | 0}, <sent_bytes>, <recd_bytes>
+   where <line> - terminal or tcpip for tcp / ip-sessions
+       <time> and <length> - in seconds (unix time)
        P - protected, L - listed,
-       I/O - inbound/outbound,
-       1/0 - successful/failed
+       I / O - inbound / outbound,
+       1/0 - successful / failed
 
- # FileBox'ы сделаны по аналогии с ifcico - файлы из них отдаются в самом конце,
-   poll'а не вызывают, после успешной передачи удаляются. Обрабатываются
-   только обычные файлы и симлинки. LongNameBox'ы - тоже самое, только
-   просматривается каталог с именем вида '$longboxpath/zone.net.node.point'.
-  SP: теперь кика понимает флаворы боксов, т.е. zone.net.node.point.flavor.
-   флаворы d,f,n,i,c вызывают полл, h - не вызывает. если флавор не указан,
-   то его значение берётся из слова `defboxflv'.
+ # FileBox'y made by analogy with ifcico - files are given to the very end,
+   poll'a not cause after successful transmission removed. Processed
+   Only regular files and symlinks. LongNameBox'y - the same, only
+   browse the directory with a name like '$ longboxpath / zone.net.node.point'.
+  SP: Now kick understands Flavor boxes, ie zone.net.node.point.flavor.
+   Flavor d, f, n, i, c causes a poll, h - causes. Flavor if not specified,
+   then its value is taken from the word `defboxflv '.
 
- # Прочитайте внимательно верхушку конфига насчёт условий! Эта штука позволяет
-   разделить логи/инбаунды/аутбаунды/прятать или добавлять разные aka
-   для разных линий и/или в зависимости от времени, удалённого адреса, телефона
-   CID'а и т.д. Короче, на каждую комбинацию условий у вас фактически будет
-   отдельный конфиг.
-
- # Догадываюсь, что описание опции mapout в конфиге более чем туманно, так что
-   попробую объяснить по-русски ;) Итак, преобразования имён делятся на два
-   типа - преобразование локальных имён, которые будут открываться для
-   пересылки и имён, под которыми файлы получит удалённая сторона.
-   Преобразования, заданные большими буквами + mappath влияют только на
-   локальное имя, их надо подогнать так, чтобы файлы прописанные в лошках
-   мейлер мог открыть, а остальные преобразования можно уже настроить так, как
-   вам хочется, чтобы ремота получала файлы.
-
+ # I guess that description of the option in the config mapout more than vague, so
+   try to explain in Russian ;) So, convert names are divided into two
+   type - the conversion of local names, which will be open for
+   Shipping and names by which files get the remote side.
+   Conversion specified in big letters + mappath only affect
+   local name, they must adjust so that the files in the prescribed loshka
+   mailer could not open, and the remaining conversion can already be configured as
+   you want to remota received files.
+   
 Download
 ~~~~~~~~
 
 stable:
+<<<<<<< HEAD
+<<<<<<< HEAD
  web: http://www.sf.net/projects/qico -> files -> qico-0.58
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.59
+>>>>>>> develop
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+>>>>>>> cb2afc55bcb22d8bf0dc093ac3260d6bd337baaf
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
 
 current:
+<<<<<<< HEAD
+<<<<<<< HEAD
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+=======
  web: http://www.sf.net/projects/qico -> files -> qico-0.59
+>>>>>>> develop
+=======
+ web: http://www.sf.net/projects/qico -> files -> qico-0.58
+>>>>>>> cb2afc55bcb22d8bf0dc093ac3260d6bd337baaf
  git: https://sourceforge.net/p/qico/git
       git clone git://git.code.sf.net/p/qico/git qico-git
-
-XE:
- cvs: cvs -d:pserver:anonymous:@cvs.todes.by:/cvsroot login
-
- !!! Внимание: в current может лежать неработающая версия. !!!
- current:
-      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co qicoxe
- stable:
-      cvs -d:pserver:anonymous@cvs.todes.by:/cvsroot co -r xe-0_57-r1 qicoxe
 
 
 Authors

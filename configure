@@ -270,8 +270,8 @@ SHELL=${CONFIG_SHELL-/bin/sh}
 # Identity of this package.
 PACKAGE_NAME='qico'
 PACKAGE_TARNAME='qico'
-PACKAGE_VERSION='0.57.1xe'
-PACKAGE_STRING='qico 0.57.1xe'
+PACKAGE_VERSION='0.59'
+PACKAGE_STRING='qico 0.59'
 PACKAGE_BUGREPORT='r45c at mail dot ru'
 
 ac_unique_file="src/main.c"

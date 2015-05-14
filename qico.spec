@@ -1,6 +1,6 @@
 Summary:	qico, an ftn-compatible mailer
 Name:		qico
-Version:	0.57.3
+Version:	0.59.1
 Release:	1
 Copyright:	BSD
 Group:		System Environment/Daemons

@@ -2,7 +2,7 @@ Source: qico
 Section: net
 Priority: optional
 Maintainer: Robert James Clay <jame@rocasa.us>
-Build-Depends: debhelper (>= 5.0), libncurses-dev
+Build-Depends: debhelper (>= 8.0), libncurses-dev
 Standards-Version: 3.6.2
 
 Package: qico-common
@@ -12,7 +12,7 @@ Description: FTN compatible mailer with many features
  It includes such features as: dynamic configuration, color ncurses
  frontend, chat, outbound manager, perl. Supported emsi and
  binkp protocols over modem and(or) tcp/ip. It uses Binkley
- and Amiga-style outbounds. It is an "xe" branch of qico.
+ and Amiga-style outbounds.
  .
  This package contains common directory structure, scripts and
  documentation.
@@ -25,7 +25,7 @@ Description: FTN compatible mailer with many features
  It includes such features as: dynamic configuration, color ncurses
  frontend, chat, outbound manager, perl. Supported emsi and
  binkp protocols over modem and(or) tcp/ip. It uses Binkley
- and Amiga-style outbounds. It is an "xe" branch of qico.
+ and Amiga-style outbounds.
  .
  This binary package is built without frontend support, good for
  servers.
@@ -38,6 +38,6 @@ Description: FTN compatible mailer with many features
  It includes such features as: dynamic configuration, color ncurses
  frontend, chat, outbound manager, perl. Supported emsi and
  binkp protocols over modem and(or) tcp/ip. It uses Binkley
- and Amiga-style outbounds. It is an "xe" branch of qico.
+ and Amiga-style outbounds.
  .
  This is a full version with frontend support.

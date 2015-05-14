@@ -1,8 +1,8 @@
-qico (0.57.3-1~1) UNRELEASED; urgency=low
+qico (0.59.1-1~1) UNRELEASED; urgency=low
 
   * New upstream release.
 
- -- Robert James Clay <jame@rocasa.us>  Sat, 23 Feb 2013 11:21:57 -0500
+ -- Robert James Clay <jame@rocasa.us>  Thu, 14 May 2014 16:24:49 -0400
 
 qico (0.57.2xe-1) stable; urgency=low
 
