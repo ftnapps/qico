@@ -1,39 +1,54 @@
-This package was debianized by Kaliuta Yauheni <y.kaliuta@gmail.com> on
-Tue, 23 Aug 2005 15:47:59 +0300
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Qico
+Source: http://qico.sourceforge.net/index.html
+Upstream-Contact: Robert James Clay <jame@rocasa.us>
+Comment: Stepan Pologov, sisoft@bk.ru, 2:467/126.125
+  Cyril Margorin, cyrilm@tower.pp.ru, 2:5020/2999.18 (official branch)
+  Lev Serebryakov, lev@serebryakov.spb.ru, 2:5030/661, icq 3670018 (up to 0.49.9)
+  Pavel Kurnosoff, pqr@yasp.com, 2:5030/736.25, icq 45906870 (up to 0.45pl3.1)
+  Mitry Matyushkov, <r45c at mail dot ru>, 2:450/1024 (XE Maintainer)
+  Robert James Clay, <jame at rocasa dot us>, 1:120/544 (after 0.57.1xe)
 
-It was downloaded from http://193.232.248.13:8080/qicoxe/
+Files: *
+Copyright: 2013-2015 Robert James Clay <jame@rocasa.us>
+ 2004-2005 Mitry Matyushkov, <r45c@mail.ru>
+ 2003-2004 Stepan A. Pologov <sisoft@bk.ru>
+      2003 Cyril Margorin <cyrilm@tower.pp.ru>
+      2003 Sir Raorn <raorn@users.sourceforge.net>
+ 2001-2002 Eugeny Korekin <aaz@users.sourceforge.net> 
+ 2000-2002 Lev Serebryakov <lev@serebryakov.spb.ru>
+License:  BSD-4-clause
 
-Copyright:
+Files: debian/*
+Copyright: 2013-2015 Robert James Clay <jame@rocasa.us>
+ 2004-2005 Mitry Matyushkov, <r45c@mail.ru>
+      2005 Kaliuta Yauheni <y.kaliuta@gmail.com>
+ 2003-2004 Stepan A. Pologov <sisoft@bk.ru>
+License: BSD-4-clause
 
-Stepan Pologov, sisoft@bk.ru, 2:467/126.125
-Cyril Margorin, cyrilm@tower.pp.ru, 2:5020/2999.18 (official branch)
-Lev Serebryakov, lev@serebryakov.spb.ru, 2:5030/661, icq 3670018 (up to 0.49.9)
-Pavel Kurnosoff, pqr@yasp.com, 2:5030/736.25, icq 45906870 (up to 0.45pl3.1)
-Mitry Matyushkov, <r45c at mail dot ru>, 2:450/1024 (XE Maintainer)
-Robert James Clay, <jame at rocasa dot us>, 1:120/544 (after 0.57.1xe)
+License: BSD-4-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. All advertising materials mentioning features or use of this software
+    must display the following acknowledgement:
+ 4. Neither the names of the authors or the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-3. All advertising materials mentioning features or use of this software
-   must display the following acknowledgement:
-4. Neither the names of the authors or the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
