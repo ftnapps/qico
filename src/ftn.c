@@ -31,7 +31,7 @@
 #include "crc.h"
 
 /* domain name to translate ftn address to inet host. */
-#define FTNDOMAIN "fidonet.net"
+#define FTNDOMAIN "binkp.net"
 
 
 void addr_cpy(ftnaddr_t *a, const ftnaddr_t *b)
