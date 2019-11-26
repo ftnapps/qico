@@ -4,6 +4,7 @@ AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([qico],[0.59.1])
 AM_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE([subdir-objects])
 
 dnl Checks for programs.
 AC_PROG_CC
