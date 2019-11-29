@@ -314,7 +314,7 @@ writeit:
 
 static int modem_get_str(char *buf, size_t nbytes, int timeout)
 {
-    timer_t tout = timer_set( timeout );
+    time_t tout = timer_set( timeout );
     int rc = ERROR, ch = 0, ptr = 0;
 
     buf[0] = '\0';
